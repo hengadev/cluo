@@ -1,11 +1,23 @@
 <script>
-    import { Button } from "$lib/components/ui/button";
+    import Header from "./Header.svelte";
+    import Content from "./Content.svelte";
+    import Sidebar from "./Sidebar.svelte";
 </script>
 
-<h1>Welcome to SvelteKit</h1>
-<p>
-    Visit <a href="https://svelte.dev/docs/kit">svelte.dev/docs/kit</a> to read the
-    documentation
-</p>
-<p>The first button of the app</p>
-<Button>Click me</Button>
+<div class="page">
+    <Header />
+    <Sidebar />
+    <Content />
+</div>
+
+<style>
+    .page {
+        display: grid;
+        grid-template-areas:
+            "header header"
+            "sidebar content";
+        grid-template-rows: 60px 1fr;
+        grid-template-columns: auto 1fr;
+        height: 100vh;
+    }
+</style>
