@@ -5,7 +5,7 @@
 <style>
     .content {
         grid-area: content;
-        background-color: green;
+        border: 2px solid green;
         height: 100%;
         overflow: auto;
     }
