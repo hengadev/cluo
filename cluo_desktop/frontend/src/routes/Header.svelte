@@ -1,15 +1,15 @@
 <script lang="ts">
     import { Slack, Folder, MessageSquareMore, Settings } from "@lucide/svelte";
-    import { Input } from "$lib/components/ui/input";
-    import { Button } from "$lib/components/ui/button";
+    // import { Input } from "$lib/components/ui/input";
+    // import { Button } from "$lib/components/ui/button";
     import NewCase from "$lib/custom/NewCase.svelte";
     // TODO: pour la partie client ou type d'enquete, il faut un select avec tous les anciens clients + un bouton plus pour ajouter un nouvel element
 </script>
 
 {#snippet headerOption(Icon: any, clickAction: any)}
-    <Button onclick={clickAction}>
+    <button onclick={clickAction}>
         <Icon />
-    </Button>
+    </button>
 {/snippet}
 
 <div class="header">
@@ -20,17 +20,15 @@
             <p>HENRY Gary</p>
         </div>
     </div>
-    <div class="search">
-        <Input />
-    </div>
+    <input class="search" />
+    <!-- <Input /> -->
     <div class="buttons">
         <NewCase />
         {@render headerOption(MessageSquareMore, function (e: MouseEvent) {
             console.log("here is the event:", e);
         })}
-        <Button>
-            <Settings />
-        </Button>
+        <button>Button</button>
+        <Settings />
     </div>
 </div>
 

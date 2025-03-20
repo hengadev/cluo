@@ -10,7 +10,7 @@
     <Content />
 </div>
 
-<style>
+<style lang="postcss">
     .page {
         display: grid;
         grid-template-areas:
