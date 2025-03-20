@@ -10,24 +10,24 @@ import {
     UserPen,
 } from "@lucide/svelte";
 
-export type Element = {
-    image: typeof import('@lucide/svelte').Icon;
+export type SidebarItem = {
+    icon: typeof import('@lucide/svelte').Icon;
     title: string;
-    onClick: (event: MouseEvent) => void
+    fn: (event: MouseEvent) => void
 }
 
 function handleClick() {
     console.log("here to save the space")
 }
 
-export const elements: Element[] = [
-    { image: Home, title: "Accueil", onClick: handleClick },
-    { image: Info, title: "Informations", onClick: handleClick },
-    { image: Slack, title: "Images", onClick: handleClick },
-    { image: ReceiptEuro, title: "Facture", onClick: handleClick },
-    { image: FileText, title: "Rapport", onClick: handleClick },
-    { image: Handshake, title: "Mandat", onClick: handleClick },
-    { image: UserPen, title: "Devis", onClick: handleClick },
-    { image: Camera, title: "Photos", onClick: handleClick },
-    { image: Globe, title: "Reseaux", onClick: handleClick },
+export const items: SidebarItem[] = [
+    { icon: Home, title: "Accueil", fn: handleClick },
+    { icon: Info, title: "Informations", fn: handleClick },
+    { icon: Slack, title: "Images", fn: handleClick },
+    { icon: ReceiptEuro, title: "Facture", fn: handleClick },
+    { icon: FileText, title: "Rapport", fn: handleClick },
+    { icon: Handshake, title: "Mandat", fn: handleClick },
+    { icon: UserPen, title: "Devis", fn: handleClick },
+    { icon: Camera, title: "Photos", fn: handleClick },
+    { icon: Globe, title: "Reseaux", fn: handleClick },
 ]
