@@ -17,7 +17,7 @@
     .page {
         display: grid;
         grid-template-areas:
-            "header header"
+            "sidebar header"
             "sidebar content";
         /* grid-template-rows: 100px 1fr; */
         grid-template-rows: auto 1fr;
