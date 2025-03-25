@@ -11,7 +11,7 @@
     <div
         class="border-dark border-2 mt-24 size-16 rounded-input flex items-center justify-center"
     >
-        <Slack size={36} stroke-width={8} />
+        <Slack size={36} strokeWidth={1.5} />
     </div>
     <div class="flex flex-col justify-between h-full">
         <div class="flex flex-col items-center gap-4">
@@ -43,7 +43,7 @@
             >
                 {@const Icon = item.icon}
                 <Button.Root class="cursor-pointer">
-                    <Icon size={32} />
+                    <Icon size={32} strokeWidth={1.5} />
                 </Button.Root>
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8} side="right">
