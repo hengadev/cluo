@@ -1,6 +1,5 @@
 import {
     Home,
-    Slack,
     ReceiptEuro,
     Handshake,
     Info,
@@ -23,11 +22,10 @@ function handleClick() {
 export const items: SidebarItem[] = [
     { icon: Home, title: "Accueil", fn: handleClick },
     { icon: Info, title: "Informations", fn: handleClick },
-    { icon: Slack, title: "Images", fn: handleClick },
+    { icon: Camera, title: "Photos", fn: handleClick },
     { icon: ReceiptEuro, title: "Facture", fn: handleClick },
     { icon: FileText, title: "Rapport", fn: handleClick },
     { icon: Handshake, title: "Mandat", fn: handleClick },
     { icon: UserPen, title: "Devis", fn: handleClick },
-    { icon: Camera, title: "Photos", fn: handleClick },
     { icon: Globe, title: "Reseaux", fn: handleClick },
 ]
