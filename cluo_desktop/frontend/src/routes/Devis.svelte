@@ -1,6 +1,6 @@
 <script lang="ts"></script>
 
-<div class="content">informations</div>
+<div class="content">devis</div>
 
 <style>
     .content {

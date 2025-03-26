@@ -2,8 +2,9 @@
     import { Home, User } from "@lucide/svelte";
     import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
+    import { type SidebarState } from "$lib/types/sidebar";
     import { items, type SidebarItem } from "$lib/constructor/sidebar";
-    let selected: string = $state(items[0].title);
+
     const size: number = 32;
 
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
@@ -15,10 +16,15 @@
         message:
             "Le message de ce toast n'est la qu'a titre indicatif en realite.",
     };
+
+    let selected: string = $state(items[0].title);
+
+    type Props = { sidebarState: SidebarState };
+    let { sidebarState = $bindable() }: Props = $props();
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-[#fafafa] border-2 border-[#e5e7eb]"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-[#fafafa] border-1 border-[#e5e7eb]"
 >
     <div class="grid gap-4">
         <Button.Root
@@ -61,6 +67,7 @@
                 onclick={() => {
                     item.fn;
                     selected = item.title;
+                    sidebarState = item.title;
                 }}
             >
                 {@const Icon = item.icon}
