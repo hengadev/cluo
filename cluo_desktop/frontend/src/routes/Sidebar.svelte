@@ -17,10 +17,10 @@
             "Le message de ce toast n'est la qu'a titre indicatif en realite.",
     };
 
-    let selected: string = $state(items[0].title);
-
     type Props = { sidebarState: SidebarState };
     let { sidebarState = $bindable() }: Props = $props();
+
+    let selected: string = $state(sidebarState);
 </script>
 
 <div
