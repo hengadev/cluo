@@ -1,17 +1,20 @@
 <script lang="ts">
-    import { Slack, User } from "@lucide/svelte";
-    import { Button, Tooltip } from "bits-ui";
+    import { Home, User } from "@lucide/svelte";
+    import { Button, Tooltip, Separator } from "bits-ui";
     import { items, type SidebarItem } from "$lib/constructor/sidebar";
     let selected: string = $state(items[0].title);
 </script>
 
 <div
-    class="grid-area h-full p-2 pt-8 flex flex-col gap-12 items-center bg-[#fafafa] border-2 border-[#e5e7eb]"
+    class="grid-area h-full p-1 pt-2 flex flex-col gap-10 items-center bg-[#fafafa] border-2 border-[#e5e7eb]"
 >
-    <div
-        class="border-dark border-2 mt-24 size-16 rounded-input flex items-center justify-center"
-    >
-        <Slack size={36} strokeWidth={1.5} />
+    <div class="grid gap-4">
+        <Button.Root
+            class="border-dark border-2 p-2 rounded-input flex items-center justify-center cursor-pointer"
+        >
+            <Home size={32} strokeWidth={1.5} />
+        </Button.Root>
+        <Separator.Root class="bg-dark-10 -mx-8 block h-[2px]" />
     </div>
     <div class="flex flex-col justify-between h-full">
         <div class="flex flex-col items-center gap-4">
@@ -20,7 +23,7 @@
             {/each}
         </div>
         <Button.Root
-            class="rounded-full flex items-center justify-center border-1 border-[#e5e7eb] mx-auto size-12 bg-muted"
+            class="rounded-10px flex items-center justify-center border-1 border-[#e5e7eb] mx-auto size-12 bg-white cursor-pointer"
         >
             <User size={32} />
         </Button.Root>
