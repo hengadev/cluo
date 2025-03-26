@@ -1,0 +1,120 @@
+<script lang="ts">
+    import { Dialog, Label, Separator } from "bits-ui";
+    import { X } from "@lucide/svelte";
+
+    type Props = { children: import("svelte").Snippet };
+    let { children }: Props = $props();
+
+    type Notification = {
+        title: string;
+        content: string;
+        sendAt: string;
+    };
+    let notifications: Notification[] = [
+        {
+            title: "New Feature: AI Case Analysis",
+            content:
+                "Analyse case patterns with our new AI-powered insight tool",
+            sendAt: "Just now",
+        },
+        {
+            title: "New Feature: AI Case Analysis",
+            content:
+                "Analyse case patterns with our new AI-powered insight tool",
+            sendAt: "Just now",
+        },
+    ];
+</script>
+
+<Dialog.Root>
+    <Dialog.Trigger>
+        {@render children()}
+    </Dialog.Trigger>
+    <Dialog.Portal>
+        <Dialog.Overlay
+            class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+        />
+        <Dialog.Content
+            class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border p-8 sm:max-w-[720px] md:w-full"
+        >
+            <Dialog.Title
+                class="flex w-full items-center justify-center text-lg font-semibold tracking-tight"
+            >
+                Creer un nouveau dossier
+            </Dialog.Title>
+            <Separator.Root class="bg-muted mx-5 !mb-6 !mt-5 block h-px" />
+            <Dialog.Description class="text-foreground-alt !mt-5 text-sm"
+                >Veuillez remplir les champs ci-dessous pour créer le dossier.
+                Notez que les informations saisies pourront être modifiées
+                ultérieurement.</Dialog.Description
+            >
+            <form class="flex flex-col items-start gap-4 pb-11 pt-7">
+                <div class="flex justify-between gap-4 w-full">
+                    {@render halfField(
+                        "lastname",
+                        "Entre le nom de la personne enquetee",
+                        "Nom",
+                    )}
+                    {@render halfField(
+                        "firstname",
+                        "Entre le prenom de la personne enquetee",
+                        "Prenom",
+                    )}
+                </div>
+                {@render fullField(
+                    "address1",
+                    "Entre ta cle brother",
+                    "Adresse 1",
+                )}
+                {@render fullField(
+                    "address2",
+                    "Entre le deuxieme champ d'addresse",
+                    "Adresse 2",
+                )}
+            </form>
+            <div class="flex w-full justify-end">
+                <Dialog.Close
+                    class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-[50px] text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
+                >
+                    Sauvegarder
+                </Dialog.Close>
+            </div>
+            <Dialog.Close
+                class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-5 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
+            >
+                <div>
+                    <X class="text-foreground size-5" />
+                    <span class="sr-only">Close</span>
+                </div>
+            </Dialog.Close>
+        </Dialog.Content>
+    </Dialog.Portal>
+</Dialog.Root>
+
+{#snippet fullField(name: string, placeholder: string, label: string)}
+    <div class="flex flex-col gap-2 w-full">
+        <Label.Root for={name} class="text-sm font-medium">{label}</Label.Root>
+        <div class="relative w-full">
+            <input
+                id={name}
+                class="h-input rounded-card-sm border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-dark-40 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-full items-center border px-4 text-base focus:ring-2 focus:ring-offset-2 sm:text-sm"
+                {placeholder}
+                {name}
+            />
+        </div>
+    </div>
+{/snippet}
+
+{#snippet halfField(name: string, placeholder: string, label: string)}
+    <div class="w-full flex flex-col gap-2">
+        <Label.Root for={name} class="text-sm font-medium">{label}</Label.Root>
+        <div class="relative w-full">
+            <input
+                id={name}
+                class="h-input rounded-card-sm border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-dark-40 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-full items-center border px-4 text-base focus:ring-2 focus:ring-offset-2 sm:text-sm"
+                {placeholder}
+                {name}
+            />
+        </div>
+    </div>
+{/snippet}
