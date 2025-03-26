@@ -1,10 +1,20 @@
 <script lang="ts">
     import { Home, User } from "@lucide/svelte";
-    import { Button, Tooltip, Separator } from "bits-ui";
+    import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
     import { items, type SidebarItem } from "$lib/constructor/sidebar";
     let selected: string = $state(items[0].title);
     const size: number = 32;
+
+    import { getToastContext } from "$lib/custom/global/toast/state.svelte";
+    import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+    const toastState = getToastContext();
+    const mockToast = {
+        level: TOAST_LEVELS.Info,
+        title: "Un titre pour le toast",
+        message:
+            "Le message de ce toast n'est la qu'a titre indicatif en realite.",
+    };
 </script>
 
 <div
@@ -12,11 +22,16 @@
 >
     <div class="grid gap-4">
         <Button.Root
-            class="bg-white border-dark border-2 p-2 rounded-input flex items-center justify-center cursor-pointer"
+            class="bg-white border-dark border-2 p-2 !mt-1 rounded-input flex items-center justify-center cursor-pointer"
+            onclick={() =>
+                toastState.add(
+                    mockToast.level,
+                    mockToast.title,
+                    mockToast.message,
+                )}
         >
             <Home {size} strokeWidth={1.5} />
         </Button.Root>
-        <Separator.Root class="bg-dark-10 -mx-8 block h-[2px]" />
     </div>
     <div class="flex flex-col justify-between h-full">
         <div class="flex flex-col items-center gap-4">

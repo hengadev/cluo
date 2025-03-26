@@ -5,7 +5,13 @@
 
     import Header from "./Header.svelte";
     import Sidebar from "./Sidebar.svelte";
+    import Toaster from "$lib/custom/global/toast/Toaster.svelte";
+
+    import { setToastContext } from "$lib/custom/global/toast/state.svelte";
+    setToastContext();
 </script>
+
+<Toaster />
 
 <div class="page">
     <Header />
