@@ -8,9 +8,11 @@ import {
     UserPen,
 } from "@lucide/svelte";
 
+import { SIDEBAR_STATES, type SidebarState } from "$lib/types/sidebar";
+
 export type SidebarItem = {
     icon: typeof import('@lucide/svelte').Icon;
-    title: string;
+    title: SidebarState;
     fn: (event: MouseEvent) => void
 }
 
@@ -19,11 +21,11 @@ function handleClick() {
 }
 
 export const items: SidebarItem[] = [
-    { icon: Info, title: "Informations", fn: handleClick },
-    { icon: Camera, title: "Photos", fn: handleClick },
-    { icon: ReceiptEuro, title: "Facture", fn: handleClick },
-    { icon: FileText, title: "Rapport", fn: handleClick },
-    { icon: Handshake, title: "Mandat", fn: handleClick },
-    { icon: UserPen, title: "Devis", fn: handleClick },
-    { icon: Globe, title: "Reseaux", fn: handleClick },
+    { icon: Info, title: SIDEBAR_STATES.Informations, fn: handleClick },
+    { icon: Camera, title: SIDEBAR_STATES.Photos, fn: handleClick },
+    { icon: ReceiptEuro, title: SIDEBAR_STATES.Facture, fn: handleClick },
+    { icon: FileText, title: SIDEBAR_STATES.Rapport, fn: handleClick },
+    { icon: Handshake, title: SIDEBAR_STATES.Mandat, fn: handleClick },
+    { icon: UserPen, title: SIDEBAR_STATES.Devis, fn: handleClick },
+    { icon: Globe, title: SIDEBAR_STATES.Reseaux, fn: handleClick },
 ]
