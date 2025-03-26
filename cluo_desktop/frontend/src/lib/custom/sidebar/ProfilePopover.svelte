@@ -1,6 +1,7 @@
 <script lang="ts">
     import { Button, Popover, Separator } from "bits-ui";
     import { User, LogOut, BadgeCheck, Bell, CreditCard } from "@lucide/svelte";
+    import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
@@ -45,7 +46,9 @@
                 {/each}
             </div>
             {@render separator()}
-            {@render button({ icon: LogOut, title: "Se deconnecter" })}
+            <ConfirmDialog>
+                {@render button({ icon: LogOut, title: "Se deconnecter" })}
+            </ConfirmDialog>
         </Popover.Content>
     </Popover.Portal>
 </Popover.Root>
