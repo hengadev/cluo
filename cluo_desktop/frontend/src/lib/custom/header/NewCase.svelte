@@ -4,26 +4,6 @@
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
-
-    type Notification = {
-        title: string;
-        content: string;
-        sendAt: string;
-    };
-    let notifications: Notification[] = [
-        {
-            title: "New Feature: AI Case Analysis",
-            content:
-                "Analyse case patterns with our new AI-powered insight tool",
-            sendAt: "Just now",
-        },
-        {
-            title: "New Feature: AI Case Analysis",
-            content:
-                "Analyse case patterns with our new AI-powered insight tool",
-            sendAt: "Just now",
-        },
-    ];
 </script>
 
 <Dialog.Root>
