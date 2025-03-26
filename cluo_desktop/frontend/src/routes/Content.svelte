@@ -15,18 +15,28 @@
     let { sidebarState }: Props = $props();
 </script>
 
-{#if sidebarState === SIDEBAR_STATES.Informations}
-    <Informations />
-{:else if sidebarState === SIDEBAR_STATES.Photos}
-    <Photos />
-{:else if sidebarState === SIDEBAR_STATES.Facture}
-    <Facture />
-{:else if sidebarState === SIDEBAR_STATES.Rapport}
-    <Rapport />
-{:else if sidebarState === SIDEBAR_STATES.Mandat}
-    <Mandat />
-{:else if sidebarState === SIDEBAR_STATES.Devis}
-    <Devis />
-{:else if sidebarState === SIDEBAR_STATES.Reseaux}
-    <Reseaux />
-{/if}
+<div class="content">
+    {#if sidebarState === SIDEBAR_STATES.Informations}
+        <Informations />
+    {:else if sidebarState === SIDEBAR_STATES.Photos}
+        <Photos />
+    {:else if sidebarState === SIDEBAR_STATES.Facture}
+        <Facture />
+    {:else if sidebarState === SIDEBAR_STATES.Rapport}
+        <Rapport />
+    {:else if sidebarState === SIDEBAR_STATES.Mandat}
+        <Mandat />
+    {:else if sidebarState === SIDEBAR_STATES.Devis}
+        <Devis />
+    {:else if sidebarState === SIDEBAR_STATES.Reseaux}
+        <Reseaux />
+    {/if}
+</div>
+
+<style>
+    .content {
+        grid-area: content;
+        height: 100%;
+        overflow: auto;
+    }
+</style>
