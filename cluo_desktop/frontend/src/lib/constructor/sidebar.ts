@@ -1,5 +1,4 @@
 import {
-    Home,
     ReceiptEuro,
     Handshake,
     Info,
@@ -20,7 +19,6 @@ function handleClick() {
 }
 
 export const items: SidebarItem[] = [
-    { icon: Home, title: "Accueil", fn: handleClick },
     { icon: Info, title: "Informations", fn: handleClick },
     { icon: Camera, title: "Photos", fn: handleClick },
     { icon: ReceiptEuro, title: "Facture", fn: handleClick },
