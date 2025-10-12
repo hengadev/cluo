@@ -6,12 +6,10 @@ import (
 	"github.com/google/uuid"
 )
 
-// TODO: make an enum for the type Client (person, lawyer, insurance)
-
 type Client struct {
 	ID        uuid.UUID
-	Name      string `encx:"encrypt"`
-	Email     string `encx:"hash_basic"`
-	Type      string `encx:"encrypt"`
+	Name      string     `encx:"encrypt"`
+	Email     string     `encx:"hash_basic"`
+	Type      ClientType `encx:"encrypt"`
 	CreatedAt time.Time
 }
