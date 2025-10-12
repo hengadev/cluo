@@ -42,12 +42,12 @@ type InvoiceItem struct {
 type PaymentStatus string
 
 const (
-	PaymentStatusUnpaid       PaymentStatus = "unpaid"
-	PaymentStatusPaid         PaymentStatus = "paid"
+	PaymentStatusUnpaid        PaymentStatus = "unpaid"
+	PaymentStatusPaid          PaymentStatus = "paid"
 	PaymentStatusPartiallyPaid PaymentStatus = "partially_paid"
-	PaymentStatusOverdue      PaymentStatus = "overdue"
-	PaymentStatusRefunded     PaymentStatus = "refunded"
-	PaymentStatusVoid         PaymentStatus = "void"
+	PaymentStatusOverdue       PaymentStatus = "overdue"
+	PaymentStatusRefunded      PaymentStatus = "refunded"
+	PaymentStatusVoid          PaymentStatus = "void"
 )
 
 // GetType returns the document type.
@@ -267,14 +267,14 @@ func (i *Invoice) CalculateTotals() {
 // NewInvoice creates a new invoice with the given details.
 func NewInvoice(caseID, clientID uuid.UUID, invoiceNumber string, lineItems []InvoiceItem, taxRate float64, dueDate time.Time) *Invoice {
 	invoice := &Invoice{
-		DocumentBase:    NewDocumentBase(caseID, clientID),
-		InvoiceNumber:   invoiceNumber,
-		IssueDate:       time.Now(),
-		DueDate:         dueDate,
-		LineItems:       lineItems,
-		TaxRate:         taxRate,
-		PaymentStatus:   PaymentStatusUnpaid,
-		Currency:        stringPtr("USD"), // Default currency
+		DocumentBase:  NewDocumentBase(caseID, clientID),
+		InvoiceNumber: invoiceNumber,
+		IssueDate:     time.Now(),
+		DueDate:       dueDate,
+		LineItems:     lineItems,
+		TaxRate:       taxRate,
+		PaymentStatus: PaymentStatusUnpaid,
+		Currency:      stringPtr("USD"), // Default currency
 	}
 
 	invoice.CalculateTotals()
@@ -339,7 +339,7 @@ func (i *Invoice) RemoveLineItem(index int) error {
 func (ps PaymentStatus) IsValid() bool {
 	switch ps {
 	case PaymentStatusUnpaid, PaymentStatusPaid, PaymentStatusPartiallyPaid,
-		 PaymentStatusOverdue, PaymentStatusRefunded, PaymentStatusVoid:
+		PaymentStatusOverdue, PaymentStatusRefunded, PaymentStatusVoid:
 		return true
 	default:
 		return false
@@ -349,12 +349,4 @@ func (ps PaymentStatus) IsValid() bool {
 // Helper function for string pointers
 func stringPtr(s string) *string {
 	return &s
-}
-
-// Helper function for floating point comparison
-func abs(a float64) float64 {
-	if a < 0 {
-		return -a
-	}
-	return a
 }
