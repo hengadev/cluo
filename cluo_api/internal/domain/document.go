@@ -28,26 +28,26 @@ type Document interface {
 
 // DocumentVersion represents a version of a document for audit purposes.
 type DocumentVersion struct {
-	ID        uuid.UUID     `json:"id" db:"id"`
+	ID         uuid.UUID    `json:"id" db:"id"`
 	DocumentID uuid.UUID    `json:"document_id" db:"document_id"`
-	DocType   DocumentType  `json:"doc_type" db:"doc_type"`
-	Version   int           `json:"version" db:"version"`
-	AuthorID  *uuid.UUID    `json:"author_id" db:"author_id"`
-	Data      []byte        `json:"data" db:"data"` // Serialized document data
-	CreatedAt time.Time     `json:"created_at" db:"created_at"`
-	Reason    *string       `json:"reason,omitempty" db:"reason"`
+	DocType    DocumentType `json:"doc_type" db:"doc_type"`
+	Version    int          `json:"version" db:"version"`
+	AuthorID   *uuid.UUID   `json:"author_id" db:"author_id"`
+	Data       []byte       `json:"data" db:"data"` // Serialized document data
+	CreatedAt  time.Time    `json:"created_at" db:"created_at"`
+	Reason     *string      `json:"reason,omitempty" db:"reason"`
 }
 
 // DocumentSummary represents a summary view of a document for listings.
 type DocumentSummary struct {
-	ID           uuid.UUID     `json:"id"`
-	CaseID       uuid.UUID     `json:"case_id"`
-	ClientID     uuid.UUID     `json:"client_id"`
-	Type         DocumentType  `json:"type"`
-	Status       DocumentStatus `json:"status"`
-	DocumentRef  string        `json:"document_ref"` // EstimateNumber, MandateNumber, etc.
-	CreatedAt    time.Time     `json:"created_at"`
-	UpdatedAt    time.Time     `json:"updated_at"`
+	ID          uuid.UUID      `json:"id"`
+	CaseID      uuid.UUID      `json:"case_id"`
+	ClientID    uuid.UUID      `json:"client_id"`
+	Type        DocumentType   `json:"type"`
+	Status      DocumentStatus `json:"status"`
+	DocumentRef string         `json:"document_ref"` // EstimateNumber, MandateNumber, etc.
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 	// TODO: Add summary fields specific to each document type as needed
 }
 
@@ -76,12 +76,12 @@ type SendDocumentRequest struct {
 
 // SignDocumentRequest represents a request to sign a document.
 type SignDocumentRequest struct {
-	SignerName        string    `json:"signer_name" validate:"required"`
-	SignerRole        string    `json:"signer_role" validate:"required"`
-	SignatureFileURL  string    `json:"signature_file_url"`
-	Method            string    `json:"method" validate:"required,oneof=e-sign wet pdf-stamp third-party"`
-	IPAddress         *string   `json:"ip_address,omitempty"`
-	UserAgent         *string   `json:"user_agent,omitempty"`
+	SignerName       string  `json:"signer_name" validate:"required"`
+	SignerRole       string  `json:"signer_role" validate:"required"`
+	SignatureFileURL string  `json:"signature_file_url"`
+	Method           string  `json:"method" validate:"required,oneof=e-sign wet pdf-stamp third-party"`
+	IPAddress        *string `json:"ip_address,omitempty"`
+	UserAgent        *string `json:"user_agent,omitempty"`
 }
 
 // PaymentRequest represents a request to make a payment on an invoice.
@@ -94,13 +94,13 @@ type PaymentRequest struct {
 
 // DocumentFilter represents filtering options for document queries.
 type DocumentFilter struct {
-	Type      *DocumentType  `json:"type,omitempty"`
-	Status    *DocumentStatus `json:"status,omitempty"`
-	CaseID    *uuid.UUID     `json:"case_id,omitempty"`
-	ClientID  *uuid.UUID     `json:"client_id,omitempty"`
-	DateFrom  *time.Time     `json:"date_from,omitempty"`
-	DateTo    *time.Time     `json:"date_to,omitempty"`
-	Search    *string        `json:"search,omitempty"`
+	Type     *DocumentType   `json:"type,omitempty"`
+	Status   *DocumentStatus `json:"status,omitempty"`
+	CaseID   *uuid.UUID      `json:"case_id,omitempty"`
+	ClientID *uuid.UUID      `json:"client_id,omitempty"`
+	DateFrom *time.Time      `json:"date_from,omitempty"`
+	DateTo   *time.Time      `json:"date_to,omitempty"`
+	Search   *string         `json:"search,omitempty"`
 }
 
 // Pagination represents pagination parameters.
