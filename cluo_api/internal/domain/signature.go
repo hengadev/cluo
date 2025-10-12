@@ -1,0 +1,58 @@
+package domain
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// Signature represents a digital or wet signature on a document.
+type Signature struct {
+	ID             uuid.UUID `json:"id" db:"id"`
+	Name           string    `json:"name" db:"name"`
+	Role           string    `json:"role" db:"role"`                      // e.g., "client", "investigator", "witness"
+	SignedAt       time.Time `json:"signed_at" db:"signed_at"`
+	SignatureFileURL string   `json:"signature_file_url" db:"signature_file_url"` // URL to stored signature (image/PDF) or digital signature envelope ID
+	Method         string    `json:"method" db:"method"`                    // "e-sign", "wet", "pdf-stamp", "third-party"
+	SignerID       *uuid.UUID `json:"signer_id" db:"signer_id,omitempty"`  // Reference to the user who signed
+	IPAddress      *string   `json:"ip_address" db:"ip_address,omitempty"` // IP address when signature was captured
+	UserAgent      *string   `json:"user_agent" db:"user_agent,omitempty"` // Browser/user agent when signature was captured
+}
+
+// Validate performs validation on the signature.
+// TODO: Implement comprehensive signature validation:
+// - Name: required, min length 2, max length 100, no special characters
+// - Role: required, must be one of predefined roles (client, investigator, witness, notary, etc.)
+// - SignedAt: must not be in the future, must be after document creation
+// - SignatureFileURL: required if Method != "wet", must be valid URL format
+// - Method: required, must be one of ["e-sign", "wet", "pdf-stamp", "third-party"]
+// - SignerID: required for non-wet signatures, must exist in users table
+// - IPAddress: optional, must be valid IP format if provided
+// - UserAgent: optional, reasonable length limit if provided
+func (s Signature) Validate() error {
+	// TODO: Add validation implementation
+	return nil
+}
+
+// NewSignature creates a new signature with default values.
+func NewSignature(name, role, method, signatureFileURL string, signerID *uuid.UUID) Signature {
+	return Signature{
+		ID:               uuid.New(),
+		Name:             name,
+		Role:             role,
+		SignedAt:         time.Now(),
+		SignatureFileURL: signatureFileURL,
+		Method:           method,
+		SignerID:         signerID,
+	}
+}
+
+// IsElectronic returns true if this is an electronic signature.
+func (s Signature) IsElectronic() bool {
+	return s.Method == "e-sign" || s.Method == "pdf-stamp" || s.Method == "third-party"
+}
+
+// IsWetSignature returns true if this is a physical/wet signature.
+func (s Signature) IsWetSignature() bool {
+	return s.Method == "wet"
+}
