@@ -1,0 +1,62 @@
+{
+  "SourceHashes": {
+    "internal/common/auth/session/session.go": "bbcffa3c30eafbe294f39d6c8eb347228255e27b96634875b5f59accdb41196e",
+    "internal/common/testutils/auth.go": "79b73906cfb8d91dac10f033fbbae499ff4d9186f36b0a0cc4bd0806730e8021",
+    "internal/domain/case/case.go": "fe386f2be84c88a356a8a3455269455b89bdf8c7a33b4078add491e4b0772349",
+    "internal/domain/client/client.go": "298c449ad6b27b22b1cd3c4f5df6e980be00f7be8736756cd76d85d74ee31ab0",
+    "internal/domain/client/contact.go": "5fc7049d7703d9cd9c3bcc3cf481b4a013bcaf5e6b72c18e866f36d9abf37687",
+    "internal/domain/document/document_base.go": "947a76e0ceea9ca6fa6a23c0f3316958e12f3735c11451614df7cbe04381fe7f",
+    "internal/domain/media/media.go": "5783014080572519bd8995821e795d8ced0af0380fa5087836d8700e1b276643",
+    "internal/domain/token.go": "22cf48bf9f23bc8007a193544d0938356de63c0ed15d172ccd98dbf1d3020359",
+    "internal/domain/user.go": "58b2898421d1a1dba35d899057454bc1ce1f012cbbfecc5ea392a513c5dc3628"
+  },
+  "ConfigHash": "",
+  "GeneratedFiles": {
+    "internal/common/auth/session/session_encx.go": {
+      "SourceFile": "internal/common/auth/session/session.go",
+      "SourceHash": "bbcffa3c30eafbe294f39d6c8eb347228255e27b96634875b5f59accdb41196e",
+      "GeneratedTime": "2025-11-05T10:58:19.131800902+01:00"
+    },
+    "internal/common/testutils/auth_encx.go": {
+      "SourceFile": "internal/common/testutils/auth.go",
+      "SourceHash": "79b73906cfb8d91dac10f033fbbae499ff4d9186f36b0a0cc4bd0806730e8021",
+      "GeneratedTime": "2025-11-05T10:58:19.17080564+01:00"
+    },
+    "internal/domain/case/case_encx.go": {
+      "SourceFile": "internal/domain/case/case.go",
+      "SourceHash": "fe386f2be84c88a356a8a3455269455b89bdf8c7a33b4078add491e4b0772349",
+      "GeneratedTime": "2025-11-05T10:58:19.175791067+01:00"
+    },
+    "internal/domain/client/client_encx.go": {
+      "SourceFile": "internal/domain/client/client.go",
+      "SourceHash": "298c449ad6b27b22b1cd3c4f5df6e980be00f7be8736756cd76d85d74ee31ab0",
+      "GeneratedTime": "2025-11-05T10:58:19.176643571+01:00"
+    },
+    "internal/domain/client/contact_encx.go": {
+      "SourceFile": "internal/domain/client/contact.go",
+      "SourceHash": "5fc7049d7703d9cd9c3bcc3cf481b4a013bcaf5e6b72c18e866f36d9abf37687",
+      "GeneratedTime": "2025-11-05T10:58:19.177359075+01:00"
+    },
+    "internal/domain/document/document_base_encx.go": {
+      "SourceFile": "internal/domain/document/document_base.go",
+      "SourceHash": "947a76e0ceea9ca6fa6a23c0f3316958e12f3735c11451614df7cbe04381fe7f",
+      "GeneratedTime": "2025-11-05T10:58:19.184665845+01:00"
+    },
+    "internal/domain/media/media_encx.go": {
+      "SourceFile": "internal/domain/media/media.go",
+      "SourceHash": "5783014080572519bd8995821e795d8ced0af0380fa5087836d8700e1b276643",
+      "GeneratedTime": "2025-11-05T10:58:19.186795532+01:00"
+    },
+    "internal/domain/token_encx.go": {
+      "SourceFile": "internal/domain/token.go",
+      "SourceHash": "22cf48bf9f23bc8007a193544d0938356de63c0ed15d172ccd98dbf1d3020359",
+      "GeneratedTime": "2025-11-05T10:58:19.174020394+01:00"
+    },
+    "internal/domain/user_encx.go": {
+      "SourceFile": "internal/domain/user.go",
+      "SourceHash": "58b2898421d1a1dba35d899057454bc1ce1f012cbbfecc5ea392a513c5dc3628",
+      "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
+    }
+  },
+  "LastGenerated": "2025-11-05T10:58:19.186799029+01:00"
+}
