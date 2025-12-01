@@ -13,7 +13,7 @@ func (r *Repository) UpdateContact(ctx context.Context, contact *client.ContactE
 		UPDATE %s.contacts SET
 			client_id_hash = $2,
 			client_id_encrypted = $3,
-			last_name_encrypted = $4,
+			lastname_encrypted = $4,
 			firstname_encrypted = $5,
 			email_hash = $6,
 			email_encrypted = $7,
