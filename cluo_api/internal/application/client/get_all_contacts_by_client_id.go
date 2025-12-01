@@ -2,7 +2,6 @@ package clientService
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
@@ -12,12 +11,7 @@ import (
 	"github.com/hengadev/encx"
 )
 
-func (s *Service) GetAllContactsByClientID(ctx context.Context, clientIDStr string) ([]*client.ContactResponse, error) {
-	clientID, err := uuid.Parse(clientIDStr)
-	if err != nil {
-		return nil, errs.NewInvalidValueErr(err.Error())
-	}
-
+func (s *Service) GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactResponse, error) {
 	// Convert client ID to hash for repository query
 	clientIDBytes, err := encx.SerializeValue(clientID)
 	if err != nil {
@@ -27,24 +21,7 @@ func (s *Service) GetAllContactsByClientID(ctx context.Context, clientIDStr stri
 
 	contactsEncx, err := s.repo.GetAllContactsByClientID(ctx, clientIDHash)
 	if err != nil {
-		switch {
-		case errors.Is(err, errs.ErrConnectionFailure), errors.Is(err, errs.ErrTooManyConnections):
-			return nil, errs.NewExternalServiceErr(err, "database unavailable")
-		case errors.Is(err, errs.ErrQueryCancelled), errors.Is(err, context.Canceled):
-			return fmt.Errorf("get all contacts by client ID cancelled: %w", err)
-		case errors.Is(err, errs.ErrTransactionFailure), errors.Is(err, errs.ErrDeadlock):
-			return nil, errs.NewExternalServiceErr(err, "database transaction failed")
-		case errors.Is(err, errs.ErrResourceExhausted):
-			return nil, errs.NewExternalServiceErr(err, "database resources exhausted")
-		case errors.Is(err, errs.ErrPermissionDenied):
-			return nil, errs.NewInternalErr(fmt.Errorf("database permission denied: %w", err))
-		case errors.Is(err, errs.ErrDatabase):
-			return nil, errs.NewInternalErr(fmt.Errorf("database error: %w", err))
-		case errors.Is(err, context.DeadlineExceeded):
-			return fmt.Errorf("get all contacts by client ID timeout: %w", err)
-		default:
-			return nil, errs.NewInternalErr(fmt.Errorf("failed to get all contacts by client ID: %w", err))
-		}
+		return nil, fmt.Errorf("failed to get all contacts by client ID: %w", err)
 	}
 
 	// Decrypt contacts and build response
