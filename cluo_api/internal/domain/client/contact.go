@@ -7,8 +7,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/cluo_api/internal/common/validation"
+	"github.com/hengadev/errsx"
 )
 
 type Contact struct {
@@ -73,15 +73,7 @@ func (r *CreateContactRequest) Valid(ctx context.Context) error {
 }
 
 type DeleteContactRequest struct {
-	ContactID string `json:"contactID"`
-}
-
-func (r *DeleteContactRequest) Valid(ctx context.Context) error {
-	var errs errsx.Map
-	if err := uuid.Validate(r.ContactID); err != nil {
-		errs.Set("contactID", err)
-	}
-	return errs.AsError()
+	ContactID uuid.UUID `json:"contactID"`
 }
 
 type UpdateContactRequest struct {
