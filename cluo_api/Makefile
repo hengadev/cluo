@@ -1,5 +1,5 @@
 # ============================================================================
-# CLUO API TESTING COMMANDS
+# CLUO API COMMANDS
 # ============================================================================
 # Supports monolith architecture with domain-based organization
 
@@ -9,6 +9,90 @@
 .PHONY: test-integration-client test-integration-case test-integration-document
 .PHONY: test-domain-client test-domain-case test-domain-document test-domain-media test-domain-user
 .PHONY: test-infrastructure-client test-infrastructure-case test-infrastructure-document test-infrastructure-media test-infrastructure-report test-infrastructure-token
+.PHONY: encx-validate encx-generate encx-clean encx-build encx-help
+
+# ============================================================================
+# ENCRYPTION COMMANDS (ENCX)
+# ============================================================================
+
+encx-help: ## Show ENCRYPTION (ENCX) help message
+	@echo 'ENCX Encryption Commands:'
+	@echo ''
+	@echo 'Available Commands:'
+	@echo '  encx-install      Install ENCX CLI globally (recommended)'
+	@echo '  encx-validate      Validate ENCX struct tags before generation'
+	@echo '  encx-generate      Generate ENCX encryption code for all structs'
+	@echo '  encx-build         Build ENCX generator tool locally (optional)'
+	@echo '  encx-clean         Clean generated ENCX files (custom helper)'
+	@echo ''
+	@echo 'Development Workflow:'
+	@echo '  1. Design structs with encx tags'
+	@echo '  2. Run make encx-validate'
+	@echo '  3. Run make encx-generate'
+	@echo '  4. Test your changes'
+	@echo '  5. Commit both source and generated code'
+	@echo ''
+	@echo 'Direct ENCX Commands (without make):'
+	@echo '    go run ./cmd/encx-gen validate -v .'
+	@echo '    go run ./cmd/encx-gen generate -v .'
+
+encx-install: ## Install ENCX CLI globally (recommended method)
+	@echo "Installing ENCX CLI globally..."
+	@go install github.com/hengadev/encx/cmd/encx-gen@latest
+	@echo "ENCX CLI installed globally!"
+	@echo "You can now use: encx-gen validate -v ."
+
+encx-build: ## Build ENCX generator tool locally (optional development method)
+	@echo "Building ENCX generator tool locally..."
+	@mkdir -p bin
+	@go build -o bin/encx-gen github.com/hengadev/encx/cmd/encx-gen
+	@echo "ENCX generator built: bin/encx-gen"
+	@echo "You can now use: ./bin/encx-gen validate -v ."
+
+encx-validate: ## Validate ENCX struct tags
+	@echo "Validating ENCX struct tags..."
+	@if command -v encx-gen >/dev/null 2>&1; then \
+		echo "Using global encx-gen CLI..."; \
+		encx-gen validate -v .; \
+	elif [ -f "./bin/encx-gen" ]; then \
+		echo "Using local encx-gen binary..."; \
+		./bin/encx-gen validate -v .; \
+	else \
+		echo "Using go run (no installation needed)..."; \
+		go run github.com/hengadev/encx/cmd/encx-gen validate -v .; \
+	fi
+	@echo "ENCX validation completed!"
+
+encx-generate: ## Generate ENCX encryption code
+	@echo "Generating ENCX encryption code..."
+	@echo "Running validation before generation..."
+	@if command -v encx-gen >/dev/null 2>&1; then \
+		echo "Using global encx-gen CLI..."; \
+		encx-gen validate -v . || exit 1; \
+		echo "Validation passed. Generating code..."; \
+		encx-gen generate -v .; \
+	elif [ -f "./bin/encx-gen" ]; then \
+		echo "Using local encx-gen binary..."; \
+		./bin/encx-gen validate -v . || exit 1; \
+		echo "Validation passed. Generating code..."; \
+		./bin/encx-gen generate -v .; \
+	else \
+		echo "Using go run (no installation needed)..."; \
+		go run github.com/hengadev/encx/cmd/encx-gen validate -v . || exit 1; \
+		echo "Validation passed. Generating code..."; \
+		go run github.com/hengadev/encx/cmd/encx-gen generate -v .; \
+	fi
+	@echo "ENCX code generation completed!"
+	@echo "Generated files (suffix: _encx.go) have been created alongside source files"
+
+encx-clean: ## Clean generated ENCX files (custom helper)
+	@echo "Cleaning generated ENCX files..."
+	@find . -name "*_encx.go" -type f -delete
+	@echo "Generated ENCX files cleaned!"
+
+# ============================================================================
+# TESTING COMMANDS
+# ============================================================================
 
 # Test settings
 TEST_TIMEOUT?=30m
@@ -33,7 +117,14 @@ INTERNAL_ROOT=internal
 PKG_ROOT=pkg
 
 test-help: ## Show testing help message
-	@echo 'Cluo API Backend Testing Commands:'
+	@echo 'Cluo API Backend Commands:'
+	@echo ''
+	@echo 'Encryption Commands (ENCX):'
+	@echo '  encx-install      Install ENCX CLI globally (recommended)'
+	@echo '  encx-validate      Validate ENCX struct tags before generation'
+	@echo '  encx-generate      Generate ENCX encryption code for all structs'
+	@echo '  encx-build         Build ENCX generator tool locally (optional)'
+	@echo '  encx-clean         Clean generated ENCX files (custom helper)'
 	@echo ''
 	@echo 'Primary Test Commands:'
 	@echo '  test-all           Run all unit and integration tests'
