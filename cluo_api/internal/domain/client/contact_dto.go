@@ -1,34 +1,13 @@
 package client
 
 import (
-	"context"
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/hengadev/errsx"
 )
 
 type GetContactByIDRequest struct {
-	ContactID string `json:"contactID"`
-}
-
-func (r *GetContactByIDRequest) Valid(ctx context.Context) error {
-	var errs errsx.Map
-
-	if r.ContactID == "" {
-		errs.Set("contactID", "contact ID is required")
-		return errs.AsError()
-	}
-
-	if err := uuid.Validate(r.ContactID); err != nil {
-		errs.Set("contactID", "invalid contact ID format")
-	}
-
-	if len(r.ContactID) > 36 {
-		errs.Set("contactID", "contact ID too long")
-	}
-
-	return errs.AsError()
+	ContactID uuid.UUID `json:"contactID"`
 }
 
 type GetContactByIDResponse struct {
