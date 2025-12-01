@@ -2,40 +2,36 @@
 // Source: user.go
 // Generated: 2025-11-05T10:58:19+01:00
 
-package domain
+package user
 
 import (
 	"context"
 	"time"
 
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/encx"
-	
+	"github.com/hengadev/errsx"
+
 	"github.com/google/uuid"
-	
 )
 
 // UserEncx represents the encrypted version of User
 type UserEncx struct {
-	
 	ID uuid.UUID `db:"id" json:"id"`
-	
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
-	
-	
+
 	EmailHash string `db:"email_hash" json:"email_hash"`
-	
+
 	PasswordHashSecure string `db:"password_hash_secure" json:"password_hash_secure"`
-	
+
 	RoleEncrypted []byte `db:"role_encrypted" json:"role_encrypted"`
-	
 
 	// Essential encryption fields
-	DEKEncrypted  []byte `db:"dek_encrypted" json:"dek_encrypted"`
-	KeyVersion    int    `db:"key_version" json:"key_version"`
+	DEKEncrypted []byte `db:"dek_encrypted" json:"dek_encrypted"`
+	KeyVersion   int    `db:"key_version" json:"key_version"`
 
 	// Metadata
-	Metadata      encx.EncryptionMetadata `db:"metadata" json:"metadata"`
+	Metadata encx.EncryptionMetadata `db:"metadata" json:"metadata"`
 }
 
 // ProcessUserEncx encrypts and hashes fields based on encx tags
@@ -52,11 +48,10 @@ func ProcessUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -65,8 +60,6 @@ func ProcessUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Process Email (hash_basic)
 	EmailBytes, err := encx.SerializeValue(source.Email)
 	if err != nil {
@@ -74,9 +67,7 @@ func ProcessUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 	} else {
 		result.EmailHash = crypto.HashBasic(ctx, EmailBytes)
 	}
-	
-	
-	
+
 	// Process Password (hash_secure)
 	PasswordBytes, err := encx.SerializeValue(source.Password)
 	if err != nil {
@@ -87,9 +78,7 @@ func ProcessUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 			errs.Set("Password secure hash", err)
 		}
 	}
-	
-	
-	
+
 	// Process Role (encrypt)
 	RoleBytes, err := encx.SerializeValue(source.Role)
 	if err != nil {
@@ -100,8 +89,6 @@ func ProcessUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 			errs.Set("Role encryption", err)
 		}
 	}
-	
-	
 
 	// Encrypt and store DEK
 	result.DEKEncrypted, err = crypto.EncryptDEK(ctx, dek)
@@ -126,11 +113,10 @@ func DecryptUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 	result := &User{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)
@@ -139,8 +125,6 @@ func DecryptUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Decrypt Role
 	if len(source.RoleEncrypted) > 0 {
 		RoleBytes, err := crypto.DecryptData(ctx, source.RoleEncrypted, dek)
@@ -153,7 +137,6 @@ func DecryptUserEncx(ctx context.Context, crypto encx.CryptoService, source *Use
 			}
 		}
 	}
-	
 
 	return result, errs.AsError()
 }
