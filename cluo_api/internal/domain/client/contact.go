@@ -32,13 +32,12 @@ func NewContact(r *CreateContactRequest) *Contact {
 }
 
 type CreateContactRequest struct {
-	// TODO: is this how the json should be formatted ?
-	ClientID  string `json:"clientID"`
-	Lastname  string `json:"lastname"`
-	Firstname string `json:"firstname"`
-	Email     string `json:"email"`
-	Phone     string `json:"phone"`
-	Position  string `json:"position"`
+	ClientID  uuid.UUID `json:"clientID"`
+	Lastname  string    `json:"lastname"`
+	Firstname string    `json:"firstname"`
+	Email     string    `json:"email"`
+	Phone     string    `json:"phone"`
+	Position  string    `json:"position"`
 }
 
 func (r *CreateContactRequest) Valid(ctx context.Context) error {
