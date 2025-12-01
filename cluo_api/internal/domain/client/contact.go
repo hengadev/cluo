@@ -88,9 +88,31 @@ type UpdateContactRequest struct {
 
 func (r *UpdateContactRequest) Valid(ctx context.Context) error {
 	var errs errsx.Map
+
+	// UUID validation for ID
+	if err := uuid.Validate(r.ID.String()); err != nil {
+		errs.Set("contact ID", err)
+	}
+
+	// UUID validation for ClientID
 	if err := uuid.Validate(r.ClientID); err != nil {
 		errs.Set("client ID", err)
 	}
+
+	// Validate email if provided
+	if r.Email != nil {
+		if err := validation.ValidateEmail(*r.Email); err != nil {
+			errs.Set("email", err)
+		}
+	}
+
+	// Validate phone if provided
+	if r.Phone != nil {
+		if err := validation.ValidatePhone(*r.Phone); err != nil {
+			errs.Set("phone", err)
+		}
+	}
+
 	return errs.AsError()
 }
 
