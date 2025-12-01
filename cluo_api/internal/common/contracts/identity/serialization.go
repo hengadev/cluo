@@ -37,7 +37,7 @@ func (r Role) Value() (driver.Value, error) {
 // Scan implements sql.Scanner interface for database scanning
 func (r *Role) Scan(value interface{}) error {
 	if value == nil {
-		*r = Visitor
+		*r = Guest
 		return nil
 	}
 

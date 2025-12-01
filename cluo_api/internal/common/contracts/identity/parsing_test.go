@@ -16,13 +16,10 @@ func TestConvertToRole(t *testing.T) {
 		isOk     bool
 		name     string
 	}{
-		{roleStr: "visitor", expected: Visitor, name: "Convert to VISITOR", isOk: true},
-		{roleStr: "standard", expected: Standard, name: "Convert to STANDARD", isOk: true},
-		{roleStr: "premium", expected: Premium, name: "Convert to PREMIUM", isOk: true},
 		{roleStr: "guest", expected: Guest, name: "Convert to GUEST", isOk: true},
-		{roleStr: "partner", expected: Partner, name: "Convert to PARTNER", isOk: true},
+		{roleStr: "client", expected: Client, name: "Convert to CLIENT", isOk: true},
 		{roleStr: "administrator", expected: Administrator, name: "Convert to ADMINISTRATOR", isOk: true},
-		{roleStr: "random_value", expected: Visitor, name: "Convert to VISITOR", isOk: false},
+		{roleStr: "random_value", expected: Guest, name: "Convert to GUEST", isOk: false},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -39,15 +36,13 @@ func TestParseRole(t *testing.T) {
 			input    string
 			expected Role
 		}{
-			{"visitor", Visitor},
-			{"standard", Standard},
-			{"premium", Premium},
 			{"guest", Guest},
-			{"partner", Partner},
+			{"client", Client},
 			{"administrator", Administrator},
-			{"VISITOR", Visitor},   // Case insensitive
-			{"Standard", Standard}, // Mixed case
-			{"  guest  ", Guest},   // With whitespace
+			{"GUEST", Guest},                 // Case insensitive
+			{"Client", Client},               // Mixed case
+			{"  guest  ", Guest},             // With whitespace
+			{"ADMINISTRATOR", Administrator}, // Upper case
 		}
 
 		for _, test := range tests {
@@ -74,7 +69,7 @@ func TestParseRole(t *testing.T) {
 				role, err := ParseRole(invalid)
 				assert.Error(t, err)
 				assert.True(t, errors.Is(err, errs.ErrInvalidValue))
-				assert.Equal(t, Visitor, role) // Should default to Visitor on error
+				assert.Equal(t, Guest, role) // Should default to Guest on error
 			})
 		}
 	})

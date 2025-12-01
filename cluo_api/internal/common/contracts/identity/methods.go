@@ -19,3 +19,7 @@ func (r Role) IsAdmin() bool {
 	return r == Administrator
 }
 
+// IsClient checks if the role is Client
+func (r Role) IsClient() bool {
+	return r == Client
+}

@@ -12,12 +12,9 @@ func TestRoleLevel(t *testing.T) {
 		expectedLevel int
 		name          string
 	}{
-		{Visitor, 0, "visitor has level 0"},
-		{Guest, 1, "guest has level 1"},
-		{Standard, 2, "standard has level 2"},
-		{Premium, 3, "premium has level 3"},
-		{Partner, 4, "partner has level 4"},
-		{Administrator, 5, "administrator has level 5"},
+		{Guest, 0, "guest has level 0"},
+		{Client, 1, "client has level 1"},
+		{Administrator, 2, "administrator has level 2"},
 	}
 
 	for _, test := range tests {
@@ -40,13 +37,13 @@ func TestIsAtLeast(t *testing.T) {
 			expected bool
 			name     string
 		}{
-			{Administrator, Visitor, true, "admin >= visitor"},
+			{Administrator, Guest, true, "admin >= guest"},
 			{Administrator, Administrator, true, "admin >= admin"},
-			{Premium, Standard, true, "premium >= standard"},
-			{Standard, Premium, false, "standard < premium"},
+			{Client, Guest, true, "client >= guest"},
+			{Guest, Client, false, "guest < client"},
 			{Guest, Administrator, false, "guest < admin"},
-			{Visitor, Guest, false, "visitor < guest"},
-			{Partner, Premium, true, "partner >= premium"},
+			{Client, Administrator, false, "client < admin"},
+			{Administrator, Client, true, "admin >= client"},
 		}
 
 		for _, test := range tests {
@@ -59,10 +56,10 @@ func TestIsAtLeast(t *testing.T) {
 
 func TestHasPermission(t *testing.T) {
 	t.Run("permission checks should work like IsAtLeast", func(t *testing.T) {
-		assert.True(t, Administrator.HasPermission(Standard))
-		assert.True(t, Premium.HasPermission(Guest))
-		assert.False(t, Guest.HasPermission(Premium))
-		assert.True(t, Partner.HasPermission(Partner))
+		assert.True(t, Administrator.HasPermission(Client))
+		assert.True(t, Client.HasPermission(Guest))
+		assert.False(t, Guest.HasPermission(Client))
+		assert.True(t, Administrator.HasPermission(Guest))
+		assert.True(t, Administrator.HasPermission(Administrator))
 	})
 }
-

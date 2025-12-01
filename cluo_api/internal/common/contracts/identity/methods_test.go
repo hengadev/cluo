@@ -12,11 +12,8 @@ func TestString(t *testing.T) {
 		expected string
 		name     string
 	}{
-		{role: Visitor, expected: "visitor", name: "Get string visitor"},
-		{role: Standard, expected: "standard", name: "Get string standard"},
-		{role: Premium, expected: "premium", name: "Get string premium"},
 		{role: Guest, expected: "guest", name: "Get string guest"},
-		{role: Partner, expected: "partner", name: "Get string partner"},
+		{role: Client, expected: "client", name: "Get string client"},
 		{role: Administrator, expected: "administrator", name: "Get string administrator"},
 	}
 	for _, tt := range tests {
@@ -34,7 +31,7 @@ func TestString(t *testing.T) {
 
 func TestIsValid(t *testing.T) {
 	t.Run("valid roles", func(t *testing.T) {
-		validRoles := []Role{Visitor, Standard, Premium, Guest, Partner, Administrator}
+		validRoles := []Role{Guest, Client, Administrator}
 		for _, role := range validRoles {
 			t.Run(role.String(), func(t *testing.T) {
 				assert.True(t, role.IsValid())
@@ -58,10 +55,25 @@ func TestIsAdmin(t *testing.T) {
 	})
 
 	t.Run("Non-administrator roles should not be admin", func(t *testing.T) {
-		nonAdminRoles := []Role{Visitor, Standard, Premium, Guest, Partner}
+		nonAdminRoles := []Role{Guest, Client}
 		for _, role := range nonAdminRoles {
 			t.Run(role.String(), func(t *testing.T) {
 				assert.False(t, role.IsAdmin())
+			})
+		}
+	})
+}
+
+func TestIsClient(t *testing.T) {
+	t.Run("Client should be client", func(t *testing.T) {
+		assert.True(t, Client.IsClient())
+	})
+
+	t.Run("Non-client roles should not be client", func(t *testing.T) {
+		nonClientRoles := []Role{Guest, Administrator}
+		for _, role := range nonClientRoles {
+			t.Run(role.String(), func(t *testing.T) {
+				assert.False(t, role.IsClient())
 			})
 		}
 	})

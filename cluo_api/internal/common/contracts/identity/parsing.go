@@ -13,7 +13,7 @@ func ParseRole(roleStr string) (Role, error) {
 	if role, ok := stringRoles[normalized]; ok {
 		return role, nil
 	}
-	return Visitor, errs.NewInvalidValueErr(fmt.Sprintf("invalid role: %q", roleStr))
+	return Guest, errs.NewInvalidValueErr(fmt.Sprintf("invalid role: %q", roleStr))
 }
 
 // ConvertToRole converts a string to a Role (deprecated: use ParseRole instead)

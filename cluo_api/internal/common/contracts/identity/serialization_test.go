@@ -17,8 +17,8 @@ func TestMarshalJSON(t *testing.T) {
 			role     Role
 			expected string
 		}{
-			{Visitor, `"visitor"`},
-			{Standard, `"standard"`},
+			{Guest, `"guest"`},
+			{Client, `"client"`},
 			{Administrator, `"administrator"`},
 		}
 
@@ -38,8 +38,8 @@ func TestUnmarshalJSON(t *testing.T) {
 			json     string
 			expected Role
 		}{
-			{`"visitor"`, Visitor},
-			{`"standard"`, Standard},
+			{`"guest"`, Guest},
+			{`"client"`, Client},
 			{`"administrator"`, Administrator},
 		}
 
@@ -78,9 +78,9 @@ func TestValue(t *testing.T) {
 			role     Role
 			expected driver.Value
 		}{
-			{Visitor, "visitor"},
+			{Guest, "guest"},
+			{Client, "client"},
 			{Administrator, "administrator"},
-			{Premium, "premium"},
 		}
 
 		for _, test := range tests {
@@ -103,14 +103,14 @@ func TestScan(t *testing.T) {
 
 	t.Run("should scan byte slice values correctly", func(t *testing.T) {
 		var role Role
-		err := role.Scan([]byte("premium"))
+		err := role.Scan([]byte("client"))
 		require.NoError(t, err)
-		assert.Equal(t, Premium, role)
+		assert.Equal(t, Client, role)
 	})
 
 	t.Run("should scan int64 values correctly", func(t *testing.T) {
 		var role Role
-		err := role.Scan(int64(5)) // Administrator
+		err := role.Scan(int64(2)) // Administrator
 		require.NoError(t, err)
 		assert.Equal(t, Administrator, role)
 	})
@@ -119,7 +119,7 @@ func TestScan(t *testing.T) {
 		var role Role
 		err := role.Scan(nil)
 		require.NoError(t, err)
-		assert.Equal(t, Visitor, role)
+		assert.Equal(t, Guest, role)
 	})
 
 	t.Run("should return error for invalid string values", func(t *testing.T) {
