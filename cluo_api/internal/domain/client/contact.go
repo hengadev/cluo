@@ -77,21 +77,17 @@ type DeleteContactRequest struct {
 }
 
 type UpdateContactRequest struct {
-	ID        string  `json:"contactID"`
-	ClientID  string  `json:"clientID" encx:"encrypt,hash_basic"`
-	Lastname  *string `json:"lastname" encx:"encrypt"`
-	Firstname *string `json:"firstname" encx:"encrypt"`
-	Email     *string `json:"email" encx:"encrypt,hash_basic"`
-	Phone     *string `json:"phone" encx:"encrypt"`
-	Position  *string `json:"position" encx:"encrypt"`
+	ID        uuid.UUID `json:"contactID"`
+	ClientID  string    `json:"clientID" encx:"encrypt,hash_basic"`
+	Lastname  *string   `json:"lastname" encx:"encrypt"`
+	Firstname *string   `json:"firstname" encx:"encrypt"`
+	Email     *string   `json:"email" encx:"encrypt,hash_basic"`
+	Phone     *string   `json:"phone" encx:"encrypt"`
+	Position  *string   `json:"position" encx:"encrypt"`
 }
 
 func (r *UpdateContactRequest) Valid(ctx context.Context) error {
 	var errs errsx.Map
-	// TODO: complete that validation with other rules that make sense for the different fields
-	if err := uuid.Validate(r.ID); err != nil {
-		errs.Set("contact ID", err)
-	}
 	if err := uuid.Validate(r.ClientID); err != nil {
 		errs.Set("client ID", err)
 	}
