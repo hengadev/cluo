@@ -42,7 +42,7 @@ func TestGetContactByID(t *testing.T) {
 
 		// Create test contact data
 		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "DOE",
 			Firstname: "Jane",
 			Email:     "jane.doe@example.com",
@@ -208,7 +208,7 @@ func TestGetContactByID(t *testing.T) {
 
 		// Create test contact with nil optional fields
 		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "DOE",
 			Firstname: "Jane",
 			Email:     "jane.doe@example.com",
@@ -284,7 +284,7 @@ func TestGetContactByID(t *testing.T) {
 
 		for i := 0; i < numContacts; i++ {
 			contact := client.NewContact(&client.CreateContactRequest{
-				ClientID:  clientID.String(),
+				ClientID:  clientID,
 				Lastname:  fmt.Sprintf("DOE_%d", i),
 				Firstname: fmt.Sprintf("Contact_%d", i),
 				Email:     fmt.Sprintf("contact%d@example.com", i),
@@ -418,7 +418,7 @@ func TestGetContactByID(t *testing.T) {
 
 		// Create test contact with sensitive data
 		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "SENSITIVE_LASTNAME",
 			Firstname: "SENSITIVE_FIRSTNAME",
 			Email:     "sensitive@example.com",
@@ -468,4 +468,3 @@ func TestGetContactByID(t *testing.T) {
 		t.Log("✓ Contact data properly decrypted and returned")
 	})
 }
-

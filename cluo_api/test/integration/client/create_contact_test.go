@@ -44,7 +44,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "DOE",
 			Firstname: "Jane",
 			Email:     "jane.doe@example.com",
@@ -101,7 +101,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
-			ClientID:  nonExistentClientID.String(),
+			ClientID:  nonExistentClientID,
 			Lastname:  "DOE",
 			Firstname: "John",
 			Email:     "john.doe@example.com",
@@ -161,7 +161,7 @@ func TestCreateContact(t *testing.T) {
 		// Create first contact with specific email
 		duplicateEmail := "duplicate@example.com"
 		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "Original",
 			Firstname: "Contact",
 			Email:     duplicateEmail,
@@ -178,7 +178,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Try to create second contact with same email
 		payload := client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "Duplicate",
 			Firstname: "Contact",
 			Email:     duplicateEmail,
@@ -280,7 +280,7 @@ func TestCreateContact(t *testing.T) {
 			{
 				name: "MissingLastname",
 				payload: client.CreateContactRequest{
-					ClientID:  clientID.String(),
+					ClientID:  clientID,
 					Firstname: "John",
 					Email:     "john@example.com",
 					Phone:     "0612345678",
@@ -290,7 +290,7 @@ func TestCreateContact(t *testing.T) {
 			{
 				name: "MissingFirstname",
 				payload: client.CreateContactRequest{
-					ClientID: clientID.String(),
+					ClientID: clientID,
 					Lastname: "DOE",
 					Email:    "john@example.com",
 					Phone:    "0612345678",
@@ -300,7 +300,7 @@ func TestCreateContact(t *testing.T) {
 			{
 				name: "MissingEmail",
 				payload: client.CreateContactRequest{
-					ClientID:  clientID.String(),
+					ClientID:  clientID,
 					Lastname:  "DOE",
 					Firstname: "John",
 					Phone:     "0612345678",
@@ -344,7 +344,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "DOE",
 			Firstname: "John",
 			Email:     "john.doe@example.com",
@@ -382,8 +382,7 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 
-		// Use invalid UUID format
-		invalidClientID := "not-a-valid-uuid"
+		invalidClientID := uuid.UUID{}
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
@@ -438,7 +437,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Sensitive data that should be encrypted
 		sensitiveData := client.CreateContactRequest{
-			ClientID:  clientID.String(),
+			ClientID:  clientID,
 			Lastname:  "SENSITIVE_LASTNAME",
 			Firstname: "SENSITIVE_FIRSTNAME",
 			Email:     "sensitive@example.com",
@@ -528,7 +527,7 @@ func TestCreateContact(t *testing.T) {
 		for i := 0; i < numContacts; i++ {
 			go func(index int) {
 				payload := client.CreateContactRequest{
-					ClientID:  clientID.String(),
+					ClientID:  clientID,
 					Lastname:  fmt.Sprintf("DOE_%d", index),
 					Firstname: fmt.Sprintf("Contact_%d", index),
 					Email:     fmt.Sprintf("contact%d@example.com", index),
