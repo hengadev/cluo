@@ -1,12 +1,15 @@
 package clientHandler
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 	"github.com/hengadev/cluo_api/internal/domain/client"
+
+	"github.com/google/uuid"
 )
 
 func (h *handler) UpdateContact(w http.ResponseWriter, r *http.Request) {
@@ -19,45 +22,50 @@ func (h *handler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 	}
 
 	// Extract client ID from URL path
-	contactID := r.PathValue("id")
-	if contactID == "" {
-		httpx.RespondWithError(w, errs.NewInvalidValueErr("contact ID is required"), http.StatusBadRequest)
+	contactIDStr := r.PathValue("id")
+	if contactIDStr == "" {
+		logger.WarnContext(ctx, "Handler: client ID is required",
+			"operation", "update_contact",
+			"method", r.Method,
+			"path", r.URL.Path)
+		httpx.RespondWithError(w, errs.ErrInvalidValue, http.StatusBadRequest)
+	}
+
+	// Parse user ID as UUID
+	contactID, err := uuid.Parse(contactIDStr)
+	if err != nil {
+		logger.WarnContext(ctx, "Handler: Invalid contact ID format",
+			"operation", "update_contact",
+			"method", r.Method,
+			"path", r.URL.Path)
+		httpx.RespondWithError(w, errs.ErrInvalidValue, http.StatusBadRequest)
 		return
 	}
 
 	var payload client.UpdateContactRequest
 	payload.ID = contactID
 
-	// TODO: need to decode the payload to get the rest of the request brother
+	decoder := json.NewDecoder(r.Body)
+	decoder.DisallowUnknownFields()
+	if err := decoder.Decode(&payload); err != nil {
+		logger.WarnContext(ctx, "Handler: Invalid JSON request body",
+			"error", err,
+			"operation", "update_contact",
+			"method", r.Method,
+			"path", r.URL.Path)
+		return
+	}
+
+	// Log incoming request
+	logger.InfoContext(ctx, "Handler: Processing update contact request",
+		"operation", "update_contact",
+		"method", r.Method,
+		"path", r.URL.Path,
+		"contact_id", contactID,
+		"user_agent", r.Header.Get("User-Agent"))
 
 	if err = h.svc.UpdateContact(ctx, &payload); err != nil {
-		// Log with specific error context based on error type
-		var logLevel string
-		var errorContext string
-		switch {
-		}
-		logFields := []any{
-			"operation", "update_contact",
-			"error_context", errorContext,
-			"method", r.Method,
-			"path", r.URL.Path,
-			"error", err,
-		}
-		var statusCode int
-		switch {
-		}
-
-		logFields = append(logFields, "status_code", statusCode)
-
-		switch logLevel {
-		case "info":
-			logger.InfoContext(ctx, "Handler: update contact request result", logFields...)
-		case "warn":
-			logger.WarnContext(ctx, "Handler: update contact request failed", logFields...)
-		case "error":
-			logger.ErrorContext(ctx, "Handler: update contact request failed", logFields...)
-		}
-		httpx.RespondWithError(w, err, statusCode)
+		httpx.RespondWithServiceError(w, logger, ctx, err, "update contact")
 		return
 	}
 

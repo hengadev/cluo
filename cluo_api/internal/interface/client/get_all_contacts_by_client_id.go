@@ -7,6 +7,8 @@ import (
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 	"github.com/hengadev/cluo_api/internal/domain/client"
+
+	"github.com/google/uuid"
 )
 
 func (h *handler) GetAllContactsByClientID(w http.ResponseWriter, r *http.Request) {
@@ -20,42 +22,29 @@ func (h *handler) GetAllContactsByClientID(w http.ResponseWriter, r *http.Reques
 	}
 
 	// Extract client ID from URL path
-	clientID := r.PathValue("id")
-	if clientID == "" {
-		httpx.RespondWithError(w, errs.NewInvalidValueErr("client ID is required"), http.StatusBadRequest)
+	clientIDStr := r.PathValue("id")
+	if clientIDStr == "" {
+		logger.WarnContext(ctx, "Handler: client ID is required",
+			"operation", "get_all_contacts_by_contact_id", "method", r.Method,
+			"path", r.URL.Path)
+		httpx.RespondWithError(w, errs.ErrInvalidValue, http.StatusBadRequest)
+		return
+	}
+
+	// Parse user ID as UUID
+	clientID, err := uuid.Parse(clientIDStr)
+	if err != nil {
+		logger.WarnContext(ctx, "Handler: Invalid client ID format",
+			"operation", "get_all_contacts_by_contact_id", "method", r.Method,
+			"method", r.Method,
+			"path", r.URL.Path)
+		httpx.RespondWithError(w, errs.ErrInvalidValue, http.StatusBadRequest)
 		return
 	}
 
 	contacts, err := h.svc.GetAllContactsByClientID(ctx, clientID)
 	if err != nil {
-
-		// Log with specific error context based on error type
-		var logLevel string
-		var errorContext string
-		switch {
-		}
-		logFields := []any{
-			"operation", "get_all_contacts_by_client_id",
-			"error_context", errorContext,
-			"method", r.Method,
-			"path", r.URL.Path,
-			"error", err,
-		}
-		var statusCode int
-		switch {
-		}
-
-		logFields = append(logFields, "status_code", statusCode)
-
-		switch logLevel {
-		case "info":
-			logger.InfoContext(ctx, "Handler: Get all contacts by client ID request result", logFields...)
-		case "warn":
-			logger.WarnContext(ctx, "Handler: Get all contacts by client ID request failed", logFields...)
-		case "error":
-			logger.ErrorContext(ctx, "Handler: Get all contacts by client ID request failed", logFields...)
-		}
-		httpx.RespondWithError(w, err, statusCode)
+		httpx.RespondWithServiceError(w, logger, ctx, err, "get all contacts by client ID")
 		return
 	}
 
