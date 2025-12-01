@@ -2,10 +2,13 @@ package client
 
 import (
 	"context"
+	"fmt"
+	"strings"
 	"time"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/errsx"
+	"github.com/hengadev/cluo_api/internal/common/validation"
 )
 
 type Contact struct {
@@ -42,9 +45,30 @@ type CreateContactRequest struct {
 
 func (r *CreateContactRequest) Valid(ctx context.Context) error {
 	var errs errsx.Map
-	if err := uuid.Validate(r.ClientID); err != nil {
+
+	// UUID validation for ClientID
+	if err := uuid.Validate(r.ClientID.String()); err != nil {
 		errs.Set("clientID", err)
 	}
+
+	// Required string field validations
+	if strings.TrimSpace(r.Lastname) == "" {
+		errs.Set("lastname", fmt.Errorf("lastname is required"))
+	}
+
+	if strings.TrimSpace(r.Firstname) == "" {
+		errs.Set("firstname", fmt.Errorf("firstname is required"))
+	}
+
+	// Use validation utilities for complex fields
+	if err := validation.ValidateEmail(r.Email); err != nil {
+		errs.Set("email", err)
+	}
+
+	if err := validation.ValidatePhone(r.Phone); err != nil {
+		errs.Set("phone", err)
+	}
+
 	return errs.AsError()
 }
 
@@ -55,7 +79,7 @@ type DeleteContactRequest struct {
 func (r *DeleteContactRequest) Valid(ctx context.Context) error {
 	var errs errsx.Map
 	if err := uuid.Validate(r.ContactID); err != nil {
-		errs.Set("contact ID", err)
+		errs.Set("contactID", err)
 	}
 	return errs.AsError()
 }
