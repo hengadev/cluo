@@ -68,12 +68,12 @@ type DeleteContactRequest struct {
 
 type UpdateContactRequest struct {
 	ID        uuid.UUID `json:"contactID"`
-	ClientID  string    `json:"clientID" encx:"encrypt,hash_basic"`
-	Lastname  *string   `json:"lastname" encx:"encrypt"`
-	Firstname *string   `json:"firstname" encx:"encrypt"`
-	Email     *string   `json:"email" encx:"encrypt,hash_basic"`
-	Phone     *string   `json:"phone" encx:"encrypt"`
-	Position  *string   `json:"position" encx:"encrypt"`
+	ClientID  string    `json:"clientID" `
+	Lastname  *string   `json:"lastname" `
+	Firstname *string   `json:"firstname"`
+	Email     *string   `json:"email" `
+	Phone     *string   `json:"phone" `
+	Position  *string   `json:"position"`
 }
 
 func (r *UpdateContactRequest) Valid(ctx context.Context) error {
