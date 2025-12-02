@@ -36,7 +36,7 @@ func NewTestContact(t *testing.T) *client.Contact {
 	}
 }
 
-// NewTestContact creates a Contact domain object with basic test data (plaintext fields only)
+// NewTestContactEncx creates a mock ContactEncx domain object with basic test data (plaintext fields only)
 func NewTestContactEncx(t *testing.T) *client.ContactEncx {
 	t.Helper()
 	return &client.ContactEncx{
