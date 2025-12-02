@@ -1,4 +1,4 @@
-package helpers
+package clientHelpers
 
 import (
 	"context"

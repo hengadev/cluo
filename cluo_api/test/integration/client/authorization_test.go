@@ -10,7 +10,7 @@ import (
 	"time"
 
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
-	"github.com/hengadev/cluo_api/test/helpers"
+	ch "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/encx"
@@ -28,7 +28,7 @@ func TestContactAuthorization(t *testing.T) {
 		// Setup admin authentication
 		adminToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Create test client
 		clientID := uuid.New()
@@ -37,9 +37,9 @@ func TestContactAuthorization(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create contacts for the client
-		contact1, err := helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		contact1, err := ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
-		contact2, err := helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		contact2, err := ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Test all endpoints as admin
@@ -98,7 +98,7 @@ func TestContactAuthorization(t *testing.T) {
 		// Setup client authentication
 		clientToken := tu.SetupClientUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Create test client
 		clientID := uuid.New()
@@ -107,9 +107,9 @@ func TestContactAuthorization(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create contacts for the client
-		contact1, err := helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		contact1, err := ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
-		contact2, err := helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		contact2, err := ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Test endpoints client should access
@@ -170,7 +170,7 @@ func TestContactAuthorization(t *testing.T) {
 			otherClientIDHash := crypto.HashBasic(ctx, otherClientIDBytes)
 
 			// Create contact for other client
-			otherContact, err := helpers.CreateTestClientWithContact(t, ctx, testPool, otherClientID, otherClientIDHash)
+			otherContact, err := ch.CreateTestClientWithContact(t, ctx, testPool, otherClientID, otherClientIDHash)
 			require.NoError(t, err)
 
 			// Test client accessing other client's contact
@@ -196,7 +196,7 @@ func TestContactAuthorization(t *testing.T) {
 		// Setup guest authentication
 		guestToken := tu.SetupGuestUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Create test client
 		clientID := uuid.New()
@@ -205,7 +205,7 @@ func TestContactAuthorization(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create contact for the client
-		contact, err := helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		contact, err := ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Test all endpoints guests should not access

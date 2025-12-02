@@ -10,7 +10,7 @@ import (
 
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
 	"github.com/hengadev/cluo_api/internal/domain/client"
-	"github.com/hengadev/cluo_api/test/helpers"
+	ch "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/encx"
@@ -28,7 +28,7 @@ func TestGetContactByID(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -37,7 +37,7 @@ func TestGetContactByID(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client (by inserting an initial contact) so it "exists"
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create test contact data
@@ -53,7 +53,7 @@ func TestGetContactByID(t *testing.T) {
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		err = helpers.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with ID: %s", contact.ID)
 
@@ -101,7 +101,7 @@ func TestGetContactByID(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Use a non-existent contact ID
 		nonExistentContactID := uuid.New()
@@ -164,7 +164,7 @@ func TestGetContactByID(t *testing.T) {
 
 	t.Run("Unauthorized", func(t *testing.T) {
 		ctx := context.Background()
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Create test contact data
 		contactID := uuid.New()
@@ -194,7 +194,7 @@ func TestGetContactByID(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -203,7 +203,7 @@ func TestGetContactByID(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client (by inserting an initial contact) so it "exists"
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create test contact with nil optional fields
@@ -223,7 +223,7 @@ func TestGetContactByID(t *testing.T) {
 		contactEncx.PhoneEncrypted = nil
 		contactEncx.PositionEncrypted = nil
 
-		err = helpers.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with nil optional fields, ID: %s", contact.ID)
 
@@ -266,7 +266,7 @@ func TestGetContactByID(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -275,7 +275,7 @@ func TestGetContactByID(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client (by inserting an initial contact) so it "exists"
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create multiple test contacts
@@ -295,7 +295,7 @@ func TestGetContactByID(t *testing.T) {
 			contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 			require.NoError(t, err)
 
-			err = helpers.InsertContactEncx(t, ctx, testPool, *contactEncx)
+			err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
 			require.NoError(t, err)
 			contactIDs[i] = contact.ID
 		}
@@ -404,7 +404,7 @@ func TestGetContactByID(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -413,7 +413,7 @@ func TestGetContactByID(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client (by inserting an initial contact) so it "exists"
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create test contact with sensitive data
@@ -429,7 +429,7 @@ func TestGetContactByID(t *testing.T) {
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		err = helpers.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with sensitive data, ID: %s", contact.ID)
 

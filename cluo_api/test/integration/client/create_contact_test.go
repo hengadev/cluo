@@ -11,7 +11,7 @@ import (
 
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
 	"github.com/hengadev/cluo_api/internal/domain/client"
-	"github.com/hengadev/cluo_api/test/helpers"
+	ch "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/encx"
@@ -29,7 +29,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -38,7 +38,7 @@ func TestCreateContact(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client (by inserting an initial contact) so it "exists"
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 		t.Logf("Created test client with ID: %s", clientID)
 
@@ -81,7 +81,7 @@ func TestCreateContact(t *testing.T) {
 		assert.Equal(t, "Contact creation completed successfully", response.Message)
 
 		// Verify contact was created in database
-		count, err := helpers.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
+		count, err := ch.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
 		require.NoError(t, err)
 		assert.Equal(t, 2, count, "Should have 2 contacts: initial contact + newly created contact")
 
@@ -94,7 +94,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Use a non-existent client ID
 		nonExistentClientID := uuid.New()
@@ -146,7 +146,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -155,7 +155,7 @@ func TestCreateContact(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client with initial contact
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create first contact with specific email
@@ -172,7 +172,7 @@ func TestCreateContact(t *testing.T) {
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		err = helpers.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
 		require.NoError(t, err)
 		t.Log("Created first contact with email:", duplicateEmail)
 
@@ -261,7 +261,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID
 		clientID := uuid.New()
@@ -270,7 +270,7 @@ func TestCreateContact(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		testCases := []struct {
@@ -338,7 +338,7 @@ func TestCreateContact(t *testing.T) {
 
 	t.Run("Unauthorized", func(t *testing.T) {
 		ctx := context.Background()
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		clientID := uuid.New()
 
@@ -423,7 +423,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -432,7 +432,7 @@ func TestCreateContact(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Sensitive data that should be encrypted
@@ -471,7 +471,7 @@ func TestCreateContact(t *testing.T) {
 		emailHash := crypto.HashBasic(ctx, emailBytes)
 
 		// Retrieve the contact from database
-		contactEncx, err := helpers.GetContactEncxByEmailHash(t, ctx, testPool, emailHash)
+		contactEncx, err := ch.GetContactEncxByEmailHash(t, ctx, testPool, emailHash)
 		require.NoError(t, err)
 
 		// Verify data is encrypted (should not match plaintext)
@@ -507,7 +507,7 @@ func TestCreateContact(t *testing.T) {
 		// Setup authentication
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer helpers.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
 		clientID := uuid.New()
@@ -516,7 +516,7 @@ func TestCreateContact(t *testing.T) {
 		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
 
 		// Create a client
-		err = helpers.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
+		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
 		require.NoError(t, err)
 
 		// Create multiple contacts concurrently
@@ -588,7 +588,7 @@ func TestCreateContact(t *testing.T) {
 		assert.Equal(t, 0, errorCount, "No errors should occur")
 
 		// Verify count in database (initial contact + numContacts)
-		count, err := helpers.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
+		count, err := ch.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
 		require.NoError(t, err)
 		assert.Equal(t, numContacts+1, count, "Should have initial contact + all newly created contacts")
 
