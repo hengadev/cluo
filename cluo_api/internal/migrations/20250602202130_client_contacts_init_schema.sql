@@ -40,14 +40,6 @@ ALTER TABLE clients.clients ADD CONSTRAINT chk_clients_name_hash_not_empty
 ALTER TABLE clients.clients ADD CONSTRAINT chk_clients_type_hash_not_empty
     CHECK (length(trim(type_hash)) > 0);
 
--- Create update trigger function (if not exists)
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
 
 -- Create trigger for clients
 DROP TRIGGER IF EXISTS update_clients_updated_at ON clients.clients;

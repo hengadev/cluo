@@ -1,15 +1,6 @@
 -- +goose Up
 -- +goose StatementBegin
 
--- Create trigger function for updated_at
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
 -- Mandates table
 CREATE TABLE IF NOT EXISTS mandates (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),

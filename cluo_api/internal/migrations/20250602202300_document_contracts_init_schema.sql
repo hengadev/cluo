@@ -40,14 +40,6 @@ CREATE INDEX IF NOT EXISTS idx_contracts_end_date ON contracts(end_date) WHERE e
 ALTER TABLE contracts ADD CONSTRAINT fk_contracts_client_id
     FOREIGN KEY (client_id) REFERENCES clients.clients(id) ON DELETE RESTRICT;
 
--- Create update trigger function (if not exists)
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = NOW();
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
 
 -- Create trigger for contracts
 DROP TRIGGER IF EXISTS update_contracts_updated_at ON contracts;
