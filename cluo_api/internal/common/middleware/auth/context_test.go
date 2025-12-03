@@ -23,7 +23,7 @@ func TestSessionInfoFromContext(t *testing.T) {
 				sessionInfo := &session.SessionInfo{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Partner,
+					Role:   identity.Client,
 					State:  session.SessionActive,
 				}
 				return context.WithValue(context.Background(), session.GetSessionContextKey(), sessionInfo)
@@ -61,7 +61,7 @@ func TestSessionInfoFromContext(t *testing.T) {
 				sessionInfo := &session.SessionInfo{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Visitor,
+					Role:   identity.Guest,
 					State:  session.SessionActive,
 				}
 				// Use wrong key type
@@ -121,7 +121,7 @@ func TestSessionInfoFromContext_BackwardCompatibility(t *testing.T) {
 	sessionInfo := &session.SessionInfo{
 		ID:     uuid.New(),
 		UserID: uuid.New(),
-		Role:   identity.Partner,
+		Role:   identity.Client,
 		State:  session.SessionActive,
 	}
 
@@ -141,7 +141,7 @@ func TestSessionContextKey_Uniqueness(t *testing.T) {
 	sessionInfo := &session.SessionInfo{
 		ID:     uuid.New(),
 		UserID: uuid.New(),
-		Role:   identity.Partner,
+		Role:   identity.Client,
 		State:  session.SessionActive,
 	}
 
@@ -178,7 +178,7 @@ func TestSessionContextKey_ZeroValue(t *testing.T) {
 	sessionInfo := &session.SessionInfo{
 		ID:     uuid.New(),
 		UserID: uuid.New(),
-		Role:   identity.Visitor,
+		Role:   identity.Guest,
 		State:  session.SessionActive,
 	}
 

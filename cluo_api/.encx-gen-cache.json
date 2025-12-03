@@ -1,7 +1,7 @@
 {
   "SourceHashes": {
     "internal/common/auth/session/session.go": "98b736798866317fede7588e2cc117d4378b52004ed272e0fdcbd5aea16f0d38",
-    "internal/common/testutils/auth.go": "79b73906cfb8d91dac10f033fbbae499ff4d9186f36b0a0cc4bd0806730e8021",
+    "internal/common/testutils/auth.go": "62c412458641980d5f5ffffdb2623ebd7c52a9794360aa78823d92fa3f21f78b",
     "internal/domain/case/case.go": "fe386f2be84c88a356a8a3455269455b89bdf8c7a33b4078add491e4b0772349",
     "internal/domain/client/client.go": "b359fa728ffbf730ec5e048b2d88e31bf0c3ef38f89cce418e2361d00896c130",
     "internal/domain/client/client_dto.go": "f5ea938ba48789c5a57df9b6b3273969943f19a4a767dfe9bf03bdbbec78642d",
@@ -22,8 +22,8 @@
     },
     "internal/common/testutils/auth_encx.go": {
       "SourceFile": "internal/common/testutils/auth.go",
-      "SourceHash": "79b73906cfb8d91dac10f033fbbae499ff4d9186f36b0a0cc4bd0806730e8021",
-      "GeneratedTime": "2025-12-02T20:43:16.034714213+01:00"
+      "SourceHash": "62c412458641980d5f5ffffdb2623ebd7c52a9794360aa78823d92fa3f21f78b",
+      "GeneratedTime": "2025-12-03T19:23:06.597087189+01:00"
     },
     "internal/domain/case/case_encx.go": {
       "SourceFile": "internal/domain/case/case.go",
@@ -76,5 +76,5 @@
       "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
     }
   },
-  "LastGenerated": "2025-12-03T17:43:36.540114163+01:00"
+  "LastGenerated": "2025-12-03T19:23:06.59708766+01:00"
 }

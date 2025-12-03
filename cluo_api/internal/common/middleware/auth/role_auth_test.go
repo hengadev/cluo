@@ -25,37 +25,37 @@ func TestRequireAnyRole(t *testing.T) {
 		shouldCallNext bool
 	}{
 		{
-			name:           "visitor matches visitor role",
-			userRole:       identity.Visitor,
-			allowedRoles:   []identity.Role{identity.Visitor},
+			name:           "guest matches guest role",
+			userRole:       identity.Guest,
+			allowedRoles:   []identity.Role{identity.Guest},
 			expectedStatus: http.StatusOK,
 			shouldCallNext: true,
 		},
 		{
-			name:           "visitor matches in multiple roles",
-			userRole:       identity.Visitor,
-			allowedRoles:   []identity.Role{identity.Partner, identity.Visitor},
+			name:           "guest matches in multiple roles",
+			userRole:       identity.Guest,
+			allowedRoles:   []identity.Role{identity.Client, identity.Guest},
 			expectedStatus: http.StatusOK,
 			shouldCallNext: true,
 		},
 		{
-			name:           "partner matches staff in multiple roles",
-			userRole:       identity.Partner,
-			allowedRoles:   []identity.Role{identity.Partner, identity.Administrator},
+			name:           "client matches staff in multiple roles",
+			userRole:       identity.Client,
+			allowedRoles:   []identity.Role{identity.Client, identity.Administrator},
 			expectedStatus: http.StatusOK,
 			shouldCallNext: true,
 		},
 		{
-			name:           "visitor denied for partner-only endpoint",
-			userRole:       identity.Visitor,
-			allowedRoles:   []identity.Role{identity.Partner},
+			name:           "guest denied for client-only endpoint",
+			userRole:       identity.Guest,
+			allowedRoles:   []identity.Role{identity.Client},
 			expectedStatus: http.StatusForbidden,
 			shouldCallNext: false,
 		},
 		{
-			name:           "visitor denied for partner or admin endpoint",
-			userRole:       identity.Visitor,
-			allowedRoles:   []identity.Role{identity.Partner, identity.Administrator},
+			name:           "guest denied for client or admin endpoint",
+			userRole:       identity.Guest,
+			allowedRoles:   []identity.Role{identity.Client, identity.Administrator},
 			expectedStatus: http.StatusForbidden,
 			shouldCallNext: false,
 		},
@@ -136,14 +136,14 @@ func TestSessionAuthMiddleware_RequireAdmin(t *testing.T) {
 		shouldCallNext bool
 	}{
 		{
-			name:           "visitor denied admin access",
-			userRole:       identity.Visitor,
+			name:           "guest denied admin access",
+			userRole:       identity.Guest,
 			expectedStatus: http.StatusForbidden,
 			shouldCallNext: false,
 		},
 		{
-			name:           "partner denied admin access",
-			userRole:       identity.Partner,
+			name:           "client denied admin access",
+			userRole:       identity.Client,
 			expectedStatus: http.StatusForbidden,
 			shouldCallNext: false,
 		},
@@ -220,13 +220,13 @@ func TestRoleAuthMiddleware_NoSessionInContext(t *testing.T) {
 		{
 			name: "RequireMinimumRole with no session",
 			middlewareFn: func(m AuthMiddleware) func(middleware.Handler) middleware.Handler {
-				return m.RequireMinimumRole(identity.Visitor)
+				return m.RequireMinimumRole(identity.Guest)
 			},
 		},
 		{
 			name: "RequireAnyRole with no session",
 			middlewareFn: func(m AuthMiddleware) func(middleware.Handler) middleware.Handler {
-				return m.RequireAnyRole(identity.Visitor, identity.Partner)
+				return m.RequireAnyRole(identity.Guest, identity.Client)
 			},
 		},
 	}
@@ -267,11 +267,11 @@ func TestRoleAuthMiddleware_Integration(t *testing.T) {
 	mockCrypto, err := NewTestCrypto(t)
 	require.NoError(t, err, "Failed to create test crypto service")
 
-	// Create session data for partner user
+	// Create session data for client user
 	sessionData := &session.Session{
 		ID:        uuid.New(),
 		UserID:    uuid.New(),
-		Role:      identity.Partner,
+		Role:      identity.Client,
 		State:     session.SessionActive,
 		CreatedAt: time.Now(),
 		ExpiresAt: time.Now().Add(time.Hour),
@@ -281,22 +281,22 @@ func TestRoleAuthMiddleware_Integration(t *testing.T) {
 
 	middleware := NewSessionAuthMiddleware(mockRepo, mockCrypto, nil)
 
-	// Create endpoint that requires partner role
+	// Create endpoint that requires client role
 	nextCalled := false
 	testHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Verify session is available in context
 		sessionInfo, ok := session.SessionInfoFromContext(r.Context())
 		assert.True(t, ok, "session should be in context")
-		assert.Equal(t, identity.Partner, sessionInfo.Role, "session should have partner role")
+		assert.Equal(t, identity.Client, sessionInfo.Role, "session should have client role")
 
 		nextCalled = true
 		w.WriteHeader(http.StatusOK)
 	})
 
 	// Chain middlewares: RequireSession is called by RequireMinimumRole
-	handler := middleware.RequireMinimumRole(identity.Partner)(testHandler)
+	handler := middleware.RequireMinimumRole(identity.Client)(testHandler)
 
-	req := httptest.NewRequest("GET", "/partner-endpoint", nil)
+	req := httptest.NewRequest("GET", "/client-endpoint", nil)
 	req.AddCookie(&http.Cookie{
 		Name:  cookies.AccessTokenCookieName,
 		Value: "valid_token",

@@ -134,34 +134,16 @@ func SetupUserWithRole(t *testing.T, ctx context.Context, role identity.Role, au
 	return accessToken
 }
 
-// SetupVisitorUser creates a visitor user with active session
-func SetupVisitorUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
-	t.Helper()
-	return SetupUserWithRole(t, ctx, identity.Visitor, authCtx)
-}
-
-// SetupStandardUser creates a standard user with active session
-func SetupStandardUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
-	t.Helper()
-	return SetupUserWithRole(t, ctx, identity.Standard, authCtx)
-}
-
-// SetupPremiumUser creates a premium user with active session
-func SetupPremiumUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
-	t.Helper()
-	return SetupUserWithRole(t, ctx, identity.Premium, authCtx)
-}
-
 // SetupGuestUser creates a guest user with active session
 func SetupGuestUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
 	t.Helper()
 	return SetupUserWithRole(t, ctx, identity.Guest, authCtx)
 }
 
-// SetupPartnerUser creates a partner user with active session
-func SetupPartnerUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
+// SetupClientUser creates a client user with active session
+func SetupClientUser(t *testing.T, ctx context.Context, authCtx *AuthTestContext) string {
 	t.Helper()
-	return SetupUserWithRole(t, ctx, identity.Partner, authCtx)
+	return SetupUserWithRole(t, ctx, identity.Client, authCtx)
 }
 
 // SetupAdminUser creates an administrator user with active session

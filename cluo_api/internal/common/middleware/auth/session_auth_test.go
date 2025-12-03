@@ -117,7 +117,7 @@ func TestRequireAccessToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionPending,
 				}
 				return createValidSessionJSON(t, session)
@@ -137,7 +137,7 @@ func TestRequireAccessToken(t *testing.T) {
 		// 		session := &session.Session{
 		// 			ID:     uuid.New(),
 		// 			UserID: uuid.New(),
-		// 			Role:   identity.Standard,
+		// 			Role:   identity.Client,
 		// 			State:  session.SessionActive,
 		// 		}
 		// 		return createValidSessionJSON(t, session)
@@ -157,7 +157,7 @@ func TestRequireAccessToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  "expired", // Invalid state
 				}
 				return createValidSessionJSON(t, session)
@@ -177,7 +177,7 @@ func TestRequireAccessToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionActive, // Valid state but expired
 				}
 				return createExpiredSessionJSON(t, session, time.Now().Add(-time.Hour))
@@ -197,7 +197,7 @@ func TestRequireAccessToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionPending, // Valid state but expired
 				}
 				return createExpiredSessionJSON(t, session, time.Now().Add(-time.Minute))
@@ -217,7 +217,7 @@ func TestRequireAccessToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionActive,
 				}
 				return createValidSessionJSON(t, session) // Uses future expiration
@@ -343,7 +343,7 @@ func TestRequireRefreshToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionActive,
 				}
 				return createValidSessionJSON(t, session)
@@ -364,7 +364,7 @@ func TestRequireRefreshToken(t *testing.T) {
 				session := &session.Session{
 					ID:     uuid.New(),
 					UserID: uuid.New(),
-					Role:   identity.Standard,
+					Role:   identity.Client,
 					State:  session.SessionPending,
 				}
 				return createValidSessionJSON(t, session)
