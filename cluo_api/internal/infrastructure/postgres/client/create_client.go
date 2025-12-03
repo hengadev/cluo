@@ -27,4 +27,3 @@ func (r *Repository) CreateClient(ctx context.Context, clientEncx *client.Client
 
 	return nil
 }
-
