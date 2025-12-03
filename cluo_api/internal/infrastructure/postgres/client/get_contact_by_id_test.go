@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	th "github.com/hengadev/cluo_api/test/helpers"
+	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -95,4 +95,3 @@ func TestGetContactByID(t *testing.T) {
 		assert.Nil(t, retrievedContact, "Retrieved contact should be nil due to context cancellation")
 	})
 }
-

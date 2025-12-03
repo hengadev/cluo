@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	th "github.com/hengadev/cluo_api/test/helpers"
+	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"

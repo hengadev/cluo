@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	th "github.com/hengadev/cluo_api/test/helpers"
+	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -178,3 +178,4 @@ func TestDeleteContact(t *testing.T) {
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
 	})
 }
+

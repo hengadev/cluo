@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	th "github.com/hengadev/cluo_api/test/helpers"
+	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -212,4 +212,3 @@ func TestUpdateContact(t *testing.T) {
 		t.Logf("✓ Only target contact was updated, other contacts unaffected")
 	})
 }
-

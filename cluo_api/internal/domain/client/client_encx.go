@@ -8,38 +8,34 @@ import (
 	"context"
 	"time"
 
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/encx"
-	
+	"github.com/hengadev/errsx"
+
 	"github.com/google/uuid"
-	
 )
 
 // ClientEncx represents the encrypted version of Client
 type ClientEncx struct {
-	
 	ID uuid.UUID `db:"id" json:"id"`
-	
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
-	
-	
+
 	NameEncrypted []byte `db:"name_encrypted" json:"name_encrypted"`
-	
+
 	NameHash string `db:"name_hash" json:"name_hash"`
-	
+
 	TypeEncrypted []byte `db:"type_encrypted" json:"type_encrypted"`
-	
+
 	TypeHash string `db:"type_hash" json:"type_hash"`
-	
+
 	ContactIDsEncrypted []byte `db:"contactids_encrypted" json:"contactids_encrypted"`
-	
 
 	// Essential encryption fields
-	DEKEncrypted  []byte `db:"dek_encrypted" json:"dek_encrypted"`
-	KeyVersion    int    `db:"key_version" json:"key_version"`
+	DEKEncrypted []byte `db:"dek_encrypted" json:"dek_encrypted"`
+	KeyVersion   int    `db:"key_version" json:"key_version"`
 
 	// Metadata
-	Metadata      encx.EncryptionMetadata `db:"metadata" json:"metadata"`
+	Metadata encx.EncryptionMetadata `db:"metadata" json:"metadata"`
 }
 
 // ProcessClientEncx encrypts and hashes fields based on encx tags
@@ -56,11 +52,10 @@ func ProcessClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -69,8 +64,6 @@ func ProcessClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Process Name (encrypt + hash_basic)
 	NameBytes, err := encx.SerializeValue(source.Name)
 	if err != nil {
@@ -81,11 +74,9 @@ func ProcessClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			errs.Set("Name encryption", err)
 		}
 		result.NameHash = crypto.HashBasic(ctx, NameBytes)
-		
+
 	}
-	
-	
-	
+
 	// Process Type (encrypt + hash_basic)
 	TypeBytes, err := encx.SerializeValue(source.Type)
 	if err != nil {
@@ -96,11 +87,9 @@ func ProcessClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			errs.Set("Type encryption", err)
 		}
 		result.TypeHash = crypto.HashBasic(ctx, TypeBytes)
-		
+
 	}
-	
-	
-	
+
 	// Process ContactIDs (encrypt)
 	ContactIDsBytes, err := encx.SerializeValue(source.ContactIDs)
 	if err != nil {
@@ -111,8 +100,6 @@ func ProcessClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			errs.Set("ContactIDs encryption", err)
 		}
 	}
-	
-	
 
 	// Encrypt and store DEK
 	result.DEKEncrypted, err = crypto.EncryptDEK(ctx, dek)
@@ -137,11 +124,10 @@ func DecryptClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 	result := &Client{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)
@@ -150,8 +136,6 @@ func DecryptClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Decrypt Name
 	if len(source.NameEncrypted) > 0 {
 		NameBytes, err := crypto.DecryptData(ctx, source.NameEncrypted, dek)
@@ -164,8 +148,7 @@ func DecryptClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Type
 	if len(source.TypeEncrypted) > 0 {
 		TypeBytes, err := crypto.DecryptData(ctx, source.TypeEncrypted, dek)
@@ -178,8 +161,7 @@ func DecryptClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			}
 		}
 	}
-	
-	
+
 	// Decrypt ContactIDs
 	if len(source.ContactIDsEncrypted) > 0 {
 		ContactIDsBytes, err := crypto.DecryptData(ctx, source.ContactIDsEncrypted, dek)
@@ -192,7 +174,6 @@ func DecryptClientEncx(ctx context.Context, crypto encx.CryptoService, source *C
 			}
 		}
 	}
-	
 
 	return result, errs.AsError()
 }

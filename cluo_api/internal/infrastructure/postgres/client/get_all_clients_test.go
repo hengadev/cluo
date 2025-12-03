@@ -108,8 +108,8 @@ func TestGetAllClients(t *testing.T) {
 
 		// Create clients with different field states
 		testCases := []struct {
-			name    string
-			modify  func(*client.ClientEncx)
+			name   string
+			modify func(*client.ClientEncx)
 		}{
 			{
 				name: "client with empty name",
@@ -220,3 +220,4 @@ func TestGetAllClients(t *testing.T) {
 		}
 	})
 }
+

@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/encx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -146,7 +146,7 @@ func TestUpdateClient(t *testing.T) {
 		require.NoError(t, err, "Failed to create client for metadata update test")
 
 		// Update metadata field
-		client.Metadata = client.EncryptionMetadata{
+		client.Metadata = encx.EncryptionMetadata{
 			KEKAlias:         "updated_alias",
 			EncryptionTime:   time.Now().Unix(),
 			GeneratorVersion: "2.0.0",
@@ -162,3 +162,4 @@ func TestUpdateClient(t *testing.T) {
 		assert.Equal(t, client.Metadata.KEKAlias, retrievedClient.Metadata.KEKAlias, "KEKAlias should be updated")
 	})
 }
+
