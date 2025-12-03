@@ -13,6 +13,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// make test-func TEST_NAME=TestUpdateClient TEST_PATH=internal/infrastructure/postgres/client/update_client_test.go
 func TestUpdateClient(t *testing.T) {
 	if testPool == nil || repo == nil {
 		t.Skip("Test database or repository not initialized")

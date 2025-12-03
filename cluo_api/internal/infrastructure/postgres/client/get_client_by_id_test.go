@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// make test-func TEST_NAME=TestGetClientByID TEST_PATH=internal/infrastructure/postgres/client/get_client_by_id_test.go
 func TestGetClientByID(t *testing.T) {
 	if testPool == nil || repo == nil {
 		t.Skip("Test database or repository not initialized")

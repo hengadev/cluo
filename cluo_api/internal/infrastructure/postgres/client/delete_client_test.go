@@ -11,6 +11,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// make test-func TEST_NAME=TestDeleteClient TEST_PATH=internal/infrastructure/postgres/client/delete_client_test.go
 func TestDeleteClient(t *testing.T) {
 	if testPool == nil || repo == nil {
 		t.Skip("Test database or repository not initialized")
