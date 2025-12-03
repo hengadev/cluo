@@ -22,11 +22,17 @@ func TestCreateContact(t *testing.T) {
 	t.Run("successful creation", func(t *testing.T) {
 		ctx := context.Background()
 
+		// Create test clientEncx data using helper
+		clientEncx := th.NewTestClientEncx(t)
+		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+
 		// Create test contact data using helper
 		contact := th.NewTestContactEncx(t)
+		contact.ClientIDHash = clientEncx.ID.String()
 
 		// Test successful contact creation using the global repo
-		err := repo.CreateContact(ctx, contact)
+		err = repo.CreateContact(ctx, contact)
 		assert.NoError(t, err, "Failed to create contact")
 
 		// Verify the contact was inserted by retrieving it

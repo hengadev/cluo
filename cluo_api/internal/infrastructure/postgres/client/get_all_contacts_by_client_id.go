@@ -4,20 +4,21 @@ import (
 	"context"
 	"fmt"
 
+	"github.com/google/uuid"
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/client"
 )
 
-func (r *Repository) GetAllContactsByClientID(ctx context.Context, clientIDHashBasic string) ([]*client.ContactEncx, error) {
+func (r *Repository) GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactEncx, error) {
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id_encrypted, client_id_hash, firstname_encrypted, lastname_encrypted, email_encrypted,
+			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
 			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
 		FROM %s.contacts
-		WHERE client_id_hash = $1
+		WHERE client_id = $1
 	`, r.schema)
 
-	rows, err := r.pool.Query(ctx, query, clientIDHashBasic)
+	rows, err := r.pool.Query(ctx, query, clientID)
 	if err != nil {
 		return nil, errs.ClassifyPgError("get all contacts by client ID", err)
 	}
@@ -29,8 +30,7 @@ func (r *Repository) GetAllContactsByClientID(ctx context.Context, clientIDHashB
 		contactEncx := &client.ContactEncx{}
 
 		err := rows.Scan(
-			&contactEncx.ID, &contactEncx.ClientIDEncrypted, &contactEncx.ClientIDHash,
-			&contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
+			&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
 			&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
 			&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
 			&contactEncx.KeyVersion,

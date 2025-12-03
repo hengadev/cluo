@@ -8,7 +8,7 @@ import (
 
 type Contact struct {
 	ID        uuid.UUID `json:"-"`
-	ClientID  uuid.UUID `json:"-" encx:"encrypt,hash_basic"`
+	ClientID  uuid.UUID `json:"-"`
 	Lastname  string    `json:"lastname" encx:"encrypt"`
 	Firstname string    `json:"firstname" encx:"encrypt"`
 	Email     string    `json:"email" encx:"encrypt,hash_basic"`

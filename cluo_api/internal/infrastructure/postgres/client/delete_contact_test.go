@@ -163,7 +163,7 @@ func TestDeleteContact(t *testing.T) {
 		recreatedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
 		assert.NoError(t, err, "Failed to retrieve recreated contact")
 		assert.NotNil(t, recreatedContact, "Recreated contact should exist")
-		assert.Equal(t, newContact.ClientIDHash, recreatedContact.ClientIDHash, "Client hash should match")
+		assert.Equal(t, newContact.ClientID, recreatedContact.ClientID, "Client hash should match")
 		assert.Equal(t, newContact.EmailHash, recreatedContact.EmailHash, "Email hash should match")
 	})
 
@@ -178,4 +178,3 @@ func TestDeleteContact(t *testing.T) {
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
 	})
 }
-

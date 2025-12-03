@@ -35,7 +35,7 @@ func TestGetContactByID(t *testing.T) {
 
 		// Verify field values
 		assert.Equal(t, contact.ID, retrievedContact.ID, "Contact ID should match")
-		assert.Equal(t, contact.ClientIDHash, retrievedContact.ClientIDHash, "Client hash should match")
+		assert.Equal(t, contact.ClientID, retrievedContact.ClientID, "Client hash should match")
 		assert.Equal(t, contact.EmailHash, retrievedContact.EmailHash, "Email hash should match")
 		assert.Equal(t, contact.KeyVersion, retrievedContact.KeyVersion, "Key version should match")
 	})

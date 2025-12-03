@@ -42,8 +42,7 @@ func NewTestContactEncx(t *testing.T) *client.ContactEncx {
 	return &client.ContactEncx{
 		ID:                 uuid.New(),
 		CreatedAt:          time.Now(),
-		ClientIDEncrypted:  []byte("client_id_encrypted"),
-		ClientIDHash:       "client_id_hash",
+		ClientID:           uuid.New(),
 		LastnameEncrypted:  []byte("lastname_encrypted"),
 		FirstnameEncrypted: []byte("lastname_encrypted"),
 		EmailEncrypted:     []byte("email_encrypted"),
@@ -61,13 +60,13 @@ func InsertContactEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, co
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s.contacts (
-			id, client_id_hash, client_id_encrypted, lastname_encrypted, firstname_encrypted, email_hash, email_encrypted, 
+			id, client_id, lastname_encrypted, firstname_encrypted, email_hash, email_encrypted,
 			phone_encrypted, position_encrypted, dek_encrypted, key_version
-		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`, clientRepository.Schema)
 
 	_, err := pool.Exec(ctx, query,
-		contactEncx.ID, contactEncx.ClientIDHash, contactEncx.ClientIDEncrypted, contactEncx.LastnameEncrypted, contactEncx.FirstnameEncrypted, contactEncx.EmailHash,
+		contactEncx.ID, contactEncx.ClientID, contactEncx.LastnameEncrypted, contactEncx.FirstnameEncrypted, contactEncx.EmailHash,
 		contactEncx.EmailEncrypted, contactEncx.PhoneEncrypted, contactEncx.PositionEncrypted, contactEncx.DEKEncrypted, contactEncx.KeyVersion,
 	)
 
@@ -82,15 +81,14 @@ func GetContactEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, c
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id_encrypted, client_id_hash, firstname_encrypted, lastname_encrypted, email_encrypted,
+			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
 			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
 		FROM %s.contacts
 		WHERE id = $1
 	`, clientRepository.Schema)
 
 	err := pool.QueryRow(ctx, query, contactID).Scan(
-		&contactEncx.ID, &contactEncx.ClientIDEncrypted, &contactEncx.ClientIDHash,
-		&contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
+		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
 		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
 		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
 		&contactEncx.KeyVersion,
@@ -107,15 +105,14 @@ func GetContactEncxByEmailHash(t *testing.T, ctx context.Context, pool *pgxpool.
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id_encrypted, client_id_hash, firstname_encrypted, lastname_encrypted, email_encrypted,
+			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
 			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
 		FROM %s.contacts
 		WHERE email_hash = $1
 	`, clientRepository.Schema)
 
 	err := pool.QueryRow(ctx, query, emailHash).Scan(
-		&contactEncx.ID, &contactEncx.ClientIDEncrypted, &contactEncx.ClientIDHash,
-		&contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
+		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
 		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
 		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
 		&contactEncx.KeyVersion,
@@ -124,26 +121,25 @@ func GetContactEncxByEmailHash(t *testing.T, ctx context.Context, pool *pgxpool.
 	return &contactEncx, err
 }
 
-// CountContactsByClientIDHash returns the number of contacts for a client ID hash
-func CountContactsByClientIDHash(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientIDHash string) (int, error) {
+// CountContactsByClientID returns the number of contacts for a client ID
+func CountContactsByClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) (int, error) {
 	t.Helper()
 
 	var count int
-	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s.contacts WHERE client_id_hash = $1`, clientRepository.Schema)
-	err := pool.QueryRow(ctx, query, clientIDHash).Scan(&count)
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s.contacts WHERE client_id = $1`, clientRepository.Schema)
+	err := pool.QueryRow(ctx, query, clientID).Scan(&count)
 	return count, err
 }
 
 // CreateTestClientWithContact creates a client by inserting an initial contact
 // This represents a client "existing" in the system since clients are identified by contacts
-func CreateTestClientWithContact(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID, clientIDHash string) error {
+func CreateTestClientWithContact(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) error {
 	t.Helper()
 
 	initialContact := &client.ContactEncx{
 		ID:                 uuid.New(),
 		CreatedAt:          time.Now(),
-		ClientIDEncrypted:  []byte("initial_client_id_encrypted"),
-		ClientIDHash:       clientIDHash,
+		ClientID:           clientID,
 		LastnameEncrypted:  []byte("initial_lastname_encrypted"),
 		FirstnameEncrypted: []byte("initial_firstname_encrypted"),
 		EmailEncrypted:     []byte("initial_email_encrypted"),

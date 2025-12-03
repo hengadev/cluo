@@ -5,7 +5,7 @@
     "internal/domain/case/case.go": "fe386f2be84c88a356a8a3455269455b89bdf8c7a33b4078add491e4b0772349",
     "internal/domain/client/client.go": "b359fa728ffbf730ec5e048b2d88e31bf0c3ef38f89cce418e2361d00896c130",
     "internal/domain/client/client_dto.go": "f5ea938ba48789c5a57df9b6b3273969943f19a4a767dfe9bf03bdbbec78642d",
-    "internal/domain/client/contact.go": "2925b891069c56879feb0cd53c2529f786fb668ec35426656d719889b2c1ea0d",
+    "internal/domain/client/contact.go": "4013e8520a2d0e9b8325673b31488774812a97358092094e4580660fe8dab223",
     "internal/domain/client/contact_dto.go": "632793193c5531bffee4a5fdea0eb0be55f5db01065cecf5840693b50ca4def8",
     "internal/domain/document/document_base.go": "947a76e0ceea9ca6fa6a23c0f3316958e12f3735c11451614df7cbe04381fe7f",
     "internal/domain/media/media.go": "5783014080572519bd8995821e795d8ced0af0380fa5087836d8700e1b276643",
@@ -47,8 +47,8 @@
     },
     "internal/domain/client/contact_encx.go": {
       "SourceFile": "internal/domain/client/contact.go",
-      "SourceHash": "2925b891069c56879feb0cd53c2529f786fb668ec35426656d719889b2c1ea0d",
-      "GeneratedTime": "2025-12-03T15:03:10.058672047+01:00"
+      "SourceHash": "4013e8520a2d0e9b8325673b31488774812a97358092094e4580660fe8dab223",
+      "GeneratedTime": "2025-12-03T17:43:36.540113471+01:00"
     },
     "internal/domain/document/document_base_encx.go": {
       "SourceFile": "internal/domain/document/document_base.go",
@@ -76,5 +76,5 @@
       "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
     }
   },
-  "LastGenerated": "2025-12-03T15:03:10.058672227+01:00"
+  "LastGenerated": "2025-12-03T17:43:36.540114163+01:00"
 }

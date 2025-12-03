@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"

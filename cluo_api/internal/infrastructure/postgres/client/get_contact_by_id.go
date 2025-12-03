@@ -12,7 +12,7 @@ import (
 func (r *Repository) GetContactByID(ctx context.Context, contactID uuid.UUID) (*client.ContactEncx, error) {
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id_encrypted, client_id_hash, firstname_encrypted, lastname_encrypted, email_encrypted,
+			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
 			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
 		FROM %s.contacts WHERE id = $1
 	`, r.schema)
@@ -20,8 +20,7 @@ func (r *Repository) GetContactByID(ctx context.Context, contactID uuid.UUID) (*
 	contactEncx := &client.ContactEncx{}
 
 	err := r.pool.QueryRow(ctx, query, contactID).Scan(
-		&contactEncx.ID, &contactEncx.ClientIDEncrypted, &contactEncx.ClientIDHash,
-		&contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
+		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
 		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
 		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
 		&contactEncx.KeyVersion,

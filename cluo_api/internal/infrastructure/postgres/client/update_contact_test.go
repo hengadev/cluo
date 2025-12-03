@@ -29,7 +29,7 @@ func TestUpdateContact(t *testing.T) {
 		// Create updated contact with same ID but different data
 		updatedContact := th.NewTestContactEncx(t)
 		updatedContact.ID = originalContact.ID // Keep same ID
-		updatedContact.ClientIDHash = originalContact.ClientIDHash
+		updatedContact.ClientID = originalContact.ClientID
 
 		// Update the contact
 		err = repo.UpdateContact(ctx, updatedContact)
@@ -41,7 +41,7 @@ func TestUpdateContact(t *testing.T) {
 
 		// Verify fields were updated (should match updatedContact, not originalContact)
 		assert.Equal(t, updatedContact.ID, retrievedContact.ID)
-		assert.Equal(t, updatedContact.ClientIDHash, retrievedContact.ClientIDHash)
+		assert.Equal(t, updatedContact.ClientID, retrievedContact.ClientID)
 		// Note: We can't easily compare encrypted fields since they use random encryption
 		// But we can verify the contact was retrieved successfully
 
@@ -75,7 +75,7 @@ func TestUpdateContact(t *testing.T) {
 		// Create updated contact with nil optional fields
 		updatedContact := th.NewTestContactEncx(t)
 		updatedContact.ID = originalContact.ID
-		updatedContact.ClientIDHash = originalContact.ClientIDHash
+		updatedContact.ClientID = originalContact.ClientID
 		updatedContact.PhoneEncrypted = nil
 		updatedContact.PositionEncrypted = nil
 
@@ -115,7 +115,7 @@ func TestUpdateContact(t *testing.T) {
 
 		// Verify all fields were updated (ID and client ID hash should match)
 		assert.Equal(t, updatedContact.ID, retrievedContact.ID)
-		assert.Equal(t, updatedContact.ClientIDHash, retrievedContact.ClientIDHash)
+		assert.Equal(t, updatedContact.ClientID, retrievedContact.ClientID)
 		assert.Equal(t, updatedContact.KeyVersion, retrievedContact.KeyVersion)
 
 		t.Logf("✓ Successfully updated all contact fields")
@@ -132,8 +132,8 @@ func TestUpdateContact(t *testing.T) {
 		// Create updated contact with different client ID
 		updatedContact := th.NewTestContactEncx(t)
 		updatedContact.ID = originalContact.ID
-		newClientIDHash := "different-client-hash-123"
-		updatedContact.ClientIDHash = newClientIDHash
+		newClientIDHash := uuid.New()
+		updatedContact.ClientID = newClientIDHash
 
 		// Update the contact
 		err = repo.UpdateContact(ctx, updatedContact)
@@ -142,7 +142,7 @@ func TestUpdateContact(t *testing.T) {
 		// Verify the update
 		retrievedContact, err := repo.GetContactByID(ctx, updatedContact.ID)
 		require.NoError(t, err, "Failed to retrieve updated contact")
-		assert.Equal(t, newClientIDHash, retrievedContact.ClientIDHash, "Client ID hash should be updated")
+		assert.Equal(t, newClientIDHash, retrievedContact.ClientID, "Client ID hash should be updated")
 
 		t.Logf("✓ Successfully updated contact client ID")
 	})
@@ -194,7 +194,7 @@ func TestUpdateContact(t *testing.T) {
 		// Update only contact1
 		updatedContact1 := th.NewTestContactEncx(t)
 		updatedContact1.ID = contact1.ID
-		updatedContact1.ClientIDHash = contact1.ClientIDHash
+		updatedContact1.ClientID = contact1.ClientID
 
 		err = repo.UpdateContact(ctx, updatedContact1)
 		assert.NoError(t, err, "Failed to update contact 1")

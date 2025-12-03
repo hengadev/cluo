@@ -8,46 +8,40 @@ import (
 	"context"
 	"time"
 
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/encx"
-	
+	"github.com/hengadev/errsx"
+
 	"github.com/google/uuid"
-	
-	"github.com/hengadev/cluo_api/internal/common/contracts/identity"
-	
 )
 
 // SessionEncx represents the encrypted version of Session
 type SessionEncx struct {
-	
 	ID uuid.UUID `db:"id" json:"id"`
-	
-	
+
 	UserIDEncrypted []byte `db:"userid_encrypted" json:"userid_encrypted"`
-	
+
 	UserIDHash string `db:"userid_hash" json:"userid_hash"`
-	
+
 	RoleEncrypted []byte `db:"role_encrypted" json:"role_encrypted"`
-	
+
 	StateEncrypted []byte `db:"state_encrypted" json:"state_encrypted"`
-	
+
 	CreatedAtEncrypted []byte `db:"createdat_encrypted" json:"createdat_encrypted"`
-	
+
 	ExpiresAtEncrypted []byte `db:"expiresat_encrypted" json:"expiresat_encrypted"`
-	
+
 	CompletedAtEncrypted []byte `db:"completedat_encrypted" json:"completedat_encrypted"`
-	
+
 	AccessTokenHash string `db:"accesstoken_hash" json:"accesstoken_hash"`
-	
+
 	RefreshTokenHash string `db:"refreshtoken_hash" json:"refreshtoken_hash"`
-	
 
 	// Essential encryption fields
-	DEKEncrypted  []byte `db:"dek_encrypted" json:"dek_encrypted"`
-	KeyVersion    int    `db:"key_version" json:"key_version"`
+	DEKEncrypted []byte `db:"dek_encrypted" json:"dek_encrypted"`
+	KeyVersion   int    `db:"key_version" json:"key_version"`
 
 	// Metadata
-	Metadata      encx.EncryptionMetadata `db:"metadata" json:"metadata"`
+	Metadata encx.EncryptionMetadata `db:"metadata" json:"metadata"`
 }
 
 // ProcessSessionEncx encrypts and hashes fields based on encx tags
@@ -64,9 +58,8 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -75,25 +68,21 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Process UserID (encrypt + hash_basic)
 	if source.UserID != uuid.Nil {
-	UserIDBytes, err := encx.SerializeValue(source.UserID)
-	if err != nil {
-		errs.Set("UserID serialization", err)
-	} else {
-		result.UserIDEncrypted, err = crypto.EncryptData(ctx, UserIDBytes, dek)
+		UserIDBytes, err := encx.SerializeValue(source.UserID)
 		if err != nil {
-			errs.Set("UserID encryption", err)
+			errs.Set("UserID serialization", err)
+		} else {
+			result.UserIDEncrypted, err = crypto.EncryptData(ctx, UserIDBytes, dek)
+			if err != nil {
+				errs.Set("UserID encryption", err)
+			}
+			result.UserIDHash = crypto.HashBasic(ctx, UserIDBytes)
+
 		}
-		result.UserIDHash = crypto.HashBasic(ctx, UserIDBytes)
-		
 	}
-	}
-	
-	
-	
+
 	// Process Role (encrypt)
 	RoleBytes, err := encx.SerializeValue(source.Role)
 	if err != nil {
@@ -104,9 +93,7 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Role encryption", err)
 		}
 	}
-	
-	
-	
+
 	// Process State (encrypt)
 	StateBytes, err := encx.SerializeValue(source.State)
 	if err != nil {
@@ -117,54 +104,46 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("State encryption", err)
 		}
 	}
-	
-	
-	
+
 	// Process CreatedAt (encrypt)
 	if !source.CreatedAt.IsZero() {
-	CreatedAtBytes, err := encx.SerializeValue(source.CreatedAt)
-	if err != nil {
-		errs.Set("CreatedAt serialization", err)
-	} else {
-		result.CreatedAtEncrypted, err = crypto.EncryptData(ctx, CreatedAtBytes, dek)
+		CreatedAtBytes, err := encx.SerializeValue(source.CreatedAt)
 		if err != nil {
-			errs.Set("CreatedAt encryption", err)
+			errs.Set("CreatedAt serialization", err)
+		} else {
+			result.CreatedAtEncrypted, err = crypto.EncryptData(ctx, CreatedAtBytes, dek)
+			if err != nil {
+				errs.Set("CreatedAt encryption", err)
+			}
 		}
 	}
-	}
-	
-	
-	
+
 	// Process ExpiresAt (encrypt)
 	if !source.ExpiresAt.IsZero() {
-	ExpiresAtBytes, err := encx.SerializeValue(source.ExpiresAt)
-	if err != nil {
-		errs.Set("ExpiresAt serialization", err)
-	} else {
-		result.ExpiresAtEncrypted, err = crypto.EncryptData(ctx, ExpiresAtBytes, dek)
+		ExpiresAtBytes, err := encx.SerializeValue(source.ExpiresAt)
 		if err != nil {
-			errs.Set("ExpiresAt encryption", err)
+			errs.Set("ExpiresAt serialization", err)
+		} else {
+			result.ExpiresAtEncrypted, err = crypto.EncryptData(ctx, ExpiresAtBytes, dek)
+			if err != nil {
+				errs.Set("ExpiresAt encryption", err)
+			}
 		}
 	}
-	}
-	
-	
-	
+
 	// Process CompletedAt (encrypt)
 	if source.CompletedAt != nil {
-	CompletedAtBytes, err := encx.SerializeValue(source.CompletedAt)
-	if err != nil {
-		errs.Set("CompletedAt serialization", err)
-	} else {
-		result.CompletedAtEncrypted, err = crypto.EncryptData(ctx, CompletedAtBytes, dek)
+		CompletedAtBytes, err := encx.SerializeValue(source.CompletedAt)
 		if err != nil {
-			errs.Set("CompletedAt encryption", err)
+			errs.Set("CompletedAt serialization", err)
+		} else {
+			result.CompletedAtEncrypted, err = crypto.EncryptData(ctx, CompletedAtBytes, dek)
+			if err != nil {
+				errs.Set("CompletedAt encryption", err)
+			}
 		}
 	}
-	}
-	
-	
-	
+
 	// Process AccessToken (hash_basic)
 	AccessTokenBytes, err := encx.SerializeValue(source.AccessToken)
 	if err != nil {
@@ -172,9 +151,7 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 	} else {
 		result.AccessTokenHash = crypto.HashBasic(ctx, AccessTokenBytes)
 	}
-	
-	
-	
+
 	// Process RefreshToken (hash_basic)
 	RefreshTokenBytes, err := encx.SerializeValue(source.RefreshToken)
 	if err != nil {
@@ -182,8 +159,6 @@ func ProcessSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 	} else {
 		result.RefreshTokenHash = crypto.HashBasic(ctx, RefreshTokenBytes)
 	}
-	
-	
 
 	// Encrypt and store DEK
 	result.DEKEncrypted, err = crypto.EncryptDEK(ctx, dek)
@@ -208,9 +183,8 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 	result := &Session{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)
@@ -219,8 +193,6 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Decrypt UserID
 	if len(source.UserIDEncrypted) > 0 {
 		UserIDBytes, err := crypto.DecryptData(ctx, source.UserIDEncrypted, dek)
@@ -233,8 +205,7 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Role
 	if len(source.RoleEncrypted) > 0 {
 		RoleBytes, err := crypto.DecryptData(ctx, source.RoleEncrypted, dek)
@@ -247,8 +218,7 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt State
 	if len(source.StateEncrypted) > 0 {
 		StateBytes, err := crypto.DecryptData(ctx, source.StateEncrypted, dek)
@@ -261,8 +231,7 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt CreatedAt
 	if len(source.CreatedAtEncrypted) > 0 {
 		CreatedAtBytes, err := crypto.DecryptData(ctx, source.CreatedAtEncrypted, dek)
@@ -275,8 +244,7 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt ExpiresAt
 	if len(source.ExpiresAtEncrypted) > 0 {
 		ExpiresAtBytes, err := crypto.DecryptData(ctx, source.ExpiresAtEncrypted, dek)
@@ -289,8 +257,7 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt CompletedAt
 	if len(source.CompletedAtEncrypted) > 0 {
 		CompletedAtBytes, err := crypto.DecryptData(ctx, source.CompletedAtEncrypted, dek)
@@ -303,7 +270,6 @@ func DecryptSessionEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
 
 	return result, errs.AsError()
 }

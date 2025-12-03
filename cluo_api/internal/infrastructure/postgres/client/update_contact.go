@@ -11,21 +11,20 @@ import (
 func (r *Repository) UpdateContact(ctx context.Context, contact *client.ContactEncx) error {
 	query := fmt.Sprintf(`
 		UPDATE %s.contacts SET
-			client_id_hash = $2,
-			client_id_encrypted = $3,
-			lastname_encrypted = $4,
-			firstname_encrypted = $5,
-			email_hash = $6,
-			email_encrypted = $7,
-			phone_encrypted = $8,
-			position_encrypted = $9,
-			dek_encrypted = $10,
-			key_version = $11
+			client_id = $2,
+			lastname_encrypted = $3,
+			firstname_encrypted = $4,
+			email_hash = $5,
+			email_encrypted = $6,
+			phone_encrypted = $7,
+			position_encrypted = $8,
+			dek_encrypted = $9,
+			key_version = $10
 		WHERE id = $1
 	`, r.schema)
 
 	result, err := r.pool.Exec(ctx, query,
-		contact.ID, contact.ClientIDHash, contact.ClientIDEncrypted, contact.LastnameEncrypted,
+		contact.ID, contact.ClientID, contact.LastnameEncrypted,
 		contact.FirstnameEncrypted, contact.EmailHash, contact.EmailEncrypted, contact.PhoneEncrypted,
 		contact.PositionEncrypted, contact.DEKEncrypted, contact.KeyVersion,
 	)

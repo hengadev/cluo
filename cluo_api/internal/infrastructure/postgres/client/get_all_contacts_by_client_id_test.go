@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/google/uuid"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/stretchr/testify/assert"
@@ -22,11 +23,11 @@ func TestGetAllContactsByClientID(t *testing.T) {
 
 		// Create multiple test contacts with the same client ID hash
 		numContacts := 3
-		clientIDHash := "test-client-hash-123"
+		clientID := uuid.New()
 
 		for i := 0; i < numContacts; i++ {
 			contact := th.NewTestContactEncx(t)
-			contact.ClientIDHash = clientIDHash
+			contact.ClientID = clientID
 
 			// Insert contact directly into database
 			err := th.InsertContactEncx(t, ctx, testPool, *contact)
@@ -34,7 +35,7 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		}
 
 		// Test retrieval using the client ID hash string
-		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientIDHash)
+		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientID)
 		assert.NoError(t, err, "Failed to get contacts by client ID")
 		assert.GreaterOrEqual(t, len(retrievedContacts), numContacts, "Should retrieve at least the contacts we created")
 
@@ -46,15 +47,15 @@ func TestGetAllContactsByClientID(t *testing.T) {
 
 		// Create a single test contact
 		contact := th.NewTestContactEncx(t)
-		clientIDHash := "test-client-hash-456"
-		contact.ClientIDHash = clientIDHash
+		clientID := uuid.New()
+		contact.ClientID = clientID
 
 		// Insert contact
 		err := th.InsertContactEncx(t, ctx, testPool, *contact)
 		require.NoError(t, err, "Failed to insert contact")
 
 		// Test retrieval using the client ID hash string
-		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientIDHash)
+		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientID)
 		assert.NoError(t, err, "Failed to get contacts by client ID")
 		assert.GreaterOrEqual(t, len(retrievedContacts), 1, "Should retrieve at least one contact")
 
@@ -65,10 +66,10 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		ctx := context.Background()
 
 		// Use a client ID hash that doesn't have any contacts
-		clientIDHash := "test-client-hash-789"
+		clientID := uuid.New()
 
 		// Test retrieval should return empty slice
-		contacts, err := repo.GetAllContactsByClientID(ctx, clientIDHash)
+		contacts, err := repo.GetAllContactsByClientID(ctx, clientID)
 		assert.NoError(t, err, "Should not error when no contacts exist")
 		assert.Empty(t, contacts, "Should return empty slice when no contacts exist")
 
@@ -80,8 +81,8 @@ func TestGetAllContactsByClientID(t *testing.T) {
 
 		// Create contact with nil optional fields
 		contact := th.NewTestContactEncx(t)
-		clientIDHash := "test-client-hash-nil-fields"
-		contact.ClientIDHash = clientIDHash
+		clientID := uuid.New()
+		contact.ClientID = clientID
 		contact.PhoneEncrypted = nil
 		contact.PositionEncrypted = nil
 
@@ -90,7 +91,7 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		require.NoError(t, err, "Failed to insert contact with nil fields")
 
 		// Test retrieval using the client ID hash string
-		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientIDHash)
+		retrievedContacts, err := repo.GetAllContactsByClientID(ctx, clientID)
 		assert.NoError(t, err, "Failed to get contacts by client ID")
 		assert.NotEmpty(t, retrievedContacts, "Should retrieve contacts")
 
@@ -101,32 +102,32 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		ctx := context.Background()
 
 		// Create contacts for different clients
-		clientIDHash1 := "test-client-hash-diff-1"
-		clientIDHash2 := "test-client-hash-diff-2"
+		clientID1 := uuid.New()
+		clientID2 := uuid.New()
 
 		// Create contact for client 1
 		contact1 := th.NewTestContactEncx(t)
-		contact1.ClientIDHash = clientIDHash1
+		contact1.ClientID = clientID1
 		err := th.InsertContactEncx(t, ctx, testPool, *contact1)
 		require.NoError(t, err, "Failed to insert contact for client 1")
 
 		// Create contacts for client 2
 		contact2a := th.NewTestContactEncx(t)
-		contact2a.ClientIDHash = clientIDHash2
+		contact2a.ClientID = clientID2
 		err = th.InsertContactEncx(t, ctx, testPool, *contact2a)
 		require.NoError(t, err, "Failed to insert contact 2a for client 2")
 
 		contact2b := th.NewTestContactEncx(t)
-		contact2b.ClientIDHash = clientIDHash2
+		contact2b.ClientID = clientID2
 		err = th.InsertContactEncx(t, ctx, testPool, *contact2b)
 		require.NoError(t, err, "Failed to insert contact 2b for client 2")
 
 		// Test retrieval for client 1
-		contacts1, err := repo.GetAllContactsByClientID(ctx, clientIDHash1)
+		contacts1, err := repo.GetAllContactsByClientID(ctx, clientID1)
 		assert.NoError(t, err, "Failed to get contacts for client 1")
 
 		// Test retrieval for client 2
-		contacts2, err := repo.GetAllContactsByClientID(ctx, clientIDHash2)
+		contacts2, err := repo.GetAllContactsByClientID(ctx, clientID2)
 		assert.NoError(t, err, "Failed to get contacts for client 2")
 
 		t.Logf("✓ Retrieved %d contacts for client 1 and %d contacts for client 2", len(contacts1), len(contacts2))
@@ -136,7 +137,7 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		ctx := context.Background()
 
 		// Test with nil UUID
-		contacts, err := repo.GetAllContactsByClientID(ctx, "")
+		contacts, err := repo.GetAllContactsByClientID(ctx, uuid.Nil)
 		assert.NoError(t, err, "Should not error for nil client ID")
 		assert.Empty(t, contacts, "Should return empty slice for nil client ID")
 
@@ -148,9 +149,9 @@ func TestGetAllContactsByClientID(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		clientIDHash := "test-client-hash-cancel"
+		clientID := uuid.New()
 
-		contacts, err := repo.GetAllContactsByClientID(ctx, clientIDHash)
+		contacts, err := repo.GetAllContactsByClientID(ctx, clientID)
 		assert.Error(t, err, "Expected context cancellation error")
 		assert.Nil(t, contacts, "Should return nil contacts on context cancellation")
 

@@ -11,13 +11,13 @@ import (
 func (r *Repository) CreateContact(ctx context.Context, contactEncx *client.ContactEncx) error {
 	query := fmt.Sprintf(`
 		INSERT INTO %s.contacts (
-			id, client_id_hash, client_id_encrypted, lastname_encrypted, firstname_encrypted, email_hash, email_encrypted, 
+			id, client_id, lastname_encrypted, firstname_encrypted, email_hash, email_encrypted,
 			phone_encrypted, position_encrypted, dek_encrypted, key_version
-		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
 	`, r.schema)
 
 	_, err := r.pool.Exec(ctx, query,
-		contactEncx.ID, contactEncx.ClientIDHash, contactEncx.ClientIDEncrypted, contactEncx.LastnameEncrypted, contactEncx.FirstnameEncrypted, contactEncx.EmailHash,
+		contactEncx.ID, contactEncx.ClientID, contactEncx.LastnameEncrypted, contactEncx.FirstnameEncrypted, contactEncx.EmailHash,
 		contactEncx.EmailEncrypted, contactEncx.PhoneEncrypted, contactEncx.PositionEncrypted, contactEncx.DEKEncrypted, contactEncx.KeyVersion,
 	)
 	if err != nil {

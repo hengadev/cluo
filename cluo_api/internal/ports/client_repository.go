@@ -14,7 +14,7 @@ type ClientRepository interface {
 	DeleteContact(ctx context.Context, contactID uuid.UUID) error
 	UpdateContact(ctx context.Context, request *client.ContactEncx) error
 	GetContactByID(ctx context.Context, contactID uuid.UUID) (*client.ContactEncx, error)
-	GetAllContactsByClientID(ctx context.Context, clientIDHashBasic string) ([]*client.ContactEncx, error)
+	GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactEncx, error)
 	//client
 	CreateClient(ctx context.Context, clientEncx *client.ClientEncx) error
 	DeleteClient(ctx context.Context, clientID uuid.UUID) error

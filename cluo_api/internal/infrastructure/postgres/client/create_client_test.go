@@ -115,4 +115,3 @@ func TestCreateClient(t *testing.T) {
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
 	})
 }
-

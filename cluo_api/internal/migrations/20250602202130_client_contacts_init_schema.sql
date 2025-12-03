@@ -57,8 +57,7 @@ CREATE TRIGGER update_clients_updated_at BEFORE UPDATE ON clients.clients
 -- Contacts table for storing encrypted client contact information
 CREATE TABLE IF NOT EXISTS clients.contacts (
     id UUID PRIMARY KEY,
-    client_id_hash VARCHAR(255) NOT NULL,
-    client_id_encrypted BYTEA NOT NULL,
+    client_id UUID NOT NULL REFERENCES clients.clients(id) ON DELETE CASCADE,
     lastname_encrypted BYTEA NOT NULL,
     firstname_encrypted BYTEA NOT NULL,
     email_hash VARCHAR(255) NOT NULL,
@@ -73,7 +72,7 @@ CREATE TABLE IF NOT EXISTS clients.contacts (
 );
 
 -- Indexes for performance and search
-CREATE INDEX IF NOT EXISTS idx_contacts_client_id_hash ON clients.contacts(client_id_hash);
+CREATE INDEX IF NOT EXISTS idx_contacts_client_id ON clients.contacts(client_id);
 CREATE INDEX IF NOT EXISTS idx_contacts_email_hash ON clients.contacts(email_hash);
 CREATE INDEX IF NOT EXISTS idx_contacts_created_at ON clients.contacts(created_at);
 CREATE INDEX IF NOT EXISTS idx_contacts_updated_at ON clients.contacts(updated_at);
@@ -108,8 +107,7 @@ COMMENT ON COLUMN clients.clients.metadata IS 'Additional metadata in JSON forma
 
 COMMENT ON TABLE clients.contacts IS 'Stores encrypted contact information for clients';
 COMMENT ON COLUMN clients.contacts.id IS 'Unique identifier for the contact record';
-COMMENT ON COLUMN clients.contacts.client_id_hash IS 'Hashed client identifier for indexing and searching';
-COMMENT ON COLUMN clients.contacts.client_id_encrypted IS 'Encrypted client UUID reference';
+COMMENT ON COLUMN clients.contacts.client_id IS 'Foreign key reference to the clients table';
 COMMENT ON COLUMN clients.contacts.lastname_encrypted IS 'Encrypted contact last name';
 COMMENT ON COLUMN clients.contacts.firstname_encrypted IS 'Encrypted contact first name';
 COMMENT ON COLUMN clients.contacts.email_hash IS 'Hashed email for indexing and searching';
