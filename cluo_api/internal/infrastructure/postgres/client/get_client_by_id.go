@@ -29,3 +29,4 @@ func (r *Repository) GetClientByID(ctx context.Context, clientID uuid.UUID) (*cl
 	}
 	return clientEncx, nil
 }
+
