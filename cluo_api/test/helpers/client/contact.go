@@ -81,14 +81,14 @@ func GetContactEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, c
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
+			id, client_id, firstname_encrypted, lastname_encrypted, created_at, email_encrypted,
 			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
 		FROM %s.contacts
 		WHERE id = $1
 	`, clientRepository.Schema)
 
 	err := pool.QueryRow(ctx, query, contactID).Scan(
-		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
+		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.CreatedAt, &contactEncx.EmailEncrypted,
 		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
 		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
 		&contactEncx.KeyVersion,
