@@ -59,3 +59,31 @@ type UpdateClientRequest struct {
 	Name *string   `json:"name" `
 	Type *string   `json:"type"`
 }
+
+func (r *UpdateClientRequest) Valid(ctx context.Context) error {
+	var errs errsx.Map
+
+	// Validate name if provided
+	if r.Name != nil {
+		if *r.Name == "" {
+			errs.Set("name", "client name is required")
+		}
+
+		if len(*r.Name) > 100 {
+			errs.Set("name", "name must be less than 100 characters")
+		}
+	}
+
+	// Validate type if provided
+	if r.Type != nil {
+		if *r.Type == "" {
+			errs.Set("type", "client type is required")
+		}
+
+		if len(*r.Type) > 50 {
+			errs.Set("type", "type must be less than 50 characters")
+		}
+	}
+
+	return errs.AsError()
+}
