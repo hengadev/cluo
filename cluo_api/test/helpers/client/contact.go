@@ -1,25 +1,13 @@
 package clientHelpers
 
 import (
-	"context"
-	"fmt"
 	"testing"
 	"time"
 
 	"github.com/hengadev/cluo_api/internal/domain/client"
-	"github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 
 	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
-	"github.com/stretchr/testify/require"
 )
-
-// ClearContactsTable truncates the contacts table for clean test state
-func ClearContactsTable(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
-	t.Helper()
-	_, err := pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s.contacts RESTART IDENTITY CASCADE", clientRepository.Schema))
-	require.NoError(t, err)
-}
 
 // NewTestContact creates a Contact domain object with basic test data (plaintext fields only)
 func NewTestContact(t *testing.T) *client.Contact {
@@ -52,103 +40,4 @@ func NewTestContactEncx(t *testing.T) *client.ContactEncx {
 		DEKEncrypted:       []byte("dek_encrypted"),
 		KeyVersion:         1,
 	}
-}
-
-// InsertContactEncx creates a Contact domain object with basic test data (plaintext fields only)
-func InsertContactEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, contactEncx *client.ContactEncx) error {
-	t.Helper()
-
-	query := fmt.Sprintf(`
-		INSERT INTO %s.contacts (
-			id, client_id, lastname_encrypted, firstname_encrypted, email_hash, email_encrypted,
-			phone_encrypted, position_encrypted, dek_encrypted, key_version
-		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-	`, clientRepository.Schema)
-
-	_, err := pool.Exec(ctx, query,
-		contactEncx.ID, contactEncx.ClientID, contactEncx.LastnameEncrypted, contactEncx.FirstnameEncrypted, contactEncx.EmailHash,
-		contactEncx.EmailEncrypted, contactEncx.PhoneEncrypted, contactEncx.PositionEncrypted, contactEncx.DEKEncrypted, contactEncx.KeyVersion,
-	)
-
-	return err
-}
-
-// GetContactEncx gets a ContactEncx using the ContactEncx ID.
-func GetContactEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, contactID uuid.UUID) (*client.ContactEncx, error) {
-	t.Helper()
-
-	var contactEncx client.ContactEncx
-
-	query := fmt.Sprintf(`
-		SELECT
-			id, client_id, firstname_encrypted, lastname_encrypted, created_at, email_encrypted,
-			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
-		FROM %s.contacts
-		WHERE id = $1
-	`, clientRepository.Schema)
-
-	err := pool.QueryRow(ctx, query, contactID).Scan(
-		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.CreatedAt, &contactEncx.EmailEncrypted,
-		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
-		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
-		&contactEncx.KeyVersion,
-	)
-
-	return &contactEncx, err
-}
-
-// GetContactEncxByEmailHash gets a ContactEncx using the email hash.
-func GetContactEncxByEmailHash(t *testing.T, ctx context.Context, pool *pgxpool.Pool, emailHash string) (*client.ContactEncx, error) {
-	t.Helper()
-
-	var contactEncx client.ContactEncx
-
-	query := fmt.Sprintf(`
-		SELECT
-			id, client_id, firstname_encrypted, lastname_encrypted, email_encrypted,
-			email_hash, phone_encrypted, position_encrypted, dek_encrypted, key_version
-		FROM %s.contacts
-		WHERE email_hash = $1
-	`, clientRepository.Schema)
-
-	err := pool.QueryRow(ctx, query, emailHash).Scan(
-		&contactEncx.ID, &contactEncx.ClientID, &contactEncx.FirstnameEncrypted, &contactEncx.LastnameEncrypted, &contactEncx.EmailEncrypted,
-		&contactEncx.EmailHash, &contactEncx.PhoneEncrypted,
-		&contactEncx.PositionEncrypted, &contactEncx.DEKEncrypted,
-		&contactEncx.KeyVersion,
-	)
-
-	return &contactEncx, err
-}
-
-// CountContactsByClientID returns the number of contacts for a client ID
-func CountContactsByClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) (int, error) {
-	t.Helper()
-
-	var count int
-	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s.contacts WHERE client_id = $1`, clientRepository.Schema)
-	err := pool.QueryRow(ctx, query, clientID).Scan(&count)
-	return count, err
-}
-
-// CreateTestClientWithContact creates a client by inserting an initial contact
-// This represents a client "existing" in the system since clients are identified by contacts
-func CreateTestClientWithContact(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) error {
-	t.Helper()
-
-	initialContact := &client.ContactEncx{
-		ID:                 uuid.New(),
-		CreatedAt:          time.Now(),
-		ClientID:           clientID,
-		LastnameEncrypted:  []byte("initial_lastname_encrypted"),
-		FirstnameEncrypted: []byte("initial_firstname_encrypted"),
-		EmailEncrypted:     []byte("initial_email_encrypted"),
-		EmailHash:          "initial_email_hash_" + clientID.String(),
-		PhoneEncrypted:     []byte("initial_phone_encrypted"),
-		PositionEncrypted:  []byte("initial_position_encrypted"),
-		DEKEncrypted:       []byte("initial_dek_encrypted"),
-		KeyVersion:         1,
-	}
-
-	return InsertContactEncx(t, ctx, pool, initialContact)
 }
