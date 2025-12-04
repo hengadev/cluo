@@ -1,0 +1,53 @@
+package clientService
+
+import (
+	"context"
+	"fmt"
+
+	"github.com/hengadev/cluo_api/internal/common/errs"
+	"github.com/hengadev/cluo_api/internal/domain/client"
+)
+
+func (s *Service) UpdateClient(ctx context.Context, request *client.UpdateClientRequest) error {
+	if err := request.Valid(ctx); err != nil {
+		return errs.NewInvalidValueErr(err.Error())
+	}
+
+	// Get existing client from repository
+	clientEncx, err := s.repo.GetClientByID(ctx, request.ID)
+	if err != nil {
+		return fmt.Errorf("failed to get client by ID: %w", err)
+	}
+
+	// Decrypt client data to allow field updates using the new generated function
+	client, err := client.DecryptClientEncx(ctx, s.crypto, clientEncx)
+	if err != nil {
+		return errs.NewNotDecryptedErr("client for update", err)
+	}
+
+	// Update only non-nil fields from request
+	if request.Name != nil {
+		client.Name = *request.Name
+	}
+
+	if request.Type != nil {
+		client.Type = *request.Type
+	}
+
+	// process client
+
+	// Encrypt the client data using the new generated function
+	updatedClientEncx, err := client.ProcessClientEncx(ctx, s.crypto, client)
+	if err != nil {
+		return errs.NewNotEncryptedErr("client for update", err)
+	}
+
+	// update client
+
+	// Save updated client to repository
+	if err := s.repo.UpdateClient(ctx, updatedClientEncx); err != nil {
+		return fmt.Errorf("failed to update client: %w", err)
+	}
+
+	return nil
+}
