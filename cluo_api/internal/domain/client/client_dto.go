@@ -100,5 +100,5 @@ type ClientResponse struct {
 	ID         string   `json:"id"`
 	Name       string   `json:"name"`
 	Type       string   `json:"type"`
-	ContactIDs []string `json:"contacts" encx:"encrypt"` // the list of contact IDs
+	ContactIDs []string `json:"contacts"` // the list of contact IDs
 }
