@@ -5,6 +5,10 @@ import (
 )
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
+	// Client routes
+	router.HandleFunc("POST /client", h.CreateClient)
+
+	// Contact routes
 	router.HandleFunc("POST /client/{id}/contact", h.CreateContact)
 	router.HandleFunc("GET /contact/{id}", h.GetContactByID)
 	router.HandleFunc("DELETE /contact/{id}", h.DeleteContact)
