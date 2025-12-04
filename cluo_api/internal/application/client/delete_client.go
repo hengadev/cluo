@@ -7,7 +7,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/domain/client"
 )
 
-func (s *Service) DeleteContact(ctx context.Context, r *client.DeleteClientRequest) error {
+func (s *Service) DeleteClient(ctx context.Context, r *client.DeleteClientRequest) error {
 	// Call repository with parsed UUID
 	if err := s.repo.DeleteClient(ctx, r.ID); err != nil {
 		return fmt.Errorf("failed to delete client: %w", err)

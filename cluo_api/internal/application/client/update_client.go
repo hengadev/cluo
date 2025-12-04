@@ -19,25 +19,25 @@ func (s *Service) UpdateClient(ctx context.Context, request *client.UpdateClient
 		return fmt.Errorf("failed to get client by ID: %w", err)
 	}
 
-	// Decrypt client data to allow field updates using the new generated function
-	client, err := client.DecryptClientEncx(ctx, s.crypto, clientEncx)
+	// Decrypt clientDecrypted data to allow field updates using the new generated function
+	clientDecrypted, err := client.DecryptClientEncx(ctx, s.crypto, clientEncx)
 	if err != nil {
 		return errs.NewNotDecryptedErr("client for update", err)
 	}
 
 	// Update only non-nil fields from request
 	if request.Name != nil {
-		client.Name = *request.Name
+		clientDecrypted.Name = *request.Name
 	}
 
 	if request.Type != nil {
-		client.Type = *request.Type
+		clientDecrypted.Type = client.ClientType(*request.Type)
 	}
 
 	// process client
 
 	// Encrypt the client data using the new generated function
-	updatedClientEncx, err := client.ProcessClientEncx(ctx, s.crypto, client)
+	updatedClientEncx, err := client.ProcessClientEncx(ctx, s.crypto, clientDecrypted)
 	if err != nil {
 		return errs.NewNotEncryptedErr("client for update", err)
 	}

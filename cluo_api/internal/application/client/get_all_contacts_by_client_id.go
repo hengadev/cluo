@@ -8,18 +8,10 @@ import (
 	"github.com/hengadev/cluo_api/internal/domain/client"
 
 	"github.com/google/uuid"
-	"github.com/hengadev/encx"
 )
 
 func (s *Service) GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactResponse, error) {
-	// Convert client ID to hash for repository query
-	clientIDBytes, err := encx.SerializeValue(clientID)
-	if err != nil {
-		return nil, errs.NewInvalidValueErr("failed to serialize client ID")
-	}
-	clientIDHash := s.crypto.HashBasic(ctx, clientIDBytes)
-
-	contactsEncx, err := s.repo.GetAllContactsByClientID(ctx, clientIDHash)
+	contactsEncx, err := s.repo.GetAllContactsByClientID(ctx, clientID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get all contacts by client ID: %w", err)
 	}
