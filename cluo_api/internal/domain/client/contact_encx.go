@@ -8,42 +8,38 @@ import (
 	"context"
 	"time"
 
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/encx"
-	
+	"github.com/hengadev/errsx"
+
 	"github.com/google/uuid"
-	
 )
 
 // ContactEncx represents the encrypted version of Contact
 type ContactEncx struct {
-	
 	ID uuid.UUID `db:"id" json:"id"`
-	
+
 	ClientID uuid.UUID `db:"clientid" json:"clientid"`
-	
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
-	
-	
+
 	LastnameEncrypted []byte `db:"lastname_encrypted" json:"lastname_encrypted"`
-	
+
 	FirstnameEncrypted []byte `db:"firstname_encrypted" json:"firstname_encrypted"`
-	
+
 	EmailEncrypted []byte `db:"email_encrypted" json:"email_encrypted"`
-	
+
 	EmailHash string `db:"email_hash" json:"email_hash"`
-	
+
 	PhoneEncrypted []byte `db:"phone_encrypted" json:"phone_encrypted"`
-	
+
 	PositionEncrypted []byte `db:"position_encrypted" json:"position_encrypted"`
-	
 
 	// Essential encryption fields
-	DEKEncrypted  []byte `db:"dek_encrypted" json:"dek_encrypted"`
-	KeyVersion    int    `db:"key_version" json:"key_version"`
+	DEKEncrypted []byte `db:"dek_encrypted" json:"dek_encrypted"`
+	KeyVersion   int    `db:"key_version" json:"key_version"`
 
 	// Metadata
-	Metadata      encx.EncryptionMetadata `db:"metadata" json:"metadata"`
+	Metadata encx.EncryptionMetadata `db:"metadata" json:"metadata"`
 }
 
 // ProcessContactEncx encrypts and hashes fields based on encx tags
@@ -60,13 +56,12 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.ClientID = source.ClientID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -75,8 +70,6 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Process Lastname (encrypt)
 	LastnameBytes, err := encx.SerializeValue(source.Lastname)
 	if err != nil {
@@ -87,9 +80,7 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Lastname encryption", err)
 		}
 	}
-	
-	
-	
+
 	// Process Firstname (encrypt)
 	FirstnameBytes, err := encx.SerializeValue(source.Firstname)
 	if err != nil {
@@ -100,9 +91,7 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Firstname encryption", err)
 		}
 	}
-	
-	
-	
+
 	// Process Email (encrypt + hash_basic)
 	EmailBytes, err := encx.SerializeValue(source.Email)
 	if err != nil {
@@ -113,11 +102,9 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Email encryption", err)
 		}
 		result.EmailHash = crypto.HashBasic(ctx, EmailBytes)
-		
+
 	}
-	
-	
-	
+
 	// Process Phone (encrypt)
 	PhoneBytes, err := encx.SerializeValue(source.Phone)
 	if err != nil {
@@ -128,9 +115,7 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Phone encryption", err)
 		}
 	}
-	
-	
-	
+
 	// Process Position (encrypt)
 	PositionBytes, err := encx.SerializeValue(source.Position)
 	if err != nil {
@@ -141,8 +126,6 @@ func ProcessContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			errs.Set("Position encryption", err)
 		}
 	}
-	
-	
 
 	// Encrypt and store DEK
 	result.DEKEncrypted, err = crypto.EncryptDEK(ctx, dek)
@@ -167,13 +150,12 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 	result := &Contact{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.ClientID = source.ClientID
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)
@@ -182,8 +164,6 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Decrypt Lastname
 	if len(source.LastnameEncrypted) > 0 {
 		LastnameBytes, err := crypto.DecryptData(ctx, source.LastnameEncrypted, dek)
@@ -196,8 +176,7 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Firstname
 	if len(source.FirstnameEncrypted) > 0 {
 		FirstnameBytes, err := crypto.DecryptData(ctx, source.FirstnameEncrypted, dek)
@@ -210,8 +189,7 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Email
 	if len(source.EmailEncrypted) > 0 {
 		EmailBytes, err := crypto.DecryptData(ctx, source.EmailEncrypted, dek)
@@ -224,8 +202,7 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Phone
 	if len(source.PhoneEncrypted) > 0 {
 		PhoneBytes, err := crypto.DecryptData(ctx, source.PhoneEncrypted, dek)
@@ -238,8 +215,7 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
-	
+
 	// Decrypt Position
 	if len(source.PositionEncrypted) > 0 {
 		PositionBytes, err := crypto.DecryptData(ctx, source.PositionEncrypted, dek)
@@ -252,7 +228,6 @@ func DecryptContactEncx(ctx context.Context, crypto encx.CryptoService, source *
 			}
 		}
 	}
-	
 
 	return result, errs.AsError()
 }
