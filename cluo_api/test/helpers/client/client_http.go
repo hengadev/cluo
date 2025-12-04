@@ -46,3 +46,32 @@ func NewCreateClientRequest(
 
 	return req
 }
+
+// NewGetClientByIDRequest creates an HTTP request for getting a client by ID
+func NewGetClientByIDRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	clientID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		serverURL+clientHandler.ClientBasePath+"/"+clientID,
+		nil,
+	)
+	require.NoError(t, err)
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
