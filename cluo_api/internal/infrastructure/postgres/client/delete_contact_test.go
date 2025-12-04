@@ -3,7 +3,9 @@ package clientRepository_test
 import (
 	"context"
 	"testing"
+	"time"
 
+	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
@@ -18,29 +20,38 @@ func TestDeleteContact(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) *client.ClientEncx {
+		clientEncx := th.NewTestClientEncx(t)
+		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx
+	}
+
 	t.Run("successful deletion", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test contact data using helper
-		contact := th.NewTestContactEncx(t)
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
+		// Create test contactEncx data using helper
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ClientID = clientEncx.ID
 
 		// Insert contact first
-		err := repo.CreateContact(ctx, contact)
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err, "Failed to create contact for test")
 
-		// Verify the contact exists
-		retrievedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
-		assert.NoError(t, err, "Failed to retrieve inserted contact")
-		assert.NotNil(t, retrievedContact, "Contact should exist before deletion")
-
 		// Test successful contact deletion using the global repo
-		err = repo.DeleteContact(ctx, contact.ID)
+		err = repo.DeleteContact(ctx, contactEncx.ID)
 		assert.NoError(t, err, "Failed to delete contact")
 
 		// Verify the contact was deleted by trying to retrieve it
-		deletedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
+		deletedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactEncx.ID)
 		assert.Error(t, err, "Should get error when trying to retrieve deleted contact")
-		assert.Nil(t, deletedContact, "Deleted contact should be nil")
+		assert.Equal(t, &client.ContactEncx{}, deletedContactEncx, "Deleted contact should be nil")
 	})
 
 	t.Run("non-existent contact", func(t *testing.T) {
@@ -66,105 +77,121 @@ func TestDeleteContact(t *testing.T) {
 	t.Run("contact with nil optional fields", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test contact and set optional fields to nil
-		contact := th.NewTestContactEncx(t)
-		contact.PhoneEncrypted = nil
-		contact.PositionEncrypted = nil
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
+		// Create test contactEncx and set optional fields to nil
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ClientID = clientEncx.ID
+		contactEncx.PhoneEncrypted = nil
+		contactEncx.PositionEncrypted = nil
 
 		// Insert contact with nil optional fields
-		err := repo.CreateContact(ctx, contact)
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err, "Failed to create contact with nil optional fields")
 
 		// Verify the contact exists
-		retrievedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
+		retrievedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve inserted contact")
-		assert.Nil(t, retrievedContact.PhoneEncrypted, "Phone should be nil")
-		assert.Nil(t, retrievedContact.PositionEncrypted, "Position should be nil")
+		assert.Nil(t, retrievedContactEncx.PhoneEncrypted, "Phone should be nil")
+		assert.Nil(t, retrievedContactEncx.PositionEncrypted, "Position should be nil")
 
 		// Test deletion of contact with nil optional fields
-		err = repo.DeleteContact(ctx, contact.ID)
+		err = repo.DeleteContact(ctx, contactEncx.ID)
 		assert.NoError(t, err, "Failed to delete contact with nil optional fields")
 
 		// Verify the contact was deleted
-		deletedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
+		deletedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactEncx.ID)
 		assert.Error(t, err, "Should get error when trying to retrieve deleted contact")
-		assert.Nil(t, deletedContact, "Deleted contact should be nil")
+		assert.Equal(t, &client.ContactEncx{}, deletedContactEncx, "Deleted contact should be nil")
 	})
 
 	t.Run("delete multiple contacts", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create multiple test contacts
 		numContacts := 3
-		contactIDs := make([]uuid.UUID, numContacts)
+		contactEncxIDs := make([]uuid.UUID, numContacts)
 
 		for i := 0; i < numContacts; i++ {
-			contact := th.NewTestContactEncx(t)
-			contactIDs[i] = contact.ID
+			contactEncx := th.NewTestContactEncx(t)
+			contactEncx.ClientID = clientEncx.ID
+			contactEncxIDs[i] = contactEncx.ID
 
 			// Insert contact
-			err := repo.CreateContact(ctx, contact)
+			err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 			require.NoError(t, err, "Failed to create contact %d", i)
 		}
 
-		// Verify all contacts exist
-		for i, contactID := range contactIDs {
-			retrievedContact, err := th.GetContactEncxByID(t, ctx, testPool, contactID)
-			assert.NoError(t, err, "Failed to retrieve contact %d", i)
-			assert.NotNil(t, retrievedContact, "Contact %d should exist", i)
-		}
-
 		// Delete all contacts
-		for i, contactID := range contactIDs {
+		for i, contactID := range contactEncxIDs {
 			err := repo.DeleteContact(ctx, contactID)
 			assert.NoError(t, err, "Failed to delete contact %d", i)
 		}
 
 		// Verify all contacts were deleted
-		for i, contactID := range contactIDs {
-			deletedContact, err := th.GetContactEncxByID(t, ctx, testPool, contactID)
+		for i, contactID := range contactEncxIDs {
+			deletedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactID)
 			assert.Error(t, err, "Should get error when trying to retrieve deleted contact %d", i)
-			assert.Nil(t, deletedContact, "Deleted contact %d should be nil", i)
+			assert.Equal(t, &client.ContactEncx{}, deletedContactEncx, "Deleted contact %d should be nil", i)
 		}
 	})
 
 	t.Run("delete and recreate same contact", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test contact
-		contact := th.NewTestContactEncx(t)
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
+		// Create test contactEncx
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ClientID = clientEncx.ID
 
 		// Insert contact
-		err := repo.CreateContact(ctx, contact)
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err, "Failed to create contact")
 
-		// Verify the contact exists
-		retrievedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
-		assert.NoError(t, err, "Failed to retrieve inserted contact")
-		assert.NotNil(t, retrievedContact, "Contact should exist before deletion")
-
 		// Delete contact
-		err = repo.DeleteContact(ctx, contact.ID)
+		err = repo.DeleteContact(ctx, contactEncx.ID)
 		assert.NoError(t, err, "Failed to delete contact")
 
 		// Verify the contact was deleted
-		deletedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
+		deletedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactEncx.ID)
 		assert.Error(t, err, "Should get error when trying to retrieve deleted contact")
-		assert.Nil(t, deletedContact, "Deleted contact should be nil")
+		assert.Equal(t, &client.ContactEncx{}, deletedContactEncx, "Deleted contact should be nil")
 
 		// Create a new contact with the same ID (this should work since we deleted the old one)
-		newContact := th.NewTestContactEncx(t)
-		newContact.ID = contact.ID // Use the same ID
+		newContactEncx := th.NewTestContactEncx(t)
+		newContactEncx.ID = contactEncx.ID // Use the same ID
+		newContactEncx.ClientID = clientEncx.ID
 
-		err = repo.CreateContact(ctx, newContact)
+		err = th.InsertContactEncx(t, ctx, testPool, newContactEncx)
 		assert.NoError(t, err, "Failed to recreate contact with same ID")
 
 		// Verify the new contact exists
-		recreatedContact, err := th.GetContactEncxByID(t, ctx, testPool, contact.ID)
+		recreatedContactEncx, err := th.GetContactEncxByID(t, ctx, testPool, contactEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve recreated contact")
-		assert.NotNil(t, recreatedContact, "Recreated contact should exist")
-		assert.Equal(t, newContact.ClientID, recreatedContact.ClientID, "Client hash should match")
-		assert.Equal(t, newContact.EmailHash, recreatedContact.EmailHash, "Email hash should match")
+		assert.Equal(t, newContactEncx.ID, recreatedContactEncx.ID, "ID should match")
+		assert.Equal(t, newContactEncx.ClientID, recreatedContactEncx.ClientID, "Client hash should match")
+		assert.Equal(t, newContactEncx.EmailHash, recreatedContactEncx.EmailHash, "Email hash should match")
+		assert.Equal(t, newContactEncx.EmailEncrypted, recreatedContactEncx.EmailEncrypted, "Email encrypted should match")
+		assert.Equal(t, newContactEncx.PhoneEncrypted, recreatedContactEncx.PhoneEncrypted, "Phone encrypted should match")
+		assert.Equal(t, newContactEncx.PositionEncrypted, recreatedContactEncx.PositionEncrypted, "Position encrypted should match")
+		assert.Equal(t, newContactEncx.LastnameEncrypted, recreatedContactEncx.LastnameEncrypted, "Lastname encrypted hash should match")
+		assert.Equal(t, newContactEncx.FirstnameEncrypted, recreatedContactEncx.FirstnameEncrypted, "Firstname encrypted hash should match")
+		assert.WithinDuration(t, newContactEncx.CreatedAt, recreatedContactEncx.CreatedAt, time.Second, "CreatedAt should match")
 	})
 
 	t.Run("context cancellation", func(t *testing.T) {

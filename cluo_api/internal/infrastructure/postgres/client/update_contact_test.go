@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
@@ -18,34 +19,50 @@ func TestUpdateContact(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) *client.ClientEncx {
+		clientEncx := th.NewTestClientEncx(t)
+		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx
+	}
+
 	t.Run("successful update", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create and insert a contact first
-		originalContact := th.NewTestContactEncx(t)
-		err := th.InsertContactEncx(t, ctx, testPool, *originalContact)
+		originalContactEncx := th.NewTestContactEncx(t)
+		originalContactEncx.ClientID = clientEncx.ID
+		err := th.InsertContactEncx(t, ctx, testPool, originalContactEncx)
 		require.NoError(t, err, "Failed to insert original contact")
 
 		// Create updated contact with same ID but different data
-		updatedContact := th.NewTestContactEncx(t)
-		updatedContact.ID = originalContact.ID // Keep same ID
-		updatedContact.ClientID = originalContact.ClientID
+		updatedContactEncx := th.NewTestContactEncx(t)
+		updatedContactEncx.ID = originalContactEncx.ID // Keep same ID
+		updatedContactEncx.LastnameEncrypted = []byte("new_lastname_encrypted")
+		updatedContactEncx.FirstnameEncrypted = []byte("new_firstname_encrypted")
+		updatedContactEncx.ClientID = clientEncx.ID
 
 		// Update the contact
-		err = repo.UpdateContact(ctx, updatedContact)
+		err = repo.UpdateContact(ctx, updatedContactEncx)
 		assert.NoError(t, err, "Failed to update contact")
 
 		// Verify the update by retrieving the contact
-		retrievedContact, err := repo.GetContactByID(ctx, updatedContact.ID)
+		retrievedContact, err := repo.GetContactByID(ctx, updatedContactEncx.ID)
 		require.NoError(t, err, "Failed to retrieve updated contact")
 
 		// Verify fields were updated (should match updatedContact, not originalContact)
-		assert.Equal(t, updatedContact.ID, retrievedContact.ID)
-		assert.Equal(t, updatedContact.ClientID, retrievedContact.ClientID)
-		// Note: We can't easily compare encrypted fields since they use random encryption
-		// But we can verify the contact was retrieved successfully
+		assert.Equal(t, updatedContactEncx.ID, retrievedContact.ID)
+		assert.Equal(t, updatedContactEncx.ClientID, retrievedContact.ClientID)
+		assert.Equal(t, updatedContactEncx.LastnameEncrypted, retrievedContact.LastnameEncrypted)
+		assert.Equal(t, updatedContactEncx.FirstnameEncrypted, retrievedContact.FirstnameEncrypted)
 
-		t.Logf("✓ Successfully updated contact with ID: %s", updatedContact.ID.String())
+		t.Logf("✓ Successfully updated contact with ID: %s", updatedContactEncx.ID.String())
 	})
 
 	t.Run("update non-existent contact", func(t *testing.T) {
@@ -53,11 +70,11 @@ func TestUpdateContact(t *testing.T) {
 
 		// Create contact with non-existent ID
 		nonExistentID := uuid.New()
-		contact := th.NewTestContactEncx(t)
-		contact.ID = nonExistentID
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ID = nonExistentID
 
 		// Attempt to update non-existent contact
-		err := repo.UpdateContact(ctx, contact)
+		err := repo.UpdateContact(ctx, contactEncx)
 		assert.Error(t, err, "Expected error when updating non-existent contact")
 		assert.Contains(t, err.Error(), "not found", "Error should mention not found")
 
@@ -67,24 +84,31 @@ func TestUpdateContact(t *testing.T) {
 	t.Run("update contact with nil optional fields", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create and insert a contact first
-		originalContact := th.NewTestContactEncx(t)
-		err := th.InsertContactEncx(t, ctx, testPool, *originalContact)
+		originalContactEncx := th.NewTestContactEncx(t)
+		originalContactEncx.ClientID = clientEncx.ID
+		err := th.InsertContactEncx(t, ctx, testPool, originalContactEncx)
 		require.NoError(t, err, "Failed to insert original contact")
 
 		// Create updated contact with nil optional fields
-		updatedContact := th.NewTestContactEncx(t)
-		updatedContact.ID = originalContact.ID
-		updatedContact.ClientID = originalContact.ClientID
-		updatedContact.PhoneEncrypted = nil
-		updatedContact.PositionEncrypted = nil
+		updatedContactEncx := th.NewTestContactEncx(t)
+		updatedContactEncx.ID = originalContactEncx.ID
+		updatedContactEncx.ClientID = clientEncx.ID
+		updatedContactEncx.PhoneEncrypted = nil
+		updatedContactEncx.PositionEncrypted = nil
 
 		// Update the contact
-		err = repo.UpdateContact(ctx, updatedContact)
+		err = repo.UpdateContact(ctx, updatedContactEncx)
 		assert.NoError(t, err, "Failed to update contact with nil fields")
 
 		// Verify the update
-		retrievedContact, err := repo.GetContactByID(ctx, updatedContact.ID)
+		retrievedContact, err := repo.GetContactByID(ctx, updatedContactEncx.ID)
 		require.NoError(t, err, "Failed to retrieve updated contact")
 		assert.Nil(t, retrievedContact.PhoneEncrypted, "Phone should be nil after update")
 		assert.Nil(t, retrievedContact.PositionEncrypted, "Position should be nil after update")
@@ -95,28 +119,48 @@ func TestUpdateContact(t *testing.T) {
 	t.Run("update all contact fields", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create and insert a contact first
-		originalContact := th.NewTestContactEncx(t)
-		err := th.InsertContactEncx(t, ctx, testPool, *originalContact)
+		originalContactEncx := th.NewTestContactEncx(t)
+		originalContactEncx.ClientID = clientEncx.ID
+		err := th.InsertContactEncx(t, ctx, testPool, originalContactEncx)
 		require.NoError(t, err, "Failed to insert original contact")
 
 		// Create completely new contact data
-		updatedContact := th.NewTestContactEncx(t)
-		updatedContact.ID = originalContact.ID // Keep same ID
+		updatedContactEncx := th.NewTestContactEncx(t)
+		updatedContactEncx.ID = originalContactEncx.ID // Keep same ID
+		updatedContactEncx.ClientID = clientEncx.ID
+		updatedContactEncx.LastnameEncrypted = []byte("new_lastname_encrypted")
+		updatedContactEncx.FirstnameEncrypted = []byte("new_firstname_encrypted")
+		updatedContactEncx.EmailEncrypted = []byte("new_email_encrypted")
+		updatedContactEncx.EmailHash = "new_email_encrypted"
+		updatedContactEncx.PhoneEncrypted = []byte("new_phone_encrypted")
+		updatedContactEncx.PositionEncrypted = []byte("new_position_encrypted")
 		// All other fields should be different from original
 
 		// Update the contact
-		err = repo.UpdateContact(ctx, updatedContact)
+		err = repo.UpdateContact(ctx, updatedContactEncx)
 		assert.NoError(t, err, "Failed to update all contact fields")
 
 		// Verify the update
-		retrievedContact, err := repo.GetContactByID(ctx, updatedContact.ID)
+		retrievedContact, err := repo.GetContactByID(ctx, updatedContactEncx.ID)
 		require.NoError(t, err, "Failed to retrieve updated contact")
 
 		// Verify all fields were updated (ID and client ID hash should match)
-		assert.Equal(t, updatedContact.ID, retrievedContact.ID)
-		assert.Equal(t, updatedContact.ClientID, retrievedContact.ClientID)
-		assert.Equal(t, updatedContact.KeyVersion, retrievedContact.KeyVersion)
+		assert.Equal(t, updatedContactEncx.ID, retrievedContact.ID)
+		assert.Equal(t, updatedContactEncx.ClientID, retrievedContact.ClientID)
+		assert.Equal(t, updatedContactEncx.KeyVersion, retrievedContact.KeyVersion)
+		assert.Equal(t, updatedContactEncx.FirstnameEncrypted, retrievedContact.FirstnameEncrypted)
+		assert.Equal(t, updatedContactEncx.LastnameEncrypted, retrievedContact.LastnameEncrypted)
+		assert.Equal(t, updatedContactEncx.EmailEncrypted, retrievedContact.EmailEncrypted)
+		assert.Equal(t, updatedContactEncx.EmailHash, retrievedContact.EmailHash)
+		assert.Equal(t, updatedContactEncx.PhoneEncrypted, retrievedContact.PhoneEncrypted)
+		assert.Equal(t, updatedContactEncx.PositionEncrypted, retrievedContact.PositionEncrypted)
 
 		t.Logf("✓ Successfully updated all contact fields")
 	})
@@ -124,25 +168,35 @@ func TestUpdateContact(t *testing.T) {
 	t.Run("update contact with different client ID", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create and insert a contact first
-		originalContact := th.NewTestContactEncx(t)
-		err := th.InsertContactEncx(t, ctx, testPool, *originalContact)
+		originalContactEncx := th.NewTestContactEncx(t)
+		originalContactEncx.ClientID = clientEncx.ID
+		err := th.InsertContactEncx(t, ctx, testPool, originalContactEncx)
 		require.NoError(t, err, "Failed to insert original contact")
 
 		// Create updated contact with different client ID
-		updatedContact := th.NewTestContactEncx(t)
-		updatedContact.ID = originalContact.ID
-		newClientIDHash := uuid.New()
-		updatedContact.ClientID = newClientIDHash
+		updatedContactEncx := th.NewTestContactEncx(t)
+		updatedContactEncx.ID = originalContactEncx.ID
+		clientEncx2 := th.NewTestClientEncx(t)
+		clientEncx2.ID = uuid.New()
+		err = th.InsertClientEncx(t, ctx, testPool, clientEncx2)
+		require.NoError(t, err)
+		updatedContactEncx.ClientID = clientEncx2.ID
 
 		// Update the contact
-		err = repo.UpdateContact(ctx, updatedContact)
+		err = repo.UpdateContact(ctx, updatedContactEncx)
 		assert.NoError(t, err, "Failed to update contact client ID")
 
 		// Verify the update
-		retrievedContact, err := repo.GetContactByID(ctx, updatedContact.ID)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, updatedContactEncx.ID)
 		require.NoError(t, err, "Failed to retrieve updated contact")
-		assert.Equal(t, newClientIDHash, retrievedContact.ClientID, "Client ID hash should be updated")
+		assert.Equal(t, clientEncx2.ID, retrievedContactEncx.ClientID, "Client ID hash should be updated")
 
 		t.Logf("✓ Successfully updated contact client ID")
 	})
@@ -152,10 +206,10 @@ func TestUpdateContact(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		contact := th.NewTestContactEncx(t)
+		contactEncx := th.NewTestContactEncx(t)
 
 		// Attempt to update with cancelled context
-		err := repo.UpdateContact(ctx, contact)
+		err := repo.UpdateContact(ctx, contactEncx)
 		assert.Error(t, err, "Expected context cancellation error")
 
 		t.Logf("✓ Context cancellation handled correctly")
@@ -164,12 +218,12 @@ func TestUpdateContact(t *testing.T) {
 	t.Run("update with invalid UUID", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create contact with zero UUID (invalid)
-		contact := th.NewTestContactEncx(t)
-		contact.ID = uuid.Nil
+		// Create contactEncx with zero UUID (invalid)
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ID = uuid.Nil
 
 		// Attempt to update with invalid UUID
-		err := repo.UpdateContact(ctx, contact)
+		err := repo.UpdateContact(ctx, contactEncx)
 		// This should likely succeed at the repository level since UUID validation
 		// happens at higher layers, but the database might return an error
 		if err != nil {
@@ -182,32 +236,40 @@ func TestUpdateContact(t *testing.T) {
 	t.Run("verify only one contact updated", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
 		// Create and insert multiple contacts
-		contact1 := th.NewTestContactEncx(t)
-		err := th.InsertContactEncx(t, ctx, testPool, *contact1)
+		contactEncx1 := th.NewTestContactEncx(t)
+		contactEncx1.ClientID = clientEncx.ID
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx1)
 		require.NoError(t, err, "Failed to insert contact 1")
 
-		contact2 := th.NewTestContactEncx(t)
-		err = th.InsertContactEncx(t, ctx, testPool, *contact2)
+		contactEncx2 := th.NewTestContactEncx(t)
+		contactEncx2.ClientID = clientEncx.ID
+		err = th.InsertContactEncx(t, ctx, testPool, contactEncx2)
 		require.NoError(t, err, "Failed to insert contact 2")
 
 		// Update only contact1
-		updatedContact1 := th.NewTestContactEncx(t)
-		updatedContact1.ID = contact1.ID
-		updatedContact1.ClientID = contact1.ClientID
+		updatedContactEncx1 := th.NewTestContactEncx(t)
+		updatedContactEncx1.ID = contactEncx1.ID
+		updatedContactEncx1.ClientID = clientEncx.ID
 
-		err = repo.UpdateContact(ctx, updatedContact1)
+		err = repo.UpdateContact(ctx, updatedContactEncx1)
 		assert.NoError(t, err, "Failed to update contact 1")
 
 		// Verify contact1 was updated
-		retrievedContact1, err := repo.GetContactByID(ctx, contact1.ID)
+		retrievedContactEncx1, err := repo.GetContactByID(ctx, contactEncx1.ID)
 		require.NoError(t, err, "Failed to retrieve contact 1")
-		assert.Equal(t, updatedContact1.ID, retrievedContact1.ID)
+		assert.Equal(t, updatedContactEncx1.ID, retrievedContactEncx1.ID)
 
 		// Verify contact2 was not affected
-		retrievedContact2, err := repo.GetContactByID(ctx, contact2.ID)
+		retrievedContactEncx2, err := repo.GetContactByID(ctx, contactEncx2.ID)
 		require.NoError(t, err, "Failed to retrieve contact 2")
-		assert.Equal(t, contact2.ID, retrievedContact2.ID)
+		assert.Equal(t, contactEncx2.ID, retrievedContactEncx2.ID)
 
 		t.Logf("✓ Only target contact was updated, other contacts unaffected")
 	})

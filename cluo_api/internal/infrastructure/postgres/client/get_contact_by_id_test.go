@@ -4,6 +4,7 @@ import (
 	"context"
 	"testing"
 
+	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
@@ -18,26 +19,40 @@ func TestGetContactByID(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) *client.ClientEncx {
+		clientEncx := th.NewTestClientEncx(t)
+		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx
+	}
+
 	t.Run("successful retrieval", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test contact data using helper
-		contact := th.NewTestContactEncx(t)
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
+		// Create test contactEncx data using helper
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ClientID = clientEncx.ID
 
 		// Insert contact first
-		err := repo.CreateContact(ctx, contact)
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err, "Failed to create contact for test")
 
 		// Test successful contact retrieval using the global repo
-		retrievedContact, err := repo.GetContactByID(ctx, contact.ID)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, contactEncx.ID)
 		assert.NoError(t, err, "Failed to get contact by ID")
-		require.NotNil(t, retrievedContact, "Retrieved contact should not be nil")
+		require.NotNil(t, retrievedContactEncx, "Retrieved contact should not be nil")
 
 		// Verify field values
-		assert.Equal(t, contact.ID, retrievedContact.ID, "Contact ID should match")
-		assert.Equal(t, contact.ClientID, retrievedContact.ClientID, "Client hash should match")
-		assert.Equal(t, contact.EmailHash, retrievedContact.EmailHash, "Email hash should match")
-		assert.Equal(t, contact.KeyVersion, retrievedContact.KeyVersion, "Key version should match")
+		assert.Equal(t, contactEncx.ID, retrievedContactEncx.ID, "Contact ID should match")
+		assert.Equal(t, contactEncx.ClientID, retrievedContactEncx.ClientID, "Client hash should match")
+		assert.Equal(t, contactEncx.EmailHash, retrievedContactEncx.EmailHash, "Email hash should match")
+		assert.Equal(t, contactEncx.KeyVersion, retrievedContactEncx.KeyVersion, "Key version should match")
 	})
 
 	t.Run("non-existent ID", func(t *testing.T) {
@@ -47,40 +62,47 @@ func TestGetContactByID(t *testing.T) {
 		nonExistentID := uuid.New()
 
 		// Test that non-existent ID returns an error
-		retrievedContact, err := repo.GetContactByID(ctx, nonExistentID)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, nonExistentID)
 		assert.Error(t, err, "Expected error when getting non-existent contact")
-		assert.Nil(t, retrievedContact, "Retrieved contact should be nil for non-existent ID")
+		assert.Nil(t, retrievedContactEncx, "Retrieved contact should be nil for non-existent ID")
 	})
 
 	t.Run("nil UUID", func(t *testing.T) {
 		ctx := context.Background()
 
 		// Test with nil UUID
-		retrievedContact, err := repo.GetContactByID(ctx, uuid.Nil)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, uuid.Nil)
 		assert.Error(t, err, "Expected error when getting contact with nil UUID")
-		assert.Nil(t, retrievedContact, "Retrieved contact should be nil for nil UUID")
+		assert.Nil(t, retrievedContactEncx, "Retrieved contact should be nil for nil UUID")
 	})
 
 	t.Run("contact with nil optional fields", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test contact and set optional fields to nil
-		contact := th.NewTestContactEncx(t)
-		contact.PhoneEncrypted = nil
-		contact.PositionEncrypted = nil
+		th.ClearClientsTable(t, ctx, testPool)
+		th.ClearContactsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := setupClient(t, ctx)
+
+		// Create test contactEncx and set optional fields to nil
+		contactEncx := th.NewTestContactEncx(t)
+		contactEncx.ClientID = clientEncx.ID
+		contactEncx.PhoneEncrypted = nil
+		contactEncx.PositionEncrypted = nil
 
 		// Insert contact
-		err := repo.CreateContact(ctx, contact)
+		err := th.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err, "Failed to create contact with nil optional fields")
 
 		// Retrieve the contact
-		retrievedContact, err := repo.GetContactByID(ctx, contact.ID)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, contactEncx.ID)
 		assert.NoError(t, err, "Failed to get contact with nil optional fields")
-		require.NotNil(t, retrievedContact, "Retrieved contact should not be nil")
+		require.NotNil(t, retrievedContactEncx, "Retrieved contact should not be nil")
 
 		// Verify that optional fields are indeed nil
-		assert.Nil(t, retrievedContact.PhoneEncrypted, "Expected PhoneEncrypted to be nil")
-		assert.Nil(t, retrievedContact.PositionEncrypted, "Expected PositionEncrypted to be nil")
+		assert.Nil(t, retrievedContactEncx.PhoneEncrypted, "Expected PhoneEncrypted to be nil")
+		assert.Nil(t, retrievedContactEncx.PositionEncrypted, "Expected PositionEncrypted to be nil")
 	})
 
 	t.Run("context cancellation", func(t *testing.T) {
@@ -90,8 +112,8 @@ func TestGetContactByID(t *testing.T) {
 
 		contactID := uuid.New()
 
-		retrievedContact, err := repo.GetContactByID(ctx, contactID)
+		retrievedContactEncx, err := repo.GetContactByID(ctx, contactID)
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
-		assert.Nil(t, retrievedContact, "Retrieved contact should be nil due to context cancellation")
+		assert.Nil(t, retrievedContactEncx, "Retrieved contact should be nil due to context cancellation")
 	})
 }
