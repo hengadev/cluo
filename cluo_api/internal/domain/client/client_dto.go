@@ -8,6 +8,15 @@ import (
 	"github.com/hengadev/errsx"
 )
 
+func (c *Client) ToResponse() *ClientResponse {
+	return &ClientResponse{
+		ID:         c.ID.String(),
+		Name:       c.Name,
+		Type:       string(c.Type),
+		ContactIDs: c.ContactIDs,
+	}
+}
+
 type CreateClientRequest struct {
 	Name string `json:"name"`
 	Type string `json:"type"`
@@ -30,10 +39,6 @@ func (r *CreateClientRequest) Valid(ctx context.Context) error {
 
 	if len(r.Type) > 50 {
 		errs.Set("type", "type must be less than 50 characters")
-	}
-
-	if r.ID == uuid.Nil {
-		errs.Set("id", "valid ID is required")
 	}
 
 	return errs.AsError()
