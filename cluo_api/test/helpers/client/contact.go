@@ -55,7 +55,7 @@ func NewTestContactEncx(t *testing.T) *client.ContactEncx {
 }
 
 // InsertContactEncx creates a Contact domain object with basic test data (plaintext fields only)
-func InsertContactEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, contactEncx client.ContactEncx) error {
+func InsertContactEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, contactEncx *client.ContactEncx) error {
 	t.Helper()
 
 	query := fmt.Sprintf(`
@@ -150,5 +150,5 @@ func CreateTestClientWithContact(t *testing.T, ctx context.Context, pool *pgxpoo
 		KeyVersion:         1,
 	}
 
-	return InsertContactEncx(t, ctx, pool, *initialContact)
+	return InsertContactEncx(t, ctx, pool, initialContact)
 }
