@@ -57,16 +57,11 @@ import (
 // User represents the minimal user structure needed for auth tests
 // This avoids coupling to specific domain models in authuser module
 type User struct {
-	ID         uuid.UUID `json:"-"`
-	State      string    `json:"-"`
-	Email      string    `json:"-" encx:"encrypt,hash_basic"`
-	FirstName  string    `json:"-" encx:"encrypt"`
-	LastName   string    `json:"-" encx:"encrypt"`
-	Password   string    `json:"-" encx:"hash_secure"`
-	Telephone  string    `json:"-" encx:"encrypt,hash_basic"`
-	Role       string    `json:"-" encx:"encrypt"`
-	CreatedAt  time.Time `json:"-" encx:"encrypt"`
-	LoggedInAt time.Time `json:"-" encx:"encrypt"`
+	ID        uuid.UUID `json:"-"`
+	Email     string    `json:"-" encx:"hash_basic,encrypt"`
+	Password  string    `json:"-" encx:"hash_secure"`
+	Role      string    `json:"-" encx:"encrypt"`
+	CreatedAt time.Time `json:"-" encx:"encrypt"`
 }
 
 // AuthTestContext holds the necessary dependencies for auth test utilities
@@ -86,16 +81,11 @@ func SetupUserWithRole(t *testing.T, ctx context.Context, role identity.Role, au
 
 	// Create test user
 	user := &User{
-		ID:         userID,
-		State:      "active",
-		Email:      fmt.Sprintf("%s@leviosa.care", role.String()),
-		FirstName:  role.String(),
-		LastName:   role.String(),
-		Password:   "bMPSrxQK#?rPO.[<",
-		Telephone:  "0612345678",
-		Role:       role.String(),
-		CreatedAt:  now,
-		LoggedInAt: now,
+		ID:        userID,
+		Email:     fmt.Sprintf("%s@leviosa.care", role.String()),
+		Password:  "bMPSrxQK#?rPO.[<",
+		Role:      role.String(),
+		CreatedAt: now,
 	}
 
 	// Encrypt user data
@@ -160,18 +150,13 @@ func SetupPendingUserWithRole(t *testing.T, ctx context.Context, role identity.R
 	now := time.Now()
 	userID := uuid.New()
 
-	// Create test user in unverified state
+	// Create test user
 	user := &User{
-		ID:         userID,
-		State:      "unverified",
-		Email:      fmt.Sprintf("pending_%s@leviosa.care", role.String()),
-		FirstName:  role.String(),
-		LastName:   role.String(),
-		Password:   "bMPSrxQK#?rPO.[<",
-		Telephone:  "0612345678",
-		Role:       role.String(),
-		CreatedAt:  now,
-		LoggedInAt: now,
+		ID:        userID,
+		Email:     fmt.Sprintf("pending_%s@leviosa.care", role.String()),
+		Password:  "bMPSrxQK#?rPO.[<",
+		Role:      role.String(),
+		CreatedAt: now,
 	}
 
 	// Encrypt user data
@@ -220,16 +205,11 @@ func SetupExpiredUserWithRole(t *testing.T, ctx context.Context, role identity.R
 
 	// Create test user
 	user := &User{
-		ID:         userID,
-		State:      "active",
-		Email:      fmt.Sprintf("expired_%s@leviosa.care", role.String()),
-		FirstName:  role.String(),
-		LastName:   role.String(),
-		Password:   "bMPSrxQK#?rPO.[<",
-		Telephone:  "0612345678",
-		Role:       role.String(),
-		CreatedAt:  now,
-		LoggedInAt: now,
+		ID:        userID,
+		Email:     fmt.Sprintf("expired_%s@leviosa.care", role.String()),
+		Password:  "bMPSrxQK#?rPO.[<",
+		Role:      role.String(),
+		CreatedAt: now,
 	}
 
 	// Encrypt user data
@@ -283,8 +263,8 @@ func SetupMultipleUsers(t *testing.T, ctx context.Context, roles []identity.Role
 }
 
 // SetupUserWithCustomData creates a user with custom data and active session
-// Useful for testing specific user scenarios (custom emails, names, etc.)
-func SetupUserWithCustomData(t *testing.T, ctx context.Context, role identity.Role, email, firstName, lastName, telephone string, authCtx *AuthTestContext) string {
+// Useful for testing specific user scenarios (custom emails, etc.)
+func SetupUserWithCustomData(t *testing.T, ctx context.Context, role identity.Role, email string, authCtx *AuthTestContext) string {
 	t.Helper()
 
 	now := time.Now()
@@ -294,28 +274,14 @@ func SetupUserWithCustomData(t *testing.T, ctx context.Context, role identity.Ro
 	if email == "" {
 		email = fmt.Sprintf("%s@leviosa.care", role.String())
 	}
-	if firstName == "" {
-		firstName = role.String()
-	}
-	if lastName == "" {
-		lastName = role.String()
-	}
-	if telephone == "" {
-		telephone = "0612345678"
-	}
 
 	// Create test user with custom data
 	user := &User{
-		ID:         userID,
-		State:      "active",
-		Email:      email,
-		FirstName:  firstName,
-		LastName:   lastName,
-		Password:   "bMPSrxQK#?rPO.[<",
-		Telephone:  telephone,
-		Role:       role.String(),
-		CreatedAt:  now,
-		LoggedInAt: now,
+		ID:        userID,
+		Email:     email,
+		Password:  "bMPSrxQK#?rPO.[<",
+		Role:      role.String(),
+		CreatedAt: now,
 	}
 
 	// Encrypt user data
@@ -488,18 +454,20 @@ func insertUser(t *testing.T, ctx context.Context, user *UserEncx, pool *pgxpool
 
 	query := `
 		INSERT INTO auth.users (
-			id, state, email_hash, email_encrypted, password_hash_secure,
-			first_name_encrypted, last_name_encrypted, telephone_hash, telephone_encrypted,
-			role_encrypted, created_at_encrypted, logged_in_at_encrypted,
-			dek_encrypted, key_version
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
+			id, email_hash, email_encrypted, password_hash_secure,
+			role_encrypted, created_at_encrypted,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`
 
-	_, err := pool.Exec(ctx, query,
-		user.ID, user.State, user.EmailHash, user.EmailEncrypted, user.PasswordHashSecure,
-		user.FirstNameEncrypted, user.LastNameEncrypted, user.TelephoneHash, user.TelephoneEncrypted,
-		user.RoleEncrypted, user.CreatedAtEncrypted, user.LoggedInAtEncrypted,
-		user.DEKEncrypted, user.KeyVersion)
+	metadata := map[string]interface{}{"test": true}
+	metadataBytes, err := json.Marshal(metadata)
+	require.NoError(t, err, "Failed to marshal metadata")
+
+	_, err = pool.Exec(ctx, query,
+		user.ID, user.EmailHash, user.EmailEncrypted, user.PasswordHashSecure,
+		user.RoleEncrypted, user.CreatedAtEncrypted,
+		user.DEKEncrypted, user.KeyVersion, metadataBytes)
 	require.NoError(t, err, "Failed to insert test user")
 }
 
