@@ -10,7 +10,7 @@ import (
 
 type ClientService interface {
 	// client
-	CreateClient(ctx context.Context, r *client.CreateClientRequest) error
+	CreateClient(ctx context.Context, r *client.CreateClientRequest) (*client.ClientResponse, error)
 	DeleteClient(ctx context.Context, r *client.DeleteClientRequest) error
 	UpdateClient(ctx context.Context, r *client.UpdateClientRequest) error
 	GetClientByID(ctx context.Context, r *client.GetClientByIDRequest) (*client.ClientResponse, error)

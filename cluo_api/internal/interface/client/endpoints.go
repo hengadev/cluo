@@ -23,4 +23,3 @@ const (
 	UpdateContactEndpoint            = ContactBasePath + "/{id}"
 	DeleteContactEndpoint            = ContactBasePath + "/{id}"
 )
-

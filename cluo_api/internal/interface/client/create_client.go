@@ -41,7 +41,8 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) {
 		"client_type", payload.Type,
 		"user_agent", r.Header.Get("User-Agent"))
 
-	if err = h.svc.CreateClient(ctx, &payload); err != nil {
+	response, err := h.svc.CreateClient(ctx, &payload)
+	if err != nil {
 		httpx.RespondWithServiceError(w, logger, ctx, err, "create client")
 		return
 	}
@@ -53,6 +54,5 @@ func (h *handler) CreateClient(w http.ResponseWriter, r *http.Request) {
 		"path", r.URL.Path,
 		"status_code", http.StatusOK)
 
-	httpx.RespondWithJSON(w, map[string]string{"message": "Client creation completed successfully"}, http.StatusOK)
+	httpx.RespondWithJSON(w, response, http.StatusOK)
 }
-
