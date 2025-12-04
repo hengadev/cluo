@@ -2,6 +2,7 @@ package client
 
 import (
 	"context"
+	"time"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/errsx"
@@ -37,4 +38,14 @@ func (r *CreateClientRequest) Valid(ctx context.Context) error {
 	}
 
 	return errs.AsError()
+}
+
+func NewClient(r *CreateClientRequest) *Client {
+	return &Client{
+		ID:         uuid.New(),
+		Name:       r.Name,
+		Type:       ClientType(r.Type),
+		ContactIDs: []string{},
+		CreatedAt:  time.Now(),
+	}
 }
