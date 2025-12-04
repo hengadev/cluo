@@ -9,7 +9,6 @@ import (
 )
 
 type CreateClientRequest struct {
-	ID   uuid.UUID
 	Name string `json:"name"`
 	Type string `json:"type"`
 }
