@@ -49,3 +49,7 @@ func NewClient(r *CreateClientRequest) *Client {
 		CreatedAt:  time.Now(),
 	}
 }
+
+type DeleteClientRequest struct {
+	ID uuid.UUID `json:"id"`
+}
