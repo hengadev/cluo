@@ -17,7 +17,7 @@ import (
 // ClearClientsTable truncates the contacts table for clean test state
 func ClearClientsTable(t *testing.T, ctx context.Context, pool *pgxpool.Pool) {
 	t.Helper()
-	_, err := pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s.contacts RESTART IDENTITY CASCADE", clientRepository.Schema))
+	_, err := pool.Exec(ctx, fmt.Sprintf("TRUNCATE TABLE %s.clients RESTART IDENTITY CASCADE", clientRepository.Schema))
 	require.NoError(t, err)
 }
 
