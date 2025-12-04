@@ -53,3 +53,9 @@ func NewClient(r *CreateClientRequest) *Client {
 type DeleteClientRequest struct {
 	ID uuid.UUID `json:"id"`
 }
+
+type UpdateClientRequest struct {
+	ID   uuid.UUID `json:"id"`
+	Name *string   `json:"name" `
+	Type *string   `json:"type"`
+}
