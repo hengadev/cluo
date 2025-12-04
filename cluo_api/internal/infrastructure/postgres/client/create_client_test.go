@@ -13,6 +13,7 @@ import (
 )
 
 // make test-func TEST_NAME=TestCreateClient TEST_PATH=internal/infrastructure/postgres/client/create_client_test.go
+
 func TestCreateClient(t *testing.T) {
 	if testPool == nil || repo == nil {
 		t.Skip("Test database or repository not initialized")
@@ -21,58 +22,64 @@ func TestCreateClient(t *testing.T) {
 	t.Run("successful creation", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test client data using helper
-		client := th.NewTestClientEncx(t)
+		th.ClearClientsTable(t, ctx, testPool)
+
+		// Create test clientEncx data using helper
+		clientEncx := th.NewTestClientEncx(t)
 
 		// Test successful client creation using the global repo
-		err := repo.CreateClient(ctx, client)
+		err := repo.CreateClient(ctx, clientEncx)
 		assert.NoError(t, err, "Failed to create client")
 
 		// Verify the client was inserted by retrieving it
-		retrievedClient, err := th.GetClientEncxByID(t, ctx, testPool, client.ID)
+		retrievedClientEncx, err := th.GetClientEncxByID(t, ctx, testPool, clientEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve inserted client")
 
 		// Verify field values
-		assert.Equal(t, client.ID, retrievedClient.ID, "Client ID should match")
-		assert.Equal(t, client.NameHash, retrievedClient.NameHash, "Name hash should match")
-		assert.Equal(t, client.TypeHash, retrievedClient.TypeHash, "Type hash should match")
-		assert.Equal(t, client.KeyVersion, retrievedClient.KeyVersion, "Key version should match")
+		assert.Equal(t, clientEncx.ID, retrievedClientEncx.ID, "Client ID should match")
+		assert.Equal(t, clientEncx.NameHash, retrievedClientEncx.NameHash, "Name hash should match")
+		assert.Equal(t, clientEncx.TypeHash, retrievedClientEncx.TypeHash, "Type hash should match")
+		assert.Equal(t, clientEncx.KeyVersion, retrievedClientEncx.KeyVersion, "Key version should match")
 	})
 
 	t.Run("with empty contact IDs", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test client and set contact IDs to empty
-		client := th.NewTestClientEncx(t)
-		client.ContactIDsEncrypted = []byte("[]")
+		th.ClearClientsTable(t, ctx, testPool)
+
+		// Create test clientEncx and set contact IDs to empty
+		clientEncx := th.NewTestClientEncx(t)
+		clientEncx.ContactIDsEncrypted = []byte("[]")
 
 		// Test successful client creation with empty contact IDs
-		err := repo.CreateClient(ctx, client)
+		err := repo.CreateClient(ctx, clientEncx)
 		require.NoError(t, err, "Failed to create client with empty contact IDs")
 
 		// Verify the client was inserted by retrieving it
-		retrievedClient, err := th.GetClientEncxByID(t, ctx, testPool, client.ID)
+		retrievedClientEncx, err := th.GetClientEncxByID(t, ctx, testPool, clientEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve inserted client")
 
 		// Verify that contact IDs are indeed empty
-		assert.Equal(t, []byte("[]"), retrievedClient.ContactIDsEncrypted, "Expected ContactIDsEncrypted to be empty")
+		assert.Equal(t, []byte("[]"), retrievedClientEncx.ContactIDsEncrypted, "Expected ContactIDsEncrypted to be empty")
 	})
 
 	t.Run("duplicate ID", func(t *testing.T) {
 		ctx := context.Background()
 
+		th.ClearClientsTable(t, ctx, testPool)
+
 		// Create first test client
-		client1 := th.NewTestClientEncx(t)
+		clientEncx1 := th.NewTestClientEncx(t)
 
 		// Insert first client using the global repo (setup - should stop if fails)
-		err := repo.CreateClient(ctx, client1)
+		err := repo.CreateClient(ctx, clientEncx1)
 		require.NoError(t, err, "Failed to create first client")
 
 		// Try to insert client with same ID (should fail)
-		client2 := th.NewTestClientEncx(t)
-		client2.ID = client1.ID // Same ID, different data
+		clientEncx2 := th.NewTestClientEncx(t)
+		clientEncx2.ID = clientEncx1.ID // Same ID, different data
 
-		err = repo.CreateClient(ctx, client2)
+		err = repo.CreateClient(ctx, clientEncx2)
 		assert.Error(t, err, "Expected error when creating client with duplicate ID")
 
 		// Check that it's a database constraint violation (expected for duplicate ID)
@@ -83,6 +90,8 @@ func TestCreateClient(t *testing.T) {
 
 	t.Run("empty required fields", func(t *testing.T) {
 		ctx := context.Background()
+
+		th.ClearClientsTable(t, ctx, testPool)
 
 		tests := []struct {
 			name   string
@@ -109,9 +118,9 @@ func TestCreateClient(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		client := th.NewTestClientEncx(t)
+		clientEncx := th.NewTestClientEncx(t)
 
-		err := repo.CreateClient(ctx, client)
+		err := repo.CreateClient(ctx, clientEncx)
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
 	})
 }

@@ -2,8 +2,10 @@ package clientRepository_test
 
 import (
 	"context"
+	"fmt"
 	"testing"
 
+	"github.com/hengadev/cluo_api/internal/domain/client"
 	th "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
@@ -12,6 +14,7 @@ import (
 )
 
 // make test-func TEST_NAME=TestDeleteClient TEST_PATH=internal/infrastructure/postgres/client/delete_client_test.go
+
 func TestDeleteClient(t *testing.T) {
 	if testPool == nil || repo == nil {
 		t.Skip("Test database or repository not initialized")
@@ -20,30 +23,32 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("successful deletion", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create test client data using helper
-		client := th.NewTestClientEncx(t)
+		th.ClearClientsTable(t, ctx, testPool)
 
-		// Insert client first (setup)
-		err := repo.CreateClient(ctx, client)
-		require.NoError(t, err, "Failed to create client for deletion test")
+		// Create test clientEncx data using helper
+		clientEncx := th.NewTestClientEncx(t)
+		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
 
 		// Verify client exists before deletion
-		retrievedClient, err := th.GetClientEncxByID(t, ctx, testPool, client.ID)
+		retrievedClientEncx, err := th.GetClientEncxByID(t, ctx, testPool, clientEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve client before deletion")
-		assert.NotNil(t, retrievedClient, "Client should exist before deletion")
+		assert.NotNil(t, retrievedClientEncx, "Client should exist before deletion")
 
 		// Test successful client deletion
-		err = repo.DeleteClient(ctx, client.ID)
+		err = repo.DeleteClient(ctx, clientEncx.ID)
 		assert.NoError(t, err, "Failed to delete client")
 
 		// Verify client no longer exists
-		retrievedClient, err = th.GetClientEncxByID(t, ctx, testPool, client.ID)
+		retrievedClientEncx, err = th.GetClientEncxByID(t, ctx, testPool, clientEncx.ID)
 		assert.Error(t, err, "Expected error when retrieving deleted client")
-		assert.Nil(t, retrievedClient, "Retrieved client should be nil after deletion")
+		assert.Equal(t, &client.ClientEncx{}, retrievedClientEncx, "Retrieved client should be nil after deletion")
 	})
 
 	t.Run("non-existent client", func(t *testing.T) {
 		ctx := context.Background()
+
+		th.ClearClientsTable(t, ctx, testPool)
 
 		// Try to delete a client that doesn't exist
 		nonExistentID := uuid.New()
@@ -54,6 +59,8 @@ func TestDeleteClient(t *testing.T) {
 
 	t.Run("nil UUID", func(t *testing.T) {
 		ctx := context.Background()
+
+		th.ClearClientsTable(t, ctx, testPool)
 
 		// Try to delete with nil UUID
 		err := repo.DeleteClient(ctx, uuid.Nil)
@@ -74,16 +81,21 @@ func TestDeleteClient(t *testing.T) {
 	t.Run("delete multiple clients", func(t *testing.T) {
 		ctx := context.Background()
 
-		// Create multiple test clients
-		clients := make([]*client.ClientEncx, 3)
+		th.ClearClientsTable(t, ctx, testPool)
+
+		// Create multiple test clientsEncx
+		clientsEncx := make([]*client.ClientEncx, 3)
 		for i := 0; i < 3; i++ {
-			clients[i] = th.NewTestClientEncx(t)
-			err := repo.CreateClient(ctx, clients[i])
+			clientEncx := th.NewTestClientEncx(t)
+			clientEncx.NameEncrypted = []byte(fmt.Sprintf("name_encrypted_%d", i))
+			clientEncx.NameHash = fmt.Sprintf("name_hash_%d", i)
+			clientsEncx[i] = clientEncx
+			err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
 			require.NoError(t, err, "Failed to create client %d", i)
 		}
 
 		// Delete all clients
-		for i, client := range clients {
+		for i, client := range clientsEncx {
 			err := repo.DeleteClient(ctx, client.ID)
 			assert.NoError(t, err, "Failed to delete client %d", i)
 
@@ -93,4 +105,3 @@ func TestDeleteClient(t *testing.T) {
 		}
 	})
 }
-
