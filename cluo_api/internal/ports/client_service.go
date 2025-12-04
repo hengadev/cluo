@@ -9,6 +9,9 @@ import (
 )
 
 type ClientService interface {
+	// client
+	CreateClient(ctx context.Context, r *client.CreateClientRequest) error
+	// contact
 	CreateContact(ctx context.Context, r *client.CreateContactRequest) error
 	DeleteContact(ctx context.Context, r *client.DeleteContactRequest) error
 	UpdateContact(ctx context.Context, r *client.UpdateContactRequest) error
