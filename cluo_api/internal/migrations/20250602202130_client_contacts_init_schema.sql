@@ -14,7 +14,6 @@ CREATE TABLE IF NOT EXISTS clients.clients (
     name_hash VARCHAR(255) NOT NULL,
     type_encrypted BYTEA NOT NULL,
     type_hash VARCHAR(255) NOT NULL,
-    contactids_encrypted BYTEA NOT NULL,
     dek_encrypted BYTEA NOT NULL,
     key_version INTEGER NOT NULL,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -112,6 +111,9 @@ COMMENT ON COLUMN clients.contacts.metadata IS 'Additional metadata in JSON form
 
 -- +goose Down
 -- SQL in this section is executed when the migration is rolled back.
+
+-- Add back contactids_encrypted column for rollback
+ALTER TABLE clients.clients ADD COLUMN IF NOT EXISTS contactids_encrypted BYTEA NOT NULL DEFAULT '';
 
 DROP TRIGGER IF EXISTS update_contacts_updated_at ON clients.contacts;
 DROP TRIGGER IF EXISTS update_clients_updated_at ON clients.clients;
