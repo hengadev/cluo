@@ -5,7 +5,6 @@ import (
 
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
-	"github.com/hengadev/cluo_api/internal/domain/client"
 )
 
 func (h *handler) GetAllClients(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +38,5 @@ func (h *handler) GetAllClients(w http.ResponseWriter, r *http.Request) {
 		"clients_count", len(clients))
 
 	// Respond with success message and clients data
-	httpx.RespondWithJSON(w, struct {
-		Message string                   `json:"message"`
-		Clients []*client.ClientResponse `json:"clients"`
-	}{
-		Message: "All clients retrieval completed successfully",
-		Clients: clients,
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, clients, http.StatusOK)
 }
-
