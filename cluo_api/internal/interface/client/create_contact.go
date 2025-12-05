@@ -53,6 +53,7 @@ func (h *handler) CreateContact(w http.ResponseWriter, r *http.Request) {
 			"operation", "create_contact",
 			"method", r.Method,
 			"path", r.URL.Path)
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
