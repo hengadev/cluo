@@ -69,12 +69,5 @@ func (h *handler) GetClientByID(w http.ResponseWriter, r *http.Request) {
 		"status_code", http.StatusOK)
 
 	// Respond with client data
-	httpx.RespondWithJSON(w, struct {
-		Message string                 `json:"message"`
-		Client  *client.ClientResponse `json:"client"`
-	}{
-		Message: "Client retrieval by ID completed successfully",
-		Client:  res,
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, res, http.StatusOK)
 }
-
