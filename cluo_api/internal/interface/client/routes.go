@@ -14,16 +14,16 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	// === Client CRUD Endpoints ===
 
 	// Creates a new client
-	router.HandleFunc("POST "+CreateClientEndpoint, RequireClient(mw.EnableCORS(h.CreateClient)))
+	router.HandleFunc("POST "+CreateClientEndpoint, RequireAdministrator(mw.EnableCORS(h.CreateClient)))
 
 	// Gets all clients
-	router.HandleFunc("GET "+GetAllClientsEndpoint, RequireClient(mw.EnableCORS(h.GetAllClients)))
+	router.HandleFunc("GET "+GetAllClientsEndpoint, RequireAdministrator(mw.EnableCORS(h.GetAllClients)))
 
 	// Gets a client by ID
-	router.HandleFunc("GET "+GetClientByIDEndpoint, RequireClient(mw.EnableCORS(h.GetClientByID)))
+	router.HandleFunc("GET "+GetClientByIDEndpoint, RequireAdministrator(mw.EnableCORS(h.GetClientByID)))
 
 	// Updates a client
-	router.HandleFunc("PATCH "+UpdateClientEndpoint, RequireClient(mw.EnableCORS(h.UpdateClient)))
+	router.HandleFunc("PATCH "+UpdateClientEndpoint, RequireAdministrator(mw.EnableCORS(h.UpdateClient)))
 
 	// Deletes a client
 	router.HandleFunc("DELETE "+DeleteClientEndpoint, RequireAdministrator(mw.EnableCORS(h.DeleteClient)))
