@@ -26,13 +26,13 @@ func InsertClientEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, cli
 	query := fmt.Sprintf(`
 		INSERT INTO %s.clients (
 			id, created_at, name_encrypted, name_hash, type_encrypted, type_hash,
-			contactids_encrypted, dek_encrypted, key_version, metadata
-		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			dek_encrypted, key_version, metadata
+		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`, clientRepository.Schema)
 
 	_, err := pool.Exec(ctx, query,
 		clientEncx.ID, clientEncx.CreatedAt, clientEncx.NameEncrypted, clientEncx.NameHash,
-		clientEncx.TypeEncrypted, clientEncx.TypeHash, clientEncx.ContactIDsEncrypted,
+		clientEncx.TypeEncrypted, clientEncx.TypeHash,
 		clientEncx.DEKEncrypted, clientEncx.KeyVersion, clientEncx.Metadata,
 	)
 
@@ -46,7 +46,7 @@ func GetClientEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, cl
 	query := fmt.Sprintf(`
 		SELECT
 			id, created_at, name_encrypted, name_hash, type_encrypted, type_hash,
-			contactids_encrypted, dek_encrypted, key_version, metadata
+			dek_encrypted, key_version, metadata
 		FROM %s.clients WHERE id = $1
 	`, clientRepository.Schema)
 
@@ -54,7 +54,7 @@ func GetClientEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, cl
 
 	err := pool.QueryRow(ctx, query, clientID).Scan(
 		&clientEncx.ID, &clientEncx.CreatedAt, &clientEncx.NameEncrypted, &clientEncx.NameHash,
-		&clientEncx.TypeEncrypted, &clientEncx.TypeHash, &clientEncx.ContactIDsEncrypted,
+		&clientEncx.TypeEncrypted, &clientEncx.TypeHash,
 		&clientEncx.DEKEncrypted, &clientEncx.KeyVersion, &clientEncx.Metadata,
 	)
 
