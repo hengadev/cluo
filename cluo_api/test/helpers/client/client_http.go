@@ -104,3 +104,31 @@ func NewDeleteClientRequest(
 
 	return req
 }
+
+// NewGetAllClientsRequest creates an HTTP request for getting all clients
+func NewGetAllClientsRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		serverURL+clientHandler.GetAllClientsEndpoint,
+		nil,
+	)
+	require.NoError(t, err)
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
