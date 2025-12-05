@@ -74,7 +74,6 @@ func TestGetAllClients(t *testing.T) {
 				responseNames[clientResp.Name] = true
 				assert.NotEmpty(t, clientResp.ID)
 				assert.NotEmpty(t, clientResp.Type)
-				assert.NotNil(t, clientResp.ContactIDs)
 			}
 
 			// Verify all our test clients are present

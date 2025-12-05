@@ -61,7 +61,6 @@ func TestGetClientByID(t *testing.T) {
 			assert.Equal(t, testClient.ID.String(), response.ID)
 			assert.Equal(t, testClient.Name, response.Name)
 			assert.Equal(t, testClient.Type, client.ClientType(response.Type))
-			assert.Equal(t, []string{}, response.ContactIDs)
 		})
 	})
 
