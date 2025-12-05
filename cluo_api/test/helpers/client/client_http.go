@@ -132,3 +132,38 @@ func NewGetAllClientsRequest(
 
 	return req
 }
+
+// NewUpdateClientRequest creates an HTTP request for updating a client by ID
+func NewUpdateClientRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	clientID string,
+	request client.UpdateClientRequest,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	jsonBody, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPatch,
+		serverURL+clientHandler.ClientBasePath+"/"+clientID,
+		bytes.NewReader(jsonBody),
+	)
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
