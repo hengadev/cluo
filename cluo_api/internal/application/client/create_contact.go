@@ -20,7 +20,7 @@ func (s *Service) CreateContact(ctx context.Context, request *client.CreateConta
 	}
 
 	if !exists {
-		return nil, errs.NewNotFoundErr(nil, "client")
+		return nil, errs.NewRepositoryNotFoundErr(fmt.Errorf("client with ID %s not found", request.ClientID), "client")
 	}
 
 	contact := client.NewContact(request)
