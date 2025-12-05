@@ -98,9 +98,8 @@ func CountContactsByClientID(t *testing.T, ctx context.Context, pool *pgxpool.Po
 	return count, err
 }
 
-// CreateTestClientWithContact creates a client by inserting an initial contact
-// This represents a client "existing" in the system since clients are identified by contacts
-func CreateTestClientWithContact(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) error {
+// CreateTestContactWithClientID creates a contact using an client ID that supposedly is in the database.
+func CreateTestContactWithClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) error {
 	t.Helper()
 
 	initialContact := &client.ContactEncx{

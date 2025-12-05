@@ -47,3 +47,4 @@ func NewCreateContactRequest(
 
 	return req
 }
+

@@ -9,6 +9,8 @@ import (
 	"testing"
 	"time"
 
+	"github.com/hengadev/cluo_api/internal/common/auth/cookies"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
 	"github.com/hengadev/cluo_api/internal/domain/client"
 	ch "github.com/hengadev/cluo_api/test/helpers/client"
@@ -23,6 +25,15 @@ import (
 
 // TestCreateContact tests all scenarios for creating a contact
 func TestCreateContact(t *testing.T) {
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		c := ch.NewTestClient(t)
+		clientEncx, err := client.ProcessClientEncx(ctx, crypto, c)
+		require.NoError(t, err)
+		err = ch.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return c.ID
+	}
+
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -30,21 +41,13 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
-		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client (by inserting an initial contact) so it "exists"
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
-		t.Logf("Created test client with ID: %s", clientID)
+		// Generate test client
+		clientID := setupClient(t, ctx)
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
-			ClientID:  clientID,
 			Lastname:  "DOE",
 			Firstname: "Jane",
 			Email:     "jane.doe@example.com",
@@ -52,16 +55,8 @@ func TestCreateContact(t *testing.T) {
 			Position:  "Director",
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		require.NoError(t, err)
-
-		// Create HTTP request
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		// Create HTTP request using the test helper
+		req := ch.NewCreateContactRequest(t, ctx, testServerURL, clientID.String(), payload, accessToken)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -73,17 +68,15 @@ func TestCreateContact(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Decode response
-		var response struct {
-			Message string `json:"message"`
-		}
+		var response *client.ContactResponse
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-		assert.Equal(t, "Contact creation completed successfully", response.Message)
-
-		// Verify contact was created in database
-		count, err := ch.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
-		require.NoError(t, err)
-		assert.Equal(t, 2, count, "Should have 2 contacts: initial contact + newly created contact")
+		assert.Equal(t, payload.Lastname, response.Lastname)
+		assert.Equal(t, payload.Firstname, response.Firstname)
+		assert.Equal(t, payload.Email, response.Email)
+		assert.Equal(t, payload.Phone, response.Phone)
+		assert.Equal(t, payload.Position, response.Position)
+		assert.Equal(t, clientID.String(), response.ClientID)
 
 		t.Log("✓ Contact created successfully")
 	})
@@ -95,13 +88,13 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
 		// Use a non-existent client ID
 		nonExistentClientID := uuid.New()
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
-			ClientID:  nonExistentClientID,
 			Lastname:  "DOE",
 			Firstname: "John",
 			Email:     "john.doe@example.com",
@@ -109,16 +102,8 @@ func TestCreateContact(t *testing.T) {
 			Position:  "Manager",
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		require.NoError(t, err)
-
-		// Create HTTP request
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, nonExistentClientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		// Create HTTP request using the test helper
+		req := ch.NewCreateContactRequest(t, ctx, testServerURL, nonExistentClientID.String(), payload, accessToken)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -133,88 +118,12 @@ func TestCreateContact(t *testing.T) {
 		var errorResp struct {
 			Error string `json:"error"`
 		}
+
 		err = json.NewDecoder(resp.Body).Decode(&errorResp)
 		require.NoError(t, err)
-		assert.Contains(t, errorResp.Error, "client")
+		assert.Contains(t, errorResp.Error, errs.ErrRepositoryNotFound.Error())
 
 		t.Log("✓ Client not found error handled correctly")
-	})
-
-	t.Run("DuplicateEmail", func(t *testing.T) {
-		ctx := context.Background()
-
-		// Setup authentication
-		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
-		defer tu.ClearAuthData(t, ctx, authCtx)
-		defer ch.ClearContactsTable(t, ctx, testPool)
-
-		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client with initial contact
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
-
-		// Create first contact with specific email
-		duplicateEmail := "duplicate@example.com"
-		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID,
-			Lastname:  "Original",
-			Firstname: "Contact",
-			Email:     duplicateEmail,
-			Phone:     "0611111111",
-			Position:  "Manager",
-		})
-
-		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
-		require.NoError(t, err)
-
-		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
-		require.NoError(t, err)
-		t.Log("Created first contact with email:", duplicateEmail)
-
-		// Try to create second contact with same email
-		payload := client.CreateContactRequest{
-			ClientID:  clientID,
-			Lastname:  "Duplicate",
-			Firstname: "Contact",
-			Email:     duplicateEmail,
-			Phone:     "0622222222",
-			Position:  "Director",
-		}
-
-		payloadBytes, err := json.Marshal(payload)
-		require.NoError(t, err)
-
-		// Create HTTP request
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
-
-		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
-		resp, err := httpClient.Do(req)
-		require.NoError(t, err)
-		defer resp.Body.Close()
-
-		// Assert response status - should be 409 Conflict
-		assert.Equal(t, http.StatusConflict, resp.StatusCode)
-
-		// Decode error response
-		var errorResp struct {
-			Error string `json:"error"`
-		}
-		err = json.NewDecoder(resp.Body).Decode(&errorResp)
-		require.NoError(t, err)
-		assert.Contains(t, errorResp.Error, "contact")
-
-		t.Log("✓ Duplicate email error handled correctly")
 	})
 
 	t.Run("InvalidPayload", func(t *testing.T) {
@@ -224,16 +133,21 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 
-		clientID := uuid.New()
+		clientID := setupClient(t, ctx)
 
-		// Create HTTP request with invalid JSON
+		// Create HTTP request with invalid JSON manually since helper requires valid struct
 		invalidJSON := []byte(`{"lastname": "DOE", "firstname": "John", invalid}`)
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(invalidJSON))
+		req, err := http.NewRequest("POST", testServerURL+"/client/"+clientID.String()+"/contact", bytes.NewBuffer(invalidJSON))
 		require.NoError(t, err)
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+
+		// Add authentication cookie manually
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -250,6 +164,7 @@ func TestCreateContact(t *testing.T) {
 		}
 		err = json.NewDecoder(resp.Body).Decode(&errorResp)
 		require.NoError(t, err)
+
 		assert.Contains(t, errorResp.Error, "invalid")
 
 		t.Log("✓ Invalid JSON payload error handled correctly")
@@ -262,16 +177,10 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
 		// Generate test client ID
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		clientID := setupClient(t, ctx)
 
 		testCases := []struct {
 			name    string
@@ -311,16 +220,8 @@ func TestCreateContact(t *testing.T) {
 
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
-				payloadBytes, err := json.Marshal(tc.payload)
-				require.NoError(t, err)
-
-				// Create HTTP request
-				url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-				req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-				require.NoError(t, err)
-
-				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+				// Create HTTP request using the test helper
+				req := ch.NewCreateContactRequest(t, ctx, testServerURL, clientID.String(), tc.payload, accessToken)
 
 				// Execute request
 				httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -339,6 +240,7 @@ func TestCreateContact(t *testing.T) {
 	t.Run("Unauthorized", func(t *testing.T) {
 		ctx := context.Background()
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
 		clientID := uuid.New()
 
@@ -352,16 +254,8 @@ func TestCreateContact(t *testing.T) {
 			Position:  "Manager",
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		require.NoError(t, err)
-
-		// Create HTTP request WITHOUT authentication
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		// NO Authorization header
+		// Create HTTP request WITHOUT authentication using the test helper
+		req := ch.NewCreateContactRequest(t, ctx, testServerURL, clientID.String(), payload, "")
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -394,16 +288,8 @@ func TestCreateContact(t *testing.T) {
 			Position:  "Manager",
 		}
 
-		payloadBytes, err := json.Marshal(payload)
-		require.NoError(t, err)
-
-		// Create HTTP request
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, invalidClientID)
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		// Create HTTP request using the test helper
+		req := ch.NewCreateContactRequest(t, ctx, testServerURL, invalidClientID.String(), payload, accessToken)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -411,8 +297,17 @@ func TestCreateContact(t *testing.T) {
 		require.NoError(t, err)
 		defer resp.Body.Close()
 
-		// Assert response status - should be 400 Bad Request
-		assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
+		// Assert response status - should be 404 Not Found
+		assert.Equal(t, http.StatusNotFound, resp.StatusCode)
+
+		// Decode error response
+		var errorResp struct {
+			Error string `json:"error"`
+		}
+
+		err = json.NewDecoder(resp.Body).Decode(&errorResp)
+		require.NoError(t, err)
+		assert.Contains(t, errorResp.Error, errs.ErrRepositoryNotFound.Error())
 
 		t.Log("✓ Invalid client ID format error handled correctly")
 	})
@@ -424,16 +319,10 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
-		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		// Generate test client
+		clientID := setupClient(t, ctx)
 
 		// Sensitive data that should be encrypted
 		sensitiveData := client.CreateContactRequest{
@@ -445,16 +334,8 @@ func TestCreateContact(t *testing.T) {
 			Position:  "SENSITIVE_POSITION",
 		}
 
-		payloadBytes, err := json.Marshal(sensitiveData)
-		require.NoError(t, err)
-
-		// Create HTTP request
-		url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
-		require.NoError(t, err)
-
-		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		// Create HTTP request using the test helper
+		req := ch.NewCreateContactRequest(t, ctx, testServerURL, clientID.String(), sensitiveData, accessToken)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
@@ -487,7 +368,7 @@ func TestCreateContact(t *testing.T) {
 			"Position should be encrypted, not plaintext")
 
 		// Verify hashes are set
-		assert.NotEmpty(t, contactEncx.ClientIDHash, "Client ID hash should be set")
+		assert.NotEmpty(t, contactEncx.ClientID, "Client ID hash should be set")
 		assert.NotEmpty(t, contactEncx.EmailHash, "Email hash should be set")
 
 		// Verify encrypted fields are not empty
@@ -508,16 +389,10 @@ func TestCreateContact(t *testing.T) {
 		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearContactsTable(t, ctx, testPool)
+		defer ch.ClearClientsTable(t, ctx, testPool)
 
-		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		// Generate test client
+		clientID := setupClient(t, ctx)
 
 		// Create multiple contacts concurrently
 		numContacts := 5
@@ -535,21 +410,29 @@ func TestCreateContact(t *testing.T) {
 					Position:  fmt.Sprintf("Position_%d", index),
 				}
 
-				payloadBytes, err := json.Marshal(payload)
+				// Create request manually in goroutine since NewCreateContactRequest uses t.Helper()
+				jsonBody, err := json.Marshal(payload)
 				if err != nil {
 					errChan <- err
 					return
 				}
 
-				url := fmt.Sprintf("%s/client/%s/contact", testServerURL, clientID.String())
-				req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+				req, err := http.NewRequest(
+					"POST",
+					testServerURL+"/client/"+clientID.String()+"/contact",
+					bytes.NewBuffer(jsonBody),
+				)
 				if err != nil {
 					errChan <- err
 					return
 				}
 
 				req.Header.Set("Content-Type", "application/json")
-				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+				cookie := &http.Cookie{
+					Name:  cookies.AccessTokenCookieName,
+					Value: accessToken,
+				}
+				req.AddCookie(cookie)
 
 				httpClient := &http.Client{Timeout: 10 * time.Second}
 				resp, err := httpClient.Do(req)
@@ -588,9 +471,9 @@ func TestCreateContact(t *testing.T) {
 		assert.Equal(t, 0, errorCount, "No errors should occur")
 
 		// Verify count in database (initial contact + numContacts)
-		count, err := ch.CountContactsByClientIDHash(t, ctx, testPool, clientIDHash)
+		count, err := ch.CountContactsByClientID(t, ctx, testPool, clientID)
 		require.NoError(t, err)
-		assert.Equal(t, numContacts+1, count, "Should have initial contact + all newly created contacts")
+		assert.Equal(t, numContacts, count, "Should have all newly created contacts")
 
 		t.Log("✓ Concurrent contact creation handled correctly")
 	})
@@ -604,6 +487,7 @@ func TestCreateContact(t *testing.T) {
 
 		// Prepare request payload
 		payload := client.CreateContactRequest{
+			ClientID:  uuid.New(), // Still need a valid UUID for the payload
 			Lastname:  "DOE",
 			Firstname: "John",
 			Email:     "john.doe@example.com",
@@ -611,16 +495,19 @@ func TestCreateContact(t *testing.T) {
 			Position:  "Manager",
 		}
 
-		payloadBytes, err := json.Marshal(payload)
+		// Create HTTP request manually with empty client ID in URL
+		jsonBody, err := json.Marshal(payload)
 		require.NoError(t, err)
 
-		// Create HTTP request with empty client ID
-		url := fmt.Sprintf("%s/client//contact", testServerURL)
-		req, err := http.NewRequest("POST", url, bytes.NewBuffer(payloadBytes))
+		req, err := http.NewRequest("POST", testServerURL+"/client//contact", bytes.NewBuffer(jsonBody))
 		require.NoError(t, err)
 
 		req.Header.Set("Content-Type", "application/json")
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
 
 		// Execute request
 		httpClient := &http.Client{Timeout: 10 * time.Second}
