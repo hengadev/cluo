@@ -10,7 +10,7 @@ import (
 type ClientRepository interface {
 	//contact
 	CreateContact(ctx context.Context, contactEncx *client.ContactEncx) error
-	ExistsByClientID(ctx context.Context, clientIDHashBasic string) (bool, error)
+	ExistsByClientID(ctx context.Context, clientID uuid.UUID) (bool, error)
 	DeleteContact(ctx context.Context, contactID uuid.UUID) error
 	UpdateContact(ctx context.Context, request *client.ContactEncx) error
 	GetContactByID(ctx context.Context, contactID uuid.UUID) (*client.ContactEncx, error)
