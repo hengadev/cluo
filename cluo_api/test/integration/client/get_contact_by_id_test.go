@@ -22,6 +22,14 @@ import (
 
 // TestGetContactByID tests all scenarios for getting a contact by ID
 func TestGetContactByID(t *testing.T) {
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		c := ch.NewTestClient(t)
+		clientEncx, err := client.ProcessClientEncx(ctx, crypto, c)
+		require.NoError(t, err)
+		err = ch.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return c.ID
+	}
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -31,29 +39,16 @@ func TestGetContactByID(t *testing.T) {
 		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client (by inserting an initial contact) so it "exists"
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		clientID := setupClient(t, ctx)
 
 		// Create test contact data
-		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID,
-			Lastname:  "DOE",
-			Firstname: "Jane",
-			Email:     "jane.doe@example.com",
-			Phone:     "0687654321",
-			Position:  "Director",
-		})
+		contact := ch.NewTestContact(t)
+		contact.ClientID = clientID
 
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with ID: %s", contact.ID)
 
