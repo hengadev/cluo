@@ -26,44 +26,6 @@ func TestGetClientByID(t *testing.T) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	t.Run("Success Cases", func(t *testing.T) {
-		t.Run("Client retrieves own client successfully", func(t *testing.T) {
-			// Setup client authentication
-			clientToken := tu.SetupClientUser(t, ctx, authCtx)
-			defer tu.ClearAuthData(t, ctx, authCtx)
-			defer ch.ClearClientsTable(t, ctx, testPool)
-
-			testClient := ch.NewTestClient(t)
-
-			testClientEncx, err := client.ProcessClientEncx(ctx, crypto, testClient)
-			require.NoError(t, err)
-
-			// Insert client into database
-			err = ch.InsertClientEncx(t, ctx, testPool, testClientEncx)
-			require.NoError(t, err)
-
-			// Create HTTP request using the test helper
-			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, testClient.ID.String(), clientToken)
-
-			// Execute request
-			resp, err := httpClient.Do(req)
-			require.NoError(t, err)
-			defer resp.Body.Close()
-
-			// Verify response
-			assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-			// Parse response body
-			var response clientDomain.ClientResponse
-			err = json.NewDecoder(resp.Body).Decode(&response)
-			require.NoError(t, err)
-
-			// Verify response data
-			assert.Equal(t, testClient.ID.String(), response.ID)
-			assert.Equal(t, testClient.Name, response.Name)
-			assert.Equal(t, testClient.Type, client.ClientType(response.Type))
-			assert.Equal(t, []string{}, response.ContactIDs)
-		})
-
 		t.Run("Administrator retrieves any client successfully", func(t *testing.T) {
 			// Setup administrator authentication
 			adminToken := tu.SetupAdminUser(t, ctx, authCtx)
@@ -105,8 +67,8 @@ func TestGetClientByID(t *testing.T) {
 
 	t.Run("Error Cases", func(t *testing.T) {
 		t.Run("Client not found", func(t *testing.T) {
-			// Setup client authentication
-			clientToken := tu.SetupClientUser(t, ctx, authCtx)
+			// Setup administrator authentication
+			adminToken := tu.SetupAdminUser(t, ctx, authCtx)
 			defer tu.ClearAuthData(t, ctx, authCtx)
 			defer ch.ClearClientsTable(t, ctx, testPool)
 
@@ -114,7 +76,7 @@ func TestGetClientByID(t *testing.T) {
 			nonExistentID := uuid.New()
 
 			// Create HTTP request using the test helper
-			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, nonExistentID.String(), clientToken)
+			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, nonExistentID.String(), adminToken)
 
 			// Execute request
 			resp, err := httpClient.Do(req)
@@ -136,15 +98,15 @@ func TestGetClientByID(t *testing.T) {
 		})
 
 		t.Run("Invalid client ID format", func(t *testing.T) {
-			// Setup client authentication
-			clientToken := tu.SetupClientUser(t, ctx, authCtx)
+			// Setup administrator authentication
+			adminToken := tu.SetupAdminUser(t, ctx, authCtx)
 			defer tu.ClearAuthData(t, ctx, authCtx)
 
 			// Use invalid UUID format
 			invalidID := "invalid-uuid-format"
 
 			// Create HTTP request using the test helper
-			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, invalidID, clientToken)
+			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, invalidID, adminToken)
 
 			// Execute request
 			resp, err := httpClient.Do(req)
@@ -186,6 +148,23 @@ func TestGetClientByID(t *testing.T) {
 
 			// Should be unauthorized
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
+		})
+
+		t.Run("Client Authentication", func(t *testing.T) {
+			// Setup client authentication
+			clientToken := tu.SetupClientUser(t, ctx, authCtx)
+			defer tu.ClearAuthData(t, ctx, authCtx)
+
+			// Create HTTP request with client authentication
+			req := ch.NewGetClientByIDRequest(t, ctx, testServerURL, testClient.ID.String(), clientToken)
+
+			// Execute request
+			resp, err := httpClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			// Client should be forbidden from accessing clients
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
 		})
 
 		t.Run("Guest Authentication", func(t *testing.T) {

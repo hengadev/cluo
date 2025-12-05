@@ -26,42 +26,6 @@ func TestCreateClient(t *testing.T) {
 	httpClient := &http.Client{Timeout: 10 * time.Second}
 
 	t.Run("Success Cases", func(t *testing.T) {
-		t.Run("Client creates client successfully", func(t *testing.T) {
-			// Setup client authentication
-			clientToken := tu.SetupClientUser(t, ctx, authCtx)
-			defer tu.ClearAuthData(t, ctx, authCtx)
-			defer ch.ClearClientsTable(t, ctx, testPool)
-
-			clientName := "Test Client"
-			clientType := "Individual"
-
-			// Create a valid client request
-			request := clientDomain.CreateClientRequest{
-				Name: clientName,
-				Type: clientType,
-			}
-
-			// Create HTTP request using the test helper
-			req := ch.NewCreateClientRequest(t, ctx, testServerURL, request, clientToken)
-
-			// Execute request
-			resp, err := httpClient.Do(req)
-			require.NoError(t, err)
-			defer resp.Body.Close()
-
-			// Verify response
-			assert.Equal(t, http.StatusOK, resp.StatusCode)
-
-			// Parse response body
-			var response clientDomain.ClientResponse
-			err = json.NewDecoder(resp.Body).Decode(&response)
-			require.NoError(t, err)
-
-			// Verify response message
-			assert.Equal(t, response.Name, clientName)
-			assert.Equal(t, response.Type, clientType)
-		})
-
 		t.Run("Administrator creates client successfully", func(t *testing.T) {
 			// Setup administrator authentication
 			adminToken := tu.SetupAdminUser(t, ctx, authCtx)
@@ -100,8 +64,8 @@ func TestCreateClient(t *testing.T) {
 	})
 
 	t.Run("Validation Errors", func(t *testing.T) {
-		// Setup client authentication
-		clientToken := tu.SetupClientUser(t, ctx, authCtx)
+		// Setup administrator authentication
+		adminToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearClientsTable(t, ctx, testPool)
 
@@ -147,7 +111,7 @@ func TestCreateClient(t *testing.T) {
 		for _, tc := range testCases {
 			t.Run(tc.name, func(t *testing.T) {
 				// Create HTTP request using the test helper
-				req := ch.NewCreateClientRequest(t, ctx, testServerURL, tc.request, clientToken)
+				req := ch.NewCreateClientRequest(t, ctx, testServerURL, tc.request, adminToken)
 
 				// Execute request
 				resp, err := httpClient.Do(req)
@@ -192,6 +156,23 @@ func TestCreateClient(t *testing.T) {
 			assert.Equal(t, http.StatusUnauthorized, resp.StatusCode)
 		})
 
+		t.Run("Client Authentication", func(t *testing.T) {
+			// Setup client authentication
+			clientToken := tu.SetupClientUser(t, ctx, authCtx)
+			defer tu.ClearAuthData(t, ctx, authCtx)
+
+			// Create HTTP request with client authentication
+			req := ch.NewCreateClientRequest(t, ctx, testServerURL, request, clientToken)
+
+			// Execute request
+			resp, err := httpClient.Do(req)
+			require.NoError(t, err)
+			defer resp.Body.Close()
+
+			// Client should be forbidden from creating clients
+			assert.Equal(t, http.StatusForbidden, resp.StatusCode)
+		})
+
 		t.Run("Guest Authentication", func(t *testing.T) {
 			// Setup guest authentication
 			guestToken := tu.SetupGuestUser(t, ctx, authCtx)
@@ -211,8 +192,8 @@ func TestCreateClient(t *testing.T) {
 	})
 
 	t.Run("Invalid JSON Payloads", func(t *testing.T) {
-		// Setup client authentication
-		clientToken := tu.SetupClientUser(t, ctx, authCtx)
+		// Setup administrator authentication
+		adminToken := tu.SetupAdminUser(t, ctx, authCtx)
 		defer tu.ClearAuthData(t, ctx, authCtx)
 		defer ch.ClearClientsTable(t, ctx, testPool)
 
@@ -233,7 +214,7 @@ func TestCreateClient(t *testing.T) {
 			// Add authentication cookie manually
 			cookie := &http.Cookie{
 				Name:  cookies.AccessTokenCookieName,
-				Value: clientToken,
+				Value: adminToken,
 			}
 			req.AddCookie(cookie)
 
@@ -271,7 +252,7 @@ func TestCreateClient(t *testing.T) {
 			// Add authentication cookie manually
 			cookie := &http.Cookie{
 				Name:  cookies.AccessTokenCookieName,
-				Value: clientToken,
+				Value: adminToken,
 			}
 			req.AddCookie(cookie)
 
