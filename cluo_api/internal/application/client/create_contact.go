@@ -14,7 +14,7 @@ func (s *Service) CreateContact(ctx context.Context, request *client.CreateConta
 	}
 
 	// Check if client exists in database
-	exists, err := s.repo.ExistsByClientID(ctx, request.ClientID)
+	exists, err := s.repo.ExistsClient(ctx, request.ClientID)
 	if err != nil {
 		return fmt.Errorf("failed to check client existence: %w", err)
 	}
