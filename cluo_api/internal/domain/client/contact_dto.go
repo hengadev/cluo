@@ -53,6 +53,7 @@ func (r *CreateContactRequest) Valid(ctx context.Context) error {
 func NewContact(r *CreateContactRequest) *Contact {
 	return &Contact{
 		ID:        uuid.New(),
+		ClientID:  r.ClientID,
 		Lastname:  r.Lastname,
 		Firstname: r.Firstname,
 		Email:     r.Email,
