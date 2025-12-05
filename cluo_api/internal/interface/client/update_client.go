@@ -66,7 +66,8 @@ func (h *handler) UpdateClient(w http.ResponseWriter, r *http.Request) {
 		"client_id", clientID,
 		"user_agent", r.Header.Get("User-Agent"))
 
-	if err = h.svc.UpdateClient(ctx, &payload); err != nil {
+	res, err := h.svc.UpdateClient(ctx, &payload)
+	if err != nil {
 		httpx.RespondWithServiceError(w, logger, ctx, err, "update client")
 		return
 	}
@@ -79,9 +80,5 @@ func (h *handler) UpdateClient(w http.ResponseWriter, r *http.Request) {
 		"status_code", http.StatusOK)
 
 	// Respond with success message
-	httpx.RespondWithJSON(w, struct {
-		Message string `json:"message"`
-	}{
-		Message: "Client update completed successfully",
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, res, http.StatusOK)
 }
