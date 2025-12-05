@@ -75,3 +75,32 @@ func NewGetClientByIDRequest(
 
 	return req
 }
+
+// NewDeleteClientRequest creates an HTTP request for deleting a client by ID
+func NewDeleteClientRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	clientID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		serverURL+clientHandler.ClientBasePath+"/"+clientID,
+		nil,
+	)
+	require.NoError(t, err)
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
