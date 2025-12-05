@@ -21,13 +21,6 @@ func (s *Service) GetClientByID(ctx context.Context, request *client.GetClientBy
 		return nil, errs.NewNotDecryptedErr("client", err)
 	}
 
-	// Build response
-	response := &client.ClientResponse{
-		ID:         c.ID.String(),
-		Name:       c.Name,
-		Type:       string(c.Type),
-		ContactIDs: c.ContactIDs,
-	}
-
-	return response, nil
+	// Use domain model's ToResponse method
+	return c.ToResponse(), nil
 }

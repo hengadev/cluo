@@ -23,14 +23,8 @@ func (s *Service) GetAllClients(ctx context.Context) ([]*client.ClientResponse, 
 			return nil, errs.NewNotDecryptedErr("client", err)
 		}
 
-		// Build client response
-		clientResponse := &client.ClientResponse{
-			ID:         clientDecrypted.ID.String(),
-			Name:       clientDecrypted.Name,
-			Type:       string(clientDecrypted.Type),
-			ContactIDs: clientDecrypted.ContactIDs,
-		}
-
+		// Use domain model's ToResponse method
+		clientResponse := clientDecrypted.ToResponse()
 		clientResponses = append(clientResponses, clientResponse)
 	}
 	return clientResponses, nil
