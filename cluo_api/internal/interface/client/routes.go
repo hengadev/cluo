@@ -36,6 +36,9 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	// Gets all contacts for a specific client
 	router.HandleFunc("GET "+GetAllContactsByClientIDEndpoint, RequireClient(mw.EnableCORS(h.GetAllContactsByClientID)))
 
+	// Gets all contact IDs for a specific client
+	router.HandleFunc("GET "+GetContactIDsForClientEndpoint, RequireAdministrator(mw.EnableCORS(h.GetContactIDsForClient)))
+
 	// Gets a contact by ID
 	router.HandleFunc("GET "+GetContactByIDEndpoint, RequireClient(mw.EnableCORS(h.GetContactByID)))
 

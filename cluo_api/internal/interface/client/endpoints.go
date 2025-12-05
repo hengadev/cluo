@@ -19,6 +19,7 @@ const (
 	// Contact CRUD operations
 	CreateContactEndpoint            = ClientBasePath + "/{id}" + ContactBasePath
 	GetAllContactsByClientIDEndpoint = ClientBasePath + "/{id}" + ContactBasePath
+	GetContactIDsForClientEndpoint   = ClientBasePath + "/{id}/contact-ids"
 	GetContactByIDEndpoint           = ContactBasePath + "/{id}"
 	UpdateContactEndpoint            = ContactBasePath + "/{id}"
 	DeleteContactEndpoint            = ContactBasePath + "/{id}"
