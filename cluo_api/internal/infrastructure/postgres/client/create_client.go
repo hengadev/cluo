@@ -12,13 +12,13 @@ func (r *Repository) CreateClient(ctx context.Context, clientEncx *client.Client
 	query := fmt.Sprintf(`
 		INSERT INTO %s.clients (
 			id, created_at, name_encrypted, name_hash, type_encrypted, type_hash,
-			contactids_encrypted, dek_encrypted, key_version, metadata
-		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+			dek_encrypted, key_version, metadata
+		) VALUES ( $1, $2, $3, $4, $5, $6, $7, $8, $9)
 	`, r.schema)
 
 	_, err := r.pool.Exec(ctx, query,
 		clientEncx.ID, clientEncx.CreatedAt, clientEncx.NameEncrypted, clientEncx.NameHash,
-		clientEncx.TypeEncrypted, clientEncx.TypeHash, clientEncx.ContactIDsEncrypted,
+		clientEncx.TypeEncrypted, clientEncx.TypeHash,
 		clientEncx.DEKEncrypted, clientEncx.KeyVersion, clientEncx.Metadata,
 	)
 	if err != nil {

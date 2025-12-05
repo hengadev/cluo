@@ -13,7 +13,7 @@ func (r *Repository) GetClientByID(ctx context.Context, clientID uuid.UUID) (*cl
 	query := fmt.Sprintf(`
 		SELECT
 			id, created_at, name_encrypted, name_hash, type_encrypted, type_hash,
-			contactids_encrypted, dek_encrypted, key_version, metadata
+			dek_encrypted, key_version, metadata
 		FROM %s.clients WHERE id = $1
 	`, r.schema)
 
@@ -21,7 +21,7 @@ func (r *Repository) GetClientByID(ctx context.Context, clientID uuid.UUID) (*cl
 
 	err := r.pool.QueryRow(ctx, query, clientID).Scan(
 		&clientEncx.ID, &clientEncx.CreatedAt, &clientEncx.NameEncrypted, &clientEncx.NameHash,
-		&clientEncx.TypeEncrypted, &clientEncx.TypeHash, &clientEncx.ContactIDsEncrypted,
+		&clientEncx.TypeEncrypted, &clientEncx.TypeHash,
 		&clientEncx.DEKEncrypted, &clientEncx.KeyVersion, &clientEncx.Metadata,
 	)
 	if err != nil {

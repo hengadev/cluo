@@ -12,7 +12,7 @@ func (r *Repository) GetAllClients(ctx context.Context) ([]*client.ClientEncx, e
 	query := fmt.Sprintf(`
 		SELECT
 			id, created_at, name_encrypted, name_hash, type_encrypted, type_hash,
-			contactids_encrypted, dek_encrypted, key_version, metadata
+			dek_encrypted, key_version, metadata
 		FROM %s.clients
 		ORDER BY created_at DESC
 	`, r.schema)
@@ -29,7 +29,7 @@ func (r *Repository) GetAllClients(ctx context.Context) ([]*client.ClientEncx, e
 		clientEncx := &client.ClientEncx{}
 		err := rows.Scan(
 			&clientEncx.ID, &clientEncx.CreatedAt, &clientEncx.NameEncrypted, &clientEncx.NameHash,
-			&clientEncx.TypeEncrypted, &clientEncx.TypeHash, &clientEncx.ContactIDsEncrypted,
+			&clientEncx.TypeEncrypted, &clientEncx.TypeHash,
 			&clientEncx.DEKEncrypted, &clientEncx.KeyVersion, &clientEncx.Metadata,
 		)
 		if err != nil {

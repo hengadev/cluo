@@ -15,17 +15,15 @@ func (r *Repository) UpdateClient(ctx context.Context, client *client.ClientEncx
 			name_hash = $3,
 			type_encrypted = $4,
 			type_hash = $5,
-			contactids_encrypted = $6,
-			dek_encrypted = $7,
-			key_version = $8,
-			metadata = $9
+			dek_encrypted = $6,
+			key_version = $7,
+			metadata = $8
 		WHERE id = $1
 	`, r.schema)
 
 	result, err := r.pool.Exec(ctx, query,
 		client.ID, client.NameEncrypted, client.NameHash, client.TypeEncrypted,
-		client.TypeHash, client.ContactIDsEncrypted, client.DEKEncrypted,
-		client.KeyVersion, client.Metadata,
+		client.TypeHash, client.DEKEncrypted, client.KeyVersion, client.Metadata,
 	)
 	if err != nil {
 		return errs.ClassifyPgError("update client", err)
