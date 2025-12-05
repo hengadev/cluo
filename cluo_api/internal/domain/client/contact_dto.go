@@ -12,6 +12,19 @@ import (
 	"github.com/hengadev/errsx"
 )
 
+func (c *Contact) ToResponse() *ContactResponse {
+	return &ContactResponse{
+		ID:        c.ID.String(),
+		ClientID:  c.ClientID.String(),
+		Lastname:  c.Lastname,
+		Firstname: c.Firstname,
+		Email:     c.Email,
+		Phone:     c.Phone,
+		Position:  c.Position,
+		CreatedAt: c.CreatedAt,
+	}
+}
+
 type CreateContactRequest struct {
 	ClientID  uuid.UUID `json:"clientID"`
 	Lastname  string    `json:"lastname"`
