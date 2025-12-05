@@ -21,4 +21,5 @@ type ClientService interface {
 	UpdateContact(ctx context.Context, r *client.UpdateContactRequest) (*client.ContactResponse, error)
 	GetContactByID(ctx context.Context, r *client.GetContactByIDRequest) (*client.ContactResponse, error)
 	GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactResponse, error)
+	GetContactIDsForClient(ctx context.Context, clientID uuid.UUID) ([]uuid.UUID, error)
 }
