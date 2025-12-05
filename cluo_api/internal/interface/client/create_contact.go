@@ -66,7 +66,8 @@ func (h *handler) CreateContact(w http.ResponseWriter, r *http.Request) {
 		"client_id", clientID,
 		"user_agent", r.Header.Get("User-Agent"))
 
-	if err = h.svc.CreateContact(ctx, &payload); err != nil {
+	res, err := h.svc.CreateContact(ctx, &payload)
+	if err != nil {
 		httpx.RespondWithServiceError(w, logger, ctx, err, "create contact")
 		return
 	}
@@ -78,5 +79,5 @@ func (h *handler) CreateContact(w http.ResponseWriter, r *http.Request) {
 		"path", r.URL.Path,
 		"status_code", http.StatusOK)
 
-	httpx.RespondWithJSON(w, map[string]string{"message": "Contact created successfully"}, http.StatusOK)
+	httpx.RespondWithJSON(w, res, http.StatusOK)
 }

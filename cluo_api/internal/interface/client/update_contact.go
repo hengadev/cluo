@@ -64,7 +64,8 @@ func (h *handler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 		"contact_id", contactID,
 		"user_agent", r.Header.Get("User-Agent"))
 
-	if err = h.svc.UpdateContact(ctx, &payload); err != nil {
+	res, err := h.svc.UpdateContact(ctx, &payload)
+	if err != nil {
 		httpx.RespondWithServiceError(w, logger, ctx, err, "update contact")
 		return
 	}
@@ -77,9 +78,5 @@ func (h *handler) UpdateContact(w http.ResponseWriter, r *http.Request) {
 		"status_code", http.StatusOK)
 
 	// Respond with success message (no session cookie changes)
-	httpx.RespondWithJSON(w, struct {
-		Message string `json:"message"`
-	}{
-		Message: "Contact update completed successfully",
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, res, http.StatusOK)
 }

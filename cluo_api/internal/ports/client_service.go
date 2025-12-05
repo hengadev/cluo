@@ -16,9 +16,9 @@ type ClientService interface {
 	GetClientByID(ctx context.Context, r *client.GetClientByIDRequest) (*client.ClientResponse, error)
 	GetAllClients(ctx context.Context) ([]*client.ClientResponse, error)
 	// contact
-	CreateContact(ctx context.Context, r *client.CreateContactRequest) error
+	CreateContact(ctx context.Context, r *client.CreateContactRequest) (*client.ContactResponse, error)
 	DeleteContact(ctx context.Context, r *client.DeleteContactRequest) error
-	UpdateContact(ctx context.Context, r *client.UpdateContactRequest) error
+	UpdateContact(ctx context.Context, r *client.UpdateContactRequest) (*client.ContactResponse, error)
 	GetContactByID(ctx context.Context, r *client.GetContactByIDRequest) (*client.ContactResponse, error)
 	GetAllContactsByClientID(ctx context.Context, clientID uuid.UUID) ([]*client.ContactResponse, error)
 }
