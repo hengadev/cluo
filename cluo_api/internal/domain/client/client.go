@@ -17,9 +17,8 @@ const (
 )
 
 type Client struct {
-	ID         uuid.UUID
-	Name       string     `json:"name" encx:"encrypt,hash_basic"`
-	Type       ClientType `json:"type" encx:"encrypt,hash_basic"`
-	ContactIDs []string   `json:"contacts" encx:"encrypt"` // the list of contact IDs
-	CreatedAt  time.Time
+	ID        uuid.UUID
+	Name      string     `json:"name" encx:"encrypt,hash_basic"`
+	Type      ClientType `json:"type" encx:"encrypt,hash_basic"`
+	CreatedAt time.Time
 }

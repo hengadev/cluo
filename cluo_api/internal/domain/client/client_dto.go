@@ -10,10 +10,9 @@ import (
 
 func (c *Client) ToResponse() *ClientResponse {
 	return &ClientResponse{
-		ID:         c.ID.String(),
-		Name:       c.Name,
-		Type:       string(c.Type),
-		ContactIDs: c.ContactIDs,
+		ID:   c.ID.String(),
+		Name: c.Name,
+		Type: string(c.Type),
 	}
 }
 
@@ -46,11 +45,10 @@ func (r *CreateClientRequest) Valid(ctx context.Context) error {
 
 func NewClient(r *CreateClientRequest) *Client {
 	return &Client{
-		ID:         uuid.New(),
-		Name:       r.Name,
-		Type:       ClientType(r.Type),
-		ContactIDs: []string{},
-		CreatedAt:  time.Now(),
+		ID:        uuid.New(),
+		Name:      r.Name,
+		Type:      ClientType(r.Type),
+		CreatedAt: time.Now(),
 	}
 }
 
@@ -97,8 +95,7 @@ type GetClientByIDRequest struct {
 }
 
 type ClientResponse struct {
-	ID         string   `json:"id"`
-	Name       string   `json:"name"`
-	Type       string   `json:"type"`
-	ContactIDs []string `json:"contacts"` // the list of contact IDs
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	Type string `json:"type"`
 }
