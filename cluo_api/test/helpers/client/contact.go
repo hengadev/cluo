@@ -41,3 +41,40 @@ func NewTestContactEncx(t *testing.T) *client.ContactEncx {
 		KeyVersion:         1,
 	}
 }
+
+// NewTestContactEncxWithClientID creates a mock ContactEncx with a specific client ID
+func NewTestContactEncxWithClientID(t *testing.T, clientID uuid.UUID) *client.ContactEncx {
+	t.Helper()
+	return &client.ContactEncx{
+		ID:                 uuid.New(),
+		CreatedAt:          time.Now(),
+		ClientID:           clientID,
+		LastnameEncrypted:  []byte("lastname_encrypted"),
+		FirstnameEncrypted: []byte("firstname_encrypted"),
+		EmailEncrypted:     []byte("email_encrypted"),
+		EmailHash:          "email_hash_" + clientID.String(),
+		PhoneEncrypted:     []byte("phone_encrypted"),
+		PositionEncrypted:  []byte("position_encrypted"),
+		DEKEncrypted:       []byte("dek_encrypted"),
+		KeyVersion:         1,
+	}
+}
+
+// NewTestContactEncxWithTimestamp creates a mock ContactEncx with a specific timestamp for ordering tests
+func NewTestContactEncxWithTimestamp(t *testing.T, clientID uuid.UUID, timestampOffset int) *client.ContactEncx {
+	t.Helper()
+	baseTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
+	return &client.ContactEncx{
+		ID:                 uuid.New(),
+		CreatedAt:          baseTime.Add(time.Duration(timestampOffset) * time.Hour),
+		ClientID:           clientID,
+		LastnameEncrypted:  []byte("lastname_encrypted"),
+		FirstnameEncrypted: []byte("firstname_encrypted"),
+		EmailEncrypted:     []byte("email_encrypted"),
+		EmailHash:          "email_hash_" + uuid.New().String(),
+		PhoneEncrypted:     []byte("phone_encrypted"),
+		PositionEncrypted:  []byte("position_encrypted"),
+		DEKEncrypted:       []byte("dek_encrypted"),
+		KeyVersion:         1,
+	}
+}

@@ -7,7 +7,7 @@ import (
 	"time"
 
 	"github.com/hengadev/cluo_api/internal/domain/client"
-	"github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
+	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgxpool"
