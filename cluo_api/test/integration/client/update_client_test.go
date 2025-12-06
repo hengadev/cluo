@@ -427,4 +427,3 @@ func TestUpdateClient(t *testing.T) {
 		})
 	})
 }
-

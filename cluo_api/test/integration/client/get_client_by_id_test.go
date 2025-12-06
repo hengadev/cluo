@@ -184,4 +184,3 @@ func TestGetClientByID(t *testing.T) {
 		})
 	})
 }
-

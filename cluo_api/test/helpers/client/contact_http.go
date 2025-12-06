@@ -48,3 +48,31 @@ func NewCreateContactRequest(
 	return req
 }
 
+// NewGetContactIDsForClientRequest creates an HTTP request for getting contact IDs for a client
+func NewGetContactIDsForClientRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	clientID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		serverURL+clientHandler.GetContactIDsForClientEndpoint,
+		nil,
+	)
+	require.NoError(t, err)
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
