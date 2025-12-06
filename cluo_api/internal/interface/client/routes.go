@@ -8,7 +8,6 @@ import (
 )
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
-	RequireClient := h.authmw.RequireMinimumRole(identity.Client)
 	RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
 
 	// === Client CRUD Endpoints ===
@@ -31,20 +30,20 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	// === Contact CRUD Endpoints ===
 
 	// Creates a contact for a client
-	router.HandleFunc("POST "+CreateContactEndpoint, RequireClient(mw.EnableCORS(h.CreateContact)))
+	router.HandleFunc("POST "+CreateContactEndpoint, RequireAdministrator(mw.EnableCORS(h.CreateContact)))
 
 	// Gets all contacts for a specific client
-	router.HandleFunc("GET "+GetAllContactsByClientIDEndpoint, RequireClient(mw.EnableCORS(h.GetAllContactsByClientID)))
+	router.HandleFunc("GET "+GetAllContactsByClientIDEndpoint, RequireAdministrator(mw.EnableCORS(h.GetAllContactsByClientID)))
 
 	// Gets all contact IDs for a specific client
 	router.HandleFunc("GET "+GetContactIDsForClientEndpoint, RequireAdministrator(mw.EnableCORS(h.GetContactIDsForClient)))
 
 	// Gets a contact by ID
-	router.HandleFunc("GET "+GetContactByIDEndpoint, RequireClient(mw.EnableCORS(h.GetContactByID)))
+	router.HandleFunc("GET "+GetContactByIDEndpoint, RequireAdministrator(mw.EnableCORS(h.GetContactByID)))
 
 	// Updates a contact
-	router.HandleFunc("PATCH "+UpdateContactEndpoint, RequireClient(mw.EnableCORS(h.UpdateContact)))
+	router.HandleFunc("PATCH "+UpdateContactEndpoint, RequireAdministrator(mw.EnableCORS(h.UpdateContact)))
 
 	// Deletes a contact
-	router.HandleFunc("DELETE "+DeleteContactEndpoint, RequireClient(mw.EnableCORS(h.DeleteContact)))
+	router.HandleFunc("DELETE "+DeleteContactEndpoint, RequireAdministrator(mw.EnableCORS(h.DeleteContact)))
 }
