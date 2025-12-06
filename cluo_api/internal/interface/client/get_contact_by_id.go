@@ -68,11 +68,5 @@ func (h *handler) GetContactByID(w http.ResponseWriter, r *http.Request) {
 		"status_code", http.StatusOK)
 
 	// Respond with contact data
-	httpx.RespondWithJSON(w, struct {
-		Message string                  `json:"message"`
-		Contact *client.ContactResponse `json:"contact"`
-	}{
-		Message: "Contact retrieval by ID completed successfully",
-		Contact: contact,
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, contact, http.StatusOK)
 }

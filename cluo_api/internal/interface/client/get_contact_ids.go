@@ -84,4 +84,3 @@ func (h *handler) GetContactIDsForClient(w http.ResponseWriter, r *http.Request)
 
 	httpx.RespondWithJSON(w, response, http.StatusOK)
 }
-
