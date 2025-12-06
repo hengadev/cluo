@@ -11,9 +11,9 @@ import (
 )
 
 type GetContactIDsResponse struct {
-	ClientID    string   `json:"client_id"`
-	ContactIDs  []string `json:"contact_ids"`
-	Count       int      `json:"count"`
+	ClientID   string   `json:"client_id"`
+	ContactIDs []string `json:"contact_ids"`
+	Count      int      `json:"count"`
 }
 
 func (h *handler) GetContactIDsForClient(w http.ResponseWriter, r *http.Request) {
@@ -84,3 +84,4 @@ func (h *handler) GetContactIDsForClient(w http.ResponseWriter, r *http.Request)
 
 	httpx.RespondWithJSON(w, response, http.StatusOK)
 }
+

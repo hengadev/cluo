@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 )
 
 func (s *Service) GetContactIDsForClient(ctx context.Context, clientID uuid.UUID) ([]uuid.UUID, error) {
@@ -27,3 +27,4 @@ func (s *Service) GetContactIDsForClient(ctx context.Context, clientID uuid.UUID
 
 	return contactIDs, nil
 }
+
