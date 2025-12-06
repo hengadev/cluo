@@ -6,7 +6,6 @@ import (
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
-	"github.com/hengadev/cluo_api/internal/domain/client"
 
 	"github.com/google/uuid"
 )
@@ -56,11 +55,5 @@ func (h *handler) GetAllContactsByClientID(w http.ResponseWriter, r *http.Reques
 		"status_code", http.StatusOK)
 
 	// Respond with success message (no session cookie changes)
-	httpx.RespondWithJSON(w, struct {
-		Message  string                    `json:"message"`
-		Contacts []*client.ContactResponse `json:"contacts"`
-	}{
-		Message:  "Contacts retrieval by client ID completed successfully",
-		Contacts: contacts,
-	}, http.StatusOK)
+	httpx.RespondWithJSON(w, contacts, http.StatusOK)
 }
