@@ -1,7 +1,12 @@
 package caseDomain
 
 import (
+	"context"
+	"strings"
 	"time"
+
+	"github.com/google/uuid"
+	"github.com/hengadev/errsx"
 )
 
 func (c *Case) ToResponse() *CaseResponse {
@@ -28,4 +33,55 @@ type CaseResponse struct {
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
+
+type CreateCaseRequest struct {
+	Title             string  `json:"title"`
+	Description       string  `json:"description"`
+	ClientID          string  `json:"clientId"`
+	AssignedContactID *string `json:"assignedContactID"`
+	Status            string  `json:"status"`
+}
+
+func (r *CreateCaseRequest) Valid(ctx context.Context) error {
+	var errs errsx.Map
+
+	// Validate Title
+	if strings.TrimSpace(r.Title) == "" {
+		errs.Set("title", "title is required")
+	} else if len(r.Title) > 200 {
+		errs.Set("title", "title must be less than 200 characters")
+	}
+
+	// Validate Description (optional but if provided, check length)
+	if len(r.Description) > 2000 {
+		errs.Set("description", "description must be less than 2000 characters")
+	}
+
+	// Validate ClientID
+	if strings.TrimSpace(r.ClientID) == "" {
+		errs.Set("clientId", "clientId is required")
+	} else {
+		if _, err := uuid.Parse(r.ClientID); err != nil {
+			errs.Set("clientId", "clientId must be a valid UUID")
+		}
+	}
+
+	// Validate AssignedContactID (optional)
+	if r.AssignedContactID != nil && strings.TrimSpace(*r.AssignedContactID) != "" {
+		if _, err := uuid.Parse(*r.AssignedContactID); err != nil {
+			errs.Set("assignedContactId", "assignedContactId must be a valid UUID")
+		}
+	}
+
+	// Validate Status
+	if strings.TrimSpace(r.Status) == "" {
+		errs.Set("status", "status is required")
+	} else {
+		status := CaseStatus(strings.ToLower(strings.TrimSpace(r.Status)))
+		if !status.IsValid() {
+			errs.Set("status", "status must be one of: pending, in_progress, completed, cancelled")
+		}
+	}
+
+	return errs.AsError()
 }
