@@ -111,3 +111,35 @@ func NewGetContactIDsForClientRequest(
 
 	return req
 }
+
+// NewDeleteContactRequest creates an HTTP request for deleting a contact
+func NewDeleteContactRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	contactID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		serverURL+clientHandler.DeleteContactEndpoint,
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Replace the {id} placeholder with the actual contact ID
+	req.URL.Path = clientHandler.ContactBasePath + "/" + contactID
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
