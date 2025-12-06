@@ -39,3 +39,4 @@ func (r *Repository) GetContactIDsForClient(ctx context.Context, clientID uuid.U
 
 	return contactIDs, nil
 }
+

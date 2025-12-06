@@ -82,3 +82,4 @@ func (h *handler) UpdateClient(w http.ResponseWriter, r *http.Request) {
 	// Respond with success message
 	httpx.RespondWithJSON(w, res, http.StatusOK)
 }
+

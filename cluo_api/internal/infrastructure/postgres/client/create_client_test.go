@@ -42,27 +42,6 @@ func TestCreateClient(t *testing.T) {
 		assert.Equal(t, clientEncx.KeyVersion, retrievedClientEncx.KeyVersion, "Key version should match")
 	})
 
-	t.Run("with empty contact IDs", func(t *testing.T) {
-		ctx := context.Background()
-
-		th.ClearClientsTable(t, ctx, testPool)
-
-		// Create test clientEncx and set contact IDs to empty
-		clientEncx := th.NewTestClientEncx(t)
-		clientEncx.ContactIDsEncrypted = []byte("[]")
-
-		// Test successful client creation with empty contact IDs
-		err := repo.CreateClient(ctx, clientEncx)
-		require.NoError(t, err, "Failed to create client with empty contact IDs")
-
-		// Verify the client was inserted by retrieving it
-		retrievedClientEncx, err := th.GetClientEncxByID(t, ctx, testPool, clientEncx.ID)
-		assert.NoError(t, err, "Failed to retrieve inserted client")
-
-		// Verify that contact IDs are indeed empty
-		assert.Equal(t, []byte("[]"), retrievedClientEncx.ContactIDsEncrypted, "Expected ContactIDsEncrypted to be empty")
-	})
-
 	t.Run("duplicate ID", func(t *testing.T) {
 		ctx := context.Background()
 

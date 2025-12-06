@@ -37,7 +37,6 @@ func TestUpdateClient(t *testing.T) {
 		clientEncx.NameHash = "updated_name_hash"
 		clientEncx.TypeEncrypted = []byte("updated_type_encrypted")
 		clientEncx.TypeHash = "updated_type_hash"
-		clientEncx.ContactIDsEncrypted = []byte("updated_contact_ids_encrypted")
 		clientEncx.KeyVersion = 2
 
 		// Test successful client update
@@ -53,7 +52,6 @@ func TestUpdateClient(t *testing.T) {
 		assert.Equal(t, clientEncx.NameHash, retrievedClientEncx.NameHash, "NameHash should be updated")
 		assert.Equal(t, clientEncx.TypeEncrypted, retrievedClientEncx.TypeEncrypted, "TypeEncrypted should be updated")
 		assert.Equal(t, clientEncx.TypeHash, retrievedClientEncx.TypeHash, "TypeHash should be updated")
-		assert.Equal(t, clientEncx.ContactIDsEncrypted, retrievedClientEncx.ContactIDsEncrypted, "ContactIDsEncrypted should be updated")
 		assert.Equal(t, clientEncx.KeyVersion, retrievedClientEncx.KeyVersion, "KeyVersion should be updated")
 	})
 
@@ -122,7 +120,6 @@ func TestUpdateClient(t *testing.T) {
 		// Update with empty encrypted fields
 		clientEncx.NameEncrypted = []byte("")
 		clientEncx.TypeEncrypted = []byte("")
-		clientEncx.ContactIDsEncrypted = []byte("")
 
 		err = repo.UpdateClient(ctx, clientEncx)
 		assert.NoError(t, err, "Failed to update client with empty encrypted fields")
@@ -133,7 +130,6 @@ func TestUpdateClient(t *testing.T) {
 
 		assert.Equal(t, []byte(""), retrievedClientEncx.NameEncrypted, "NameEncrypted should be empty")
 		assert.Equal(t, []byte(""), retrievedClientEncx.TypeEncrypted, "TypeEncrypted should be empty")
-		assert.Equal(t, []byte(""), retrievedClientEncx.ContactIDsEncrypted, "ContactIDsEncrypted should be empty")
 	})
 
 	t.Run("context cancellation", func(t *testing.T) {

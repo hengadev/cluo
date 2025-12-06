@@ -40,7 +40,6 @@ func TestGetClientByID(t *testing.T) {
 		assert.Equal(t, clientEncx.NameHash, retrievedClientEncx.NameHash, "NameHash should match")
 		assert.Equal(t, clientEncx.TypeEncrypted, retrievedClientEncx.TypeEncrypted, "TypeEncrypted should match")
 		assert.Equal(t, clientEncx.TypeHash, retrievedClientEncx.TypeHash, "TypeHash should match")
-		assert.Equal(t, clientEncx.ContactIDsEncrypted, retrievedClientEncx.ContactIDsEncrypted, "ContactIDsEncrypted should match")
 		assert.Equal(t, clientEncx.DEKEncrypted, retrievedClientEncx.DEKEncrypted, "DEKEncrypted should match")
 		assert.Equal(t, clientEncx.KeyVersion, retrievedClientEncx.KeyVersion, "KeyVersion should match")
 	})
@@ -72,7 +71,6 @@ func TestGetClientByID(t *testing.T) {
 		clientEncx := th.NewTestClientEncx(t)
 		clientEncx.NameEncrypted = []byte("")
 		clientEncx.TypeEncrypted = []byte("")
-		clientEncx.ContactIDsEncrypted = []byte("")
 
 		// Insert client
 		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
@@ -86,7 +84,6 @@ func TestGetClientByID(t *testing.T) {
 		// Verify empty fields are preserved
 		assert.Equal(t, []byte(""), retrievedClientEncx.NameEncrypted, "NameEncrypted should be empty")
 		assert.Equal(t, []byte(""), retrievedClientEncx.TypeEncrypted, "TypeEncrypted should be empty")
-		assert.Equal(t, []byte(""), retrievedClientEncx.ContactIDsEncrypted, "ContactIDsEncrypted should be empty")
 	})
 
 	t.Run("client with large encrypted fields", func(t *testing.T) {
@@ -100,7 +97,6 @@ func TestGetClientByID(t *testing.T) {
 		}
 
 		clientEncx.NameEncrypted = largeData
-		clientEncx.ContactIDsEncrypted = largeData
 
 		// Insert client
 		err := th.InsertClientEncx(t, ctx, testPool, clientEncx)
@@ -113,9 +109,7 @@ func TestGetClientByID(t *testing.T) {
 
 		// Verify large fields are preserved
 		assert.Equal(t, len(largeData), len(retrievedClientEncx.NameEncrypted), "NameEncrypted length should match")
-		assert.Equal(t, len(largeData), len(retrievedClientEncx.ContactIDsEncrypted), "ContactIDsEncrypted length should match")
 		assert.Equal(t, largeData, retrievedClientEncx.NameEncrypted, "NameEncrypted content should match")
-		assert.Equal(t, largeData, retrievedClientEncx.ContactIDsEncrypted, "ContactIDsEncrypted content should match")
 	})
 
 	t.Run("context cancellation", func(t *testing.T) {

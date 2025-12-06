@@ -135,12 +135,6 @@ func TestGetAllClients(t *testing.T) {
 				},
 			},
 			{
-				name: "client with empty contact IDs",
-				modify: func(c *client.ClientEncx) {
-					c.ContactIDsEncrypted = []byte("[]")
-				},
-			},
-			{
 				name: "client with high key version",
 				modify: func(c *client.ClientEncx) {
 					c.KeyVersion = 999
@@ -177,7 +171,6 @@ func TestGetAllClients(t *testing.T) {
 					tc.modify(clientEncx)
 					assert.Equal(t, clientEncx.NameEncrypted, foundClient.NameEncrypted, "NameEncrypted should match for %s", tc.name)
 					assert.Equal(t, clientEncx.TypeEncrypted, foundClient.TypeEncrypted, "TypeEncrypted should match for %s", tc.name)
-					assert.Equal(t, clientEncx.ContactIDsEncrypted, foundClient.ContactIDsEncrypted, "ContactIDsEncrypted should match for %s", tc.name)
 					assert.Equal(t, clientEncx.KeyVersion, foundClient.KeyVersion, "KeyVersion should match for %s", tc.name)
 				}
 			})

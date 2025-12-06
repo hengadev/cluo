@@ -91,7 +91,6 @@ COMMENT ON COLUMN clients.clients.name_encrypted IS 'Encrypted client name';
 COMMENT ON COLUMN clients.clients.name_hash IS 'Hashed client name for indexing and search';
 COMMENT ON COLUMN clients.clients.type_encrypted IS 'Encrypted client type';
 COMMENT ON COLUMN clients.clients.type_hash IS 'Hashed client type for indexing and search';
-COMMENT ON COLUMN clients.clients.contactids_encrypted IS 'Encrypted list of contact UUIDs';
 COMMENT ON COLUMN clients.clients.dek_encrypted IS 'Encrypted Data Encryption Key for field-level encryption';
 COMMENT ON COLUMN clients.clients.key_version IS 'Version of the Key Encryption Key used';
 COMMENT ON COLUMN clients.clients.metadata IS 'Additional metadata in JSON format';
