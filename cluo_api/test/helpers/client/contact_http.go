@@ -48,6 +48,38 @@ func NewCreateContactRequest(
 	return req
 }
 
+// NewGetContactByIDRequest creates an HTTP request for getting a contact by ID
+func NewGetContactByIDRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	contactID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		serverURL+clientHandler.GetContactByIDEndpoint,
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Replace the {id} placeholder with the actual contact ID
+	req.URL.Path = clientHandler.ContactBasePath + "/" + contactID
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
+
 // NewGetContactIDsForClientRequest creates an HTTP request for getting contact IDs for a client
 func NewGetContactIDsForClientRequest(
 	t *testing.T,
