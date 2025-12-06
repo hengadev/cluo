@@ -181,3 +181,35 @@ func NewUpdateContactRequest(
 
 	return req
 }
+
+// NewGetAllContactsByClientIDRequest creates an HTTP request for getting all contacts for a client
+func NewGetAllContactsByClientIDRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	clientID string,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodGet,
+		serverURL+clientHandler.GetAllContactsByClientIDEndpoint,
+		nil,
+	)
+	require.NoError(t, err)
+
+	// Replace the {id} placeholder with the actual client ID
+	req.URL.Path = clientHandler.ClientBasePath + "/" + clientID + clientHandler.ContactBasePath
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
