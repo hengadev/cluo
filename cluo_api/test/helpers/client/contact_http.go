@@ -98,6 +98,9 @@ func NewGetContactIDsForClientRequest(
 	)
 	require.NoError(t, err)
 
+	// Replace the {id} placeholder with the actual client ID
+	req.URL.Path = clientHandler.ClientBasePath + "/" + clientID + "/contact-ids"
+
 	if accessToken != "" {
 		cookie := &http.Cookie{
 			Name:  cookies.AccessTokenCookieName,
