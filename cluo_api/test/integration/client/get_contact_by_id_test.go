@@ -13,7 +13,6 @@ import (
 	ch "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
-	"github.com/hengadev/encx"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -22,6 +21,8 @@ import (
 
 // TestGetContactByID tests all scenarios for getting a contact by ID
 func TestGetContactByID(t *testing.T) {
+	httpClient := &http.Client{Timeout: 10 * time.Second}
+
 	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
 		c := ch.NewTestClient(t)
 		clientEncx, err := client.ProcessClientEncx(ctx, crypto, c)
@@ -30,6 +31,7 @@ func TestGetContactByID(t *testing.T) {
 		require.NoError(t, err)
 		return c.ID
 	}
+
 	t.Run("Success", func(t *testing.T) {
 		ctx := context.Background()
 
@@ -53,14 +55,9 @@ func TestGetContactByID(t *testing.T) {
 		t.Logf("Created test contact with ID: %s", contact.ID)
 
 		// Create HTTP request
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, contact.ID.String())
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, contact.ID.String(), accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -68,24 +65,20 @@ func TestGetContactByID(t *testing.T) {
 		// Assert response status
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
-		// Decode response
-		var response struct {
-			Message string                  `json:"message"`
-			Contact *client.ContactResponse `json:"contact"`
-		}
+		var response *client.ContactResponse
+
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
-		assert.Equal(t, "Contact retrieval by ID completed successfully", response.Message)
 
 		// Verify contact data
-		require.NotNil(t, response.Contact, "Contact should not be nil")
-		assert.Equal(t, contact.ID.String(), response.Contact.ID, "Contact ID should match")
-		assert.Equal(t, clientID.String(), response.Contact.ClientID, "Client ID should match")
-		assert.Equal(t, "DOE", response.Contact.Lastname, "Lastname should match")
-		assert.Equal(t, "Jane", response.Contact.Firstname, "Firstname should match")
-		assert.Equal(t, "jane.doe@example.com", response.Contact.Email, "Email should match")
-		assert.Equal(t, "0687654321", response.Contact.Phone, "Phone should match")
-		assert.Equal(t, "Director", response.Contact.Position, "Position should match")
+		require.NotNil(t, response, "Contact should not be nil")
+		assert.Equal(t, clientID.String(), response.ClientID, "Client ID should match")
+		assert.Equal(t, contact.Lastname, response.Lastname, "Client Lastname should match")
+		assert.Equal(t, contact.Firstname, response.Firstname, "Client Firstname should match")
+		assert.Equal(t, contact.Email, response.Email, "Client email should match")
+		assert.Equal(t, contact.Phone, response.Phone, "Client Phone should match")
+		assert.Equal(t, contact.Position, response.Position, "Client Position should match")
+		assert.WithinDuration(t, contact.CreatedAt, response.CreatedAt, time.Second, "Client Position should match")
 
 		t.Log("✓ Contact retrieved successfully")
 	})
@@ -102,14 +95,9 @@ func TestGetContactByID(t *testing.T) {
 		nonExistentContactID := uuid.New()
 
 		// Create HTTP request
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, nonExistentContactID.String())
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, nonExistentContactID.String(), accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -139,14 +127,9 @@ func TestGetContactByID(t *testing.T) {
 		invalidContactID := "not-a-valid-uuid"
 
 		// Create HTTP request
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, invalidContactID)
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, invalidContactID, accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -164,15 +147,10 @@ func TestGetContactByID(t *testing.T) {
 		// Create test contact data
 		contactID := uuid.New()
 
-		// Create HTTP request WITHOUT authentication
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, contactID.String())
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		// NO Authorization header
+		// Create HTTP request WITHOUT authentication (NO Authorization header)
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, contactID.String(), "")
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -192,45 +170,25 @@ func TestGetContactByID(t *testing.T) {
 		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client (by inserting an initial contact) so it "exists"
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		clientID := setupClient(t, ctx)
 
 		// Create test contact with nil optional fields
-		contact := client.NewContact(&client.CreateContactRequest{
-			ClientID:  clientID,
-			Lastname:  "DOE",
-			Firstname: "Jane",
-			Email:     "jane.doe@example.com",
-			Phone:     "", // Empty phone
-			Position:  "", // Empty position
-		})
+		contact := ch.NewTestContact(t)
+		contact.ClientID = clientID
+		contact.Phone = ""
+		contact.Position = ""
 
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		// Manually set optional fields to nil in the encrypted version
-		contactEncx.PhoneEncrypted = nil
-		contactEncx.PositionEncrypted = nil
-
-		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with nil optional fields, ID: %s", contact.ID)
 
 		// Create HTTP request
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, contact.ID.String())
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, contact.ID.String(), accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -239,18 +197,19 @@ func TestGetContactByID(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Decode response
-		var response struct {
-			Message string                  `json:"message"`
-			Contact *client.ContactResponse `json:"contact"`
-		}
+		var response *client.ContactResponse
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
 
 		// Verify contact data with empty strings for nil fields
-		require.NotNil(t, response.Contact, "Contact should not be nil")
-		assert.Equal(t, contact.ID.String(), response.Contact.ID, "Contact ID should match")
-		assert.Equal(t, "", response.Contact.Phone, "Phone should be empty string")
-		assert.Equal(t, "", response.Contact.Position, "Position should be empty string")
+		require.NotNil(t, response, "Contact should not be nil")
+		assert.Equal(t, clientID.String(), response.ClientID, "Client ID should match")
+		assert.Equal(t, contact.Lastname, response.Lastname, "Client Lastname should match")
+		assert.Equal(t, contact.Firstname, response.Firstname, "Client Firstname should match")
+		assert.Equal(t, contact.Email, response.Email, "Client email should match")
+		assert.Equal(t, contact.Phone, response.Phone, "Client Phone should match")
+		assert.Equal(t, contact.Position, response.Position, "Client Position should match")
+		assert.WithinDuration(t, contact.CreatedAt, response.CreatedAt, 5*time.Second, "Client Position should match")
 
 		t.Log("✓ Contact with nil optional fields retrieved successfully")
 	})
@@ -264,14 +223,7 @@ func TestGetContactByID(t *testing.T) {
 		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client (by inserting an initial contact) so it "exists"
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		clientID := setupClient(t, ctx)
 
 		// Create multiple test contacts
 		numContacts := 5
@@ -290,7 +242,7 @@ func TestGetContactByID(t *testing.T) {
 			contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 			require.NoError(t, err)
 
-			err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
+			err = ch.InsertContactEncx(t, ctx, testPool, contactEncx)
 			require.NoError(t, err)
 			contactIDs[i] = contact.ID
 		}
@@ -302,17 +254,9 @@ func TestGetContactByID(t *testing.T) {
 		for i, contactID := range contactIDs {
 			go func(index int, id uuid.UUID) {
 				// Create HTTP request
-				url := fmt.Sprintf("%s/contact/%s", testServerURL, id.String())
-				req, err := http.NewRequest("GET", url, nil)
-				if err != nil {
-					errChan <- err
-					return
-				}
-
-				req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+				req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, contactID.String(), accessToken)
 
 				// Execute request
-				httpClient := &http.Client{Timeout: 10 * time.Second}
 				resp, err := httpClient.Do(req)
 				if err != nil {
 					errChan <- err
@@ -326,17 +270,14 @@ func TestGetContactByID(t *testing.T) {
 				}
 
 				// Decode response
-				var response struct {
-					Message string                  `json:"message"`
-					Contact *client.ContactResponse `json:"contact"`
-				}
+				var response *client.ContactResponse
 				err = json.NewDecoder(resp.Body).Decode(&response)
 				if err != nil {
 					errChan <- err
 					return
 				}
 
-				responseChan <- response.Contact
+				responseChan <- response
 			}(i, contactID)
 		}
 
@@ -374,14 +315,9 @@ func TestGetContactByID(t *testing.T) {
 		defer tu.ClearAuthData(t, ctx, authCtx)
 
 		// Create HTTP request with empty contact ID
-		url := fmt.Sprintf("%s/contact/", testServerURL)
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, "", accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -402,14 +338,7 @@ func TestGetContactByID(t *testing.T) {
 		defer ch.ClearContactsTable(t, ctx, testPool)
 
 		// Generate test client ID and hash
-		clientID := uuid.New()
-		clientIDBytes, err := encx.SerializeValue(clientID)
-		require.NoError(t, err)
-		clientIDHash := crypto.HashBasic(ctx, clientIDBytes)
-
-		// Create a client (by inserting an initial contact) so it "exists"
-		err = ch.CreateTestClientWithContact(t, ctx, testPool, clientID, clientIDHash)
-		require.NoError(t, err)
+		clientID := setupClient(t, ctx)
 
 		// Create test contact with sensitive data
 		contact := client.NewContact(&client.CreateContactRequest{
@@ -424,19 +353,14 @@ func TestGetContactByID(t *testing.T) {
 		contactEncx, err := client.ProcessContactEncx(ctx, crypto, contact)
 		require.NoError(t, err)
 
-		err = ch.InsertContactEncx(t, ctx, testPool, *contactEncx)
+		err = ch.InsertContactEncx(t, ctx, testPool, contactEncx)
 		require.NoError(t, err)
 		t.Logf("Created test contact with sensitive data, ID: %s", contact.ID)
 
 		// Create HTTP request
-		url := fmt.Sprintf("%s/contact/%s", testServerURL, contact.ID.String())
-		req, err := http.NewRequest("GET", url, nil)
-		require.NoError(t, err)
-
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", accessToken))
+		req := ch.NewGetContactByIDRequest(t, ctx, testServerURL, contact.ID.String(), accessToken)
 
 		// Execute request
-		httpClient := &http.Client{Timeout: 10 * time.Second}
 		resp, err := httpClient.Do(req)
 		require.NoError(t, err)
 		defer resp.Body.Close()
@@ -445,20 +369,17 @@ func TestGetContactByID(t *testing.T) {
 		assert.Equal(t, http.StatusOK, resp.StatusCode)
 
 		// Decode response
-		var response struct {
-			Message string                  `json:"message"`
-			Contact *client.ContactResponse `json:"contact"`
-		}
+		var response *client.ContactResponse
 		err = json.NewDecoder(resp.Body).Decode(&response)
 		require.NoError(t, err)
 
 		// Verify sensitive data is properly decrypted
-		require.NotNil(t, response.Contact, "Contact should not be nil")
-		assert.Equal(t, "SENSITIVE_LASTNAME", response.Contact.Lastname, "Lastname should be decrypted correctly")
-		assert.Equal(t, "SENSITIVE_FIRSTNAME", response.Contact.Firstname, "Firstname should be decrypted correctly")
-		assert.Equal(t, "sensitive@example.com", response.Contact.Email, "Email should be decrypted correctly")
-		assert.Equal(t, "0600000000", response.Contact.Phone, "Phone should be decrypted correctly")
-		assert.Equal(t, "SENSITIVE_POSITION", response.Contact.Position, "Position should be decrypted correctly")
+		require.NotNil(t, response, "Contact should not be nil")
+		assert.Equal(t, "SENSITIVE_LASTNAME", response.Lastname, "Lastname should be decrypted correctly")
+		assert.Equal(t, "SENSITIVE_FIRSTNAME", response.Firstname, "Firstname should be decrypted correctly")
+		assert.Equal(t, "sensitive@example.com", response.Email, "Email should be decrypted correctly")
+		assert.Equal(t, "0600000000", response.Phone, "Phone should be decrypted correctly")
+		assert.Equal(t, "SENSITIVE_POSITION", response.Position, "Position should be decrypted correctly")
 
 		t.Log("✓ Contact data properly decrypted and returned")
 	})
