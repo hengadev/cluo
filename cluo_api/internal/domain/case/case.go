@@ -11,7 +11,7 @@ type Case struct {
 	Title             string `encx:"encrypt"`
 	Description       string `encx:"encrypt"`
 	ClientID          string
-	AssignedContactID string
+	AssignedContactID *string
 	Status            CaseStatus `encx:"encrypt"`
 	CreatedAt         time.Time
 	UpdatedAt         time.Time `encx:"encrypt"`
