@@ -11,7 +11,7 @@ func (c *Case) ToResponse() *CaseResponse {
 		Description:       c.Description,
 		ClientID:          c.ClientID,
 		AssignedContactID: c.AssignedContactID,
-		Status:            c.Status,
+		Status:            string(c.Status),
 		CreatedAt:         c.CreatedAt,
 		UpdatedAt:         c.UpdatedAt,
 	}
@@ -19,12 +19,13 @@ func (c *Case) ToResponse() *CaseResponse {
 }
 
 type CaseResponse struct {
-	ID                string
-	Title             string `encx:"encrypt"`
-	Description       string `encx:"encrypt"`
-	ClientID          string
-	AssignedContactID *string
-	Status            CaseStatus `encx:"encrypt"`
-	CreatedAt         time.Time
-	UpdatedAt         time.Time `encx:"encrypt"`
+	ID                string    `json:"id"`
+	Title             string    `json:"title"`
+	Description       string    `json:"description"`
+	ClientID          string    `json:"clientId"`
+	AssignedContactID *string   `json:"assignedContactID"`
+	Status            string    `json:"status"`
+	CreatedAt         time.Time `json:"createdAt"`
+	UpdatedAt         time.Time `json:"updatedAt"`
+}
 }
