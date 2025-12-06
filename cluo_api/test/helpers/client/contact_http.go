@@ -143,3 +143,41 @@ func NewDeleteContactRequest(
 
 	return req
 }
+
+// NewUpdateContactRequest creates an HTTP request for updating a contact
+func NewUpdateContactRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	contactID string,
+	request client.UpdateContactRequest,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	jsonBody, err := json.Marshal(request)
+	require.NoError(t, err)
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPatch,
+		serverURL+clientHandler.UpdateContactEndpoint,
+		bytes.NewReader(jsonBody),
+	)
+	require.NoError(t, err)
+
+	// Replace the {id} placeholder with the actual contact ID
+	req.URL.Path = clientHandler.ContactBasePath + "/" + contactID
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
