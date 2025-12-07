@@ -146,3 +146,46 @@ type UpdateCaseRequest struct {
 	AssignedContactID *uuid.UUID `json:"assignedContactId"`
 	Status            *string    `json:"status"`
 }
+
+func (r *UpdateCaseRequest) Valid(ctx context.Context) error {
+	var errs errsx.Map
+
+	// Validate ID
+	if r.ID == uuid.Nil {
+		errs.Set("id", "id is required")
+	}
+
+	// Validate Title (optional but if provided, check length)
+	if r.Title != nil {
+		if strings.TrimSpace(*r.Title) == "" {
+			errs.Set("title", "title cannot be empty if provided")
+		} else if len(*r.Title) > 200 {
+			errs.Set("title", "title must be less than 200 characters")
+		}
+	}
+
+	// Validate Description (optional but if provided, check length)
+	if r.Description != nil && len(*r.Description) > 2000 {
+		errs.Set("description", "description must be less than 2000 characters")
+	}
+
+	// Validate AssignedContactID (optional but if provided, must be valid UUID)
+	if r.AssignedContactID != nil && *r.AssignedContactID == uuid.Nil {
+		errs.Set("assignedContactId", "assignedContactId cannot be nil UUID if provided")
+	}
+
+	// Validate Status (optional but if provided, check valid values)
+	if r.Status != nil {
+		status := strings.TrimSpace(*r.Status)
+		if status == "" {
+			errs.Set("status", "status cannot be empty if provided")
+		} else {
+			caseStatus := CaseStatus(strings.ToLower(status))
+			if !caseStatus.IsValid() {
+				errs.Set("status", "status must be one of: draft, in_progress, ready, released")
+			}
+		}
+	}
+
+	return errs.AsError()
+}
