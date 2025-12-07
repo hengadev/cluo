@@ -85,3 +85,25 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 
 	return errs.AsError()
 }
+
+// NewCase creates a new Case domain object from a CreateCaseRequest
+func NewCase(r *CreateCaseRequest) *Case {
+	now := time.Now()
+
+	// Parse status, defaulting to Draft if invalid
+	status := CaseStatus(strings.ToLower(strings.TrimSpace(r.Status)))
+	if !status.IsValid() {
+		status = CaseStatusDraft
+	}
+
+	return &Case{
+		ID:                uuid.New(),
+		Title:             r.Title,
+		Description:       r.Description,
+		ClientID:          r.ClientID,
+		AssignedContactID: r.AssignedContactID,
+		Status:            status,
+		CreatedAt:         now,
+		UpdatedAt:         now,
+	}
+}
