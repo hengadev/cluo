@@ -10,12 +10,18 @@ import (
 )
 
 func (c *Case) ToResponse() *CaseResponse {
+	var assignedContactIDStr *string
+	if c.AssignedContactID != nil {
+		contactIDStr := c.AssignedContactID.String()
+		assignedContactIDStr = &contactIDStr
+	}
+
 	return &CaseResponse{
 		ID:                c.ID.String(),
 		Title:             c.Title,
 		Description:       c.Description,
-		ClientID:          c.ClientID,
-		AssignedContactID: c.AssignedContactID,
+		ClientID:          c.ClientID.String(),
+		AssignedContactID: assignedContactIDStr,
 		Status:            string(c.Status),
 		CreatedAt:         c.CreatedAt,
 		UpdatedAt:         c.UpdatedAt,
@@ -96,12 +102,28 @@ func NewCase(r *CreateCaseRequest) *Case {
 		status = CaseStatusDraft
 	}
 
+	// Parse client ID
+	clientID, err := uuid.Parse(r.ClientID)
+	if err != nil {
+		// This should be handled in validation, but for safety, use nil UUID
+		clientID = uuid.Nil
+	}
+
+	// Parse assigned contact ID if provided
+	var assignedContactID *uuid.UUID
+	if r.AssignedContactID != nil {
+		contactID, err := uuid.Parse(*r.AssignedContactID)
+		if err == nil {
+			assignedContactID = &contactID
+		}
+	}
+
 	return &Case{
 		ID:                uuid.New(),
 		Title:             r.Title,
 		Description:       r.Description,
-		ClientID:          r.ClientID,
-		AssignedContactID: r.AssignedContactID,
+		ClientID:          clientID,
+		AssignedContactID: assignedContactID,
 		Status:            status,
 		CreatedAt:         now,
 		UpdatedAt:         now,
