@@ -10,22 +10,19 @@ import (
 )
 
 type CaseService struct {
-	repo      ports.CaseRepository
+	repo       ports.CaseRepository
 	clientRepo ports.ClientRepository
-	crypto    encx.CryptoService
+	crypto     encx.CryptoService
 }
 
 func New(repo ports.CaseRepository, clientRepo ports.ClientRepository, crypto encx.CryptoService) *CaseService {
 	return &CaseService{
-		repo:      repo,
+		repo:       repo,
 		clientRepo: clientRepo,
-		crypto:    crypto,
+		crypto:     crypto,
 	}
 }
 
-// func (s *CaseService) GetCaseByID(ctx context.Context, id string) (*domain.Case, error) {
-// 	return s.repo.GetByID(ctx, id)
-// }
 //
 // func (s *CaseService) UpdateCase(ctx context.Context, c *domain.Case) error {
 // 	return s.repo.Update(ctx, c)
