@@ -9,6 +9,6 @@ import (
 type CaseService interface {
 	CreateCase(ctx context.Context, r *caseDomain.CreateCaseRequest) (*caseDomain.CaseResponse, error)
 	GetCaseByID(ctx context.Context, r *caseDomain.GetCaseByIDRequest) (*caseDomain.CaseResponse, error)
-	UpdateCase(ctx context.Context, c *caseDomain.Case) error
+	UpdateCase(ctx context.Context, r *caseDomain.UpdateCaseRequest) (*caseDomain.CaseResponse, error)
 	DeleteCase(ctx context.Context, r *caseDomain.DeleteCaseByIDRequest) error
 }
