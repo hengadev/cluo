@@ -15,7 +15,12 @@ func (s *CaseService) CreateCase(ctx context.Context, r *caseDomain.CreateCaseRe
 	}
 
 	// Check if client exists in database
-	exists, err := s.clientRepo.ExistsClient(ctx, r.ClientID)
+	clientUUID, err := uuid.Parse(r.ClientID)
+	if err != nil {
+		return nil, errs.NewInvalidValueErr("invalid client ID format")
+	}
+
+	exists, err := s.clientRepo.ExistsClient(ctx, clientUUID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to check client existence: %w", err)
 	}
