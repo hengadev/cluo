@@ -88,16 +88,16 @@ func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool
 	t.Helper()
 
 	initialCase := &caseDomain.CaseEncx{
-		ID:                 uuid.New(),
-		CreatedAt:          time.Now(),
-		ClientID:           clientID,
-		AssignedContactID:  func() *string { s := uuid.New().String(); return &s }(),
-		TitleEncrypted:     []byte("initial_title_encrypted"),
+		ID:                   uuid.New(),
+		CreatedAt:            time.Now(),
+		ClientID:             clientID,
+		AssignedContactID:    func() *string { s := uuid.New().String(); return &s }(),
+		TitleEncrypted:       []byte("initial_title_encrypted"),
 		DescriptionEncrypted: []byte("initial_description_encrypted"),
-		StatusEncrypted:    []byte("initial_status_encrypted"),
-		UpdatedAtEncrypted: []byte("initial_updatedat_encrypted"),
-		DEKEncrypted:       []byte("initial_dek_encrypted"),
-		KeyVersion:         1,
+		StatusEncrypted:      []byte("initial_status_encrypted"),
+		UpdatedAtEncrypted:   []byte("initial_updatedat_encrypted"),
+		DEKEncrypted:         []byte("initial_dek_encrypted"),
+		KeyVersion:           1,
 	}
 
 	return InsertCaseEncx(t, ctx, pool, initialCase)
