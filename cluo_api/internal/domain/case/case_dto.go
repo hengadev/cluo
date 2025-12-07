@@ -133,3 +133,7 @@ func NewCase(r *CreateCaseRequest) *Case {
 type GetCaseByIDRequest struct {
 	ID uuid.UUID `json:"id"`
 }
+
+type DeleteCaseByIDRequest struct {
+	ID uuid.UUID `json:"id"`
+}
