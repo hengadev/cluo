@@ -129,3 +129,7 @@ func NewCase(r *CreateCaseRequest) *Case {
 		UpdatedAt:         now,
 	}
 }
+
+type GetCaseByIDRequest struct {
+	ID uuid.UUID `json:"id"`
+}
