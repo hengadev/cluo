@@ -10,6 +10,7 @@ import (
 type Handler interface {
 	CreateCase(w http.ResponseWriter, r *http.Request)
 	GetCaseByID(w http.ResponseWriter, r *http.Request)
+	UpdateCase(w http.ResponseWriter, r *http.Request)
 	DeleteCase(w http.ResponseWriter, r *http.Request)
 	RegisterRoutes(router *http.ServeMux)
 }
