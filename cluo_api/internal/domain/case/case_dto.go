@@ -79,7 +79,7 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 	} else {
 		status := CaseStatus(strings.ToLower(strings.TrimSpace(r.Status)))
 		if !status.IsValid() {
-			errs.Set("status", "status must be one of: pending, in_progress, completed, cancelled")
+			errs.Set("status", "status must be one of: draft, in_progress, ready, released")
 		}
 	}
 
