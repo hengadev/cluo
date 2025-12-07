@@ -84,14 +84,15 @@ func CountCasesByClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool,
 }
 
 // CreateTestCaseWithClientID creates a case using a client ID that supposedly is in the database.
-func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID string) error {
+func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, clientID uuid.UUID) error {
 	t.Helper()
 
+	contactID := uuid.New()
 	initialCase := &caseDomain.CaseEncx{
 		ID:                   uuid.New(),
 		CreatedAt:            time.Now(),
 		ClientID:             clientID,
-		AssignedContactID:    func() *string { s := uuid.New().String(); return &s }(),
+		AssignedContactID:    &contactID,
 		TitleEncrypted:       []byte("initial_title_encrypted"),
 		DescriptionEncrypted: []byte("initial_description_encrypted"),
 		StatusEncrypted:      []byte("initial_status_encrypted"),
