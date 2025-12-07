@@ -137,3 +137,12 @@ type GetCaseByIDRequest struct {
 type DeleteCaseByIDRequest struct {
 	ID uuid.UUID `json:"id"`
 }
+
+type UpdateCaseRequest struct {
+	ID                uuid.UUID  `json:"id"`
+	Title             *string    `json:"title"`
+	Description       *string    `json:"description"`
+	ClientID          *uuid.UUID `json:"clientId"`
+	AssignedContactID *uuid.UUID `json:"assignedContactId"`
+	Status            *string    `json:"status"`
+}
