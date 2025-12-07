@@ -78,3 +78,34 @@ func NewGetCaseByIDRequest(
 	return req
 }
 
+// NewDeleteCaseRequest creates an HTTP request for deleting a case by ID
+func NewDeleteCaseRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	caseID uuid.UUID,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	url := serverURL + "/cases/" + caseID.String()
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodDelete,
+		url,
+		nil, // No body for DELETE request
+	)
+	require.NoError(t, err)
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
+
