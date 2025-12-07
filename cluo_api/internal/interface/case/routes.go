@@ -12,6 +12,7 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 
 	router.HandleFunc("POST /cases", RequireAdministrator(mw.EnableCORS(h.CreateCase)))
 	router.HandleFunc("GET /cases/{id}", RequireAdministrator(mw.EnableCORS(h.GetCaseByID)))
+	router.HandleFunc("DELETE /cases/{id}", RequireAdministrator(mw.EnableCORS(h.DeleteCase)))
 	// router.HandleFunc("GET /cases", h.GetAllCases)
 	// router.HandleFunc("PATCH /cases/{id}", h.UpdateCaseByID)
 	// router.HandleFunc("POST /cases/{id}", h.DeliverCase)
