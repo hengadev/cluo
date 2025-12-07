@@ -10,14 +10,16 @@ import (
 )
 
 type CaseService struct {
-	repo   ports.CaseRepository
-	crypto encx.CryptoService
+	repo      ports.CaseRepository
+	clientRepo ports.ClientRepository
+	crypto    encx.CryptoService
 }
 
-func New(repo ports.CaseRepository, crypto encx.CryptoService) *CaseService {
+func New(repo ports.CaseRepository, clientRepo ports.ClientRepository, crypto encx.CryptoService) *CaseService {
 	return &CaseService{
-		repo:   repo,
-		crypto: crypto,
+		repo:      repo,
+		clientRepo: clientRepo,
+		crypto:    crypto,
 	}
 }
 
