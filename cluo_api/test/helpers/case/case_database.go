@@ -27,9 +27,9 @@ func InsertCaseEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseE
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s.cases (
-			id, clientid, assignedcontactid, createdat,
+			id, client_id, assigned_contact_id, created_at,
 			title_encrypted, description_encrypted, status_encrypted,
-			updatedat_encrypted, dek_encrypted, key_version, metadata
+			updated_at_encrypted, dek_encrypted, key_version, metadata
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`, caseRepository.Schema)
 
@@ -56,9 +56,9 @@ func GetCaseEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, case
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, clientid, assignedcontactid, createdat,
+			id, client_id, assigned_contact_id, created_at,
 			title_encrypted, description_encrypted, status_encrypted,
-			updatedat_encrypted, dek_encrypted, key_version, metadata
+			updated_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.cases WHERE id = $1
 	`, caseRepository.Schema)
 
@@ -78,7 +78,7 @@ func CountCasesByClientID(t *testing.T, ctx context.Context, pool *pgxpool.Pool,
 	t.Helper()
 
 	var count int
-	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s.cases WHERE clientid = $1`, caseRepository.Schema)
+	query := fmt.Sprintf(`SELECT COUNT(*) FROM %s.cases WHERE client_id = $1`, caseRepository.Schema)
 	err := pool.QueryRow(ctx, query, clientID).Scan(&count)
 	return count, err
 }
@@ -91,7 +91,7 @@ func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool
 		ID:                 uuid.New(),
 		CreatedAt:          time.Now(),
 		ClientID:           clientID,
-		AssignedContactID:  uuid.New().String(),
+		AssignedContactID:  func() *string { s := uuid.New().String(); return &s }(),
 		TitleEncrypted:     []byte("initial_title_encrypted"),
 		DescriptionEncrypted: []byte("initial_description_encrypted"),
 		StatusEncrypted:    []byte("initial_status_encrypted"),

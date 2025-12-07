@@ -20,7 +20,7 @@ func NewTestCase(t *testing.T) *caseDomain.Case {
 		Description:       "Test case description for unit testing",
 		ClientID:          uuid.New().String(),
 		AssignedContactID: func() *string { s := uuid.New().String(); return &s }(),
-		Status:            caseDomain.CaseStatusPending,
+		Status:            caseDomain.CaseStatusDraft,
 		CreatedAt:         time.Now(),
 		UpdatedAt:         time.Now(),
 	}
@@ -32,7 +32,7 @@ func NewTestCaseEncx(t *testing.T) *caseDomain.CaseEncx {
 	return &caseDomain.CaseEncx{
 		ID:                 uuid.New(),
 		ClientID:           uuid.New().String(),
-		AssignedContactID:  uuid.New().String(),
+		AssignedContactID:  func() *string { s := uuid.New().String(); return &s }(),
 		CreatedAt:          time.Now(),
 		TitleEncrypted:     []byte("title_encrypted"),
 		DescriptionEncrypted: []byte("description_encrypted"),
@@ -54,7 +54,7 @@ func NewTestCaseEncxWithClientID(t *testing.T, clientID string) *caseDomain.Case
 	return &caseDomain.CaseEncx{
 		ID:                 uuid.New(),
 		ClientID:           clientID,
-		AssignedContactID:  uuid.New().String(),
+		AssignedContactID:  func() *string { s := uuid.New().String(); return &s }(),
 		CreatedAt:          time.Now(),
 		TitleEncrypted:     []byte("title_encrypted"),
 		DescriptionEncrypted: []byte("description_encrypted"),
@@ -77,7 +77,7 @@ func NewTestCaseEncxWithTimestamp(t *testing.T, clientID string, timestampOffset
 	return &caseDomain.CaseEncx{
 		ID:                 uuid.New(),
 		ClientID:           clientID,
-		AssignedContactID:  uuid.New().String(),
+		AssignedContactID:  func() *string { s := uuid.New().String(); return &s }(),
 		CreatedAt:          baseTime.Add(time.Duration(timestampOffset) * time.Hour),
 		TitleEncrypted:     []byte("title_encrypted"),
 		DescriptionEncrypted: []byte("description_encrypted"),
