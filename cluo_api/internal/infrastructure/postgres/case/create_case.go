@@ -9,11 +9,15 @@ import (
 )
 
 func (r *Repository) CreateCase(ctx context.Context, caseEncx *caseDomain.CaseEncx) error {
+	if caseEncx == nil {
+		return fmt.Errorf("case cannot be nil")
+	}
+
 	query := fmt.Sprintf(`
 		INSERT INTO %s.cases (
-			id, clientid, assignedcontactid, createdat,
+			id, client_id, assigned_contact_id, created_at,
 			title_encrypted, description_encrypted, status_encrypted,
-			updatedat_encrypted, dek_encrypted, key_version, metadata
+			updated_at_encrypted, dek_encrypted, key_version, metadata
 		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
 	`, r.schema)
 
@@ -36,3 +40,4 @@ func (r *Repository) CreateCase(ctx context.Context, caseEncx *caseDomain.CaseEn
 
 	return nil
 }
+
