@@ -3,9 +3,8 @@ package caseRepository
 import (
 	"context"
 	"fmt"
-	"time"
 
-	caseDomain "github.com/hengadev/cluo_api/internal/common/errs"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/case"
 )
 
