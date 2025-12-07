@@ -18,6 +18,7 @@ type ClientRepository interface {
 	GetContactIDsForClient(ctx context.Context, clientID uuid.UUID) ([]uuid.UUID, error)
 	//client
 	CreateClient(ctx context.Context, clientEncx *client.ClientEncx) error
+	ExistsContact(ctx context.Context, contactID uuid.UUID) (bool, error)
 	DeleteClient(ctx context.Context, clientID uuid.UUID) error
 	UpdateClient(ctx context.Context, request *client.ClientEncx) error
 	GetClientByID(ctx context.Context, clientID uuid.UUID) (*client.ClientEncx, error)
