@@ -109,3 +109,41 @@ func NewDeleteCaseRequest(
 	return req
 }
 
+// NewUpdateCaseRequest creates an HTTP request for updating a case by ID
+func NewUpdateCaseRequest(
+	t *testing.T,
+	ctx context.Context,
+	serverURL string,
+	caseID uuid.UUID,
+	updateRequest *caseDomain.UpdateCaseRequest,
+	accessToken string,
+) *http.Request {
+	t.Helper()
+
+	url := serverURL + "/cases/" + caseID.String()
+
+	// Marshal update request to JSON
+	requestBody, err := json.Marshal(updateRequest)
+	require.NoError(t, err, "Failed to marshal update request")
+
+	req, err := http.NewRequestWithContext(
+		ctx,
+		http.MethodPatch,
+		url,
+		bytes.NewReader(requestBody),
+	)
+	require.NoError(t, err)
+
+	req.Header.Set("Content-Type", "application/json")
+
+	if accessToken != "" {
+		cookie := &http.Cookie{
+			Name:  cookies.AccessTokenCookieName,
+			Value: accessToken,
+		}
+		req.AddCookie(cookie)
+	}
+
+	return req
+}
+
