@@ -4,11 +4,12 @@ import (
 	"context"
 	"testing"
 
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	ch "github.com/hengadev/cluo_api/test/helpers/case"
 )
 
 // make test-func TEST_NAME=TestGetCaseByID TEST_PATH=internal/infrastructure/postgres/case/get_case_by_id_test.go
@@ -18,16 +19,38 @@ func TestGetCaseByID(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		clientEncx := clientHelpers.NewTestClientEncx(t)
+		err := clientHelpers.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx.ID
+	}
+	setupContact := func(t *testing.T, ctx context.Context, clientID uuid.UUID) uuid.UUID {
+		contactEncx := clientHelpers.NewTestContactEncx(t)
+		contactEncx.ClientID = clientID
+		err := clientHelpers.InsertContactEncx(t, ctx, testPool, contactEncx)
+		require.NoError(t, err)
+		return contactEncx.ID
+	}
+
 	t.Run("successful retrieval", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create test case data using helper
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
+		caseEncx.AssignedContactID = &contactID
 
 		// Insert case using the global repo (setup - should stop if fails)
-		err := repo.CreateCase(ctx, caseEncx)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err, "Failed to create case")
 
 		// Test retrieving the case
@@ -48,7 +71,7 @@ func TestGetCaseByID(t *testing.T) {
 	t.Run("case not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 
 		// Try to retrieve a non-existent case
 		nonExistentID := uuid.New()
@@ -71,7 +94,7 @@ func TestGetCaseByID(t *testing.T) {
 		ctx := context.Background()
 
 		// Clear all cases
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 
 		// Try to retrieve any case
 		testID := uuid.New()
@@ -84,33 +107,47 @@ func TestGetCaseByID(t *testing.T) {
 	t.Run("multiple cases exist", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create multiple cases
-		case1 := ch.NewTestCaseEncx(t)
-		case2 := ch.NewTestCaseEncx(t)
-		case3 := ch.NewTestCaseEncx(t)
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = &contactID
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = &contactID
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID
+		caseEncx3.AssignedContactID = &contactID
 
 		// Insert all cases
-		err := repo.CreateCase(ctx, case1)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
 		require.NoError(t, err)
-		err = repo.CreateCase(ctx, case2)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
 		require.NoError(t, err)
-		err = repo.CreateCase(ctx, case3)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
 		require.NoError(t, err)
 
 		// Retrieve each case and verify
-		retrievedCase1, err := repo.GetCaseByID(ctx, case1.ID)
+		retrievedCase1, err := repo.GetCaseByID(ctx, caseEncx1.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, case1.ID, retrievedCase1.ID)
+		assert.Equal(t, caseEncx1.ID, retrievedCase1.ID)
 
-		retrievedCase2, err := repo.GetCaseByID(ctx, case2.ID)
+		retrievedCase2, err := repo.GetCaseByID(ctx, caseEncx2.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, case2.ID, retrievedCase2.ID)
+		assert.Equal(t, caseEncx2.ID, retrievedCase2.ID)
 
-		retrievedCase3, err := repo.GetCaseByID(ctx, case3.ID)
+		retrievedCase3, err := repo.GetCaseByID(ctx, caseEncx3.ID)
 		assert.NoError(t, err)
-		assert.Equal(t, case3.ID, retrievedCase3.ID)
+		assert.Equal(t, caseEncx3.ID, retrievedCase3.ID)
 
 		// Verify non-existent ID still returns error
 		nonExistentID := uuid.New()
@@ -122,15 +159,21 @@ func TestGetCaseByID(t *testing.T) {
 	t.Run("case with assigned contact", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create test case with assigned contact
-		caseEncx := ch.NewTestCaseEncx(t)
-		contactID := uuid.New()
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
 		caseEncx.AssignedContactID = &contactID
 
 		// Insert case
-		err := repo.CreateCase(ctx, caseEncx)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err)
 
 		// Retrieve the case
@@ -146,14 +189,19 @@ func TestGetCaseByID(t *testing.T) {
 	t.Run("case without assigned contact", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		clientID := setupClient(t, ctx)
 
 		// Create test case without assigned contact (nil)
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
 		caseEncx.AssignedContactID = nil
 
 		// Insert case
-		err := repo.CreateCase(ctx, caseEncx)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err)
 
 		// Retrieve the case

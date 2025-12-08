@@ -5,11 +5,12 @@ import (
 	"testing"
 	"time"
 
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
+
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-
-	ch "github.com/hengadev/cluo_api/test/helpers/case"
 )
 
 // make test-func TEST_NAME=TestUpdateCase TEST_PATH=internal/infrastructure/postgres/case/update_case_test.go
@@ -19,21 +20,42 @@ func TestUpdateCase(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		clientEncx := clientHelpers.NewTestClientEncx(t)
+		err := clientHelpers.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx.ID
+	}
+	setupContact := func(t *testing.T, ctx context.Context, clientID uuid.UUID) uuid.UUID {
+		contactEncx := clientHelpers.NewTestContactEncx(t)
+		contactEncx.ClientID = clientID
+		err := clientHelpers.InsertContactEncx(t, ctx, testPool, contactEncx)
+		require.NoError(t, err)
+		return contactEncx.ID
+	}
+
 	t.Run("successful update", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create test case data using helper
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
+		caseEncx.AssignedContactID = &contactID
 
 		// Insert case using the global repo
-		err := repo.CreateCase(ctx, caseEncx)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err, "Failed to create case")
 
 		// Modify the case for update
 		updatedTime := time.Now()
-		caseEncx.ClientID = uuid.New()
+		caseEncx.ClientID = setupClient(t, ctx)
 		caseEncx.UpdatedAtEncrypted = []byte(updatedTime.Format(time.RFC3339))
 		caseEncx.TitleEncrypted = []byte("updated_title_encrypted")
 		caseEncx.DescriptionEncrypted = []byte("updated_description_encrypted")
@@ -62,11 +84,11 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("case not found", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 
 		// Try to update a non-existent case
 		nonExistentID := uuid.New()
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
 		caseEncx.ID = nonExistentID
 
 		err := repo.UpdateCase(ctx, caseEncx)
@@ -77,7 +99,7 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("nil case", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 
 		// Try to update with nil case
 		err := repo.UpdateCase(ctx, nil)
@@ -88,11 +110,20 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("update with nil assigned contact", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create test case with assigned contact
-		caseEncx := ch.NewTestCaseEncx(t)
-		err := repo.CreateCase(ctx, caseEncx)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
+		caseEncx.AssignedContactID = &contactID
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err, "Failed to create case")
 
 		// Update case to remove assigned contact
@@ -112,16 +143,23 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("update with new assigned contact", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup client in database
+		clientID := setupClient(t, ctx)
 
 		// Create test case without assigned contact
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
 		caseEncx.AssignedContactID = nil
-		err := repo.CreateCase(ctx, caseEncx)
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err, "Failed to create case")
 
 		// Update case to add assigned contact
-		newContactID := uuid.New()
+		newContactID := setupContact(t, ctx, clientID)
 		caseEncx.AssignedContactID = &newContactID
 		caseEncx.DescriptionEncrypted = []byte("updated_description_encrypted")
 
@@ -139,18 +177,25 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("partial update", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
 
 		// Create test case
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
+		caseEncx.AssignedContactID = nil
 		originalDescription := caseEncx.DescriptionEncrypted
 		originalStatus := caseEncx.StatusEncrypted
 
-		err := repo.CreateCase(ctx, caseEncx)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
 		require.NoError(t, err, "Failed to create case")
 
 		// Update only some fields
-		caseEncx.ClientID = uuid.New()
+		caseEncx.ClientID = setupClient(t, ctx)
 		caseEncx.TitleEncrypted = []byte("partially_updated_title")
 		caseEncx.UpdatedAtEncrypted = []byte(time.Now().Format(time.RFC3339))
 		// Keep description and status unchanged
@@ -176,35 +221,44 @@ func TestUpdateCase(t *testing.T) {
 	t.Run("multiple cases update", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
 
 		// Create multiple test cases
-		case1 := ch.NewTestCaseEncx(t)
-		case2 := ch.NewTestCaseEncx(t)
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = nil
 
-		err := repo.CreateCase(ctx, case1)
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = nil
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
 		require.NoError(t, err, "Failed to create case1")
-		err = repo.CreateCase(ctx, case2)
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
 		require.NoError(t, err, "Failed to create case2")
 
 		// Update only case1
-		case1.TitleEncrypted = []byte("case1_updated")
-		case1.KeyVersion = 3
+		caseEncx1.TitleEncrypted = []byte("case1_updated")
+		caseEncx1.KeyVersion = 3
 
-		err = repo.UpdateCase(ctx, case1)
+		err = repo.UpdateCase(ctx, caseEncx1)
 		assert.NoError(t, err, "Failed to update case1")
 
 		// Verify case1 was updated
-		retrievedCase1, err := repo.GetCaseByID(ctx, case1.ID)
+		retrievedCase1, err := repo.GetCaseByID(ctx, caseEncx1.ID)
 		assert.NoError(t, err, "Failed to retrieve case1")
-		assert.Equal(t, case1.TitleEncrypted, retrievedCase1.TitleEncrypted, "Case1 title should be updated")
-		assert.Equal(t, case1.KeyVersion, retrievedCase1.KeyVersion, "Case1 key version should be updated")
+		assert.Equal(t, caseEncx1.TitleEncrypted, retrievedCase1.TitleEncrypted, "Case1 title should be updated")
+		assert.Equal(t, caseEncx1.KeyVersion, retrievedCase1.KeyVersion, "Case1 key version should be updated")
 
 		// Verify case2 remains unchanged
-		retrievedCase2, err := repo.GetCaseByID(ctx, case2.ID)
+		retrievedCase2, err := repo.GetCaseByID(ctx, caseEncx2.ID)
 		assert.NoError(t, err, "Failed to retrieve case2")
-		assert.NotEqual(t, case1.TitleEncrypted, retrievedCase2.TitleEncrypted, "Case2 title should be different from case1")
-		assert.Equal(t, case2.KeyVersion, retrievedCase2.KeyVersion, "Case2 key version should remain unchanged")
+		assert.NotEqual(t, caseEncx1.TitleEncrypted, retrievedCase2.TitleEncrypted, "Case2 title should be different from case1")
+		assert.Equal(t, caseEncx2.KeyVersion, retrievedCase2.KeyVersion, "Case2 key version should remain unchanged")
 	})
 }
-

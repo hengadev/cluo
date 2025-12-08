@@ -5,7 +5,8 @@ import (
 	"testing"
 
 	caseDomain "github.com/hengadev/cluo_api/internal/domain/case"
-	ch "github.com/hengadev/cluo_api/test/helpers/case"
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
 
 	"github.com/google/uuid"
 	"github.com/stretchr/testify/assert"
@@ -19,20 +20,42 @@ func TestCreateCase(t *testing.T) {
 		t.Skip("Test database or repository not initialized")
 	}
 
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		clientEncx := clientHelpers.NewTestClientEncx(t)
+		err := clientHelpers.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx.ID
+	}
+	setupContact := func(t *testing.T, ctx context.Context, clientID uuid.UUID) uuid.UUID {
+		contactEncx := clientHelpers.NewTestContactEncx(t)
+		contactEncx.ClientID = clientID
+		err := clientHelpers.InsertContactEncx(t, ctx, testPool, contactEncx)
+		require.NoError(t, err)
+		return contactEncx.ID
+	}
+
 	t.Run("successful creation", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create test caseEncx data using helper
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
+		caseEncx.ClientID = clientID
+		caseEncx.AssignedContactID = &contactID
 
 		// Test successful case creation using the global repo
 		err := repo.CreateCase(ctx, caseEncx)
 		assert.NoError(t, err, "Failed to create case")
 
 		// Verify the case was inserted by retrieving it
-		retrievedCaseEncx, err := ch.GetCaseEncxByID(t, ctx, testPool, caseEncx.ID)
+		retrievedCaseEncx, err := caseHelpers.GetCaseEncxByID(t, ctx, testPool, caseEncx.ID)
 		assert.NoError(t, err, "Failed to retrieve inserted case")
 
 		// Verify field values
@@ -53,18 +76,28 @@ func TestCreateCase(t *testing.T) {
 	t.Run("duplicate ID", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID)
 
 		// Create first test case
-		caseEncx1 := ch.NewTestCaseEncx(t)
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = &contactID
 
 		// Insert first case using the global repo (setup - should stop if fails)
 		err := repo.CreateCase(ctx, caseEncx1)
 		require.NoError(t, err, "Failed to create first case")
 
 		// Try to insert case with same ID (should fail)
-		caseEncx2 := ch.NewTestCaseEncx(t)
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
 		caseEncx2.ID = caseEncx1.ID // Same ID, different data
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = &contactID
 
 		err = repo.CreateCase(ctx, caseEncx2)
 		assert.Error(t, err, "Expected error when creating case with duplicate ID")
@@ -78,7 +111,7 @@ func TestCreateCase(t *testing.T) {
 	t.Run("empty required fields", func(t *testing.T) {
 		ctx := context.Background()
 
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 
 		tests := []struct {
 			name  string
@@ -105,7 +138,7 @@ func TestCreateCase(t *testing.T) {
 		ctx, cancel := context.WithCancel(context.Background())
 		cancel() // Cancel immediately
 
-		caseEncx := ch.NewTestCaseEncx(t)
+		caseEncx := caseHelpers.NewTestCaseEncx(t)
 
 		err := repo.CreateCase(ctx, caseEncx)
 		assert.Error(t, err, "Expected context cancellation error, but got nil")
