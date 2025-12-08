@@ -3,11 +3,14 @@ package caseRepository_test
 import (
 	"context"
 	"testing"
-	"time"
+	// "time"
 
 	"github.com/google/uuid"
 	caseDomain "github.com/hengadev/cluo_api/internal/domain/case"
-	ch "github.com/hengadev/cluo_api/test/helpers/case"
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
+
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -16,62 +19,110 @@ import (
 func TestListByClient(t *testing.T) {
 	ctx := context.Background()
 
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		clientEncx := clientHelpers.NewTestClientEncx(t)
+		err := clientHelpers.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx.ID
+	}
+	setupContact := func(t *testing.T, ctx context.Context, clientID uuid.UUID) uuid.UUID {
+		contactEncx := clientHelpers.NewTestContactEncx(t)
+		contactEncx.ClientID = clientID
+		err := clientHelpers.InsertContactEncx(t, ctx, testPool, contactEncx)
+		require.NoError(t, err)
+		return contactEncx.ID
+	}
+
 	t.Run("EmptyList", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 		clientID := uuid.New()
 		pagination := caseDomain.NewPagination()
 
 		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 0, total)
-		require.Empty(t, cases)
+		assert.Equal(t, 0, total)
+		assert.Empty(t, cases)
 	})
 
 	t.Run("ListWithCases", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		clientID := uuid.New()
-		contactID := uuid.New()
-		now := time.Now()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID1 := setupClient(t, ctx)
+		clientID2 := setupClient(t, ctx)
+		contactID := setupContact(t, ctx, clientID1)
+
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID1
+		caseEncx1.AssignedContactID = &contactID
+
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID1
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID1
+		caseEncx3.AssignedContactID = &contactID
 
 		// Insert test cases for this client
-		insertTestCase(t, ctx, clientID, &contactID, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID, nil, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID, &contactID, now.Add(-3*time.Hour))
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Insert cases for different client (should not be included)
-		otherClientID := uuid.New()
-		insertTestCase(t, ctx, otherClientID, nil, now.Add(-1*time.Hour))
+
+		caseEncx4 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx4.ClientID = clientID2
+		caseEncx4.AssignedContactID = nil
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx4)
+		require.NoError(t, err)
 
 		pagination := caseDomain.NewPagination()
 
-		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
+		cases, total, err := repo.ListByClient(ctx, clientID1, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 3, total) // Only cases for the specified client
-		require.Len(t, cases, 3)
+		assert.Equal(t, 3, total) // Only cases for the specified client
+		assert.Len(t, cases, 3)
 
 		// All cases should belong to the specified client
 		for _, c := range cases {
-			require.Equal(t, clientID, c.ClientID)
+			assert.Equal(t, clientID1, c.ClientID)
 		}
 
 		// Should be ordered by created_at DESC
-		require.True(t, cases[0].CreatedAt.After(cases[1].CreatedAt))
-		require.True(t, cases[1].CreatedAt.After(cases[2].CreatedAt))
+		assert.True(t, cases[0].CreatedAt.After(cases[1].CreatedAt))
+		assert.True(t, cases[1].CreatedAt.After(cases[2].CreatedAt))
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		clientID := uuid.New()
-		now := time.Now()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
 
 		// Create 5 test cases
 		for i := 0; i < 5; i++ {
-			insertTestCase(t, ctx, clientID, nil, now.Add(time.Duration(i)*time.Hour))
+			caseEncx := caseHelpers.NewTestCaseEncx(t)
+			caseEncx.ClientID = clientID
+			caseEncx.AssignedContactID = nil
+
+			err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
+			require.NoError(t, err)
 		}
 
 		// Test first page with 2 items
@@ -83,8 +134,8 @@ func TestListByClient(t *testing.T) {
 		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total) // Total should be all items for this client
-		require.Len(t, cases, 2)   // Page should have 2 items
+		assert.Equal(t, 5, total) // Total should be all items for this client
+		assert.Len(t, cases, 2)   // Page should have 2 items
 
 		// Test second page
 		pagination.Page = 2
@@ -92,8 +143,8 @@ func TestListByClient(t *testing.T) {
 		cases, total, err = repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total)
-		require.Len(t, cases, 2)
+		assert.Equal(t, 5, total)
+		assert.Len(t, cases, 2)
 
 		// Test third page (last item)
 		pagination.Page = 3
@@ -101,8 +152,8 @@ func TestListByClient(t *testing.T) {
 		cases, total, err = repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total)
-		require.Len(t, cases, 1)
+		assert.Equal(t, 5, total)
+		assert.Len(t, cases, 1)
 
 		// Test page beyond results
 		pagination.Page = 4
@@ -110,13 +161,13 @@ func TestListByClient(t *testing.T) {
 		cases, total, err = repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total)
-		require.Empty(t, cases)
+		assert.Equal(t, 5, total)
+		assert.Empty(t, cases)
 	})
 
 	t.Run("InvalidPagination", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 		clientID := uuid.New()
 		pagination := caseDomain.Pagination{
 			Page:     0, // Invalid
@@ -125,34 +176,41 @@ func TestListByClient(t *testing.T) {
 
 		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
 
-		require.Error(t, err)
-		require.Contains(t, err.Error(), "invalid pagination")
-		require.Empty(t, cases)
-		require.Equal(t, 0, total)
+		assert.Error(t, err)
+		assert.Contains(t, err.Error(), "invalid pagination")
+		assert.Empty(t, cases)
+		assert.Equal(t, 0, total)
 	})
 
 	t.Run("NilClientID", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 		pagination := caseDomain.NewPagination()
 
 		cases, total, err := repo.ListByClient(ctx, uuid.Nil, pagination)
 
 		require.Error(t, err)
-		require.Contains(t, err.Error(), "client ID cannot be nil")
-		require.Empty(t, cases)
-		require.Equal(t, 0, total)
+		assert.Contains(t, err.Error(), "client ID cannot be nil")
+		assert.Empty(t, cases)
+		assert.Equal(t, 0, total)
 	})
 
 	t.Run("MaxPageSize", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		clientID := uuid.New()
-		now := time.Now()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+
+		// Setup client and contact in database
+		clientID := setupClient(t, ctx)
 
 		// Create multiple test cases
 		for i := 0; i < 25; i++ {
-			insertTestCase(t, ctx, clientID, nil, now.Add(time.Duration(i)*time.Hour))
+			caseEncx := caseHelpers.NewTestCaseEncx(t)
+			caseEncx.ClientID = clientID
+			caseEncx.AssignedContactID = nil
+			err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
+			require.NoError(t, err)
 		}
 
 		// Test with maximum page size
@@ -164,52 +222,88 @@ func TestListByClient(t *testing.T) {
 		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 25, total)
-		require.Len(t, cases, 25)
+		assert.Equal(t, 25, total)
+		assert.Len(t, cases, 25)
 	})
 
 	t.Run("AssignedContactHandling", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		clientID := uuid.New()
-		contactID1 := uuid.New()
-		contactID2 := uuid.New()
-		now := time.Now()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
 
-		// Create cases with different assigned contacts
-		insertTestCase(t, ctx, clientID, &contactID1, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID, nil, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID, &contactID2, now.Add(-3*time.Hour))
+		clientID := setupClient(t, ctx)
+		contactID1 := setupContact(t, ctx, clientID)
+		contactID2 := setupContact(t, ctx, clientID)
+
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = &contactID1
+
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID
+		caseEncx3.AssignedContactID = &contactID2
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		pagination := caseDomain.NewPagination()
 
 		cases, total, err := repo.ListByClient(ctx, clientID, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 3, total)
-		require.Len(t, cases, 3)
+		assert.Equal(t, 3, total)
+		assert.Len(t, cases, 3)
 
 		// Verify assigned contacts are preserved
-		require.Equal(t, contactID1, *cases[0].AssignedContactID)
-		require.Nil(t, cases[1].AssignedContactID)
-		require.Equal(t, contactID2, *cases[2].AssignedContactID)
+		assert.Equal(t, contactID1, *cases[2].AssignedContactID)
+		assert.Nil(t, cases[1].AssignedContactID)
+		assert.Equal(t, contactID2, *cases[0].AssignedContactID)
 	})
 
 	t.Run("MultipleClientsIsolation", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		// Create multiple clients with cases
-		clientID1 := uuid.New()
-		clientID2 := uuid.New()
-		clientID3 := uuid.New()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
 
-		now := time.Now()
+		// Create multiple clients with cases
+		clientID1 := setupClient(t, ctx)
+		clientID2 := setupClient(t, ctx)
+		clientID3 := setupClient(t, ctx)
 
 		// Add cases for each client
 		for i := 0; i < 3; i++ {
-			insertTestCase(t, ctx, clientID1, nil, now.Add(time.Duration(i)*time.Hour))
-			insertTestCase(t, ctx, clientID2, nil, now.Add(time.Duration(i)*time.Hour))
-			insertTestCase(t, ctx, clientID3, nil, now.Add(time.Duration(i)*time.Hour))
+			caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+			caseEncx1.ClientID = clientID1
+			caseEncx1.AssignedContactID = nil
+
+			caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+			caseEncx2.ClientID = clientID2
+			caseEncx2.AssignedContactID = nil
+
+			caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+			caseEncx3.ClientID = clientID3
+			caseEncx3.AssignedContactID = nil
+
+			err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+			require.NoError(t, err)
+
+			err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+			require.NoError(t, err)
+
+			err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+			require.NoError(t, err)
 		}
 
 		pagination := caseDomain.NewPagination()

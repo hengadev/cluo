@@ -5,10 +5,12 @@ import (
 	"testing"
 	"time"
 
-	"github.com/google/uuid"
 	caseDomain "github.com/hengadev/cluo_api/internal/domain/case"
-	ch "github.com/hengadev/cluo_api/test/helpers/case"
-	"github.com/hengadev/encx"
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
+
+	"github.com/google/uuid"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
@@ -17,34 +19,65 @@ import (
 func TestList(t *testing.T) {
 	ctx := context.Background()
 
+	setupClient := func(t *testing.T, ctx context.Context) uuid.UUID {
+		clientEncx := clientHelpers.NewTestClientEncx(t)
+		err := clientHelpers.InsertClientEncx(t, ctx, testPool, clientEncx)
+		require.NoError(t, err)
+		return clientEncx.ID
+	}
+	setupContact := func(t *testing.T, ctx context.Context, clientID uuid.UUID) uuid.UUID {
+		contactEncx := clientHelpers.NewTestContactEncx(t)
+		contactEncx.ClientID = clientID
+		err := clientHelpers.InsertContactEncx(t, ctx, testPool, contactEncx)
+		require.NoError(t, err)
+		return contactEncx.ID
+	}
+
 	t.Run("EmptyList", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		pagination := caseDomain.NewPagination()
 
 		cases, total, err := repo.List(ctx, caseDomain.CaseFilter{}, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 0, total)
-		require.Empty(t, cases)
+		assert.Equal(t, 0, total)
+		assert.Empty(t, cases)
 	})
 
 	t.Run("ListWithCases", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
 
 		// Create test cases
-		clientID1 := uuid.New()
-		clientID2 := uuid.New()
-		contactID1 := uuid.New()
-		contactID2 := uuid.New()
+		clientID1 := setupClient(t, ctx)
+		clientID2 := setupClient(t, ctx)
+		contactID1 := setupContact(t, ctx, clientID1)
+		contactID2 := setupContact(t, ctx, clientID2)
 
-		now := time.Now()
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID1
+		caseEncx1.AssignedContactID = &contactID1
 
-		// Insert test cases directly into database
-		insertTestCase(t, ctx, clientID1, &contactID1, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID1, &contactID2, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID2, nil, now.Add(-3*time.Hour))
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID1
+		caseEncx2.AssignedContactID = &contactID2
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID2
+		caseEncx3.AssignedContactID = nil
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Test with default pagination
 		pagination := caseDomain.NewPagination()
@@ -52,27 +85,46 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, caseDomain.CaseFilter{}, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 3, total)
-		require.Len(t, cases, 3)
+		assert.Equal(t, 3, total)
+		assert.Len(t, cases, 3)
 
 		// Should be ordered by created_at DESC
-		require.Equal(t, clientID1, cases[0].ClientID) // Most recent
-		require.Equal(t, clientID1, cases[1].ClientID)
-		require.Equal(t, clientID2, cases[2].ClientID) // Oldest
+		assert.Equal(t, clientID1, cases[2].ClientID) // Most recent
+		assert.Equal(t, clientID1, cases[1].ClientID)
+		assert.Equal(t, clientID2, cases[0].ClientID) // Oldest
 	})
 
 	t.Run("FilterByClient", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		// Create test cases
-		clientID1 := uuid.New()
-		clientID2 := uuid.New()
+		clientID1 := setupClient(t, ctx)
+		clientID2 := setupClient(t, ctx)
 
-		now := time.Now()
+		// Create test caseEncxs data using helper
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID1
+		caseEncx1.AssignedContactID = nil
 
-		insertTestCase(t, ctx, clientID1, nil, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID2, nil, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID1, nil, now.Add(-3*time.Hour))
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID2
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID1
+		caseEncx3.AssignedContactID = nil
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Filter by clientID1
 		filter := caseDomain.CaseFilter{
@@ -83,8 +135,8 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 2, total)
-		require.Len(t, cases, 2)
+		assert.Equal(t, 2, total)
+		assert.Len(t, cases, 2)
 
 		for _, c := range cases {
 			require.Equal(t, clientID1, c.ClientID)
@@ -93,17 +145,36 @@ func TestList(t *testing.T) {
 
 	t.Run("FilterByAssignedContact", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		// Create test cases
-		clientID := uuid.New()
-		contactID1 := uuid.New()
-		contactID2 := uuid.New()
+		clientID := setupClient(t, ctx)
+		contactID1 := setupContact(t, ctx, clientID)
+		contactID2 := setupContact(t, ctx, clientID)
 
-		now := time.Now()
+		// Create test caseEncx1 data using helper
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = &contactID1
 
-		insertTestCase(t, ctx, clientID, &contactID1, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID, nil, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID, &contactID2, now.Add(-3*time.Hour))
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID
+		caseEncx3.AssignedContactID = &contactID2
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Filter by assigned contact
 		filter := caseDomain.CaseFilter{
@@ -114,23 +185,42 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 1, total)
-		require.Len(t, cases, 1)
-		require.Equal(t, contactID1, *cases[0].AssignedContactID)
+		assert.Equal(t, 1, total)
+		assert.Len(t, cases, 1)
+		assert.Equal(t, contactID1, *cases[0].AssignedContactID)
 	})
 
 	t.Run("FilterByNilAssignedContact", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		// Create test cases
-		clientID := uuid.New()
-		contactID1 := uuid.New()
+		clientID := setupClient(t, ctx)
+		contactID1 := setupContact(t, ctx, clientID)
 
-		now := time.Now()
+		// Create test caseEncx1 data using helper
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.AssignedContactID = &contactID1
 
-		insertTestCase(t, ctx, clientID, &contactID1, now.Add(-1*time.Hour))
-		insertTestCase(t, ctx, clientID, nil, now.Add(-2*time.Hour))
-		insertTestCase(t, ctx, clientID, nil, now.Add(-3*time.Hour))
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID
+		caseEncx3.AssignedContactID = nil
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Filter by nil assigned contact
 		nilUUID := uuid.UUID{}
@@ -142,8 +232,8 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 2, total)
-		require.Len(t, cases, 2)
+		assert.Equal(t, 2, total)
+		assert.Len(t, cases, 2)
 
 		for _, c := range cases {
 			require.Nil(t, c.AssignedContactID)
@@ -152,17 +242,40 @@ func TestList(t *testing.T) {
 
 	t.Run("FilterByDateRange", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		// Create test cases with different creation dates
-		clientID := uuid.New()
+		clientID := setupClient(t, ctx)
 
 		now := time.Now()
 		yesterday := now.Add(-24 * time.Hour)
 		twoDaysAgo := now.Add(-48 * time.Hour)
 
-		insertTestCase(t, ctx, clientID, nil, now)
-		insertTestCase(t, ctx, clientID, nil, yesterday)
-		insertTestCase(t, ctx, clientID, nil, twoDaysAgo)
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID
+		caseEncx1.CreatedAt = now
+		caseEncx1.AssignedContactID = nil
+
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID
+		caseEncx2.CreatedAt = yesterday
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID
+		caseEncx3.CreatedAt = twoDaysAgo
+		caseEncx3.AssignedContactID = nil
+
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Filter by date range
 		fromDate := now.Add(-25 * time.Hour) // 25 hours ago to now
@@ -174,8 +287,8 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 2, total) // yesterday and now
-		require.Len(t, cases, 2)
+		assert.Equal(t, 2, total) // yesterday and now
+		assert.Len(t, cases, 2)
 
 		// Test with upper bound
 		toDate := now.Add(-12 * time.Hour) // Up to 12 hours ago
@@ -186,19 +299,26 @@ func TestList(t *testing.T) {
 		cases, total, err = repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 2, total) // yesterday and two days ago
-		require.Len(t, cases, 2)
+		assert.Equal(t, 2, total) // yesterday and two days ago
+		assert.Len(t, cases, 2)
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
-		// Create multiple test cases
-		clientID := uuid.New()
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
 
-		now := time.Now()
+		// Create multiple test cases
+		clientID := setupClient(t, ctx)
+
 		for i := 0; i < 5; i++ {
-			insertTestCase(t, ctx, clientID, nil, now.Add(time.Duration(i)*time.Hour))
+			// Create test caseEncx data using helper
+			caseEncx := caseHelpers.NewTestCaseEncx(t)
+			caseEncx.ClientID = clientID
+			caseEncx.AssignedContactID = nil
+			err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx)
+			require.NoError(t, err)
 		}
 
 		// Test first page with 2 items
@@ -210,8 +330,8 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, caseDomain.CaseFilter{}, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total) // Total should be all items
-		require.Len(t, cases, 2)   // Page should have 2 items
+		assert.Equal(t, 5, total) // Total should be all items
+		assert.Len(t, cases, 2)   // Page should have 2 items
 
 		// Test second page
 		pagination.Page = 2
@@ -219,8 +339,8 @@ func TestList(t *testing.T) {
 		cases, total, err = repo.List(ctx, caseDomain.CaseFilter{}, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total)
-		require.Len(t, cases, 2)
+		assert.Equal(t, 5, total)
+		assert.Len(t, cases, 2)
 
 		// Test third page (last item)
 		pagination.Page = 3
@@ -228,13 +348,13 @@ func TestList(t *testing.T) {
 		cases, total, err = repo.List(ctx, caseDomain.CaseFilter{}, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 5, total)
-		require.Len(t, cases, 1)
+		assert.Equal(t, 5, total)
+		assert.Len(t, cases, 1)
 	})
 
 	t.Run("InvalidPagination", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
 		pagination := caseDomain.Pagination{
 			Page:     0, // Invalid
 			PageSize: 10,
@@ -250,22 +370,45 @@ func TestList(t *testing.T) {
 
 	t.Run("CombinedFilters", func(t *testing.T) {
 		// Clean up before each test
-		ch.ClearCasesTable(t, ctx, testPool)
+		caseHelpers.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
 		// Create test cases with various properties
-		clientID1 := uuid.New()
-		clientID2 := uuid.New()
-		contactID1 := uuid.New()
+		clientID1 := setupClient(t, ctx)
+		clientID2 := setupClient(t, ctx)
+		contactID1 := setupContact(t, ctx, clientID1)
 
 		now := time.Now()
 		recent := now.Add(-1 * time.Hour)
 		older := now.Add(-25 * time.Hour)
 
+		// Create test caseEncx1 data using helper
+		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx1.ClientID = clientID1
+		caseEncx1.CreatedAt = recent
+		caseEncx1.AssignedContactID = &contactID1
+
+		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx2.ClientID = clientID1
+		caseEncx2.CreatedAt = recent
+		caseEncx2.AssignedContactID = nil
+
+		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
+		caseEncx3.ClientID = clientID2
+		caseEncx3.CreatedAt = older
+		caseEncx3.AssignedContactID = nil
+
 		// Recent cases for client1
-		insertTestCase(t, ctx, clientID1, &contactID1, recent)
-		insertTestCase(t, ctx, clientID1, nil, recent)
+		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
+		require.NoError(t, err)
+
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
+		require.NoError(t, err)
 
 		// Older cases for client2
-		insertTestCase(t, ctx, clientID2, nil, older)
+		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
+		require.NoError(t, err)
 
 		// Filter: client1 + recent date range
 		fromDate := now.Add(-2 * time.Hour)
@@ -278,35 +421,12 @@ func TestList(t *testing.T) {
 		cases, total, err := repo.List(ctx, filter, pagination)
 
 		require.NoError(t, err)
-		require.Equal(t, 2, total)
-		require.Len(t, cases, 2)
+		assert.Equal(t, 2, total)
+		assert.Len(t, cases, 2)
 
 		for _, c := range cases {
-			require.Equal(t, clientID1, c.ClientID)
-			require.True(t, c.CreatedAt.After(fromDate))
+			assert.Equal(t, clientID1, c.ClientID)
+			assert.True(t, c.CreatedAt.After(fromDate))
 		}
 	})
-}
-
-// Helper function to insert test cases using helper functions
-func insertTestCase(t *testing.T, ctx context.Context, clientID uuid.UUID, assignedContactID *uuid.UUID, createdAt time.Time) {
-	t.Helper()
-
-	caseID := uuid.New()
-	caseEncx := &caseDomain.CaseEncx{
-		ID:                   caseID,
-		ClientID:             clientID,
-		AssignedContactID:    assignedContactID,
-		CreatedAt:            createdAt,
-		TitleEncrypted:       []byte("encrypted_title"),
-		DescriptionEncrypted: []byte("encrypted_description"),
-		StatusEncrypted:      []byte("encrypted_status"),
-		UpdatedAtEncrypted:   []byte("encrypted_updated_at"),
-		DEKEncrypted:         []byte("encrypted_dek"),
-		KeyVersion:           1,
-		Metadata:             encx.EncryptionMetadata{},
-	}
-
-	err := ch.InsertCaseEncx(t, ctx, testPool, caseEncx)
-	require.NoError(t, err, "Failed to insert test case")
 }
