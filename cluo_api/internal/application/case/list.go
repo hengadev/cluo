@@ -111,4 +111,3 @@ func containsIgnoreCase(s, substr string) bool {
 
 	return strings.Contains(sLower, substrLower)
 }
-

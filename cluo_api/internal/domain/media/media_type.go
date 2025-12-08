@@ -6,6 +6,5 @@ type MediaType string
 const (
 	MediaTypeImage MediaType = "image"
 	MediaTypeVideo MediaType = "video"
-	// NOTE: is that the right name ?
 	MediaTypeAudio MediaType = "audio"
 )
