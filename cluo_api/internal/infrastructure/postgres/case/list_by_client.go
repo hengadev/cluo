@@ -89,4 +89,3 @@ func (r *Repository) ListByClient(ctx context.Context, clientID uuid.UUID, p cas
 
 	return cases, total, nil
 }
-

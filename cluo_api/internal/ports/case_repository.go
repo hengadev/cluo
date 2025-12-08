@@ -13,6 +13,6 @@ type CaseRepository interface {
 	GetCaseByID(ctx context.Context, id uuid.UUID) (*caseDomain.CaseEncx, error)
 	UpdateCase(ctx context.Context, c *caseDomain.CaseEncx) error
 	DeleteCase(ctx context.Context, id uuid.UUID) error
-	List(ctx context.Context, f caseDomain.CaseFilter, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error) // returns list + total
-	ListByClient(ctx context.Context, clientID uuid.UUID, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error) // returns list + total
+	List(ctx context.Context, f caseDomain.CaseFilter, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error)
+	ListByClient(ctx context.Context, clientID uuid.UUID, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error)
 }
