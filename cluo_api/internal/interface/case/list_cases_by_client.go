@@ -1,8 +1,8 @@
 package caseHandler
 
 import (
+	"fmt"
 	"net/http"
-	"strconv"
 
 	"github.com/google/uuid"
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
@@ -25,7 +25,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases_by_client",
 			"method", r.Method,
 			"path", r.URL.Path)
-		httpx.RespondWithError(w, nil, http.StatusMethodNotAllowed)
+		httpx.RespondWithError(w, fmt.Errorf("method not allowed"), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -36,7 +36,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases_by_client",
 			"method", r.Method,
 			"path", r.URL.Path)
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, fmt.Errorf("client ID is required"), http.StatusBadRequest)
 		return
 	}
 
@@ -49,7 +49,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 			"path", r.URL.Path,
 			"client_id", clientIDStr,
 			"error", err)
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, fmt.Errorf("invalid client ID format"), http.StatusBadRequest)
 		return
 	}
 
@@ -63,7 +63,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases_by_client",
 			"error", err,
 			"page_param", query.Get("page"))
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -73,7 +73,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases_by_client",
 			"error", err,
 			"page_size_param", query.Get("pageSize"))
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -82,7 +82,7 @@ func (h *handler) ListCasesByClient(w http.ResponseWriter, r *http.Request) {
 		logger.WarnContext(ctx, "Handler: Page size too large",
 			"operation", "list_cases_by_client",
 			"page_size", pageSize)
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, fmt.Errorf("page size cannot exceed 100"), http.StatusBadRequest)
 		return
 	}
 

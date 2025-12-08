@@ -1,6 +1,7 @@
 package caseHandler
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -24,7 +25,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases",
 			"method", r.Method,
 			"path", r.URL.Path)
-		httpx.RespondWithError(w, nil, http.StatusMethodNotAllowed)
+		httpx.RespondWithError(w, fmt.Errorf("method not allowed"), http.StatusMethodNotAllowed)
 		return
 	}
 
@@ -38,7 +39,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases",
 			"error", err,
 			"page_param", query.Get("page"))
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -48,7 +49,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 			"operation", "list_cases",
 			"error", err,
 			"page_size_param", query.Get("pageSize"))
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
 
@@ -57,7 +58,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		logger.WarnContext(ctx, "Handler: Page size too large",
 			"operation", "list_cases",
 			"page_size", pageSize)
-		httpx.RespondWithError(w, nil, http.StatusBadRequest)
+		httpx.RespondWithError(w, fmt.Errorf("page size cannot exceed 100"), http.StatusBadRequest)
 		return
 	}
 
@@ -94,7 +95,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 			logger.WarnContext(ctx, "Handler: Search term too long",
 				"operation", "list_cases",
 				"search_length", len(search))
-			httpx.RespondWithError(w, nil, http.StatusBadRequest)
+			httpx.RespondWithError(w, fmt.Errorf("search term cannot exceed 1000 characters"), http.StatusBadRequest)
 			return
 		}
 		request.Search = &search
@@ -179,3 +180,4 @@ type InvalidQueryParamError struct {
 func (e *InvalidQueryParamError) Error() string {
 	return e.Parameter + ": " + e.Message + " (got: " + e.Value + ")"
 }
+
