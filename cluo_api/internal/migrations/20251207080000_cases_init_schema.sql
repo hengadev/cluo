@@ -7,8 +7,8 @@ CREATE SCHEMA IF NOT EXISTS cases;
 -- Cases table
 CREATE TABLE IF NOT EXISTS cases.cases (
     id UUID PRIMARY KEY,
-    client_id VARCHAR(255) NOT NULL,
-    assigned_contact_id VARCHAR(255),
+    client_id UUID NOT NULL,
+    assigned_contact_id UUID,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     title_encrypted BYTEA NOT NULL,
     description_encrypted BYTEA NOT NULL,
@@ -16,7 +16,13 @@ CREATE TABLE IF NOT EXISTS cases.cases (
     updated_at_encrypted BYTEA,
     dek_encrypted BYTEA NOT NULL,
     key_version INTEGER NOT NULL,
-    metadata JSONB DEFAULT '{}'
+    metadata JSONB DEFAULT '{}',
+
+    -- Foreign key constraints
+    CONSTRAINT fk_cases_client_id
+        FOREIGN KEY (client_id) REFERENCES clients.clients(id) ON DELETE RESTRICT,
+    CONSTRAINT fk_cases_assigned_contact_id
+        FOREIGN KEY (assigned_contact_id) REFERENCES clients.contacts(id) ON DELETE SET NULL
 );
 
 -- Cases table indexes
@@ -31,14 +37,14 @@ ALTER TABLE cases.cases ADD CONSTRAINT chk_cases_key_version_positive
     CHECK (key_version >= 0);
 
 ALTER TABLE cases.cases ADD CONSTRAINT chk_cases_client_id_not_empty
-    CHECK (length(trim(client_id)) > 0);
+    CHECK (client_id IS NOT NULL);
 
 -- Add comments for documentation
 COMMENT ON SCHEMA cases IS 'Case management schema';
 COMMENT ON TABLE cases.cases IS 'Stores encrypted case information';
 COMMENT ON COLUMN cases.cases.id IS 'Unique identifier for the case';
-COMMENT ON COLUMN cases.cases.client_id IS 'Foreign key reference to client identifier';
-COMMENT ON COLUMN cases.cases.assigned_contact_id IS 'Identifier of assigned contact person';
+COMMENT ON COLUMN cases.cases.client_id IS 'Foreign key reference to clients.clients.id';
+COMMENT ON COLUMN cases.cases.assigned_contact_id IS 'Foreign key reference to clients.contacts.id (nullable)';
 COMMENT ON COLUMN cases.cases.created_at IS 'Case creation timestamp';
 COMMENT ON COLUMN cases.cases.title_encrypted IS 'Encrypted case title';
 COMMENT ON COLUMN cases.cases.description_encrypted IS 'Encrypted case description';

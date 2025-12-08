@@ -96,4 +96,3 @@ func NewTestCaseEncxWithTimestamp(t *testing.T, clientID uuid.UUID, timestampOff
 		},
 	}
 }
-
