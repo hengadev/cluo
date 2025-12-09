@@ -53,11 +53,10 @@ func NewTestCaseEncx(t *testing.T) *caseDomain.CaseEncx {
 // NewTestCaseEncxWithClientID creates a mock CaseEncx with a specific client ID
 func NewTestCaseEncxWithClientID(t *testing.T, clientID uuid.UUID) *caseDomain.CaseEncx {
 	t.Helper()
-	contactID := uuid.New()
 	return &caseDomain.CaseEncx{
 		ID:                   uuid.New(),
 		ClientID:             clientID,
-		AssignedContactID:    &contactID,
+		AssignedContactID:    nil, // No contact assigned
 		CreatedAt:            time.Now(),
 		TitleEncrypted:       []byte("title_encrypted"),
 		DescriptionEncrypted: []byte("description_encrypted"),
