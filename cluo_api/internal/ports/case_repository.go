@@ -15,4 +15,5 @@ type CaseRepository interface {
 	DeleteCase(ctx context.Context, id uuid.UUID) error
 	List(ctx context.Context, f caseDomain.CaseFilter, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error)
 	ListByClient(ctx context.Context, clientID uuid.UUID, p caseDomain.Pagination) ([]*caseDomain.CaseEncx, int, error)
+	ExistsCase(ctx context.Context, caseID uuid.UUID) (bool, error)
 }
