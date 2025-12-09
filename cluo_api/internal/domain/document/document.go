@@ -28,12 +28,12 @@ type Document interface {
 
 // DocumentVersion represents a version of a document for audit purposes.
 type DocumentVersion struct {
-	ID         uuid.UUID    `json:"id" db:"id"`
+	ID         int64        `json:"id" db:"id"`
 	DocumentID uuid.UUID    `json:"document_id" db:"document_id"`
 	DocType    DocumentType `json:"doc_type" db:"doc_type"`
 	Version    int          `json:"version" db:"version"`
-	AuthorID   *uuid.UUID   `json:"author_id" db:"author_id"`
-	Data       []byte       `json:"data" db:"data"` // Serialized document data
+	AuthorID   *uuid.UUID   `json:"author_id,omitempty" db:"author_id"`
+	Data       []byte       `json:"data" db:"data"` // Serialized document data (JSONB)
 	CreatedAt  time.Time    `json:"created_at" db:"created_at"`
 	Reason     *string      `json:"reason,omitempty" db:"reason"`
 }

@@ -8,12 +8,12 @@ import (
 
 // DocumentBase contains metadata shared by all document types.
 type DocumentBase struct {
-	ID        uuid.UUID  `json:"id" db:"id"`
-	CaseID    uuid.UUID  `json:"case_id" db:"case_id" encx:"encrypt"`
-	ClientID  uuid.UUID  `json:"client_id" db:"client_id" encx:"encrypt"`
+	ID        uuid.UUID      `json:"id" db:"id"`
+	CaseID    uuid.UUID      `json:"case_id" db:"case_id" encx:"encrypt"`
+	ClientID  uuid.UUID      `json:"client_id" db:"client_id" encx:"encrypt"`
 	Status    DocumentStatus `json:"status" db:"status"`
-	CreatedAt time.Time  `json:"created_at" db:"created_at"`
-	UpdatedAt time.Time  `json:"updated_at" db:"updated_at"`
+	CreatedAt time.Time      `json:"created_at" db:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at" db:"updated_at"`
 }
 
 // GetID returns the document's unique identifier.
