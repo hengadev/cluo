@@ -1,4 +1,4 @@
-package domain
+package document
 
 import (
 	"fmt"
@@ -277,4 +277,3 @@ func (c *Contract) HasSignature(signerName, role string) bool {
 	}
 	return false
 }
-

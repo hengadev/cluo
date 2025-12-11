@@ -1,4 +1,4 @@
-package domain
+package document
 
 import (
 	"fmt"
@@ -37,8 +37,8 @@ const (
 func (s DocumentStatus) IsValid() bool {
 	switch s {
 	case DocumentStatusDraft, DocumentStatusSent, DocumentStatusSigned,
-		 DocumentStatusActive, DocumentStatusArchived, DocumentStatusCancelled,
-		 DocumentStatusRejected, DocumentStatusExpired:
+		DocumentStatusActive, DocumentStatusArchived, DocumentStatusCancelled,
+		DocumentStatusRejected, DocumentStatusExpired:
 		return true
 	default:
 		return false
@@ -68,12 +68,12 @@ func (s DocumentStatus) CanTransitionTo(newStatus DocumentStatus) bool {
 		return newStatus == DocumentStatusSent || newStatus == DocumentStatusCancelled
 	case DocumentStatusSent:
 		return newStatus == DocumentStatusSigned || newStatus == DocumentStatusRejected ||
-			   newStatus == DocumentStatusCancelled || newStatus == DocumentStatusExpired
+			newStatus == DocumentStatusCancelled || newStatus == DocumentStatusExpired
 	case DocumentStatusSigned:
 		return newStatus == DocumentStatusActive || newStatus == DocumentStatusCancelled
 	case DocumentStatusActive:
 		return newStatus == DocumentStatusArchived || newStatus == DocumentStatusCancelled ||
-			   newStatus == DocumentStatusExpired
+			newStatus == DocumentStatusExpired
 	case DocumentStatusArchived, DocumentStatusCancelled:
 		return false // Final states
 	case DocumentStatusRejected:

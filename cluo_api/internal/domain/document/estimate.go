@@ -1,4 +1,4 @@
-package domain
+package document
 
 import (
 	"fmt"
@@ -11,15 +11,15 @@ import (
 type Estimate struct {
 	DocumentBase
 
-	EstimateNumber string        `json:"estimate_number" db:"estimate_number"`
-	IssueDate      time.Time     `json:"issue_date" db:"issue_date"`
-	ValidUntil     *time.Time    `json:"valid_until,omitempty" db:"valid_until"`
+	EstimateNumber string         `json:"estimate_number" db:"estimate_number"`
+	IssueDate      time.Time      `json:"issue_date" db:"issue_date"`
+	ValidUntil     *time.Time     `json:"valid_until,omitempty" db:"valid_until"`
 	LineItems      []EstimateItem `json:"line_items" db:"line_items"`
-	EstimatedTotal float64       `json:"estimated_total" db:"estimated_total"`
-	Notes          *string       `json:"notes,omitempty" db:"notes"`
-	Accepted       bool          `json:"accepted" db:"accepted"`
-	AcceptedAt     *time.Time    `json:"accepted_at,omitempty" db:"accepted_at"`
-	AcceptedBy     *uuid.UUID    `json:"accepted_by,omitempty" db:"accepted_by"`
+	EstimatedTotal float64        `json:"estimated_total" db:"estimated_total"`
+	Notes          *string        `json:"notes,omitempty" db:"notes"`
+	Accepted       bool           `json:"accepted" db:"accepted"`
+	AcceptedAt     *time.Time     `json:"accepted_at,omitempty" db:"accepted_at"`
+	AcceptedBy     *uuid.UUID     `json:"accepted_by,omitempty" db:"accepted_by"`
 }
 
 // EstimateItem represents a single line item in an estimate.

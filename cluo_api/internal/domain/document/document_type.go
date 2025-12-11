@@ -1,4 +1,4 @@
-package domain
+package document
 
 // DocumentType represents the type of document
 type DocumentType string

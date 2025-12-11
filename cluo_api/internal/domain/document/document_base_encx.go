@@ -2,42 +2,38 @@
 // Source: document_base.go
 // Generated: 2025-11-05T10:58:19+01:00
 
-package domain
+package document
 
 import (
 	"context"
 	"time"
 
-	"github.com/hengadev/errsx"
 	"github.com/hengadev/encx"
-	
+	"github.com/hengadev/errsx"
+
 	"github.com/google/uuid"
-	
 )
 
 // DocumentBaseEncx represents the encrypted version of DocumentBase
 type DocumentBaseEncx struct {
-	
 	ID uuid.UUID `db:"id" json:"id"`
-	
+
 	Status DocumentStatus `db:"status" json:"status"`
-	
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
-	
+
 	UpdatedAt time.Time `db:"updatedat" json:"updatedat"`
-	
-	
+
 	CaseIDEncrypted []byte `db:"caseid_encrypted" json:"caseid_encrypted"`
-	
+
 	ClientIDEncrypted []byte `db:"clientid_encrypted" json:"clientid_encrypted"`
-	
 
 	// Essential encryption fields
-	DEKEncrypted  []byte `db:"dek_encrypted" json:"dek_encrypted"`
-	KeyVersion    int    `db:"key_version" json:"key_version"`
+	DEKEncrypted []byte `db:"dek_encrypted" json:"dek_encrypted"`
+	KeyVersion   int    `db:"key_version" json:"key_version"`
 
 	// Metadata
-	Metadata      encx.EncryptionMetadata `db:"metadata" json:"metadata"`
+	Metadata encx.EncryptionMetadata `db:"metadata" json:"metadata"`
 }
 
 // ProcessDocumentBaseEncx encrypts and hashes fields based on encx tags
@@ -54,15 +50,14 @@ func ProcessDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.Status = source.Status
-	
+
 	result.CreatedAt = source.CreatedAt
-	
+
 	result.UpdatedAt = source.UpdatedAt
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -71,37 +66,31 @@ func ProcessDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Process CaseID (encrypt)
 	if source.CaseID != uuid.Nil {
-	CaseIDBytes, err := encx.SerializeValue(source.CaseID)
-	if err != nil {
-		errs.Set("CaseID serialization", err)
-	} else {
-		result.CaseIDEncrypted, err = crypto.EncryptData(ctx, CaseIDBytes, dek)
+		CaseIDBytes, err := encx.SerializeValue(source.CaseID)
 		if err != nil {
-			errs.Set("CaseID encryption", err)
+			errs.Set("CaseID serialization", err)
+		} else {
+			result.CaseIDEncrypted, err = crypto.EncryptData(ctx, CaseIDBytes, dek)
+			if err != nil {
+				errs.Set("CaseID encryption", err)
+			}
 		}
 	}
-	}
-	
-	
-	
+
 	// Process ClientID (encrypt)
 	if source.ClientID != uuid.Nil {
-	ClientIDBytes, err := encx.SerializeValue(source.ClientID)
-	if err != nil {
-		errs.Set("ClientID serialization", err)
-	} else {
-		result.ClientIDEncrypted, err = crypto.EncryptData(ctx, ClientIDBytes, dek)
+		ClientIDBytes, err := encx.SerializeValue(source.ClientID)
 		if err != nil {
-			errs.Set("ClientID encryption", err)
+			errs.Set("ClientID serialization", err)
+		} else {
+			result.ClientIDEncrypted, err = crypto.EncryptData(ctx, ClientIDBytes, dek)
+			if err != nil {
+				errs.Set("ClientID encryption", err)
+			}
 		}
 	}
-	}
-	
-	
 
 	// Encrypt and store DEK
 	result.DEKEncrypted, err = crypto.EncryptDEK(ctx, dek)
@@ -126,15 +115,14 @@ func DecryptDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 	result := &DocumentBase{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
+
 	result.Status = source.Status
-	
+
 	result.CreatedAt = source.CreatedAt
-	
+
 	result.UpdatedAt = source.UpdatedAt
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)
@@ -143,8 +131,6 @@ func DecryptDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 		return result, errs.AsError()
 	}
 
-	
-	
 	// Decrypt CaseID
 	if len(source.CaseIDEncrypted) > 0 {
 		CaseIDBytes, err := crypto.DecryptData(ctx, source.CaseIDEncrypted, dek)
@@ -157,8 +143,7 @@ func DecryptDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 			}
 		}
 	}
-	
-	
+
 	// Decrypt ClientID
 	if len(source.ClientIDEncrypted) > 0 {
 		ClientIDBytes, err := crypto.DecryptData(ctx, source.ClientIDEncrypted, dek)
@@ -171,7 +156,6 @@ func DecryptDocumentBaseEncx(ctx context.Context, crypto encx.CryptoService, sou
 			}
 		}
 	}
-	
 
 	return result, errs.AsError()
 }

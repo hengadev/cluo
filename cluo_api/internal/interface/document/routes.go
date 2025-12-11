@@ -97,3 +97,4 @@ func RegisterRoutes(r chi.Router, service ports.DocumentService) {
 		})
 	})
 }
+

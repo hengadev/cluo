@@ -6,13 +6,11 @@ import (
 	"encoding/json"
 	"fmt"
 	"strings"
-	"time"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/hengadev/cluo_api/internal/domain"
+	"github.com/hengadev/cluo_api/internal/domain/document"
 	"github.com/hengadev/cluo_api/internal/ports"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repository struct {
@@ -24,67 +22,67 @@ func New(pool *pgxpool.Pool) ports.DocumentRepository {
 }
 
 // Generic document operations
-func (r *Repository) Create(ctx context.Context, doc domain.Documentable) error {
+func (r *Repository) Create(ctx context.Context, doc document.Documentable) error {
 	switch d := doc.(type) {
-	case *domain.Estimate:
+	case *document.Estimate:
 		return r.CreateEstimate(ctx, d)
-	case *domain.Mandate:
+	case *document.Mandate:
 		return r.CreateMandate(ctx, d)
-	case *domain.Contract:
+	case *document.Contract:
 		return r.CreateContract(ctx, d)
-	case *domain.Invoice:
+	case *document.Invoice:
 		return r.CreateInvoice(ctx, d)
 	default:
 		return fmt.Errorf("unsupported document type: %T", doc)
 	}
 }
 
-func (r *Repository) GetByID(ctx context.Context, id string, docType domain.DocumentType) (domain.Documentable, error) {
+func (r *Repository) GetByID(ctx context.Context, id string, docType document.DocumentType) (document.Documentable, error) {
 	switch docType {
-	case domain.DocumentTypeEstimate:
+	case document.DocumentTypeEstimate:
 		return r.GetEstimateByID(ctx, id)
-	case domain.DocumentTypeMandate:
+	case document.DocumentTypeMandate:
 		return r.GetMandateByID(ctx, id)
-	case domain.DocumentTypeContract:
+	case document.DocumentTypeContract:
 		return r.GetContractByID(ctx, id)
-	case domain.DocumentTypeInvoice:
+	case document.DocumentTypeInvoice:
 		return r.GetInvoiceByID(ctx, id)
 	default:
 		return nil, fmt.Errorf("unsupported document type: %s", docType)
 	}
 }
 
-func (r *Repository) Update(ctx context.Context, doc domain.Documentable) error {
+func (r *Repository) Update(ctx context.Context, doc document.Documentable) error {
 	switch d := doc.(type) {
-	case *domain.Estimate:
+	case *document.Estimate:
 		return r.UpdateEstimate(ctx, d)
-	case *domain.Mandate:
+	case *document.Mandate:
 		return r.UpdateMandate(ctx, d)
-	case *domain.Contract:
+	case *document.Contract:
 		return r.UpdateContract(ctx, d)
-	case *domain.Invoice:
+	case *document.Invoice:
 		return r.UpdateInvoice(ctx, d)
 	default:
 		return fmt.Errorf("unsupported document type: %T", doc)
 	}
 }
 
-func (r *Repository) Delete(ctx context.Context, id string, docType domain.DocumentType) error {
+func (r *Repository) Delete(ctx context.Context, id string, docType document.DocumentType) error {
 	switch docType {
-	case domain.DocumentTypeEstimate:
+	case document.DocumentTypeEstimate:
 		return r.DeleteEstimate(ctx, id)
-	case domain.DocumentTypeMandate:
+	case document.DocumentTypeMandate:
 		return r.DeleteMandate(ctx, id)
-	case domain.DocumentTypeContract:
+	case document.DocumentTypeContract:
 		return r.DeleteContract(ctx, id)
-	case domain.DocumentTypeInvoice:
+	case document.DocumentTypeInvoice:
 		return r.DeleteInvoice(ctx, id)
 	default:
 		return fmt.Errorf("unsupported document type: %s", docType)
 	}
 }
 
-func (r *Repository) List(ctx context.Context, filter domain.DocumentFilter, pagination domain.Pagination) ([]domain.DocumentSummary, int, error) {
+func (r *Repository) List(ctx context.Context, filter document.DocumentFilter, pagination document.Pagination) ([]document.DocumentSummary, int, error) {
 	// Build WHERE clause
 	whereConditions := []string{}
 	args := []interface{}{}
@@ -181,9 +179,9 @@ func (r *Repository) List(ctx context.Context, filter domain.DocumentFilter, pag
 	}
 	defer rows.Close()
 
-	var documents []domain.DocumentSummary
+	var documents []document.DocumentSummary
 	for rows.Next() {
-		var doc domain.DocumentSummary
+		var doc document.DocumentSummary
 		err := rows.Scan(
 			&doc.ID, &doc.CaseID, &doc.ClientID, &doc.Type, &doc.Status,
 			&doc.DocumentRef, &doc.CreatedAt, &doc.UpdatedAt,
@@ -198,7 +196,7 @@ func (r *Repository) List(ctx context.Context, filter domain.DocumentFilter, pag
 }
 
 // Estimate operations
-func (r *Repository) CreateEstimate(ctx context.Context, estimate *domain.Estimate) error {
+func (r *Repository) CreateEstimate(ctx context.Context, estimate *document.Estimate) error {
 	lineItemsJSON, err := json.Marshal(estimate.LineItems)
 	if err != nil {
 		return fmt.Errorf("failed to marshal line items: %w", err)
@@ -225,7 +223,7 @@ func (r *Repository) CreateEstimate(ctx context.Context, estimate *domain.Estima
 	return nil
 }
 
-func (r *Repository) GetEstimateByID(ctx context.Context, id string) (*domain.Estimate, error) {
+func (r *Repository) GetEstimateByID(ctx context.Context, id string) (*document.Estimate, error) {
 	query := `
 		SELECT id, case_id, client_id, status, estimate_number, issue_date, valid_until,
 			   line_items, estimated_total, notes, accepted, accepted_at, accepted_by,
@@ -235,7 +233,7 @@ func (r *Repository) GetEstimateByID(ctx context.Context, id string) (*domain.Es
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var estimate domain.Estimate
+	var estimate document.Estimate
 	var lineItemsJSON []byte
 
 	err := row.Scan(
@@ -260,7 +258,7 @@ func (r *Repository) GetEstimateByID(ctx context.Context, id string) (*domain.Es
 	return &estimate, nil
 }
 
-func (r *Repository) UpdateEstimate(ctx context.Context, estimate *domain.Estimate) error {
+func (r *Repository) UpdateEstimate(ctx context.Context, estimate *document.Estimate) error {
 	lineItemsJSON, err := json.Marshal(estimate.LineItems)
 	if err != nil {
 		return fmt.Errorf("failed to marshal line items: %w", err)
@@ -298,7 +296,7 @@ func (r *Repository) DeleteEstimate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) ListEstimatesByCase(ctx context.Context, caseID string, pagination domain.Pagination) ([]*domain.Estimate, int, error) {
+func (r *Repository) ListEstimatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Estimate, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM estimates WHERE case_id = $1", caseID).Scan(&total)
@@ -325,9 +323,9 @@ func (r *Repository) ListEstimatesByCase(ctx context.Context, caseID string, pag
 	}
 	defer rows.Close()
 
-	var estimates []*domain.Estimate
+	var estimates []*document.Estimate
 	for rows.Next() {
-		var estimate domain.Estimate
+		var estimate document.Estimate
 		var lineItemsJSON []byte
 
 		err := rows.Scan(
@@ -353,7 +351,7 @@ func (r *Repository) ListEstimatesByCase(ctx context.Context, caseID string, pag
 }
 
 // Mandate operations
-func (r *Repository) CreateMandate(ctx context.Context, mandate *domain.Mandate) error {
+func (r *Repository) CreateMandate(ctx context.Context, mandate *document.Mandate) error {
 	var clientSignatureJSON, investigatorSignatureJSON []byte
 	var err error
 
@@ -394,7 +392,7 @@ func (r *Repository) CreateMandate(ctx context.Context, mandate *domain.Mandate)
 	return nil
 }
 
-func (r *Repository) GetMandateByID(ctx context.Context, id string) (*domain.Mandate, error) {
+func (r *Repository) GetMandateByID(ctx context.Context, id string) (*document.Mandate, error) {
 	query := `
 		SELECT id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
 			   valid_from, valid_until, terms_conditions, client_signature,
@@ -405,7 +403,7 @@ func (r *Repository) GetMandateByID(ctx context.Context, id string) (*domain.Man
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var mandate domain.Mandate
+	var mandate document.Mandate
 	var clientSignatureJSON, investigatorSignatureJSON []byte
 
 	err := row.Scan(
@@ -439,7 +437,7 @@ func (r *Repository) GetMandateByID(ctx context.Context, id string) (*domain.Man
 	return &mandate, nil
 }
 
-func (r *Repository) UpdateMandate(ctx context.Context, mandate *domain.Mandate) error {
+func (r *Repository) UpdateMandate(ctx context.Context, mandate *document.Mandate) error {
 	var clientSignatureJSON, investigatorSignatureJSON []byte
 	var err error
 
@@ -491,7 +489,7 @@ func (r *Repository) DeleteMandate(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagination domain.Pagination) ([]*domain.Mandate, int, error) {
+func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Mandate, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM mandates WHERE case_id = $1", caseID).Scan(&total)
@@ -519,9 +517,9 @@ func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagi
 	}
 	defer rows.Close()
 
-	var mandates []*domain.Mandate
+	var mandates []*document.Mandate
 	for rows.Next() {
-		var mandate domain.Mandate
+		var mandate document.Mandate
 		var clientSignatureJSON, investigatorSignatureJSON []byte
 
 		err := rows.Scan(
@@ -556,7 +554,7 @@ func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagi
 }
 
 // Contract operations
-func (r *Repository) CreateContract(ctx context.Context, contract *domain.Contract) error {
+func (r *Repository) CreateContract(ctx context.Context, contract *document.Contract) error {
 	signaturesJSON, err := json.Marshal(contract.Signatures)
 	if err != nil {
 		return fmt.Errorf("failed to marshal signatures: %w", err)
@@ -585,7 +583,7 @@ func (r *Repository) CreateContract(ctx context.Context, contract *domain.Contra
 	return nil
 }
 
-func (r *Repository) GetContractByID(ctx context.Context, id string) (*domain.Contract, error) {
+func (r *Repository) GetContractByID(ctx context.Context, id string) (*document.Contract, error) {
 	query := `
 		SELECT id, case_id, client_id, status, contract_number, start_date, end_date,
 			   scope_of_services, payment_terms, confidentiality, termination_clause,
@@ -596,7 +594,7 @@ func (r *Repository) GetContractByID(ctx context.Context, id string) (*domain.Co
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var contract domain.Contract
+	var contract document.Contract
 	var signaturesJSON []byte
 
 	err := row.Scan(
@@ -622,7 +620,7 @@ func (r *Repository) GetContractByID(ctx context.Context, id string) (*domain.Co
 	return &contract, nil
 }
 
-func (r *Repository) UpdateContract(ctx context.Context, contract *domain.Contract) error {
+func (r *Repository) UpdateContract(ctx context.Context, contract *document.Contract) error {
 	signaturesJSON, err := json.Marshal(contract.Signatures)
 	if err != nil {
 		return fmt.Errorf("failed to marshal signatures: %w", err)
@@ -662,7 +660,7 @@ func (r *Repository) DeleteContract(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pagination domain.Pagination) ([]*domain.Contract, int, error) {
+func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Contract, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM contracts WHERE case_id = $1", caseID).Scan(&total)
@@ -690,9 +688,9 @@ func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pag
 	}
 	defer rows.Close()
 
-	var contracts []*domain.Contract
+	var contracts []*document.Contract
 	for rows.Next() {
-		var contract domain.Contract
+		var contract document.Contract
 		var signaturesJSON []byte
 
 		err := rows.Scan(
@@ -719,7 +717,7 @@ func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pag
 }
 
 // Invoice operations
-func (r *Repository) CreateInvoice(ctx context.Context, invoice *domain.Invoice) error {
+func (r *Repository) CreateInvoice(ctx context.Context, invoice *document.Invoice) error {
 	lineItemsJSON, err := json.Marshal(invoice.LineItems)
 	if err != nil {
 		return fmt.Errorf("failed to marshal line items: %w", err)
@@ -750,7 +748,7 @@ func (r *Repository) CreateInvoice(ctx context.Context, invoice *domain.Invoice)
 	return nil
 }
 
-func (r *Repository) GetInvoiceByID(ctx context.Context, id string) (*domain.Invoice, error) {
+func (r *Repository) GetInvoiceByID(ctx context.Context, id string) (*document.Invoice, error) {
 	query := `
 		SELECT id, case_id, client_id, status, invoice_number, issue_date, due_date,
 			   line_items, total_amount, tax_rate, tax_amount, notes, payment_status,
@@ -761,7 +759,7 @@ func (r *Repository) GetInvoiceByID(ctx context.Context, id string) (*domain.Inv
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var invoice domain.Invoice
+	var invoice document.Invoice
 	var lineItemsJSON []byte
 
 	err := row.Scan(
@@ -788,7 +786,7 @@ func (r *Repository) GetInvoiceByID(ctx context.Context, id string) (*domain.Inv
 	return &invoice, nil
 }
 
-func (r *Repository) UpdateInvoice(ctx context.Context, invoice *domain.Invoice) error {
+func (r *Repository) UpdateInvoice(ctx context.Context, invoice *document.Invoice) error {
 	lineItemsJSON, err := json.Marshal(invoice.LineItems)
 	if err != nil {
 		return fmt.Errorf("failed to marshal line items: %w", err)
@@ -830,7 +828,7 @@ func (r *Repository) DeleteInvoice(ctx context.Context, id string) error {
 	return nil
 }
 
-func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagination domain.Pagination) ([]*domain.Invoice, int, error) {
+func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Invoice, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM invoices WHERE case_id = $1", caseID).Scan(&total)
@@ -858,9 +856,9 @@ func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagi
 	}
 	defer rows.Close()
 
-	var invoices []*domain.Invoice
+	var invoices []*document.Invoice
 	for rows.Next() {
-		var invoice domain.Invoice
+		var invoice document.Invoice
 		var lineItemsJSON []byte
 
 		err := rows.Scan(
@@ -888,11 +886,11 @@ func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagi
 }
 
 // Document linking operations
-func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, docType domain.DocumentType) ([]domain.Documentable, error) {
-	var linkedDocs []domain.Documentable
+func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, docType document.DocumentType) ([]document.Documentable, error) {
+	var linkedDocs []document.Documentable
 
 	switch docType {
-	case domain.DocumentTypeEstimate:
+	case document.DocumentTypeEstimate:
 		// Get mandates linked to this estimate
 		query := `
 			SELECT id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
@@ -910,7 +908,7 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 		defer rows.Close()
 
 		for rows.Next() {
-			var mandate domain.Mandate
+			var mandate document.Mandate
 			var clientSignatureJSON, investigatorSignatureJSON []byte
 
 			err := rows.Scan(
@@ -941,7 +939,7 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 			linkedDocs = append(linkedDocs, &mandate)
 		}
 
-	case domain.DocumentTypeMandate:
+	case document.DocumentTypeMandate:
 		// Get contracts linked to this mandate
 		query := `
 			SELECT id, case_id, client_id, status, contract_number, start_date, end_date,
@@ -959,7 +957,7 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 		defer rows.Close()
 
 		for rows.Next() {
-			var contract domain.Contract
+			var contract document.Contract
 			var signaturesJSON []byte
 
 			err := rows.Scan(
@@ -982,7 +980,7 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 			linkedDocs = append(linkedDocs, &contract)
 		}
 
-	case domain.DocumentTypeContract:
+	case document.DocumentTypeContract:
 		// Get invoices linked to this contract
 		query := `
 			SELECT id, case_id, client_id, status, invoice_number, issue_date, due_date,
@@ -1000,7 +998,7 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 		defer rows.Close()
 
 		for rows.Next() {
-			var invoice domain.Invoice
+			var invoice document.Invoice
 			var lineItemsJSON []byte
 
 			err := rows.Scan(
@@ -1030,3 +1028,4 @@ func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, 
 
 	return linkedDocs, nil
 }
+

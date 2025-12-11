@@ -1,4 +1,4 @@
-package domain
+package document
 
 import (
 	"fmt"
@@ -11,17 +11,17 @@ import (
 type Mandate struct {
 	DocumentBase
 
-	MandateNumber         string      `json:"mandate_number" db:"mandate_number"`
-	IssueDate             time.Time   `json:"issue_date" db:"issue_date"`
-	ScopeOfWork           string      `json:"scope_of_work" db:"scope_of_work"`
-	ValidFrom             time.Time   `json:"valid_from" db:"valid_from"`
-	ValidUntil            *time.Time  `json:"valid_until,omitempty" db:"valid_until"`
-	TermsConditions       string      `json:"terms_conditions" db:"terms_conditions"`
-	ClientSignature       *Signature  `json:"client_signature,omitempty" db:"client_signature"`
-	InvestigatorSignature *Signature  `json:"investigator_signature,omitempty" db:"investigator_signature"`
-	LinkedEstimateID      *uuid.UUID  `json:"linked_estimate_id,omitempty" db:"linked_estimate_id"`
-	SpecialInstructions   *string     `json:"special_instructions,omitempty" db:"special_instructions"`
-	Jurisdiction          *string     `json:"jurisdiction,omitempty" db:"jurisdiction"`
+	MandateNumber         string     `json:"mandate_number" db:"mandate_number"`
+	IssueDate             time.Time  `json:"issue_date" db:"issue_date"`
+	ScopeOfWork           string     `json:"scope_of_work" db:"scope_of_work"`
+	ValidFrom             time.Time  `json:"valid_from" db:"valid_from"`
+	ValidUntil            *time.Time `json:"valid_until,omitempty" db:"valid_until"`
+	TermsConditions       string     `json:"terms_conditions" db:"terms_conditions"`
+	ClientSignature       *Signature `json:"client_signature,omitempty" db:"client_signature"`
+	InvestigatorSignature *Signature `json:"investigator_signature,omitempty" db:"investigator_signature"`
+	LinkedEstimateID      *uuid.UUID `json:"linked_estimate_id,omitempty" db:"linked_estimate_id"`
+	SpecialInstructions   *string    `json:"special_instructions,omitempty" db:"special_instructions"`
+	Jurisdiction          *string    `json:"jurisdiction,omitempty" db:"jurisdiction"`
 }
 
 // GetType returns the document type.
@@ -101,9 +101,9 @@ func (m *Mandate) IsExpired() bool {
 // IsValid checks if the mandate is currently valid and active.
 func (m *Mandate) IsValid() bool {
 	return m.Status == DocumentStatusActive &&
-		   !m.IsExpired() &&
-		   m.ClientSignature != nil &&
-		   time.Now().After(m.ValidFrom)
+		!m.IsExpired() &&
+		m.ClientSignature != nil &&
+		time.Now().After(m.ValidFrom)
 }
 
 // CanBeSigned checks if the mandate can be signed by the specified role.
@@ -227,3 +227,4 @@ func (m *Mandate) ExtendValidity(newValidUntil time.Time) error {
 	m.UpdateTimestamp()
 	return nil
 }
+

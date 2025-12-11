@@ -5,11 +5,10 @@ import (
 	"database/sql"
 	"fmt"
 
-	"github.com/google/uuid"
-	"github.com/jackc/pgx/v5/pgxpool"
-
-	"github.com/hengadev/cluo_api/internal/domain"
+	"github.com/hengadev/cluo_api/internal/domain/document"
 	"github.com/hengadev/cluo_api/internal/ports"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type VersionRepository struct {
@@ -20,7 +19,7 @@ func NewVersionRepository(pool *pgxpool.Pool) ports.DocumentVersionRepository {
 	return &VersionRepository{pool: pool}
 }
 
-func (r *VersionRepository) CreateVersion(ctx context.Context, version *domain.DocumentVersion) error {
+func (r *VersionRepository) CreateVersion(ctx context.Context, version *document.DocumentVersion) error {
 	query := `
 		INSERT INTO document_versions (
 			id, document_id, doc_type, version, author_id, data, reason, created_at
@@ -44,7 +43,7 @@ func (r *VersionRepository) CreateVersion(ctx context.Context, version *domain.D
 	return nil
 }
 
-func (r *VersionRepository) GetDocumentHistory(ctx context.Context, documentID string, docType domain.DocumentType, pagination domain.Pagination) ([]*domain.DocumentVersion, int, error) {
+func (r *VersionRepository) GetDocumentHistory(ctx context.Context, documentID string, docType document.DocumentType, pagination document.Pagination) ([]*document.DocumentVersion, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx,
@@ -73,9 +72,9 @@ func (r *VersionRepository) GetDocumentHistory(ctx context.Context, documentID s
 	}
 	defer rows.Close()
 
-	var versions []*domain.DocumentVersion
+	var versions []*document.DocumentVersion
 	for rows.Next() {
-		var version domain.DocumentVersion
+		var version document.DocumentVersion
 		err := rows.Scan(
 			&version.ID, &version.DocumentID, &version.DocType, &version.Version,
 			&version.AuthorID, &version.Data, &version.Reason, &version.CreatedAt,
@@ -91,7 +90,7 @@ func (r *VersionRepository) GetDocumentHistory(ctx context.Context, documentID s
 	return versions, total, nil
 }
 
-func (r *VersionRepository) GetVersion(ctx context.Context, documentID string, docType domain.DocumentType, version int) (*domain.DocumentVersion, error) {
+func (r *VersionRepository) GetVersion(ctx context.Context, documentID string, docType document.DocumentType, version int) (*document.DocumentVersion, error) {
 	query := `
 		SELECT id, document_id, doc_type, version, author_id, data, reason, created_at
 		FROM document_versions
@@ -99,7 +98,7 @@ func (r *VersionRepository) GetVersion(ctx context.Context, documentID string, d
 	`
 
 	row := r.pool.QueryRow(ctx, query, documentID, docType, version)
-	var documentVersion domain.DocumentVersion
+	var documentVersion document.DocumentVersion
 
 	err := row.Scan(
 		&documentVersion.ID, &documentVersion.DocumentID, &documentVersion.DocType,
@@ -117,7 +116,7 @@ func (r *VersionRepository) GetVersion(ctx context.Context, documentID string, d
 	return &documentVersion, nil
 }
 
-func (r *VersionRepository) DeleteVersions(ctx context.Context, documentID string, docType domain.DocumentType) error {
+func (r *VersionRepository) DeleteVersions(ctx context.Context, documentID string, docType document.DocumentType) error {
 	query := `DELETE FROM document_versions WHERE document_id = $1 AND doc_type = $2`
 	_, err := r.pool.Exec(ctx, query, documentID, docType)
 	if err != nil {
