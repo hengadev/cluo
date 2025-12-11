@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// ListEstimatesByCase retrieves all estimates for a specific case with pagination.
+func (r *Repository) ListEstimatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Estimate, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM estimates WHERE case_id = $1", caseID).Scan(&total)
@@ -59,4 +62,3 @@ import (
 
 	return estimates, total, nil
 }
-
