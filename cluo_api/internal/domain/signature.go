@@ -9,14 +9,14 @@ import (
 // Signature represents a digital or wet signature on a document.
 type Signature struct {
 	ID               uuid.UUID  `json:"id" db:"id"`
-	Name             string     `json:"name" db:"name"`
+	Name             string     `encx:"encrypt" json:"name" db:"name_encrypted"`
 	Role             string     `json:"role" db:"role"` // e.g., "client", "investigator", "witness"
 	SignedAt         time.Time  `json:"signed_at" db:"signed_at"`
-	SignatureFileURL string     `json:"signature_file_url" db:"signature_file_url"` // URL to stored signature (image/PDF) or digital signature envelope ID
-	Method           string     `json:"method" db:"method"`                         // "e-sign", "wet", "pdf-stamp", "third-party"
-	SignerID         *uuid.UUID `json:"signer_id" db:"signer_id,omitempty"`         // Reference to the user who signed
-	IPAddress        *string    `json:"ip_address" db:"ip_address,omitempty"`       // IP address when signature was captured
-	UserAgent        *string    `json:"user_agent" db:"user_agent,omitempty"`       // Browser/user agent when signature was captured
+	SignatureFileURL string     `encx:"encrypt" json:"signature_file_url" db:"signature_file_url_encrypted"` // URL to stored signature (image/PDF) or digital signature envelope ID
+	Method           string     `json:"method" db:"method"`                                                  // "e-sign", "wet", "pdf-stamp", "third-party"
+	SignerID         *uuid.UUID `json:"signer_id" db:"signer_id,omitempty"`                                  // Reference to the user who signed
+	IPAddress        *string    `encx:"encrypt" json:"ip_address" db:"ip_address_encrypted,omitempty"`       // IP address when signature was captured
+	UserAgent        *string    `encx:"encrypt" json:"user_agent" db:"user_agent_encrypted,omitempty"`       // Browser/user agent when signature was captured
 }
 
 // Validate performs validation on the signature.
