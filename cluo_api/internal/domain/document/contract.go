@@ -11,18 +11,18 @@ import (
 type Contract struct {
 	DocumentBase
 
-	ContractNumber    string      `json:"contract_number" db:"contract_number"`
+	ContractNumber    string      `encx:"encrypt" json:"contract_number" db:"contract_number_encrypted"`
 	StartDate         time.Time   `json:"start_date" db:"start_date"`
 	EndDate           *time.Time  `json:"end_date,omitempty" db:"end_date"`
-	ScopeOfServices   string      `json:"scope_of_services" db:"scope_of_services"`
-	PaymentTerms      string      `json:"payment_terms" db:"payment_terms"`
-	Confidentiality   string      `json:"confidentiality" db:"confidentiality"`
-	TerminationClause string      `json:"termination_clause" db:"termination_clause"`
-	Signatures        []Signature `json:"signatures" db:"signatures"`
+	ScopeOfServices   string      `encx:"encrypt" json:"scope_of_services" db:"scope_of_services_encrypted"`
+	PaymentTerms      string      `encx:"encrypt" json:"payment_terms" db:"payment_terms_encrypted"`
+	Confidentiality   string      `encx:"encrypt" json:"confidentiality" db:"confidentiality_encrypted"`
+	TerminationClause string      `encx:"encrypt" json:"termination_clause" db:"termination_clause_encrypted"`
+	Signatures        []Signature `encx:"encrypt" json:"signatures" db:"signatures_encrypted"`
 	LinkedMandateID   *uuid.UUID  `json:"linked_mandate_id,omitempty" db:"linked_mandate_id"`
-	ContractValue     *float64    `json:"contract_value,omitempty" db:"contract_value"`
+	ContractValue     *float64    `encx:"encrypt" json:"contract_value,omitempty" db:"contract_value_encrypted"`
 	Currency          *string     `json:"currency,omitempty" db:"currency"`
-	RenewalTerms      *string     `json:"renewal_terms,omitempty" db:"renewal_terms"`
+	RenewalTerms      *string     `encx:"encrypt" json:"renewal_terms,omitempty" db:"renewal_terms_encrypted"`
 	GoverningLaw      *string     `json:"governing_law,omitempty" db:"governing_law"`
 }
 
