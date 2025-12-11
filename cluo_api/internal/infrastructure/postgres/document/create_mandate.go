@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// CreateMandate creates a new mandate in the database.
+func (r *Repository) CreateMandate(ctx context.Context, mandate *document.Mandate) error {
 	var clientSignatureJSON, investigatorSignatureJSON []byte
 	var err error
 

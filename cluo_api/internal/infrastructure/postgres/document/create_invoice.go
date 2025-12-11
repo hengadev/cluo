@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// CreateInvoice creates a new invoice in the database.
+func (r *Repository) CreateInvoice(ctx context.Context, invoice *document.Invoice) error {
 	lineItemsJSON, err := json.Marshal(invoice.LineItems)
 	if err != nil {
 		return fmt.Errorf("failed to marshal line items: %w", err)

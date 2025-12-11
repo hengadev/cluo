@@ -2,11 +2,15 @@ package documentRepository
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// GetMandateByID retrieves a mandate by its ID.
+func (r *Repository) GetMandateByID(ctx context.Context, id string) (*document.Mandate, error) {
 	query := `
 		SELECT id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
 			   valid_from, valid_until, terms_conditions, client_signature,

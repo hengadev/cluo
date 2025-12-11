@@ -2,11 +2,15 @@ package documentRepository
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// GetContractByID retrieves a contract by its ID.
+func (r *Repository) GetContractByID(ctx context.Context, id string) (*document.Contract, error) {
 	query := `
 		SELECT id, case_id, client_id, status, contract_number, start_date, end_date,
 			   scope_of_services, payment_terms, confidentiality, termination_clause,

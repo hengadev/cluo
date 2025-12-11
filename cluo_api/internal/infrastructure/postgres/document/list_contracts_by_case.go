@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// ListContractsByCase retrieves all contracts for a specific case with pagination.
+func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Contract, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM contracts WHERE case_id = $1", caseID).Scan(&total)
@@ -61,4 +64,3 @@ import (
 
 	return contracts, total, nil
 }
-

@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// UpdateContract updates an existing contract in the database.
+func (r *Repository) UpdateContract(ctx context.Context, contract *document.Contract) error {
 	signaturesJSON, err := json.Marshal(contract.Signatures)
 	if err != nil {
 		return fmt.Errorf("failed to marshal signatures: %w", err)

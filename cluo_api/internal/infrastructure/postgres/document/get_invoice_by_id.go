@@ -2,11 +2,15 @@ package documentRepository
 
 import (
 	"context"
+	"database/sql"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// GetInvoiceByID retrieves an invoice by its ID.
+func (r *Repository) GetInvoiceByID(ctx context.Context, id string) (*document.Invoice, error) {
 	query := `
 		SELECT id, case_id, client_id, status, invoice_number, issue_date, due_date,
 			   line_items, total_amount, tax_rate, tax_amount, notes, payment_status,

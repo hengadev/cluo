@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// ListMandatesByCase retrieves all mandates for a specific case with pagination.
+func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Mandate, int, error) {
 	// Get total count
 	var total int
 	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM mandates WHERE case_id = $1", caseID).Scan(&total)
@@ -69,4 +72,3 @@ import (
 
 	return mandates, total, nil
 }
-

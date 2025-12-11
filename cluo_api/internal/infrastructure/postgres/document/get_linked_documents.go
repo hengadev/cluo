@@ -2,11 +2,14 @@ package documentRepository
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
+// GetLinkedDocuments retrieves documents that are linked to the given document.
+func (r *Repository) GetLinkedDocuments(ctx context.Context, documentID string, docType document.DocumentType) ([]document.Documentable, error) {
 	var linkedDocs []document.Documentable
 
 	switch docType {
