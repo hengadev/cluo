@@ -11,22 +11,22 @@ import (
 type Invoice struct {
 	DocumentBase
 
-	InvoiceNumber    string        `json:"invoice_number" db:"invoice_number"`
+	InvoiceNumber    string        `encx:"encrypt" json:"invoice_number" db:"invoice_number_encrypted"`
 	IssueDate        time.Time     `json:"issue_date" db:"issue_date"`
 	DueDate          time.Time     `json:"due_date" db:"due_date"`
-	LineItems        []InvoiceItem `json:"line_items" db:"line_items"`
-	TotalAmount      float64       `json:"total_amount" db:"total_amount"`
+	LineItems        []InvoiceItem `encx:"encrypt" json:"line_items" db:"line_items_encrypted"`
+	TotalAmount      float64       `encx:"encrypt" json:"total_amount" db:"total_amount_encrypted"`
 	TaxRate          float64       `json:"tax_rate" db:"tax_rate"`
-	TaxAmount        float64       `json:"tax_amount" db:"tax_amount"`
-	Notes            *string       `json:"notes,omitempty" db:"notes"`
+	TaxAmount        float64       `encx:"encrypt" json:"tax_amount" db:"tax_amount_encrypted"`
+	Notes            *string       `encx:"encrypt" json:"notes,omitempty" db:"notes_encrypted"`
 	PaymentStatus    PaymentStatus `json:"payment_status" db:"payment_status"`
 	PaidAt           *time.Time    `json:"paid_at,omitempty" db:"paid_at"`
-	PaidAmount       *float64      `json:"paid_amount,omitempty" db:"paid_amount"`
-	PaymentMethod    *string       `json:"payment_method,omitempty" db:"payment_method"`
+	PaidAmount       *float64      `encx:"encrypt" json:"paid_amount,omitempty" db:"paid_amount_encrypted"`
+	PaymentMethod    *string       `encx:"encrypt" json:"payment_method,omitempty" db:"payment_method_encrypted"`
 	LinkedContractID *uuid.UUID    `json:"linked_contract_id,omitempty" db:"linked_contract_id"`
 	Currency         *string       `json:"currency,omitempty" db:"currency"`
-	PaymentTerms     *string       `json:"payment_terms,omitempty" db:"payment_terms"`
-	LateFee          *float64      `json:"late_fee,omitempty" db:"late_fee"`
+	PaymentTerms     *string       `encx:"encrypt" json:"payment_terms,omitempty" db:"payment_terms_encrypted"`
+	LateFee          *float64      `encx:"encrypt" json:"late_fee,omitempty" db:"late_fee_encrypted"`
 	LateFeeRate      *float64      `json:"late_fee_rate,omitempty" db:"late_fee_rate"`
 }
 
