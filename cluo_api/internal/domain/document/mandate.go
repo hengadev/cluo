@@ -11,16 +11,16 @@ import (
 type Mandate struct {
 	DocumentBase
 
-	MandateNumber         string     `json:"mandate_number" db:"mandate_number"`
+	MandateNumber         string     `encx:"encrypt" json:"mandate_number" db:"mandate_number_encrypted"`
 	IssueDate             time.Time  `json:"issue_date" db:"issue_date"`
-	ScopeOfWork           string     `json:"scope_of_work" db:"scope_of_work"`
+	ScopeOfWork           string     `encx:"encrypt" json:"scope_of_work" db:"scope_of_work_encrypted"`
 	ValidFrom             time.Time  `json:"valid_from" db:"valid_from"`
 	ValidUntil            *time.Time `json:"valid_until,omitempty" db:"valid_until"`
-	TermsConditions       string     `json:"terms_conditions" db:"terms_conditions"`
-	ClientSignature       *Signature `json:"client_signature,omitempty" db:"client_signature"`
-	InvestigatorSignature *Signature `json:"investigator_signature,omitempty" db:"investigator_signature"`
+	TermsConditions       string     `encx:"encrypt" json:"terms_conditions" db:"terms_conditions_encrypted"`
+	ClientSignature       *Signature `encx:"encrypt" json:"client_signature,omitempty" db:"client_signature_encrypted"`
+	InvestigatorSignature *Signature `encx:"encrypt" json:"investigator_signature,omitempty" db:"investigator_signature_encrypted"`
 	LinkedEstimateID      *uuid.UUID `json:"linked_estimate_id,omitempty" db:"linked_estimate_id"`
-	SpecialInstructions   *string    `json:"special_instructions,omitempty" db:"special_instructions"`
+	SpecialInstructions   *string    `encx:"encrypt" json:"special_instructions,omitempty" db:"special_instructions_encrypted"`
 	Jurisdiction          *string    `json:"jurisdiction,omitempty" db:"jurisdiction"`
 }
 
