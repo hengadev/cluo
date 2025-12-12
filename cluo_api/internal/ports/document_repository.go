@@ -16,32 +16,32 @@ type DocumentRepository interface {
 	List(ctx context.Context, filter document.DocumentFilter, pagination document.Pagination) ([]document.DocumentSummary, int, error)
 
 	// Estimate operations
-	CreateEstimate(ctx context.Context, estimate *document.Estimate) error
-	GetEstimateByID(ctx context.Context, id string) (*document.Estimate, error)
-	UpdateEstimate(ctx context.Context, estimate *document.Estimate) error
+	CreateEstimate(ctx context.Context, estimate *document.EstimateEncx) error
+	GetEstimateByID(ctx context.Context, id string) (*document.EstimateEncx, error)
+	UpdateEstimate(ctx context.Context, estimate *document.EstimateEncx) error
 	DeleteEstimate(ctx context.Context, id string) error
-	ListEstimatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Estimate, int, error)
+	ListEstimatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.EstimateEncx, int, error)
 
 	// Mandate operations
-	CreateMandate(ctx context.Context, mandate *document.Mandate) error
-	GetMandateByID(ctx context.Context, id string) (*document.Mandate, error)
-	UpdateMandate(ctx context.Context, mandate *document.Mandate) error
+	CreateMandate(ctx context.Context, mandate *document.MandateEncx) error
+	GetMandateByID(ctx context.Context, id string) (*document.MandateEncx, error)
+	UpdateMandate(ctx context.Context, mandate *document.MandateEncx) error
 	DeleteMandate(ctx context.Context, id string) error
-	ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Mandate, int, error)
+	ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.MandateEncx, int, error)
 
 	// Contract operations
-	CreateContract(ctx context.Context, contract *document.Contract) error
-	GetContractByID(ctx context.Context, id string) (*document.Contract, error)
-	UpdateContract(ctx context.Context, contract *document.Contract) error
+	CreateContract(ctx context.Context, contract *document.ContractEncx) error
+	GetContractByID(ctx context.Context, id string) (*document.ContractEncx, error)
+	UpdateContract(ctx context.Context, contract *document.ContractEncx) error
 	DeleteContract(ctx context.Context, id string) error
-	ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Contract, int, error)
+	ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.ContractEncx, int, error)
 
 	// Invoice operations
-	CreateInvoice(ctx context.Context, invoice *document.Invoice) error
-	GetInvoiceByID(ctx context.Context, id string) (*document.Invoice, error)
-	UpdateInvoice(ctx context.Context, invoice *document.Invoice) error
+	CreateInvoice(ctx context.Context, invoice *document.InvoiceEncx) error
+	GetInvoiceByID(ctx context.Context, id string) (*document.InvoiceEncx, error)
+	UpdateInvoice(ctx context.Context, invoice *document.InvoiceEncx) error
 	DeleteInvoice(ctx context.Context, id string) error
-	ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Invoice, int, error)
+	ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.InvoiceEncx, int, error)
 
 	// Document linking operations
 	GetLinkedDocuments(ctx context.Context, documentID string, docType document.DocumentType) ([]document.Documentable, error)
