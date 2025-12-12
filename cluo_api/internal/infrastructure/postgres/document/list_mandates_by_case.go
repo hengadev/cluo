@@ -9,10 +9,10 @@ import (
 )
 
 // ListMandatesByCase retrieves all mandates for a specific case with pagination.
-func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Mandate, int, error) {
+func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.MandateEncx, int, error) {
 	// Get total count
 	var total int
-	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM mandates WHERE case_id = $1", caseID).Scan(&total)
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM mandates WHERE caseid_encrypted = $1", caseID).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count mandates: %w", err)
 	}
@@ -21,12 +21,14 @@ func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagi
 	offset := pagination.GetOffset()
 	limit := pagination.PageSize
 	query := `
-		SELECT id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
-			   valid_from, valid_until, terms_conditions, client_signature,
-			   investigator_signature, linked_estimate_id, special_instructions, jurisdiction,
-			   created_at, updated_at
+		SELECT id, status, created_at, updated_at,
+			   caseid_encrypted, clientid_encrypted,
+			   mandatenumber_encrypted, scopeofwork_encrypted, termsconditions_encrypted,
+			   clientsignature_encrypted, investigatorsignature_encrypted, specialinstructions_encrypted,
+			   issue_date, valid_from, valid_until, linked_estimate_id, jurisdiction,
+			   dek_encrypted, key_version, metadata
 		FROM mandates
-		WHERE case_id = $1
+		WHERE caseid_encrypted = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
@@ -37,34 +39,21 @@ func (r *Repository) ListMandatesByCase(ctx context.Context, caseID string, pagi
 	}
 	defer rows.Close()
 
-	var mandates []*document.Mandate
+	var mandates []*document.MandateEncx
 	for rows.Next() {
-		var mandate document.Mandate
-		var clientSignatureJSON, investigatorSignatureJSON []byte
+		var mandate document.MandateEncx
 
 		err := rows.Scan(
-			&mandate.ID, &mandate.CaseID, &mandate.ClientID, &mandate.Status,
-			&mandate.MandateNumber, &mandate.IssueDate, &mandate.ScopeOfWork,
-			&mandate.ValidFrom, &mandate.ValidUntil, &mandate.TermsConditions,
-			&clientSignatureJSON, &investigatorSignatureJSON, &mandate.LinkedEstimateID,
-			&mandate.SpecialInstructions, &mandate.Jurisdiction,
-			&mandate.CreatedAt, &mandate.UpdatedAt,
+			&mandate.ID, &mandate.Status, &mandate.CreatedAt, &mandate.UpdatedAt,
+			&mandate.CaseIDEncrypted, &mandate.ClientIDEncrypted,
+			&mandate.MandateNumberEncrypted, &mandate.ScopeOfWorkEncrypted, &mandate.TermsConditionsEncrypted,
+			&mandate.ClientSignatureEncrypted, &mandate.InvestigatorSignatureEncrypted, &mandate.SpecialInstructionsEncrypted,
+			&mandate.IssueDate, &mandate.ValidFrom, &mandate.ValidUntil, &mandate.LinkedEstimateID, &mandate.Jurisdiction,
+			&mandate.DEKEncrypted, &mandate.KeyVersion, &mandate.Metadata,
 		)
 
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan mandate: %w", err)
-		}
-
-		if len(clientSignatureJSON) > 0 {
-			if err := json.Unmarshal(clientSignatureJSON, &mandate.ClientSignature); err != nil {
-				return nil, 0, fmt.Errorf("failed to unmarshal client signature: %w", err)
-			}
-		}
-
-		if len(investigatorSignatureJSON) > 0 {
-			if err := json.Unmarshal(investigatorSignatureJSON, &mandate.InvestigatorSignature); err != nil {
-				return nil, 0, fmt.Errorf("failed to unmarshal investigator signature: %w", err)
-			}
 		}
 
 		mandates = append(mandates, &mandate)

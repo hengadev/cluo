@@ -9,26 +9,23 @@ import (
 )
 
 // UpdateEstimate updates an existing estimate in the database.
-func (r *Repository) UpdateEstimate(ctx context.Context, estimate *document.Estimate) error {
-	lineItemsJSON, err := json.Marshal(estimate.LineItems)
-	if err != nil {
-		return fmt.Errorf("failed to marshal line items: %w", err)
-	}
-
+func (r *Repository) UpdateEstimate(ctx context.Context, estimate *document.EstimateEncx) error {
 	query := `
 		UPDATE estimates SET
-			case_id = $2, client_id = $3, status = $4, estimate_number = $5,
-			issue_date = $6, valid_until = $7, line_items = $8, estimated_total = $9,
-			notes = $10, accepted = $11, accepted_at = $12, accepted_by = $13,
-			updated_at = NOW()
+			status = $2, updated_at = $3,
+			caseid_encrypted = $4, clientid_encrypted = $5,
+			estimatenumber_encrypted = $6, lineitems_encrypted = $7, estimatedtotal_encrypted = $8, notes_encrypted = $9,
+			issue_date = $10, valid_until = $11, accepted = $12, accepted_at = $13, accepted_by = $14,
+			dek_encrypted = $15, key_version = $16, metadata = $17
 		WHERE id = $1
 	`
 
-	_, err = r.pool.Exec(ctx, query,
-		estimate.ID, estimate.CaseID, estimate.ClientID, estimate.Status,
-		estimate.EstimateNumber, estimate.IssueDate, estimate.ValidUntil,
-		lineItemsJSON, estimate.EstimatedTotal, estimate.Notes,
-		estimate.Accepted, estimate.AcceptedAt, estimate.AcceptedBy,
+	_, err := r.pool.Exec(ctx, query,
+		estimate.ID, estimate.Status, estimate.UpdatedAt,
+		estimate.CaseIDEncrypted, estimate.ClientIDEncrypted,
+		estimate.EstimateNumberEncrypted, estimate.LineItemsEncrypted, estimate.EstimatedTotalEncrypted, estimate.NotesEncrypted,
+		estimate.IssueDate, estimate.ValidUntil, estimate.Accepted, estimate.AcceptedAt, estimate.AcceptedBy,
+		estimate.DEKEncrypted, estimate.KeyVersion, estimate.Metadata,
 	)
 
 	if err != nil {

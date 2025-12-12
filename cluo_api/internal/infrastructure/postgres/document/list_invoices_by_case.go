@@ -9,10 +9,10 @@ import (
 )
 
 // ListInvoicesByCase retrieves all invoices for a specific case with pagination.
-func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Invoice, int, error) {
+func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.InvoiceEncx, int, error) {
 	// Get total count
 	var total int
-	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM invoices WHERE case_id = $1", caseID).Scan(&total)
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM invoices WHERE caseid_encrypted = $1", caseID).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count invoices: %w", err)
 	}
@@ -21,12 +21,16 @@ func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagi
 	offset := pagination.GetOffset()
 	limit := pagination.PageSize
 	query := `
-		SELECT id, case_id, client_id, status, invoice_number, issue_date, due_date,
-			   line_items, total_amount, tax_rate, tax_amount, notes, payment_status,
-			   paid_at, paid_amount, payment_method, linked_contract_id, currency,
-			   payment_terms, late_fee, late_fee_rate, created_at, updated_at
+		SELECT id, status, created_at, updated_at,
+			   caseid_encrypted, clientid_encrypted,
+			   invoicenumber_encrypted, lineitems_encrypted, totalamount_encrypted,
+			   taxamount_encrypted, notes_encrypted, paidamount_encrypted,
+			   paymentmethod_encrypted, paymentterms_encrypted, latefee_encrypted,
+			   issue_date, due_date, tax_rate, payment_status, paid_at,
+			   linked_contract_id, currency, late_fee_rate,
+			   dek_encrypted, key_version, metadata
 		FROM invoices
-		WHERE case_id = $1
+		WHERE caseid_encrypted = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
@@ -37,27 +41,23 @@ func (r *Repository) ListInvoicesByCase(ctx context.Context, caseID string, pagi
 	}
 	defer rows.Close()
 
-	var invoices []*document.Invoice
+	var invoices []*document.InvoiceEncx
 	for rows.Next() {
-		var invoice document.Invoice
-		var lineItemsJSON []byte
+		var invoice document.InvoiceEncx
 
 		err := rows.Scan(
-			&invoice.ID, &invoice.CaseID, &invoice.ClientID, &invoice.Status,
-			&invoice.InvoiceNumber, &invoice.IssueDate, &invoice.DueDate,
-			&lineItemsJSON, &invoice.TotalAmount, &invoice.TaxRate, &invoice.TaxAmount,
-			&invoice.Notes, &invoice.PaymentStatus, &invoice.PaidAt, &invoice.PaidAmount,
-			&invoice.PaymentMethod, &invoice.LinkedContractID, &invoice.Currency,
-			&invoice.PaymentTerms, &invoice.LateFee, &invoice.LateFeeRate,
-			&invoice.CreatedAt, &invoice.UpdatedAt,
+			&invoice.ID, &invoice.Status, &invoice.CreatedAt, &invoice.UpdatedAt,
+			&invoice.CaseIDEncrypted, &invoice.ClientIDEncrypted,
+			&invoice.InvoiceNumberEncrypted, &invoice.LineItemsEncrypted, &invoice.TotalAmountEncrypted,
+			&invoice.TaxAmountEncrypted, &invoice.NotesEncrypted, &invoice.PaidAmountEncrypted,
+			&invoice.PaymentMethodEncrypted, &invoice.PaymentTermsEncrypted, &invoice.LateFeeEncrypted,
+			&invoice.IssueDate, &invoice.DueDate, &invoice.TaxRate, &invoice.PaymentStatus, &invoice.PaidAt,
+			&invoice.LinkedContractID, &invoice.Currency, &invoice.LateFeeRate,
+			&invoice.DEKEncrypted, &invoice.KeyVersion, &invoice.Metadata,
 		)
 
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan invoice: %w", err)
-		}
-
-		if err := json.Unmarshal(lineItemsJSON, &invoice.LineItems); err != nil {
-			return nil, 0, fmt.Errorf("failed to unmarshal line items: %w", err)
 		}
 
 		invoices = append(invoices, &invoice)

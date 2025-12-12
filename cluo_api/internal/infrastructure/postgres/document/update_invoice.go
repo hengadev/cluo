@@ -9,30 +9,29 @@ import (
 )
 
 // UpdateInvoice updates an existing invoice in the database.
-func (r *Repository) UpdateInvoice(ctx context.Context, invoice *document.Invoice) error {
-	lineItemsJSON, err := json.Marshal(invoice.LineItems)
-	if err != nil {
-		return fmt.Errorf("failed to marshal line items: %w", err)
-	}
-
+func (r *Repository) UpdateInvoice(ctx context.Context, invoice *document.InvoiceEncx) error {
 	query := `
 		UPDATE invoices SET
-			case_id = $2, client_id = $3, status = $4, invoice_number = $5,
-			issue_date = $6, due_date = $7, line_items = $8, total_amount = $9,
-			tax_rate = $10, tax_amount = $11, notes = $12, payment_status = $13,
-			paid_at = $14, paid_amount = $15, payment_method = $16, linked_contract_id = $17,
-			currency = $18, payment_terms = $19, late_fee = $20, late_fee_rate = $21,
-			updated_at = NOW()
+			status = $2, updated_at = $3,
+			caseid_encrypted = $4, clientid_encrypted = $5,
+			invoicenumber_encrypted = $6, lineitems_encrypted = $7, totalamount_encrypted = $8,
+			taxamount_encrypted = $9, notes_encrypted = $10, paidamount_encrypted = $11,
+			paymentmethod_encrypted = $12, paymentterms_encrypted = $13, latefee_encrypted = $14,
+			issue_date = $15, due_date = $16, tax_rate = $17, payment_status = $18, paid_at = $19,
+			linked_contract_id = $20, currency = $21, late_fee_rate = $22,
+			dek_encrypted = $23, key_version = $24, metadata = $25
 		WHERE id = $1
 	`
 
-	_, err = r.pool.Exec(ctx, query,
-		invoice.ID, invoice.CaseID, invoice.ClientID, invoice.Status,
-		invoice.InvoiceNumber, invoice.IssueDate, invoice.DueDate,
-		lineItemsJSON, invoice.TotalAmount, invoice.TaxRate, invoice.TaxAmount,
-		invoice.Notes, invoice.PaymentStatus, invoice.PaidAt, invoice.PaidAmount,
-		invoice.PaymentMethod, invoice.LinkedContractID, invoice.Currency,
-		invoice.PaymentTerms, invoice.LateFee, invoice.LateFeeRate,
+	_, err := r.pool.Exec(ctx, query,
+		invoice.ID, invoice.Status, invoice.UpdatedAt,
+		invoice.CaseIDEncrypted, invoice.ClientIDEncrypted,
+		invoice.InvoiceNumberEncrypted, invoice.LineItemsEncrypted, invoice.TotalAmountEncrypted,
+		invoice.TaxAmountEncrypted, invoice.NotesEncrypted, invoice.PaidAmountEncrypted,
+		invoice.PaymentMethodEncrypted, invoice.PaymentTermsEncrypted, invoice.LateFeeEncrypted,
+		invoice.IssueDate, invoice.DueDate, invoice.TaxRate, invoice.PaymentStatus, invoice.PaidAt,
+		invoice.LinkedContractID, invoice.Currency, invoice.LateFeeRate,
+		invoice.DEKEncrypted, invoice.KeyVersion, invoice.Metadata,
 	)
 
 	if err != nil {

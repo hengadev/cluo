@@ -10,13 +10,13 @@ import (
 // Update updates an existing document.
 func (r *Repository) Update(ctx context.Context, doc document.Documentable) error {
 	switch d := doc.(type) {
-	case *document.Estimate:
+	case *document.EstimateEncx:
 		return r.UpdateEstimate(ctx, d)
-	case *document.Mandate:
+	case *document.MandateEncx:
 		return r.UpdateMandate(ctx, d)
-	case *document.Contract:
+	case *document.ContractEncx:
 		return r.UpdateContract(ctx, d)
-	case *document.Invoice:
+	case *document.InvoiceEncx:
 		return r.UpdateInvoice(ctx, d)
 	default:
 		return fmt.Errorf("unsupported document type: %T", doc)

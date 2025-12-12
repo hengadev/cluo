@@ -9,38 +9,25 @@ import (
 )
 
 // CreateMandate creates a new mandate in the database.
-func (r *Repository) CreateMandate(ctx context.Context, mandate *document.Mandate) error {
-	var clientSignatureJSON, investigatorSignatureJSON []byte
-	var err error
-
-	if mandate.ClientSignature != nil {
-		clientSignatureJSON, err = json.Marshal(mandate.ClientSignature)
-		if err != nil {
-			return fmt.Errorf("failed to marshal client signature: %w", err)
-		}
-	}
-
-	if mandate.InvestigatorSignature != nil {
-		investigatorSignatureJSON, err = json.Marshal(mandate.InvestigatorSignature)
-		if err != nil {
-			return fmt.Errorf("failed to marshal investigator signature: %w", err)
-		}
-	}
-
+func (r *Repository) CreateMandate(ctx context.Context, mandate *document.MandateEncx) error {
 	query := `
 		INSERT INTO mandates (
-			id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
-			valid_from, valid_until, terms_conditions, client_signature,
-			investigator_signature, linked_estimate_id, special_instructions, jurisdiction
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+			id, status, created_at, updated_at,
+			caseid_encrypted, clientid_encrypted,
+			mandatenumber_encrypted, scopeofwork_encrypted, termsconditions_encrypted,
+			clientsignature_encrypted, investigatorsignature_encrypted, specialinstructions_encrypted,
+			issue_date, valid_from, valid_until, linked_estimate_id, jurisdiction,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
 	`
 
-	_, err = r.pool.Exec(ctx, query,
-		mandate.ID, mandate.CaseID, mandate.ClientID, mandate.Status,
-		mandate.MandateNumber, mandate.IssueDate, mandate.ScopeOfWork,
-		mandate.ValidFrom, mandate.ValidUntil, mandate.TermsConditions,
-		clientSignatureJSON, investigatorSignatureJSON, mandate.LinkedEstimateID,
-		mandate.SpecialInstructions, mandate.Jurisdiction,
+	_, err := r.pool.Exec(ctx, query,
+		mandate.ID, mandate.Status, mandate.CreatedAt, mandate.UpdatedAt,
+		mandate.CaseIDEncrypted, mandate.ClientIDEncrypted,
+		mandate.MandateNumberEncrypted, mandate.ScopeOfWorkEncrypted, mandate.TermsConditionsEncrypted,
+		mandate.ClientSignatureEncrypted, mandate.InvestigatorSignatureEncrypted, mandate.SpecialInstructionsEncrypted,
+		mandate.IssueDate, mandate.ValidFrom, mandate.ValidUntil, mandate.LinkedEstimateID, mandate.Jurisdiction,
+		mandate.DEKEncrypted, mandate.KeyVersion, mandate.Metadata,
 	)
 
 	if err != nil {

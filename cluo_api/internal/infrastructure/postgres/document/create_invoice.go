@@ -9,28 +9,29 @@ import (
 )
 
 // CreateInvoice creates a new invoice in the database.
-func (r *Repository) CreateInvoice(ctx context.Context, invoice *document.Invoice) error {
-	lineItemsJSON, err := json.Marshal(invoice.LineItems)
-	if err != nil {
-		return fmt.Errorf("failed to marshal line items: %w", err)
-	}
-
+func (r *Repository) CreateInvoice(ctx context.Context, invoice *document.InvoiceEncx) error {
 	query := `
 		INSERT INTO invoices (
-			id, case_id, client_id, status, invoice_number, issue_date, due_date,
-			line_items, total_amount, tax_rate, tax_amount, notes, payment_status,
-			paid_at, paid_amount, payment_method, linked_contract_id, currency,
-			payment_terms, late_fee, late_fee_rate
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21)
+			id, status, created_at, updated_at,
+			caseid_encrypted, clientid_encrypted,
+			invoicenumber_encrypted, lineitems_encrypted, totalamount_encrypted,
+			taxamount_encrypted, notes_encrypted, paidamount_encrypted,
+			paymentmethod_encrypted, paymentterms_encrypted, latefee_encrypted,
+			issue_date, due_date, tax_rate, payment_status, paid_at,
+			linked_contract_id, currency, late_fee_rate,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26)
 	`
 
-	_, err = r.pool.Exec(ctx, query,
-		invoice.ID, invoice.CaseID, invoice.ClientID, invoice.Status,
-		invoice.InvoiceNumber, invoice.IssueDate, invoice.DueDate,
-		lineItemsJSON, invoice.TotalAmount, invoice.TaxRate, invoice.TaxAmount,
-		invoice.Notes, invoice.PaymentStatus, invoice.PaidAt, invoice.PaidAmount,
-		invoice.PaymentMethod, invoice.LinkedContractID, invoice.Currency,
-		invoice.PaymentTerms, invoice.LateFee, invoice.LateFeeRate,
+	_, err := r.pool.Exec(ctx, query,
+		invoice.ID, invoice.Status, invoice.CreatedAt, invoice.UpdatedAt,
+		invoice.CaseIDEncrypted, invoice.ClientIDEncrypted,
+		invoice.InvoiceNumberEncrypted, invoice.LineItemsEncrypted, invoice.TotalAmountEncrypted,
+		invoice.TaxAmountEncrypted, invoice.NotesEncrypted, invoice.PaidAmountEncrypted,
+		invoice.PaymentMethodEncrypted, invoice.PaymentTermsEncrypted, invoice.LateFeeEncrypted,
+		invoice.IssueDate, invoice.DueDate, invoice.TaxRate, invoice.PaymentStatus, invoice.PaidAt,
+		invoice.LinkedContractID, invoice.Currency, invoice.LateFeeRate,
+		invoice.DEKEncrypted, invoice.KeyVersion, invoice.Metadata,
 	)
 
 	if err != nil {

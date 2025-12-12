@@ -10,27 +10,30 @@ import (
 )
 
 // GetContractByID retrieves a contract by its ID.
-func (r *Repository) GetContractByID(ctx context.Context, id string) (*document.Contract, error) {
+func (r *Repository) GetContractByID(ctx context.Context, id string) (*document.ContractEncx, error) {
 	query := `
-		SELECT id, case_id, client_id, status, contract_number, start_date, end_date,
-			   scope_of_services, payment_terms, confidentiality, termination_clause,
-			   signatures, linked_mandate_id, contract_value, currency, renewal_terms, governing_law,
-			   created_at, updated_at
+		SELECT id, status, created_at, updated_at,
+			   caseid_encrypted, clientid_encrypted,
+			   contractnumber_encrypted, scopeofservices_encrypted, paymentterms_encrypted,
+			   confidentiality_encrypted, terminationclause_encrypted, signatures_encrypted,
+			   contractvalue_encrypted, renewalterms_encrypted,
+			   start_date, end_date, linked_mandate_id, currency, governing_law,
+			   dek_encrypted, key_version, metadata
 		FROM contracts
 		WHERE id = $1
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var contract document.Contract
-	var signaturesJSON []byte
+	var contract document.ContractEncx
 
 	err := row.Scan(
-		&contract.ID, &contract.CaseID, &contract.ClientID, &contract.Status,
-		&contract.ContractNumber, &contract.StartDate, &contract.EndDate,
-		&contract.ScopeOfServices, &contract.PaymentTerms, &contract.Confidentiality,
-		&contract.TerminationClause, &signaturesJSON, &contract.LinkedMandateID,
-		&contract.ContractValue, &contract.Currency, &contract.RenewalTerms, &contract.GoverningLaw,
-		&contract.CreatedAt, &contract.UpdatedAt,
+		&contract.ID, &contract.Status, &contract.CreatedAt, &contract.UpdatedAt,
+		&contract.CaseIDEncrypted, &contract.ClientIDEncrypted,
+		&contract.ContractNumberEncrypted, &contract.ScopeOfServicesEncrypted, &contract.PaymentTermsEncrypted,
+		&contract.ConfidentialityEncrypted, &contract.TerminationClauseEncrypted, &contract.SignaturesEncrypted,
+		&contract.ContractValueEncrypted, &contract.RenewalTermsEncrypted,
+		&contract.StartDate, &contract.EndDate, &contract.LinkedMandateID, &contract.Currency, &contract.GoverningLaw,
+		&contract.DEKEncrypted, &contract.KeyVersion, &contract.Metadata,
 	)
 
 	if err != nil {
@@ -38,10 +41,6 @@ func (r *Repository) GetContractByID(ctx context.Context, id string) (*document.
 			return nil, fmt.Errorf("contract not found")
 		}
 		return nil, fmt.Errorf("failed to get contract: %w", err)
-	}
-
-	if err := json.Unmarshal(signaturesJSON, &contract.Signatures); err != nil {
-		return nil, fmt.Errorf("failed to unmarshal signatures: %w", err)
 	}
 
 	return &contract, nil

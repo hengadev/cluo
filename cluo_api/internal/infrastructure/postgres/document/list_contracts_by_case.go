@@ -9,10 +9,10 @@ import (
 )
 
 // ListContractsByCase retrieves all contracts for a specific case with pagination.
-func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.Contract, int, error) {
+func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.ContractEncx, int, error) {
 	// Get total count
 	var total int
-	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM contracts WHERE case_id = $1", caseID).Scan(&total)
+	err := r.pool.QueryRow(ctx, "SELECT COUNT(*) FROM contracts WHERE caseid_encrypted = $1", caseID).Scan(&total)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to count contracts: %w", err)
 	}
@@ -21,12 +21,15 @@ func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pag
 	offset := pagination.GetOffset()
 	limit := pagination.PageSize
 	query := `
-		SELECT id, case_id, client_id, status, contract_number, start_date, end_date,
-			   scope_of_services, payment_terms, confidentiality, termination_clause,
-			   signatures, linked_mandate_id, contract_value, currency, renewal_terms, governing_law,
-			   created_at, updated_at
+		SELECT id, status, created_at, updated_at,
+			   caseid_encrypted, clientid_encrypted,
+			   contractnumber_encrypted, scopeofservices_encrypted, paymentterms_encrypted,
+			   confidentiality_encrypted, terminationclause_encrypted, signatures_encrypted,
+			   contractvalue_encrypted, renewalterms_encrypted,
+			   start_date, end_date, linked_mandate_id, currency, governing_law,
+			   dek_encrypted, key_version, metadata
 		FROM contracts
-		WHERE case_id = $1
+		WHERE caseid_encrypted = $1
 		ORDER BY created_at DESC
 		LIMIT $2 OFFSET $3
 	`
@@ -37,26 +40,22 @@ func (r *Repository) ListContractsByCase(ctx context.Context, caseID string, pag
 	}
 	defer rows.Close()
 
-	var contracts []*document.Contract
+	var contracts []*document.ContractEncx
 	for rows.Next() {
-		var contract document.Contract
-		var signaturesJSON []byte
+		var contract document.ContractEncx
 
 		err := rows.Scan(
-			&contract.ID, &contract.CaseID, &contract.ClientID, &contract.Status,
-			&contract.ContractNumber, &contract.StartDate, &contract.EndDate,
-			&contract.ScopeOfServices, &contract.PaymentTerms, &contract.Confidentiality,
-			&contract.TerminationClause, &signaturesJSON, &contract.LinkedMandateID,
-			&contract.ContractValue, &contract.Currency, &contract.RenewalTerms, &contract.GoverningLaw,
-			&contract.CreatedAt, &contract.UpdatedAt,
+			&contract.ID, &contract.Status, &contract.CreatedAt, &contract.UpdatedAt,
+			&contract.CaseIDEncrypted, &contract.ClientIDEncrypted,
+			&contract.ContractNumberEncrypted, &contract.ScopeOfServicesEncrypted, &contract.PaymentTermsEncrypted,
+			&contract.ConfidentialityEncrypted, &contract.TerminationClauseEncrypted, &contract.SignaturesEncrypted,
+			&contract.ContractValueEncrypted, &contract.RenewalTermsEncrypted,
+			&contract.StartDate, &contract.EndDate, &contract.LinkedMandateID, &contract.Currency, &contract.GoverningLaw,
+			&contract.DEKEncrypted, &contract.KeyVersion, &contract.Metadata,
 		)
 
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan contract: %w", err)
-		}
-
-		if err := json.Unmarshal(signaturesJSON, &contract.Signatures); err != nil {
-			return nil, 0, fmt.Errorf("failed to unmarshal signatures: %w", err)
 		}
 
 		contracts = append(contracts, &contract)

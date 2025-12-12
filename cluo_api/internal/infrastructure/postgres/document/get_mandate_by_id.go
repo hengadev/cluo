@@ -10,27 +10,28 @@ import (
 )
 
 // GetMandateByID retrieves a mandate by its ID.
-func (r *Repository) GetMandateByID(ctx context.Context, id string) (*document.Mandate, error) {
+func (r *Repository) GetMandateByID(ctx context.Context, id string) (*document.MandateEncx, error) {
 	query := `
-		SELECT id, case_id, client_id, status, mandate_number, issue_date, scope_of_work,
-			   valid_from, valid_until, terms_conditions, client_signature,
-			   investigator_signature, linked_estimate_id, special_instructions, jurisdiction,
-			   created_at, updated_at
+		SELECT id, status, created_at, updated_at,
+			   caseid_encrypted, clientid_encrypted,
+			   mandatenumber_encrypted, scopeofwork_encrypted, termsconditions_encrypted,
+			   clientsignature_encrypted, investigatorsignature_encrypted, specialinstructions_encrypted,
+			   issue_date, valid_from, valid_until, linked_estimate_id, jurisdiction,
+			   dek_encrypted, key_version, metadata
 		FROM mandates
 		WHERE id = $1
 	`
 
 	row := r.pool.QueryRow(ctx, query, id)
-	var mandate document.Mandate
-	var clientSignatureJSON, investigatorSignatureJSON []byte
+	var mandate document.MandateEncx
 
 	err := row.Scan(
-		&mandate.ID, &mandate.CaseID, &mandate.ClientID, &mandate.Status,
-		&mandate.MandateNumber, &mandate.IssueDate, &mandate.ScopeOfWork,
-		&mandate.ValidFrom, &mandate.ValidUntil, &mandate.TermsConditions,
-		&clientSignatureJSON, &investigatorSignatureJSON, &mandate.LinkedEstimateID,
-		&mandate.SpecialInstructions, &mandate.Jurisdiction,
-		&mandate.CreatedAt, &mandate.UpdatedAt,
+		&mandate.ID, &mandate.Status, &mandate.CreatedAt, &mandate.UpdatedAt,
+		&mandate.CaseIDEncrypted, &mandate.ClientIDEncrypted,
+		&mandate.MandateNumberEncrypted, &mandate.ScopeOfWorkEncrypted, &mandate.TermsConditionsEncrypted,
+		&mandate.ClientSignatureEncrypted, &mandate.InvestigatorSignatureEncrypted, &mandate.SpecialInstructionsEncrypted,
+		&mandate.IssueDate, &mandate.ValidFrom, &mandate.ValidUntil, &mandate.LinkedEstimateID, &mandate.Jurisdiction,
+		&mandate.DEKEncrypted, &mandate.KeyVersion, &mandate.Metadata,
 	)
 
 	if err != nil {
@@ -38,18 +39,6 @@ func (r *Repository) GetMandateByID(ctx context.Context, id string) (*document.M
 			return nil, fmt.Errorf("mandate not found")
 		}
 		return nil, fmt.Errorf("failed to get mandate: %w", err)
-	}
-
-	if len(clientSignatureJSON) > 0 {
-		if err := json.Unmarshal(clientSignatureJSON, &mandate.ClientSignature); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal client signature: %w", err)
-		}
-	}
-
-	if len(investigatorSignatureJSON) > 0 {
-		if err := json.Unmarshal(investigatorSignatureJSON, &mandate.InvestigatorSignature); err != nil {
-			return nil, fmt.Errorf("failed to unmarshal investigator signature: %w", err)
-		}
 	}
 
 	return &mandate, nil
