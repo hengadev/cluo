@@ -99,10 +99,12 @@ func NewTestMandate(t *testing.T) *document.Mandate {
 		ValidUntil:      &validUntil,
 		TermsConditions: "Standard terms and conditions apply",
 		ClientSignature: &document.Signature{
-			Name:      "John Doe",
-			Role:      "Client",
-			Signature: "signature-base64",
-			SignedAt:  now,
+			ID:               uuid.New(),
+			Name:             "John Doe",
+			Role:             "Client",
+			SignatureFileURL: "https://example.com/signatures/client-signature.png",
+			Method:           "e-sign",
+			SignedAt:         now,
 		},
 		InvestigatorSignature: nil,
 		LinkedEstimateID:      nil,
@@ -137,10 +139,12 @@ func NewTestSignedMandate(t *testing.T) *document.Mandate {
 	mandate := NewTestMandate(t)
 	mandate.Status = document.DocumentStatusSigned
 	mandate.InvestigatorSignature = &document.Signature{
-		Name:      "Jane Smith",
-		Role:      "Lead Investigator",
-		Signature: "investigator-signature-base64",
-		SignedAt:  time.Now(),
+		ID:               uuid.New(),
+		Name:             "Jane Smith",
+		Role:             "Lead Investigator",
+		SignatureFileURL: "https://example.com/signatures/investigator-signature.png",
+		Method:           "e-sign",
+		SignedAt:         time.Now(),
 	}
 	return mandate
 }
@@ -174,10 +178,12 @@ func NewTestContract(t *testing.T) *document.Contract {
 		TerminationClause: terminationClause,
 		Signatures: []document.Signature{
 			{
-				Name:      "John Doe",
-				Role:      "Client",
-				Signature: "client-signature-base64",
-				SignedAt:  now,
+				ID:               uuid.New(),
+				Name:             "John Doe",
+				Role:             "Client",
+				SignatureFileURL: "https://example.com/signatures/contract-client-signature.png",
+				Method:           "e-sign",
+				SignedAt:         now,
 			},
 		},
 	}
@@ -202,10 +208,12 @@ func NewTestActiveContract(t *testing.T) *document.Contract {
 
 	// Add investigator signature
 	contract.Signatures = append(contract.Signatures, document.Signature{
-		Name:      "Jane Smith",
-		Role:      "Lead Investigator",
-		Signature: "investigator-signature-base64",
-		SignedAt:  time.Now(),
+		ID:               uuid.New(),
+		Name:             "Jane Smith",
+		Role:             "Lead Investigator",
+		SignatureFileURL: "https://example.com/signatures/contract-investigator-signature.png",
+		Method:           "e-sign",
+		SignedAt:         time.Now(),
 	})
 
 	return contract
@@ -252,11 +260,10 @@ func NewTestInvoice(t *testing.T) *document.Invoice {
 		TaxAmount:         650.00,
 		Notes:             &notes,
 		PaymentStatus:     document.PaymentStatusUnpaid,
-		PaidAt:            nil,
-		PaidAmount:        nil,
-		PaymentMethod:     nil,
-		PaymentReference:  nil,
-		LinkedContractID:  nil,
+		PaidAt:           nil,
+		PaidAmount:       nil,
+		PaymentMethod:    nil,
+		LinkedContractID: nil,
 		Currency:          &currency,
 		PaymentTerms:      &paymentTerms,
 		LateFee:           nil,
@@ -284,12 +291,10 @@ func NewTestPaidInvoice(t *testing.T) *document.Invoice {
 	paidAt := time.Now()
 	paidAmount := 7150.00 // Total amount + tax
 	paymentMethod := "Bank Transfer"
-	paymentReference := "PAY-2024-001"
 
 	invoice.PaidAt = &paidAt
 	invoice.PaidAmount = &paidAmount
 	invoice.PaymentMethod = &paymentMethod
-	invoice.PaymentReference = &paymentReference
 
 	return invoice
 }
@@ -346,16 +351,20 @@ func CreateDocumentWorkflow(t *testing.T, caseID, clientID uuid.UUID) (*document
 	mandate.ClientID = clientID
 	mandate.Status = document.DocumentStatusSigned
 	mandate.ClientSignature = &document.Signature{
-		Name:      "John Doe",
-		Role:      "Client",
-		Signature: "client-sig",
-		SignedAt:  time.Now(),
+		ID:               uuid.New(),
+		Name:             "John Doe",
+		Role:             "Client",
+		SignatureFileURL: "https://example.com/signatures/workflow-client-sig.png",
+		Method:           "e-sign",
+		SignedAt:         time.Now(),
 	}
 	mandate.InvestigatorSignature = &document.Signature{
-		Name:      "Jane Smith",
-		Role:      "Investigator",
-		Signature: "inv-sig",
-		SignedAt:  time.Now(),
+		ID:               uuid.New(),
+		Name:             "Jane Smith",
+		Role:             "Investigator",
+		SignatureFileURL: "https://example.com/signatures/workflow-inv-sig.png",
+		Method:           "e-sign",
+		SignedAt:         time.Now(),
 	}
 
 	// Create contract from mandate
