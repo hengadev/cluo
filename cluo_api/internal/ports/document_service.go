@@ -3,46 +3,46 @@ package ports
 import (
 	"context"
 
-	"github.com/hengadev/cluo_api/internal/domain"
+	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
 // DocumentService handles business logic for document operations.
 type DocumentService interface {
 	// Generic document operations
-	CreateDocument(ctx context.Context, req *domain.CreateDocumentRequest) (domain.Documentable, error)
-	UpdateDocument(ctx context.Context, id string, req *domain.UpdateDocumentRequest) (domain.Documentable, error)
-	GetDocument(ctx context.Context, id string, docType domain.DocumentType) (domain.Documentable, error)
-	DeleteDocument(ctx context.Context, id string, docType domain.DocumentType) error
-	ListDocuments(ctx context.Context, filter domain.DocumentFilter, pagination domain.Pagination) ([]domain.DocumentSummary, int, error)
-	SendDocument(ctx context.Context, id string, docType domain.DocumentType, req *domain.SendDocumentRequest) error
-	SignDocument(ctx context.Context, id string, docType domain.DocumentType, req *domain.SignDocumentRequest) error
-	ArchiveDocument(ctx context.Context, id string, docType domain.DocumentType) error
-	GetDocumentHistory(ctx context.Context, id string, docType domain.DocumentType, pagination domain.Pagination) ([]*domain.DocumentVersion, int, error)
+	CreateDocument(ctx context.Context, req *document.CreateDocumentRequest) (document.Documentable, error)
+	UpdateDocument(ctx context.Context, id string, req *document.UpdateDocumentRequest) (document.Documentable, error)
+	GetDocument(ctx context.Context, id string, docType document.DocumentType) (document.Documentable, error)
+	DeleteDocument(ctx context.Context, id string, docType document.DocumentType) error
+	ListDocuments(ctx context.Context, filter document.DocumentFilter, pagination document.Pagination) ([]document.DocumentSummary, int, error)
+	SendDocument(ctx context.Context, id string, docType document.DocumentType, req *document.SendDocumentRequest) error
+	SignDocument(ctx context.Context, id string, docType document.DocumentType, req *document.SignDocumentRequest) error
+	ArchiveDocument(ctx context.Context, id string, docType document.DocumentType) error
+	GetDocumentHistory(ctx context.Context, id string, docType document.DocumentType, pagination document.Pagination) ([]*document.DocumentVersion, int, error)
 
 	// Estimate operations
-	CreateEstimate(ctx context.Context, estimate *domain.Estimate) (*domain.Estimate, error)
-	AcceptEstimate(ctx context.Context, estimateID string, acceptedBy string) (*domain.Mandate, error)
-	UpdateEstimate(ctx context.Context, estimateID string, lineItems []domain.EstimateItem) (*domain.Estimate, error)
+	CreateEstimate(ctx context.Context, estimate *document.Estimate) (*document.Estimate, error)
+	AcceptEstimate(ctx context.Context, estimateID string, acceptedBy string) (*document.Mandate, error)
+	UpdateEstimate(ctx context.Context, estimateID string, lineItems []document.EstimateItem) (*document.Estimate, error)
 
 	// Mandate operations
-	CreateMandate(ctx context.Context, mandate *domain.Mandate) (*domain.Mandate, error)
-	SignMandate(ctx context.Context, mandateID string, req *domain.SignDocumentRequest) (*domain.Mandate, error)
-	ActivateMandate(ctx context.Context, mandateID string) (*domain.Mandate, error)
-	CreateContractFromMandate(ctx context.Context, mandateID string, contract *domain.Contract) (*domain.Contract, error)
+	CreateMandate(ctx context.Context, mandate *document.Mandate) (*document.Mandate, error)
+	SignMandate(ctx context.Context, mandateID string, req *document.SignDocumentRequest) (*document.Mandate, error)
+	ActivateMandate(ctx context.Context, mandateID string) (*document.Mandate, error)
+	CreateContractFromMandate(ctx context.Context, mandateID string, contract *document.Contract) (*document.Contract, error)
 
 	// Contract operations
-	CreateContract(ctx context.Context, contract *domain.Contract) (*domain.Contract, error)
-	SignContract(ctx context.Context, contractID string, req *domain.SignDocumentRequest) (*domain.Contract, error)
-	ActivateContract(ctx context.Context, contractID string) (*domain.Contract, error)
-	CreateInvoiceFromContract(ctx context.Context, contractID string, invoice *domain.Invoice) (*domain.Invoice, error)
+	CreateContract(ctx context.Context, contract *document.Contract) (*document.Contract, error)
+	SignContract(ctx context.Context, contractID string, req *document.SignDocumentRequest) (*document.Contract, error)
+	ActivateContract(ctx context.Context, contractID string) (*document.Contract, error)
+	CreateInvoiceFromContract(ctx context.Context, contractID string, invoice *document.Invoice) (*document.Invoice, error)
 
 	// Invoice operations
-	CreateInvoice(ctx context.Context, invoice *domain.Invoice) (*domain.Invoice, error)
-	ProcessPayment(ctx context.Context, invoiceID string, req *domain.PaymentRequest) (*domain.Invoice, error)
-	VoidInvoice(ctx context.Context, invoiceID string) (*domain.Invoice, error)
-	GetOverdueInvoices(ctx context.Context, pagination domain.Pagination) ([]*domain.Invoice, int, error)
+	CreateInvoice(ctx context.Context, invoice *document.Invoice) (*document.Invoice, error)
+	ProcessPayment(ctx context.Context, invoiceID string, req *document.PaymentRequest) (*document.Invoice, error)
+	VoidInvoice(ctx context.Context, invoiceID string) (*document.Invoice, error)
+	GetOverdueInvoices(ctx context.Context, pagination document.Pagination) ([]*document.Invoice, int, error)
 
 	// Document linking and workflow
-	GetDocumentWorkflow(ctx context.Context, caseID string) ([]domain.DocumentSummary, error)
-	ValidateDocumentTransitions(ctx context.Context, id string, docType domain.DocumentType, newStatus domain.DocumentStatus) error
+	GetDocumentWorkflow(ctx context.Context, caseID string) ([]document.DocumentSummary, error)
+	ValidateDocumentTransitions(ctx context.Context, id string, docType document.DocumentType, newStatus document.DocumentStatus) error
 }
