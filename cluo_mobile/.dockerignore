@@ -1,0 +1,62 @@
+# Dependencies
+node_modules
+pnpm-lock.yaml
+
+# Build artifacts
+.svelte-kit
+/build
+.output
+.vercel
+.netlify
+.wrangler
+
+# Git
+.git
+.gitignore
+.gitattributes
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Misc
+README.md
+CLAUDE.md
+.editorconfig
+.prettierrc
+.eslintrc*
+tsconfig.json
+
+# Vite
+vite.config.js.timestamp-*
+vite.config.ts.timestamp-*
+
+# Static images (based on gitignore)
+static/images/*
