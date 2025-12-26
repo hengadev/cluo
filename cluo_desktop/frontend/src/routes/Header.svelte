@@ -2,27 +2,28 @@
     import { Folder } from "@lucide/svelte";
     import Search from "$lib/custom/header/Search.svelte";
     import { items, type HeaderItem } from "$lib/constructor/header";
+    import ThemeToggle from "$lib/components/ThemeToggle.svelte";
     // TODO: pour la partie client ou type d'enquete, il faut un select avec tous les anciens clients + un bouton plus pour ajouter un nouvel element
     import { Button, Tooltip } from "bits-ui";
 </script>
 
-<div class="header bg-[#fafafa] border-1 border-[#e5e7eb]">
+<div class="header border-1 border-dark-50">
     <div class="grid">
-        <p class="text-base font-semibold">Website performance issue</p>
         <div class="left">
             <div class="current-case">
-                <div class="bg-yellow-700 p-2 rounded-input">
-                    <Folder size={16} color="white" />
+                <div class="p-2 rounded-input bg-foreground">
+                    <Folder size={16} class="text-background" />
                 </div>
-                <p>#CS-1234</p>
+                <p>Cabinet DUPONT</p>
             </div>
             <p>&bull;</p>
-            <p>Jean DUPONT</p>
+            <p>Affaire Ti Sonson</p>
         </div>
     </div>
     <Search />
     <div class="flex align-center gap-2">
         <div class="buttons">
+            <ThemeToggle />
             {#each items as item}
                 {@const DialogOrPopover = item.uiComponent}
                 <DialogOrPopover>
@@ -38,17 +39,17 @@
     <Tooltip.Provider>
         <Tooltip.Root delayDuration={100}>
             <Tooltip.Trigger
-                class="border-border-input border-1 rounded-10px p-2 bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all 
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-14 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 
-                    hover:bg-[#f0f0f0]'} {item.bg} text-{item.fg}"
+                class="rounded-10px p-3 bg-dark-50 ring-offset-background active:scale-[0.98] active:transition:all 
+		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 
+                    hover:bg-dark-100/50 {item.bg} text-{item.fg}"
             >
                 <Button.Root class="cursor-pointer">
-                    <Icon size={32} strokeWidth={1.5} />
+                    <Icon size={24} strokeWidth={1.75} />
                 </Button.Root>
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8} side="bottom">
                 <div
-                    class="rounded-input text-[1rem] align-center bg-dark text-white font-medium border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
+                    class="rounded-input text-[1rem] align-center bg-foreground text-background font-medium border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
                 >
                     {item.title}
                 </div>

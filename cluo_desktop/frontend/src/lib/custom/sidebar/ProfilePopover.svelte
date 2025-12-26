@@ -23,14 +23,14 @@
     </Popover.Trigger>
     <Popover.Portal>
         <Popover.Content
-            class=" border-dark-10 bg-white shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-30 w-full max-w-[480px] rounded-[12px] border p-1"
+            class=" border-dark-10 bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2 z-30 w-full max-w-[480px] rounded-[12px] border p-1"
             sideOffset={12}
             side="right"
             align="end"
         >
             <div class="flex items-center gap-4 p-2">
                 <div
-                    class="rounded-10px flex items-center justify-center border-1 border-[#e5e7eb] mx-auto size-8 bg-white cursor-pointer"
+                    class="rounded-10px flex items-center justify-center border-1 border-border-input mx-auto size-8 bg-background cursor-pointer"
                 >
                     <User size={24} />
                 </div>
@@ -59,7 +59,7 @@
 {#snippet button(btn: Button)}
     {@const Icon = btn.icon}
     <Button.Root
-        class="p-2 w-full rounded-input hover:bg-[#fafafa] cursor-pointer"
+        class="p-2 w-full rounded-input hover:bg-muted cursor-pointer"
     >
         <div class="text-base flex gap-2">
             <Icon size={16} />

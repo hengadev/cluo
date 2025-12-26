@@ -5,7 +5,7 @@
     import { type SidebarState } from "$lib/types/sidebar";
     import { items, type SidebarItem } from "$lib/constructor/sidebar";
 
-    const size: number = 32;
+    const size: number = 24;
 
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
@@ -24,11 +24,11 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-white border-1 border-dark-50"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-background-alt border-1 border-dark-50"
 >
     <div class="grid gap-4">
         <Button.Root
-            class="bg-white border-dark border-2 p-2 !mt-1 rounded-input flex items-center justify-center cursor-pointer"
+            class="bg-background border-1 border-border-input p-2 !mt-1 rounded-input flex items-center justify-center cursor-pointer"
             onclick={() =>
                 toastState.add(
                     mockToast.level,
@@ -47,7 +47,7 @@
         </div>
         <ProfilePopover>
             <Button.Root
-                class="rounded-10px flex items-center justify-center border-1 border-[#e5e7eb] mx-auto size-12 bg-white cursor-pointer"
+                class="rounded-10px flex items-center justify-center border-1 border-border-input mx-auto size-12 bg-background cursor-pointer"
             >
                 <User {size} />
             </Button.Root>
@@ -59,11 +59,11 @@
     <Tooltip.Provider>
         <Tooltip.Root delayDuration={100}>
             <Tooltip.Trigger
-                class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all 
+                class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {item.title ===
                 selected
-                    ? 'bg-dark-900 text-white'
-                    : 'bg-transparent text-dark-500 hover:bg-[#f0f0f0]'}"
+                    ? 'bg-foreground text-background'
+                    : 'bg-transparent text-foreground hover:bg-muted'}"
                 onclick={() => {
                     item.fn;
                     selected = item.title;
@@ -72,12 +72,12 @@
             >
                 {@const Icon = item.icon}
                 <Button.Root class="cursor-pointer">
-                    <Icon size={32} strokeWidth={1.5} />
+                    <Icon size={24} strokeWidth={1.75} />
                 </Button.Root>
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8} side="right">
                 <div
-                    class="rounded-input text-[1rem] align-center bg-dark-900 text-white font-medium gap-3 border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
+                    class="rounded-input text-[1rem] align-center bg-foreground text-background font-medium gap-3 border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
                 >
                     {item.title}
                 </div>

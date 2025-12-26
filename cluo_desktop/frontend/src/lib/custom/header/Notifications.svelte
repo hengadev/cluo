@@ -80,7 +80,7 @@
                     </h4>
                 </div>
                 <Button.Root
-                    class="border-2 border-muted p-2 rounded-input hover:bg-[#fafafa] cursor-pointer"
+                    class="border-2 border-muted p-2 rounded-input hover:bg-muted cursor-pointer"
                 >
                     Marquer comme vus
                 </Button.Root>
@@ -96,7 +96,7 @@
             <Separator.Root class="bg-dark-10 -mx-4 block h-px" />
             <div class="p-4">
                 <Button.Root
-                    class="border-2 border-muted p-2 w-full rounded-input hover:bg-[#fafafa] cursor-pointer"
+                    class="border-2 border-muted p-2 w-full rounded-input hover:bg-muted cursor-pointer"
                 >
                     Voir toutes les notifications
                 </Button.Root>
@@ -107,7 +107,7 @@
 
 {#snippet notificationButton(notification: Notification)}
     <Button.Root
-        class="grid gap-4 text-xs w-full p-2 bg-[#fafafa] hover:bg-[#f0f0f0] border-2 border-muted p-4"
+        class="grid gap-4 text-xs w-full p-2 bg-transparent hover:bg-muted border border-border-card p-4"
     >
         <div class="grid gap-1 text-left">
             <p class="font-semibold">{notification.title}</p>
