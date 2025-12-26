@@ -28,7 +28,30 @@
         { icon: PencilLine, title: "Review" },
         { icon: AudioLines, title: "Audio" },
     ];
+
+    function handleMouseDown(e: MouseEvent) {
+        isDragging = true;
+        e.preventDefault();
+    }
+
+    function handleMouseMove(e: MouseEvent) {
+        if (!isDragging || !containerRef) return;
+
+        const containerRect = containerRef.getBoundingClientRect();
+        const newWidth = containerRect.right - e.clientX;
+
+        aiPanelWidth = Math.max(
+            MIN_AI_PANEL_WIDTH,
+            Math.min(MAX_AI_PANEL_WIDTH, newWidth),
+        );
+    }
+
+    function handleMouseUp() {
+        isDragging = false;
+    }
 </script>
+
+<svelte:window onmousemove={handleMouseMove} onmouseup={handleMouseUp} />
 
 <div class="grid grid-cols-2 h-full">
     <div class="">rapport the part with the text editor</div>
