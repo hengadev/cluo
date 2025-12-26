@@ -7,6 +7,8 @@
     import Mandat from "$lib/custom/content/Mandat.svelte";
     import Devis from "$lib/custom/content/Devis.svelte";
     import Reseaux from "$lib/custom/content/Reseaux.svelte";
+    import Pieces from "$lib/custom/content/pieces/Pieces.svelte";
+    import Recordings from "$lib/custom/content/recordings/Recordings.svelte";
 
     import { type SidebarState, SIDEBAR_STATES } from "$lib/types/sidebar";
 
@@ -23,6 +25,10 @@
         <Photos />
     {:else if sidebarState === SIDEBAR_STATES.Utilisateurs}
         <Users />
+    {:else if sidebarState === SIDEBAR_STATES.Pièces}
+        <Pieces />
+    {:else if sidebarState === SIDEBAR_STATES.Enregistrement}
+        <Recordings />
     {:else if sidebarState === SIDEBAR_STATES.Facture}
         <Facture id="94t8a9fawg48ae3" />
     {:else if sidebarState === SIDEBAR_STATES.Rapport}

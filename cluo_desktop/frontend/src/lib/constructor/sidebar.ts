@@ -7,6 +7,8 @@ import {
     Camera,
     UserPen,
     Users,
+    Paperclip,
+    Mic,
 } from "@lucide/svelte";
 
 import { SIDEBAR_STATES, type SidebarState } from "$lib/types/sidebar";
@@ -23,7 +25,9 @@ function handleClick() {
 
 export const items: SidebarItem[] = [
     { icon: Info, title: SIDEBAR_STATES.Informations, fn: handleClick },
+    { icon: Paperclip, title: SIDEBAR_STATES.Pièces, fn: handleClick },
     { icon: Users, title: SIDEBAR_STATES.Utilisateurs, fn: handleClick },
+    { icon: Mic, title: SIDEBAR_STATES.Enregistrement, fn: handleClick },
     { icon: FileText, title: SIDEBAR_STATES.Rapport, fn: handleClick },
     { icon: Camera, title: SIDEBAR_STATES.Photos, fn: handleClick },
     { icon: ReceiptEuro, title: SIDEBAR_STATES.Facture, fn: handleClick },
