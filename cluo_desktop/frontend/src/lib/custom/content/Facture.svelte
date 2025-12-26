@@ -1,3 +1,8 @@
-<script lang="ts"></script>
+<script lang="ts">
+    interface Props {
+        id: string;
+    }
+    let { id }: Props = $props();
+</script>
 
-<div>facture</div>
+<div {id}>Facture</div>
