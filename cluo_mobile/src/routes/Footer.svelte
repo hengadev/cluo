@@ -1,5 +1,6 @@
 <script lang="ts">
     import { ArrowRight, Square } from "@lucide/svelte";
+    import { goto } from "$app/navigation";
 
     let isRecording = $state(false);
     let dragX = $state(0);
@@ -135,6 +136,16 @@
             if (!response.ok) {
                 throw new Error(`Failed to send audio: ${response.statusText}`);
             }
+
+            // TODO: Get actual recording ID from the response
+            // const data = await response.json();
+            // const recordingId = data.id;
+
+            // For now, generate a temporary ID
+            const recordingId = Date.now().toString();
+
+            // Navigate to processing page
+            goto(`/processing/${recordingId}`);
         } catch (error) {
             console.error("Failed to send audio:", error);
             // TODO: Show feedback about failed upload
