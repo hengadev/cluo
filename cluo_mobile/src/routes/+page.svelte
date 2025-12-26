@@ -1,59 +1,33 @@
 <script lang="ts">
-    let mediaRecorder: MediaRecorder | null = null;
-    let audioChunks: Blob[] = [];
-    let isRecording = false;
+    import { ChevronDown } from "@lucide/svelte";
 
-    async function startRecording() {
-        const stream = await navigator.mediaDevices.getUserMedia({
-            audio: true,
-        });
-
-        mediaRecorder = new MediaRecorder(stream);
-        audioChunks = [];
-
-        mediaRecorder.ondataavailable = (e) => {
-            audioChunks.push(e.data);
-        };
-
-        mediaRecorder.start();
-        isRecording = true;
-    }
-
-    async function stopRecording() {
-        if (!mediaRecorder) return;
-
-        mediaRecorder.stop();
-        isRecording = false;
-
-        mediaRecorder.onstop = async () => {
-            const audioBlob = new Blob(audioChunks, {
-                type: mediaRecorder!.mimeType,
-            });
-
-            await sendAudio(audioBlob);
-        };
-    }
-
-    async function sendAudio(blob: Blob) {
-        const formData = new FormData();
-        formData.append("audio", blob, "recording.webm");
-
-        await fetch("/api/audio", {
-            method: "POST",
-            body: formData,
-        });
-    }
-    const btn = "px-8 py-4 border-1 border-black rounded-input cursor-pointer";
+    import Input from "$lib/components/ui/Input.svelte";
+    import Recording from "./PastRecording.svelte";
+    import CurrentCase from "./CurrentCase.svelte";
 </script>
 
-<div class="min-h-screen flex justify-center items-center">
-    <div>
-        <button class={btn} on:click={startRecording} disabled={isRecording}>
-            Start recording
-        </button>
-
-        <button class={btn} on:click={stopRecording} disabled={!isRecording}>
-            Stop recording
-        </button>
+<div class="min-h-screen flex flex-col gap-8">
+    <p class="text-dark-900 font-extrabold text-xl">Bonjour John,</p>
+    <div class="grid gap-4">
+        <div class="flex justify-between items-center">
+            <p class="font-extrabold text-lg text-dark-800">Active case</p>
+            <div class="flex items-center gap-1">
+                <p class="text-dark-600 text-sm">Switch Case</p>
+                <ChevronDown />
+            </div>
+        </div>
+        <CurrentCase />
+    </div>
+    <div class="flex gap-4">
+        <Input placeholder="Recherche parmi les enregistrements" />
+        <button class="text-dark-500">Edit</button>
+    </div>
+    <div class="flex flex-col gap-4">
+        <p class="text-dark-700 font-bold text-base">Recordings</p>
+        <div class="flex flex-col gap-2">
+            {#each Array(3) as _, index}
+                <Recording id={index} />
+            {/each}
+        </div>
     </div>
 </div>
