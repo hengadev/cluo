@@ -8,6 +8,15 @@
 
     let selected = $state(0);
 
+    // Panel resizing state
+    const MIN_AI_PANEL_WIDTH = 400;
+    const MAX_AI_PANEL_WIDTH = 800;
+    const DEFAULT_AI_PANEL_WIDTH = 400;
+
+    let aiPanelWidth = $state(DEFAULT_AI_PANEL_WIDTH);
+    let isDragging = $state(false);
+    let containerRef: HTMLDivElement;
+
     type AIButton = {
         icon: typeof import("@lucide/svelte").Icon;
         title: string;
