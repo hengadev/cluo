@@ -23,6 +23,8 @@ func (c *Case) ToResponse() *CaseResponse {
 		Description:       c.Description,
 		ClientID:          c.ClientID.String(),
 		AssignedContactID: assignedContactIDStr,
+		ExternalReference: c.ExternalReference,
+		CaseType:          c.CaseType,
 		Status:            string(c.Status),
 		CreatedAt:         c.CreatedAt,
 		UpdatedAt:         c.UpdatedAt,
@@ -36,6 +38,8 @@ type CaseResponse struct {
 	Description       string    `json:"description"`
 	ClientID          string    `json:"clientId"`
 	AssignedContactID *string   `json:"assignedContactID"`
+	ExternalReference *string   `json:"externalReference"`
+	CaseType          string    `json:"caseType"`
 	Status            string    `json:"status"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
@@ -46,6 +50,8 @@ type CreateCaseRequest struct {
 	Description       string  `json:"description"`
 	ClientID          string  `json:"clientId"`
 	AssignedContactID *string `json:"assignedContactID"`
+	ExternalReference *string `json:"externalReference"`
+	CaseType          string  `json:"caseType"`
 	Status            string  `json:"status"`
 }
 
@@ -90,6 +96,13 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 		}
 	}
 
+	// Validate CaseType (required)
+	if strings.TrimSpace(r.CaseType) == "" {
+		errs.Set("caseType", "caseType is required")
+	} else if len(r.CaseType) > 100 {
+		errs.Set("caseType", "caseType must be less than 100 characters")
+	}
+
 	return errs.AsError()
 }
 
@@ -125,6 +138,8 @@ func NewCase(r *CreateCaseRequest) *Case {
 		Description:       r.Description,
 		ClientID:          clientID,
 		AssignedContactID: assignedContactID,
+		ExternalReference: r.ExternalReference,
+		CaseType:          r.CaseType,
 		Status:            status,
 		CreatedAt:         now,
 		UpdatedAt:         now,
@@ -145,6 +160,8 @@ type UpdateCaseRequest struct {
 	Description       *string    `json:"description"`
 	ClientID          *uuid.UUID `json:"clientId"`
 	AssignedContactID *uuid.UUID `json:"assignedContactId"`
+	ExternalReference *string    `json:"externalReference"`
+	CaseType          *string    `json:"caseType"`
 	Status            *string    `json:"status"`
 }
 
@@ -188,6 +205,15 @@ func (r *UpdateCaseRequest) Valid(ctx context.Context) error {
 		}
 	}
 
+	// Validate CaseType (optional but if provided, check length)
+	if r.CaseType != nil {
+		if strings.TrimSpace(*r.CaseType) == "" {
+			errs.Set("caseType", "caseType cannot be empty if provided")
+		} else if len(*r.CaseType) > 100 {
+			errs.Set("caseType", "caseType must be less than 100 characters")
+		}
+	}
+
 	return errs.AsError()
 }
 
@@ -196,6 +222,7 @@ type ListCasesRequest struct {
 	ClientID          *string `json:"clientId,omitempty"`
 	Status            *string `json:"status,omitempty"`
 	AssignedContactID *string `json:"assignedContactId,omitempty"`
+	CaseType          *string `json:"caseType,omitempty"`
 	DateCreatedFrom   *string `json:"dateCreatedFrom,omitempty"`
 	DateCreatedTo     *string `json:"dateCreatedTo,omitempty"`
 	DateUpdatedFrom   *string `json:"dateUpdatedFrom,omitempty"`
@@ -239,6 +266,13 @@ func (r *ListCasesRequest) Valid(ctx context.Context) error {
 		status := CaseStatus(strings.ToLower(strings.TrimSpace(*r.Status)))
 		if !status.IsValid() {
 			errs.Set("status", "status must be one of: draft, in_progress, ready, released")
+		}
+	}
+
+	// Validate CaseType (optional)
+	if r.CaseType != nil && strings.TrimSpace(*r.CaseType) != "" {
+		if len(*r.CaseType) > 100 {
+			errs.Set("caseType", "caseType must be less than 100 characters")
 		}
 	}
 
@@ -299,6 +333,12 @@ func (r *ListCasesRequest) ToCaseFilter() (CaseFilter, error) {
 			return filter, fmt.Errorf("invalid assignedContactId: %w", err)
 		}
 		filter.AssignedContactID = &contactID
+	}
+
+	// Parse CaseType
+	if r.CaseType != nil && strings.TrimSpace(*r.CaseType) != "" {
+		caseType := strings.TrimSpace(*r.CaseType)
+		filter.CaseType = &caseType
 	}
 
 	// Parse date fields
@@ -378,7 +418,7 @@ func (r *ListByClientRequest) Valid(ctx context.Context) error {
 // ListCasesResponse represents the response for list operations
 type ListCasesResponse struct {
 	Cases      []*CaseResponse `json:"cases"`
-	Pagination PaginationInfo `json:"pagination"`
+	Pagination PaginationInfo  `json:"pagination"`
 }
 
 // PaginationInfo represents pagination metadata
