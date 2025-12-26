@@ -62,6 +62,8 @@ func TestGetCaseByID(t *testing.T) {
 		assert.Equal(t, caseEncx.ID, retrievedCaseEncx.ID, "Case ID should match")
 		assert.Equal(t, caseEncx.ClientID, retrievedCaseEncx.ClientID, "Client ID should match")
 		assert.Equal(t, caseEncx.AssignedContactID, retrievedCaseEncx.AssignedContactID, "Assigned Contact ID should match")
+		assert.Equal(t, caseEncx.CaseType, retrievedCaseEncx.CaseType, "CaseType should match")
+		assert.Equal(t, caseEncx.ExternalReferenceEncrypted, retrievedCaseEncx.ExternalReferenceEncrypted, "ExternalReferenceEncrypted should match")
 		assert.Equal(t, caseEncx.KeyVersion, retrievedCaseEncx.KeyVersion, "Key version should match")
 		assert.Equal(t, caseEncx.TitleEncrypted, retrievedCaseEncx.TitleEncrypted, "Title encrypted should match")
 		assert.Equal(t, caseEncx.DescriptionEncrypted, retrievedCaseEncx.DescriptionEncrypted, "Description encrypted should match")

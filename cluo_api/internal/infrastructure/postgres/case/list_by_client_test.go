@@ -99,6 +99,7 @@ func TestListByClient(t *testing.T) {
 		// All cases should belong to the specified client
 		for _, c := range cases {
 			assert.Equal(t, clientID1, c.ClientID)
+			assert.NotEmpty(t, c.CaseType, "CaseType should be present")
 		}
 
 		// Should be ordered by created_at DESC

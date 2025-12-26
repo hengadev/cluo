@@ -59,6 +59,8 @@ func TestUpdateCase(t *testing.T) {
 		caseEncx.UpdatedAtEncrypted = []byte(updatedTime.Format(time.RFC3339))
 		caseEncx.TitleEncrypted = []byte("updated_title_encrypted")
 		caseEncx.DescriptionEncrypted = []byte("updated_description_encrypted")
+		caseEncx.ExternalReferenceEncrypted = []byte("updated_external_ref_encrypted")
+		caseEncx.CaseType = "Updated Case Type"
 		caseEncx.StatusEncrypted = []byte("updated_status_encrypted")
 		caseEncx.KeyVersion = 2
 
@@ -76,6 +78,8 @@ func TestUpdateCase(t *testing.T) {
 		assert.Equal(t, caseEncx.ClientID, retrievedCase.ClientID, "Client ID should be updated")
 		assert.Equal(t, caseEncx.TitleEncrypted, retrievedCase.TitleEncrypted, "Title encrypted should be updated")
 		assert.Equal(t, caseEncx.DescriptionEncrypted, retrievedCase.DescriptionEncrypted, "Description encrypted should be updated")
+		assert.Equal(t, caseEncx.ExternalReferenceEncrypted, retrievedCase.ExternalReferenceEncrypted, "ExternalReferenceEncrypted should be updated")
+		assert.Equal(t, caseEncx.CaseType, retrievedCase.CaseType, "CaseType should be updated")
 		assert.Equal(t, caseEncx.StatusEncrypted, retrievedCase.StatusEncrypted, "Status encrypted should be updated")
 		assert.Equal(t, caseEncx.UpdatedAtEncrypted, retrievedCase.UpdatedAtEncrypted, "Updated at should be updated")
 		assert.Equal(t, caseEncx.KeyVersion, retrievedCase.KeyVersion, "Key version should be updated")
