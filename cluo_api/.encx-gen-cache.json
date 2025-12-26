@@ -2,7 +2,7 @@
   "SourceHashes": {
     "internal/common/auth/session/session.go": "98b736798866317fede7588e2cc117d4378b52004ed272e0fdcbd5aea16f0d38",
     "internal/common/testutils/auth.go": "752ead024c993d043837c06488d5e923ee654a260120100a641167e2752bad37",
-    "internal/domain/case/case.go": "1dcb8b73987767020123ba981537b9ec91189c10f91e13ecf3d926a16b444d00",
+    "internal/domain/case/case.go": "8071039668f38a094aa0cd1a554a391d4064bb3eeb566993932730bd6fcc247e",
     "internal/domain/client/client.go": "e5eff69b9628b61892f3ab40066bc7419cf3511aad07644e5e4f50fd276e8bff",
     "internal/domain/client/client_dto.go": "9e28dfd777792231f84aa483c04572fde5f117694e3f673de6972039ff2b1c2e",
     "internal/domain/client/contact.go": "4013e8520a2d0e9b8325673b31488774812a97358092094e4580660fe8dab223",
@@ -13,6 +13,7 @@
     "internal/domain/document/invoice.go": "7a0d2c0c7d9930dddae7de0b5bb4916ad1f08b30556c17c1e0b2578ab100628f",
     "internal/domain/document/mandate.go": "57e10d583a3cd0e2b75363764a98cc90b23fe77c731d3a66619b2929d7a3946c",
     "internal/domain/media/media.go": "f4287f1e4ea473e7bd81114566fed37e4362ed646d73e40496cf2828109bbece",
+    "internal/domain/person-of-interest/person_of_interest.go": "0ff3c08a7899f113c1386410f32a4d2e984ac1dc0dacea7bd92d74d49ec14ca2",
     "internal/domain/signature.go": "b6b69504bbb6ddbc3c1d85d365bd3cfadc59871544d9809b5ad94b3b3bdd1bab",
     "internal/domain/token.go": "22cf48bf9f23bc8007a193544d0938356de63c0ed15d172ccd98dbf1d3020359",
     "internal/domain/user.go": "58b2898421d1a1dba35d899057454bc1ce1f012cbbfecc5ea392a513c5dc3628",
@@ -32,8 +33,8 @@
     },
     "internal/domain/case/case_encx.go": {
       "SourceFile": "internal/domain/case/case.go",
-      "SourceHash": "1dcb8b73987767020123ba981537b9ec91189c10f91e13ecf3d926a16b444d00",
-      "GeneratedTime": "2025-12-12T07:30:56.650333526+01:00"
+      "SourceHash": "8071039668f38a094aa0cd1a554a391d4064bb3eeb566993932730bd6fcc247e",
+      "GeneratedTime": "2025-12-26T19:03:06.897020861+01:00"
     },
     "internal/domain/client/client_dto_encx.go": {
       "SourceFile": "internal/domain/client/client_dto.go",
@@ -53,7 +54,7 @@
     "internal/domain/client/contact_encx.go": {
       "SourceFile": "internal/domain/client/contact.go",
       "SourceHash": "4013e8520a2d0e9b8325673b31488774812a97358092094e4580660fe8dab223",
-      "GeneratedTime": "2025-12-07T07:35:46.400447261+01:00"
+      "GeneratedTime": "2025-12-26T19:03:06.899654334+01:00"
     },
     "internal/domain/document/contract_encx.go": {
       "SourceFile": "internal/domain/document/contract.go",
@@ -83,7 +84,12 @@
     "internal/domain/media/media_encx.go": {
       "SourceFile": "internal/domain/media/media.go",
       "SourceHash": "f4287f1e4ea473e7bd81114566fed37e4362ed646d73e40496cf2828109bbece",
-      "GeneratedTime": "2025-12-12T07:30:56.663311373+01:00"
+      "GeneratedTime": "2025-12-26T19:03:06.909858674+01:00"
+    },
+    "internal/domain/person-of-interest/person_of_interest_encx.go": {
+      "SourceFile": "internal/domain/person-of-interest/person_of_interest.go",
+      "SourceHash": "0ff3c08a7899f113c1386410f32a4d2e984ac1dc0dacea7bd92d74d49ec14ca2",
+      "GeneratedTime": "2025-12-26T19:03:06.910792914+01:00"
     },
     "internal/domain/signature_encx.go": {
       "SourceFile": "internal/domain/signature.go",
@@ -106,5 +112,5 @@
       "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
     }
   },
-  "LastGenerated": "2025-12-12T07:30:56.663817757+01:00"
+  "LastGenerated": "2025-12-26T19:03:06.910793255+01:00"
 }
