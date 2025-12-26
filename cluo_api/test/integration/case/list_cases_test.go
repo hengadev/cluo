@@ -154,6 +154,11 @@ func TestListCases(t *testing.T) {
 		assert.Equal(t, case3Data.ID.String(), response.Cases[0].ID)
 		assert.Equal(t, case2Data.ID.String(), response.Cases[1].ID)
 		assert.Equal(t, case1Data.ID.String(), response.Cases[2].ID)
+
+		// Verify new fields are present in all cases
+		for _, c := range response.Cases {
+			assert.NotEmpty(t, c.CaseType, "CaseType should be present")
+		}
 	})
 
 	t.Run("Pagination", func(t *testing.T) {
@@ -491,6 +496,67 @@ func TestListCases(t *testing.T) {
 
 		assert.Len(t, response.Cases, 1) // Only the recent case
 		assert.Equal(t, clientID.String(), response.Cases[0].ClientID)
+	})
+
+	t.Run("FilterByCaseType", func(t *testing.T) {
+		ctx := context.Background()
+
+		// Setup authentication
+		accessToken := tu.SetupAdminUser(t, ctx, authCtx)
+		defer tu.ClearAuthData(t, ctx, authCtx)
+
+		// Clear all test data
+		ch.ClearCasesTable(t, ctx, testPool)
+		clientHelpers.ClearContactsTable(t, ctx, testPool)
+		clientHelpers.ClearClientsTable(t, ctx, testPool)
+
+		// Setup test data
+		clientID := setupClient(t, ctx)
+
+		// Create cases with different case types
+		theftCase1 := ch.NewTestCase(t)
+		theftCase1.ClientID = clientID
+		theftCase1.CaseType = "Theft"
+		theftCase1.AssignedContactID = nil
+
+		theftCase2 := ch.NewTestCase(t)
+		theftCase2.ClientID = clientID
+		theftCase2.CaseType = "Theft"
+		theftCase2.AssignedContactID = nil
+
+		accidentCase := ch.NewTestCase(t)
+		accidentCase.ClientID = clientID
+		accidentCase.CaseType = "Accident"
+		accidentCase.AssignedContactID = nil
+
+		theftCase1Encx, _ := caseDomain.ProcessCaseEncx(ctx, crypto, theftCase1)
+		theftCase2Encx, _ := caseDomain.ProcessCaseEncx(ctx, crypto, theftCase2)
+		accidentCaseEncx, _ := caseDomain.ProcessCaseEncx(ctx, crypto, accidentCase)
+
+		ch.InsertCaseEncx(t, ctx, testPool, theftCase1Encx)
+		ch.InsertCaseEncx(t, ctx, testPool, theftCase2Encx)
+		ch.InsertCaseEncx(t, ctx, testPool, accidentCaseEncx)
+
+		// Filter by case type "Theft"
+		filters := map[string]string{
+			"caseType": "Theft",
+		}
+		req := ch.NewListCasesRequest(t, ctx, testServerURL, 1, 20, filters, accessToken)
+
+		resp, err := httpClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		var response caseDomain.ListCasesResponse
+		err = json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
+
+		assert.Len(t, response.Cases, 2)
+		for _, c := range response.Cases {
+			assert.Equal(t, "Theft", c.CaseType, "All cases should have CaseType 'Theft'")
+		}
 	})
 
 	t.Run("InvalidPagination", func(t *testing.T) {

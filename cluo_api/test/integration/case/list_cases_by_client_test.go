@@ -167,6 +167,7 @@ func TestListCasesByClient(t *testing.T) {
 		// Verify all cases belong to client1
 		for _, caseResp := range response.Cases {
 			assert.Equal(t, clientID1.String(), caseResp.ClientID)
+			assert.NotEmpty(t, caseResp.CaseType, "CaseType should be present")
 		}
 
 		// Verify ordering (should be by created_at DESC)

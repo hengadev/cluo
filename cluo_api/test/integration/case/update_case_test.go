@@ -510,6 +510,51 @@ func TestUpdateCase(t *testing.T) {
 
 		t.Log("✓ Empty update still updates timestamp correctly")
 	})
+
+	t.Run("UpdateNewFields", func(t *testing.T) {
+		ctx := context.Background()
+
+		// Setup authentication
+		adminToken := tu.SetupAdminUser(t, ctx, authCtx)
+		defer tu.ClearAuthData(t, ctx, authCtx)
+		defer ch.ClearCasesTable(t, ctx, testPool)
+
+		// Create test client and case
+		clientID := setupClient(t, ctx)
+		testCase := setupCase(t, ctx, clientID, nil)
+
+		// Prepare update request with new fields
+		newExternalRef := "UPDATED-EXT-REF"
+		newCaseType := "Fraud"
+		updateRequest := &caseDomain.UpdateCaseRequest{
+			ExternalReference: &newExternalRef,
+			CaseType:          &newCaseType,
+		}
+
+		// Create HTTP request
+		req := ch.NewUpdateCaseRequest(t, ctx, testServerURL, testCase.ID, updateRequest, adminToken)
+
+		// Execute request
+		resp, err := httpClient.Do(req)
+		require.NoError(t, err)
+		defer resp.Body.Close()
+
+		// Verify response
+		assert.Equal(t, http.StatusOK, resp.StatusCode)
+
+		// Parse response
+		var response caseDomain.CaseResponse
+		err = json.NewDecoder(resp.Body).Decode(&response)
+		require.NoError(t, err)
+
+		// Verify new fields were updated
+		assert.Equal(t, testCase.ID.String(), response.ID, "Case ID should match")
+		assert.Equal(t, newExternalRef, *response.ExternalReference, "ExternalReference should be updated")
+		assert.Equal(t, newCaseType, response.CaseType, "CaseType should be updated")
+		assert.Greater(t, response.UpdatedAt, response.CreatedAt, "UpdatedAt should be updated")
+
+		t.Log("✓ New fields updated successfully")
+	})
 }
 
 // Helper function to create string pointers

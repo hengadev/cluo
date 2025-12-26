@@ -59,11 +59,14 @@ func TestCreateCase(t *testing.T) {
 		clientID := setupClient(t, ctx)
 
 		// Prepare request payload
+		externalRef := "EXT-REF-123"
 		payload := caseDomain.CreateCaseRequest{
-			Title:       "Test Case Title",
-			Description: "Test case description for integration testing",
-			ClientID:    clientID.String(),
-			Status:      "draft",
+			Title:             "Test Case Title",
+			Description:       "Test case description for integration testing",
+			ClientID:          clientID.String(),
+			ExternalReference: &externalRef,
+			CaseType:          "Theft",
+			Status:            "draft",
 		}
 
 		// Create HTTP request using the test helper
@@ -84,6 +87,8 @@ func TestCreateCase(t *testing.T) {
 		assert.Equal(t, payload.Title, response.Title)
 		assert.Equal(t, payload.Description, response.Description)
 		assert.Equal(t, payload.ClientID, response.ClientID)
+		assert.Equal(t, payload.ExternalReference, response.ExternalReference)
+		assert.Equal(t, payload.CaseType, response.CaseType)
 		assert.Equal(t, payload.Status, response.Status)
 		assert.NotEmpty(t, response.ID)
 		assert.NotEmpty(t, response.CreatedAt)
@@ -113,6 +118,7 @@ func TestCreateCase(t *testing.T) {
 			Description:       "Test case with assigned contact",
 			ClientID:          clientID.String(),
 			AssignedContactID: &contactIDStr,
+			CaseType:          "Accident",
 			Status:            "draft",
 		}
 
@@ -135,6 +141,7 @@ func TestCreateCase(t *testing.T) {
 		assert.Equal(t, payload.Description, response.Description)
 		assert.Equal(t, payload.ClientID, response.ClientID)
 		assert.Equal(t, payload.AssignedContactID, response.AssignedContactID)
+		assert.Equal(t, payload.CaseType, response.CaseType)
 		assert.Equal(t, payload.Status, response.Status)
 
 		t.Log("✓ Case created successfully with assigned contact")
@@ -157,6 +164,7 @@ func TestCreateCase(t *testing.T) {
 			Title:       "Test Case",
 			Description: "Test case description",
 			ClientID:    nonExistentClientID.String(),
+			CaseType:    "Theft",
 			Status:      "draft",
 		}
 
@@ -205,6 +213,7 @@ func TestCreateCase(t *testing.T) {
 			Description:       "Test case description",
 			ClientID:          clientID.String(),
 			AssignedContactID: &contactIDStr,
+			CaseType:          "Theft",
 			Status:            "draft",
 		}
 
@@ -245,6 +254,7 @@ func TestCreateCase(t *testing.T) {
 			Title:       "Test Case",
 			Description: "Test case description",
 			ClientID:    clientID.String(),
+			CaseType:    "Theft",
 			Status:      "draft",
 		}
 
@@ -275,6 +285,7 @@ func TestCreateCase(t *testing.T) {
 			Title:       "Test Case",
 			Description: "Test case description",
 			ClientID:    "invalid-uuid-format",
+			CaseType:    "Theft",
 			Status:      "draft",
 		}
 
