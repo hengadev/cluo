@@ -24,7 +24,7 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-[#fafafa] border-1 border-[#e5e7eb]"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 items-center bg-white border-1 border-dark-50"
 >
     <div class="grid gap-4">
         <Button.Root
@@ -40,7 +40,7 @@
         </Button.Root>
     </div>
     <div class="flex flex-col justify-between h-full">
-        <div class="flex flex-col items-center gap-4">
+        <div class="flex flex-col items-center gap-2">
             {#each items as item}
                 {@render button(item)}
             {/each}
@@ -62,8 +62,8 @@
                 class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all 
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {item.title ===
                 selected
-                    ? 'bg-dark text-white'
-                    : 'bg-transparent text-black hover:bg-[#f0f0f0]'}"
+                    ? 'bg-dark-900 text-white'
+                    : 'bg-transparent text-dark-500 hover:bg-[#f0f0f0]'}"
                 onclick={() => {
                     item.fn;
                     selected = item.title;
@@ -77,7 +77,7 @@
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8} side="right">
                 <div
-                    class="rounded-input text-[1rem] align-center bg-dark text-white font-medium gap-3 border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
+                    class="rounded-input text-[1rem] align-center bg-dark-900 text-white font-medium gap-3 border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
                 >
                     {item.title}
                 </div>
