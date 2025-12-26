@@ -27,19 +27,21 @@ func InsertCaseEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseE
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s.cases (
-			id, client_id, assigned_contact_id, created_at,
-			title_encrypted, description_encrypted, status_encrypted,
+			id, client_id, assigned_contact_id, case_type, created_at,
+			title_encrypted, description_encrypted, external_reference_encrypted, status_encrypted,
 			updated_at_encrypted, dek_encrypted, key_version, metadata
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
 	`, caseRepository.Schema)
 
 	_, err := pool.Exec(ctx, query,
 		caseEncx.ID,
 		caseEncx.ClientID,
 		caseEncx.AssignedContactID,
+		caseEncx.CaseType,
 		caseEncx.CreatedAt,
 		caseEncx.TitleEncrypted,
 		caseEncx.DescriptionEncrypted,
+		caseEncx.ExternalReferenceEncrypted,
 		caseEncx.StatusEncrypted,
 		caseEncx.UpdatedAtEncrypted,
 		caseEncx.DEKEncrypted,
@@ -56,8 +58,8 @@ func GetCaseEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, case
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, assigned_contact_id, created_at,
-			title_encrypted, description_encrypted, status_encrypted,
+			id, client_id, assigned_contact_id, case_type, created_at,
+			title_encrypted, description_encrypted, external_reference_encrypted, status_encrypted,
 			updated_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.cases WHERE id = $1
 	`, caseRepository.Schema)
@@ -65,8 +67,8 @@ func GetCaseEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, case
 	caseEncx := &caseDomain.CaseEncx{}
 
 	err := pool.QueryRow(ctx, query, caseID).Scan(
-		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CreatedAt,
-		&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.StatusEncrypted,
+		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+		&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.StatusEncrypted,
 		&caseEncx.UpdatedAtEncrypted, &caseEncx.DEKEncrypted, &caseEncx.KeyVersion, &caseEncx.Metadata,
 	)
 
@@ -89,16 +91,18 @@ func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool
 
 	contactID := uuid.New()
 	initialCase := &caseDomain.CaseEncx{
-		ID:                   uuid.New(),
-		CreatedAt:            time.Now(),
-		ClientID:             clientID,
-		AssignedContactID:    &contactID,
-		TitleEncrypted:       []byte("initial_title_encrypted"),
-		DescriptionEncrypted: []byte("initial_description_encrypted"),
-		StatusEncrypted:      []byte("initial_status_encrypted"),
-		UpdatedAtEncrypted:   []byte("initial_updatedat_encrypted"),
-		DEKEncrypted:         []byte("initial_dek_encrypted"),
-		KeyVersion:           1,
+		ID:                        uuid.New(),
+		CreatedAt:                 time.Now(),
+		ClientID:                  clientID,
+		AssignedContactID:         &contactID,
+		CaseType:                  "Initial Case Type",
+		TitleEncrypted:            []byte("initial_title_encrypted"),
+		DescriptionEncrypted:      []byte("initial_description_encrypted"),
+		ExternalReferenceEncrypted: []byte("initial_external_ref_encrypted"),
+		StatusEncrypted:           []byte("initial_status_encrypted"),
+		UpdatedAtEncrypted:        []byte("initial_updatedat_encrypted"),
+		DEKEncrypted:              []byte("initial_dek_encrypted"),
+		KeyVersion:                1,
 	}
 
 	return InsertCaseEncx(t, ctx, pool, initialCase)
