@@ -1,6 +1,8 @@
 <script lang="ts">
     import "../app.css";
     import { page } from "$app/state";
+    import { onMount } from 'svelte';
+    import { dev } from '$app/environment';
 
     import Footer from "./Footer.svelte";
 
@@ -8,6 +10,13 @@
 
     // Hide footer on auth pages
     const showFooter = $derived(!page.url.pathname.startsWith("/auth"));
+
+    // Register service worker for PWA functionality
+    onMount(() => {
+        if (!dev && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/service-worker.js');
+        }
+    });
 </script>
 
 <div class="relative px-4">
