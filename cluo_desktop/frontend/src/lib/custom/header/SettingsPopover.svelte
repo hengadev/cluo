@@ -57,7 +57,6 @@
                     class="w-full bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
                 />
                 {@render selector()}
-                {@render selector()}
             </div>
         </Popover.Content>
     </Popover.Portal>
