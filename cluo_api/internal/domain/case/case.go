@@ -13,6 +13,8 @@ type Case struct {
 	Description       string     `encx:"encrypt" db:"description_encrypted"`
 	ClientID          uuid.UUID  `db:"client_id"`
 	AssignedContactID *uuid.UUID `db:"assigned_contact_id"`
+	ExternalReference *string    `encx:"encrypt" db:"external_reference"`
+	CaseType          string     `db:"case_type"`
 	Status            CaseStatus `encx:"encrypt" db:"status_encrypted"`
 	CreatedAt         time.Time  `db:"created_at"`
 	UpdatedAt         time.Time  `encx:"encrypt" db:"updated_at_encrypted"`
@@ -27,6 +29,7 @@ type CaseFilter struct {
 	ClientID          *uuid.UUID  `json:"client_id,omitempty"`
 	Status            *CaseStatus `json:"status,omitempty"`
 	AssignedContactID *uuid.UUID  `json:"assigned_contact_id,omitempty"`
+	CaseType          *string     `json:"case_type,omitempty"`
 	DateCreatedFrom   *time.Time  `json:"date_created_from,omitempty"`
 	DateCreatedTo     *time.Time  `json:"date_created_to,omitempty"`
 	DateUpdatedFrom   *time.Time  `json:"date_updated_from,omitempty"`
