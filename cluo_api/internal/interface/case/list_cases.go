@@ -100,6 +100,9 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		}
 		request.Search = &search
 	}
+	if caseType := query.Get("caseType"); caseType != "" {
+		request.CaseType = &caseType
+	}
 
 	// Log incoming request
 	logger.InfoContext(ctx, "Handler: Processing list cases request",
@@ -110,6 +113,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		"page_size", pageSize,
 		"has_client_filter", request.ClientID != nil,
 		"has_status_filter", request.Status != nil,
+		"has_case_type_filter", request.CaseType != nil,
 		"has_search", request.Search != nil,
 		"user_agent", r.Header.Get("User-Agent"))
 
@@ -180,4 +184,3 @@ type InvalidQueryParamError struct {
 func (e *InvalidQueryParamError) Error() string {
 	return e.Parameter + ": " + e.Message + " (got: " + e.Value + ")"
 }
-
