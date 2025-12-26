@@ -20,7 +20,7 @@ import SettingsPopover from "$lib/custom/header/SettingsPopover.svelte"
 import Notifications from "$lib/custom/header/Notifications.svelte"
 
 export const items: HeaderItem[] = [
-    { icon: Plus, title: "Creer une affaire", uiComponent: NewCase, bg: "transparent", fg: "dark" },
-    { icon: Bell, title: "Voir notifications", uiComponent: Notifications, bg: "transparent", fg: "dark" },
-    { icon: Settings, title: "Parametres", uiComponent: SettingsPopover, bg: "transparent", fg: "dark" },
+    { icon: Plus, title: "Creer une affaire", uiComponent: NewCase, bg: "background-alt", fg: "dark" },
+    { icon: Bell, title: "Voir notifications", uiComponent: Notifications, bg: "background-alt", fg: "dark" },
+    { icon: Settings, title: "Parametres", uiComponent: SettingsPopover, bg: "background-alt", fg: "dark" },
 ]
