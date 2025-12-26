@@ -55,8 +55,8 @@
         <Combobox.Input
             oninput={(e) => (searchValue = e.currentTarget.value)}
             class="h-input rounded-input bg-dark-50 placeholder-dark-300 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-[600px] truncate px-11 text-base transition-colors focus:ring-2 focus:ring-offset-2 sm:text-sm"
-            placeholder="Chercher une affaire"
-            aria-label="Chercher une affaire"
+            placeholder="Rechercher dans la base de donnée"
+            aria-label="Rechercher dans la base de donnée"
         />
         <Combobox.Trigger
             class="absolute end-3 top-1/2 size-6 -translate-y-1/2"
