@@ -53,9 +53,27 @@
 
 <svelte:window onmousemove={handleMouseMove} onmouseup={handleMouseUp} />
 
-<div class="grid grid-cols-2 h-full">
-    <div class="">rapport the part with the text editor</div>
-    <div class="grid grid-rows-[auto_1fr] border-l-1 border-dark-50">
+<div class="flex h-full" bind:this={containerRef}>
+    <!-- Left panel: Text editor (flexible width) -->
+    <div class="flex-1 min-w-0">rapport the part with the text editor</div>
+
+    <!-- Draggable divider -->
+    <div
+        class="w-1 cursor-col-resize hover:bg-dark-300 transition-colors relative group"
+        onmousedown={handleMouseDown}
+        role="separator"
+        aria-orientation="vertical"
+    >
+        <div
+            class="absolute inset-y-0 -left-1 -right-1 group-hover:bg-dark-10"
+        ></div>
+    </div>
+
+    <!-- Right panel: AI panel (constrained width) -->
+    <div
+        class="grid grid-rows-[auto_1fr] border-l-1 border-dark-50"
+        style="width: {aiPanelWidth}px; min-width: {MIN_AI_PANEL_WIDTH}px; max-width: {MAX_AI_PANEL_WIDTH}px;"
+    >
         <div
             class="flex justify-center gap-6 border-b-1 border-dark-50 text-center"
         >
