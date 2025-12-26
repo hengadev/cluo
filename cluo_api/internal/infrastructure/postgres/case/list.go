@@ -38,6 +38,12 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 		}
 	}
 
+	if f.CaseType != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("case_type = $%d", argIndex))
+		args = append(args, *f.CaseType)
+		argIndex++
+	}
+
 	if f.DateCreatedFrom != nil {
 		whereClauses = append(whereClauses, fmt.Sprintf("created_at >= $%d", argIndex))
 		args = append(args, *f.DateCreatedFrom)
@@ -73,9 +79,11 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 			id,
 			client_id,
 			assigned_contact_id,
+			case_type,
 			created_at,
 			title_encrypted,
 			description_encrypted,
+			external_reference_encrypted,
 			status_encrypted,
 			updated_at_encrypted,
 			dek_encrypted,
@@ -102,9 +110,11 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 			&caseEncx.ID,
 			&caseEncx.ClientID,
 			&caseEncx.AssignedContactID,
+			&caseEncx.CaseType,
 			&caseEncx.CreatedAt,
 			&caseEncx.TitleEncrypted,
 			&caseEncx.DescriptionEncrypted,
+			&caseEncx.ExternalReferenceEncrypted,
 			&caseEncx.StatusEncrypted,
 			&caseEncx.UpdatedAtEncrypted,
 			&caseEncx.DEKEncrypted,

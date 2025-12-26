@@ -17,13 +17,15 @@ func (r *Repository) UpdateCase(ctx context.Context, caseEncx *caseDomain.CaseEn
 		UPDATE %s.cases SET
 			client_id = $2,
 			assigned_contact_id = $3,
-			title_encrypted = $4,
-			description_encrypted = $5,
-			status_encrypted = $6,
-			updated_at_encrypted = $7,
-			dek_encrypted = $8,
-			key_version = $9,
-			metadata = $10
+			case_type = $4,
+			title_encrypted = $5,
+			description_encrypted = $6,
+			external_reference_encrypted = $7,
+			status_encrypted = $8,
+			updated_at_encrypted = $9,
+			dek_encrypted = $10,
+			key_version = $11,
+			metadata = $12
 		WHERE id = $1
 	`, r.schema)
 
@@ -31,8 +33,10 @@ func (r *Repository) UpdateCase(ctx context.Context, caseEncx *caseDomain.CaseEn
 		caseEncx.ID,
 		caseEncx.ClientID,
 		caseEncx.AssignedContactID,
+		caseEncx.CaseType,
 		caseEncx.TitleEncrypted,
 		caseEncx.DescriptionEncrypted,
+		caseEncx.ExternalReferenceEncrypted,
 		caseEncx.StatusEncrypted,
 		caseEncx.UpdatedAtEncrypted,
 		caseEncx.DEKEncrypted,

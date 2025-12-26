@@ -12,8 +12,8 @@ import (
 func (r *Repository) GetCaseByID(ctx context.Context, caseID uuid.UUID) (*caseDomain.CaseEncx, error) {
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, assigned_contact_id, created_at,
-			title_encrypted, description_encrypted, status_encrypted,
+			id, client_id, assigned_contact_id, case_type, created_at,
+			title_encrypted, description_encrypted, external_reference_encrypted, status_encrypted,
 			updated_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.cases WHERE id = $1
 	`, r.schema)
@@ -21,8 +21,8 @@ func (r *Repository) GetCaseByID(ctx context.Context, caseID uuid.UUID) (*caseDo
 	caseEncx := &caseDomain.CaseEncx{}
 
 	err := r.pool.QueryRow(ctx, query, caseID).Scan(
-		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CreatedAt,
-		&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.StatusEncrypted,
+		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+		&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.StatusEncrypted,
 		&caseEncx.UpdatedAtEncrypted, &caseEncx.DEKEncrypted, &caseEncx.KeyVersion, &caseEncx.Metadata,
 	)
 	if err != nil {
