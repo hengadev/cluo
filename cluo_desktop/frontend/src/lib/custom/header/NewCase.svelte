@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Dialog, Label, Separator } from "bits-ui";
+    import Input from "$lib/custom/global/Input.svelte";
     import { X } from "@lucide/svelte";
 
     type Props = { children: import("svelte").Snippet };
@@ -18,17 +19,17 @@
             class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border p-8 sm:max-w-[720px] md:w-full"
         >
             <Dialog.Title
-                class="flex w-full items-center justify-center text-lg font-semibold tracking-tight"
+                class="flex w-full items-center text-lg font-semibold tracking-tight"
             >
                 Creer un nouveau dossier
             </Dialog.Title>
-            <Separator.Root class="bg-muted mx-5 !mb-6 !mt-5 block h-px" />
-            <Dialog.Description class="text-foreground-alt !mt-5 text-sm"
+            <Dialog.Description class="text-foreground-alt text-sm"
                 >Veuillez remplir les champs ci-dessous pour créer le dossier.
                 Notez que les informations saisies pourront être modifiées
                 ultérieurement.</Dialog.Description
             >
-            <form class="flex flex-col items-start gap-4 pb-11 pt-7">
+            <Separator.Root class="bg-muted mx-5 !mb-6 !mt-5 block h-px" />
+            <form class="flex flex-col items-start gap-4 pb-11">
                 <div class="flex justify-between gap-4 w-full">
                     {@render halfField(
                         "lastname",
@@ -60,7 +61,7 @@
                 </Dialog.Close>
             </div>
             <Dialog.Close
-                class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-5 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
+                class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-8 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
             >
                 <div>
                     <X class="text-foreground size-5" />
