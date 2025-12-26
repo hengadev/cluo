@@ -54,7 +54,7 @@
         />
         <Combobox.Input
             oninput={(e) => (searchValue = e.currentTarget.value)}
-            class="h-input rounded-9px border-border-input bg-background placeholder:text-foreground-alt/50 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-[600px] truncate border px-11 text-base transition-colors focus:ring-2 focus:ring-offset-2 sm:text-sm"
+            class="h-input rounded-input bg-dark-50 placeholder-dark-300 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-[600px] truncate px-11 text-base transition-colors focus:ring-2 focus:ring-offset-2 sm:text-sm"
             placeholder="Chercher une affaire"
             aria-label="Chercher une affaire"
         />
