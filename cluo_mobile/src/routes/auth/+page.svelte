@@ -9,7 +9,7 @@
     >
         <div class="w-full max-w-sm">
             <!-- Mobile Login Form -->
-            <div class="bg-white p-6 space-y-6">
+            <div class="bg-white p-4 space-y-6">
                 <!-- Logo placeholder -->
                 <div class="flex justify-center">
                     <div
@@ -74,19 +74,10 @@
                     </div>
 
                     <!-- Remember me and forgot password -->
-                    <div class="flex items-center justify-between">
-                        <div class="flex items-center space-x-2">
-                            <Checkbox id="remember" name="remember" size="md" />
-                            <label
-                                for="remember"
-                                class="text-sm text-muted-foreground cursor-pointer"
-                            >
-                                Se souvenir de moi
-                            </label>
-                        </div>
+                    <div class="flex">
                         <button
                             type="button"
-                            class="text-sm text-primary hover:underline cursor-pointer"
+                            class="text-sm text-primary hover:underline cursor-pointer ml-auto"
                         >
                             Mot de passe oublié ?
                         </button>
