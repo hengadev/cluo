@@ -47,7 +47,7 @@
             content: "",
             editorProps: {
                 attributes: {
-                    class: "prose prose-sm max-w-none focus:outline-none h-full p-20",
+                    class: "prose prose-sm max-w-none focus:outline-none editor-content",
                 },
             },
             onUpdate: ({ editor }) => {
@@ -250,17 +250,48 @@
     </div>
 
     <!-- Editor -->
-    <div class="flex-1 overflow-y-auto">
-        <div bind:this={editorElement} class="tiptap-editor h-full"></div>
+    <div class="flex-1 overflow-y-auto bg-muted">
+        <div class="flex justify-center py-8">
+            <div class="page-container">
+                <div bind:this={editorElement} class="tiptap-editor"></div>
+            </div>
+        </div>
     </div>
 </div>
 
 <style>
+    .page-container {
+        width: 21cm;
+    }
+
+    .tiptap-editor {
+        width: 100%;
+        background: white;
+        box-shadow: 0 0 10px var(--color-dark-10);
+    }
+
+    :global(.dark) .tiptap-editor {
+        background: hsl(0 0% 12%);
+    }
+
     :global(.tiptap-editor .ProseMirror) {
         outline: none;
         color: var(--color-foreground);
         font-family: var(--font-sans);
         line-height: 1.6;
+        padding: 2cm 2.5cm;
+        background-image: repeating-linear-gradient(
+            to bottom,
+            transparent 0,
+            transparent calc(29.7cm - 1px),
+            var(--color-border-card) calc(29.7cm - 1px),
+            var(--color-border-card) 29.7cm,
+            transparent 29.7cm,
+            transparent calc(29.7cm + 2rem - 1px),
+            var(--color-dark-10) calc(29.7cm + 2rem - 1px),
+            var(--color-dark-10) calc(29.7cm + 2rem)
+        );
+        min-height: 29.7cm;
     }
 
     :global(.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before) {
