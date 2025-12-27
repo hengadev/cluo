@@ -37,7 +37,9 @@
 
 <div class="flex h-full" bind:this={containerRef}>
     <!-- Left panel: Text editor (flexible width) -->
-    <TextEditor />
+    <div class="flex-1 min-w-0">
+        <TextEditor />
+    </div>
 
     <!-- Draggable divider -->
     <div
