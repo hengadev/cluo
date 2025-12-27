@@ -47,6 +47,9 @@ importers:
       tailwindcss-animate:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@4.0.14)
+      tiptap-pagination-plus:
+        specifier: ^3.0.1
+        version: 3.0.1(@tiptap/core@3.14.0(@tiptap/pm@3.14.0))(@tiptap/pm@3.14.0)
     devDependencies:
       '@sveltejs/adapter-static':
         specifier: ^3.0.8
@@ -998,6 +1001,12 @@ packages:
     resolution: {integrity: sha512-GNzQvQTOIP6RyTfE2Qxb8ZVlNmw0n88vp1szwWRimP02mnTsx3Wtn5qRdqY9w2XduFNUgvOwhNnQsjwCp+kqaQ==}
     engines: {node: '>=6'}
 
+  tiptap-pagination-plus@3.0.1:
+    resolution: {integrity: sha512-+53s9Umk4QJ2b1ytooSodrVB2ehFOgG0DdIYwa7jTkprG8h3UF5ATkYnLUR7CnYkTDbJCMg1b/Ww1bolEtRYBw==}
+    peerDependencies:
+      '@tiptap/core': ^2.0.0 || ^3.0.0
+      '@tiptap/pm': ^2.0.0 || ^3.0.0
+
   totalist@3.0.1:
     resolution: {integrity: sha512-sf4i37nQ2LBx4m3wB74y+ubopq6W/dIzXg0FDGjsYnZHVa1Da8FH853wlL2gtUhg+xJXjfk3kUZS3BRoQeoQBQ==}
     engines: {node: '>=6'}
@@ -1937,6 +1946,11 @@ snapshots:
   tailwindcss@4.0.14: {}
 
   tapable@2.2.1: {}
+
+  tiptap-pagination-plus@3.0.1(@tiptap/core@3.14.0(@tiptap/pm@3.14.0))(@tiptap/pm@3.14.0):
+    dependencies:
+      '@tiptap/core': 3.14.0(@tiptap/pm@3.14.0)
+      '@tiptap/pm': 3.14.0
 
   totalist@3.0.1: {}
 
