@@ -27,7 +27,7 @@
         <Users />
     {:else if sidebarState === SIDEBAR_STATES.Pièces}
         <Pieces />
-    {:else if sidebarState === SIDEBAR_STATES.Enregistrement}
+    {:else if sidebarState === SIDEBAR_STATES.Enregistrements}
         <Recordings />
     {:else if sidebarState === SIDEBAR_STATES.Facture}
         <Facture id="94t8a9fawg48ae3" />
