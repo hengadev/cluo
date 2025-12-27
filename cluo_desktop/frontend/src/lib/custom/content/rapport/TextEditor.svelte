@@ -2,6 +2,7 @@
     import { Editor } from "@tiptap/core";
     import StarterKit from "@tiptap/starter-kit";
     import Placeholder from "@tiptap/extension-placeholder";
+    import { PaginationPlus } from "tiptap-pagination-plus";
     import { onMount, onDestroy } from "svelte";
     import {
         Bold,
@@ -42,6 +43,17 @@
                 }),
                 Placeholder.configure({
                     placeholder: "Start writing your rapport...",
+                }),
+                PaginationPlus.configure({
+                    pageWidth: 794,
+                    pageHeight: 1123,
+                    pageGap: 48,
+                    marginTop: 76,
+                    marginBottom: 76,
+                    marginLeft: 95,
+                    marginRight: 95,
+                    // NOTE: The pageBreakBackground property should be in sync with the div that contains the text editor (it has an overflow-y property)
+                    pageBreakBackground: "var(--color-muted)",
                 }),
             ],
             content: "",
@@ -250,28 +262,22 @@
     </div>
 
     <!-- Editor -->
+    <!-- <div class="flex-1 overflow-y-auto bg-muted"> -->
     <div class="flex-1 overflow-y-auto bg-muted">
         <div class="flex justify-center py-8">
-            <div class="page-container">
-                <div bind:this={editorElement} class="tiptap-editor"></div>
-            </div>
+            <div bind:this={editorElement} class="tiptap-editor"></div>
         </div>
     </div>
 </div>
 
 <style>
-    .page-container {
-        width: 21cm;
-    }
-
     .tiptap-editor {
-        width: 100%;
         background: white;
         box-shadow: 0 0 10px var(--color-dark-10);
     }
 
     :global(.dark) .tiptap-editor {
-        background: hsl(0 0% 12%);
+        background: var(--color-background-alt);
     }
 
     :global(.tiptap-editor .ProseMirror) {
@@ -279,19 +285,22 @@
         color: var(--color-foreground);
         font-family: var(--font-sans);
         line-height: 1.6;
-        padding: 2cm 2.5cm;
-        background-image: repeating-linear-gradient(
-            to bottom,
-            transparent 0,
-            transparent calc(29.7cm - 1px),
-            var(--color-border-card) calc(29.7cm - 1px),
-            var(--color-border-card) 29.7cm,
-            transparent 29.7cm,
-            transparent calc(29.7cm + 2rem - 1px),
-            var(--color-dark-10) calc(29.7cm + 2rem - 1px),
-            var(--color-dark-10) calc(29.7cm + 2rem)
-        );
-        min-height: 29.7cm;
+    }
+
+    /* Style pages created by pagination extension */
+    :global(.tiptap-editor .page) {
+        background: white !important;
+        box-shadow: 0 0 10px var(--color-dark-10);
+        color: var(--color-foreground);
+    }
+
+    :global(.dark .tiptap-editor .page) {
+        background: var(--color-background-alt) !important;
+    }
+
+    /* Style page gaps/breaks to match container background */
+    :global(.tiptap-editor .page-break) {
+        background: var(--color-muted) !important;
     }
 
     :global(.tiptap-editor .ProseMirror p.is-editor-empty:first-child::before) {
