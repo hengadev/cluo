@@ -2,11 +2,13 @@
     import { Editor } from "@tiptap/core";
     import StarterKit from "@tiptap/starter-kit";
     import Placeholder from "@tiptap/extension-placeholder";
+    import Underline from "@tiptap/extension-underline";
     import { PaginationPlus } from "tiptap-pagination-plus";
     import { onMount, onDestroy } from "svelte";
     import {
         Bold,
         Italic,
+        Underline as UnderlineIcon,
         Strikethrough,
         List,
         ListOrdered,
@@ -23,6 +25,7 @@
     let editorState = $state({
         isBold: false,
         isItalic: false,
+        isUnderline: false,
         isStrike: false,
         isBulletList: false,
         isOrderedList: false,
@@ -44,6 +47,7 @@
                 Placeholder.configure({
                     placeholder: "Start writing your rapport...",
                 }),
+                Underline,
                 PaginationPlus.configure({
                     pageWidth: 794,
                     pageHeight: 1123,
@@ -75,6 +79,7 @@
         if (!editor) return;
         editorState.isBold = editor.isActive("bold");
         editorState.isItalic = editor.isActive("italic");
+        editorState.isUnderline = editor.isActive("underline");
         editorState.isStrike = editor.isActive("strike");
         editorState.isBulletList = editor.isActive("bulletList");
         editorState.isOrderedList = editor.isActive("orderedList");
@@ -96,6 +101,10 @@
 
     function toggleItalic() {
         editor.chain().focus().toggleItalic().run();
+    }
+
+    function toggleUnderline() {
+        editor.chain().focus().toggleUnderline().run();
     }
 
     function toggleStrike() {
@@ -153,6 +162,16 @@
                 type="button"
             >
                 <Italic class="w-5 h-5" />
+            </button>
+            <button
+                onclick={toggleUnderline}
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isUnderline
+                    ? 'bg-muted'
+                    : ''}"
+                title="Underline"
+                type="button"
+            >
+                <UnderlineIcon class="w-5 h-5" />
             </button>
             <button
                 onclick={toggleStrike}
@@ -405,6 +424,10 @@
 
     :global(.tiptap-editor .ProseMirror em) {
         font-style: italic;
+    }
+
+    :global(.tiptap-editor .ProseMirror u) {
+        text-decoration: underline;
     }
 
     :global(.tiptap-editor .ProseMirror s) {
