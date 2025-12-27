@@ -47,7 +47,7 @@
             content: "",
             editorProps: {
                 attributes: {
-                    class: "prose prose-sm max-w-none focus:outline-none h-full p-4",
+                    class: "prose prose-sm max-w-none focus:outline-none h-full p-20",
                 },
             },
             onUpdate: ({ editor }) => {
@@ -124,7 +124,9 @@
         <div class="flex items-center gap-0.5">
             <button
                 onclick={toggleBold}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBold ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBold
+                    ? 'bg-muted'
+                    : ''}"
                 title="Bold"
                 type="button"
             >
@@ -132,7 +134,9 @@
             </button>
             <button
                 onclick={toggleItalic}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isItalic ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isItalic
+                    ? 'bg-muted'
+                    : ''}"
                 title="Italic"
                 type="button"
             >
@@ -140,7 +144,9 @@
             </button>
             <button
                 onclick={toggleStrike}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isStrike ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isStrike
+                    ? 'bg-muted'
+                    : ''}"
                 title="Strikethrough"
                 type="button"
             >
@@ -154,7 +160,9 @@
         <div class="flex items-center gap-0.5">
             <button
                 onclick={() => setHeading(1)}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH1 ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH1
+                    ? 'bg-muted'
+                    : ''}"
                 title="Heading 1"
                 type="button"
             >
@@ -162,7 +170,9 @@
             </button>
             <button
                 onclick={() => setHeading(2)}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH2 ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH2
+                    ? 'bg-muted'
+                    : ''}"
                 title="Heading 2"
                 type="button"
             >
@@ -170,7 +180,9 @@
             </button>
             <button
                 onclick={() => setHeading(3)}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH3 ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isH3
+                    ? 'bg-muted'
+                    : ''}"
                 title="Heading 3"
                 type="button"
             >
@@ -184,7 +196,9 @@
         <div class="flex items-center gap-0.5">
             <button
                 onclick={toggleBulletList}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBulletList ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBulletList
+                    ? 'bg-muted'
+                    : ''}"
                 title="Bullet List"
                 type="button"
             >
@@ -192,7 +206,9 @@
             </button>
             <button
                 onclick={toggleOrderedList}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isOrderedList ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isOrderedList
+                    ? 'bg-muted'
+                    : ''}"
                 title="Ordered List"
                 type="button"
             >
@@ -200,7 +216,9 @@
             </button>
             <button
                 onclick={toggleBlockquote}
-                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBlockquote ? 'bg-muted' : ''}"
+                class="p-1.5 rounded hover:bg-muted transition-colors {editorState.isBlockquote
+                    ? 'bg-muted'
+                    : ''}"
                 title="Quote"
                 type="button"
             >
