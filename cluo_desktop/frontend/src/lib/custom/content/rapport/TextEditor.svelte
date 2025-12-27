@@ -139,7 +139,7 @@
 <div class="flex flex-col h-full w-full">
     <!-- Toolbar -->
     <div
-        class="flex items-center gap-1 p-2 border-b border-border-card bg-background sticky top-0 z-10"
+        class="flex justify-center items-center gap-1 p-2 border-b border-border-card bg-background sticky top-0 z-10"
     >
         <!-- Text formatting -->
         <div class="flex items-center gap-0.5">
