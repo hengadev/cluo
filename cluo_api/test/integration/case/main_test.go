@@ -21,6 +21,7 @@ import (
 	auth "github.com/hengadev/cluo_api/internal/common/middleware/auth"
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
 	caseRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case"
+	case_subject "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case_subject"
 	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 	caseHandler "github.com/hengadev/cluo_api/internal/interface/case"
 	migrations "github.com/hengadev/cluo_api/internal/migrations"
@@ -172,8 +173,9 @@ func TestMain(m *testing.M) {
 
 	// Initialize application layers
 	clientRepo = clientRepository.New(ctx, testPool)
+	caseSubjectRepo := case_subject.New(ctx, testPool)
 	caseRepo = caseRepository.New(ctx, testPool)
-	caseSvc = caseService.New(caseRepo, clientRepo, crypto)
+	caseSvc = caseService.New(caseRepo, clientRepo, caseSubjectRepo, crypto)
 
 	// sessionRepo = sessionRepository.New(redisClient)
 
