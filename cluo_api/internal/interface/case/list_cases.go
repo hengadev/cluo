@@ -103,6 +103,18 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 	if caseType := query.Get("caseType"); caseType != "" {
 		request.CaseType = &caseType
 	}
+	if caseSubjectID := query.Get("caseSubjectId"); caseSubjectID != "" {
+		request.CaseSubjectID = &caseSubjectID
+	}
+	if city := query.Get("city"); city != "" {
+		request.City = &city
+	}
+	if postalCode := query.Get("postalCode"); postalCode != "" {
+		request.PostalCode = &postalCode
+	}
+	if country := query.Get("country"); country != "" {
+		request.Country = &country
+	}
 
 	// Log incoming request
 	logger.InfoContext(ctx, "Handler: Processing list cases request",
@@ -114,6 +126,10 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		"has_client_filter", request.ClientID != nil,
 		"has_status_filter", request.Status != nil,
 		"has_case_type_filter", request.CaseType != nil,
+		"has_case_subject_filter", request.CaseSubjectID != nil,
+		"has_city_filter", request.City != nil,
+		"has_postal_code_filter", request.PostalCode != nil,
+		"has_country_filter", request.Country != nil,
 		"has_search", request.Search != nil,
 		"user_agent", r.Header.Get("User-Agent"))
 
