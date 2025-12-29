@@ -7,20 +7,20 @@ import (
 )
 
 type CaseSubject struct {
-	ID         uuid.UUID
-	CaseID     []uuid.UUID
-	Lastname   string `encx:"encrypt,hash_basic"`
-	Firstname  string `encx:"encrypt,hash_basic"`
-	Email      string `encx:"encrypt,hash_basic"`
-	Phone      string `encx:"encrypt"`
-	City       string `encx:"encrypt,hash_basic"`
-	PostalCode string `encx:"encrypt,hash_basic"`
-	Address1   string `encx:"encrypt,hash_basic"`
-	Address2   string `encx:"encrypt,hash_basic"`
-	Occupation string `encx:"encrypt,hash_basic"`
-	Notes      string `encx:"encrypt"`
+	ID         uuid.UUID   `db:"id"`
+	CaseID     []uuid.UUID // Loaded from case_subject_cases table
+	Lastname   string      `encx:"encrypt,hash_basic" db:"lastname_encrypted"`
+	Firstname  string      `encx:"encrypt,hash_basic" db:"firstname_encrypted"`
+	Email      string      `encx:"encrypt,hash_basic" db:"email_encrypted"`
+	Phone      string      `encx:"encrypt" db:"phone_encrypted"`
+	City       string      `encx:"encrypt,hash_basic" db:"city_encrypted"`
+	PostalCode string      `encx:"encrypt,hash_basic" db:"postal_code_encrypted"`
+	Address1   string      `encx:"encrypt,hash_basic" db:"address1_encrypted"`
+	Address2   string      `encx:"encrypt,hash_basic" db:"address2_encrypted"`
+	Occupation string      `encx:"encrypt,hash_basic" db:"occupation_encrypted"`
+	Notes      string      `encx:"encrypt" db:"notes_encrypted"`
 
-	Roles []PersonRole
+	Roles []PersonRole // Loaded from case_subject_cases table
 
-	CreatedAt time.Time `json:"created_at"`
+	CreatedAt time.Time `db:"created_at"`
 }

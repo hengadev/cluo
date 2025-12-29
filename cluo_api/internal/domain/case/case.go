@@ -13,9 +13,20 @@ type Case struct {
 	Description       string     `encx:"encrypt" db:"description_encrypted"`
 	ClientID          uuid.UUID  `db:"client_id"`
 	AssignedContactID *uuid.UUID `db:"assigned_contact_id"`
-	ExternalReference *string    `encx:"encrypt" db:"external_reference"`
+	CaseSubjectID     *uuid.UUID `db:"case_subject_id"`
+	ExternalReference *string    `encx:"encrypt,hash_basic" db:"external_reference_encrypted"`
 	CaseType          string     `db:"case_type"`
 	Status            CaseStatus `encx:"encrypt" db:"status_encrypted"`
+	Placename         string     `encx:"encrypt,hash_basic" db:"placename_encrypted"`
+	Address1          string     `encx:"encrypt,hash_basic" db:"address1_encrypted"`
+	Address2          string     `encx:"encrypt,hash_basic" db:"address2_encrypted"`
+	City              string     `encx:"encrypt,hash_basic" db:"city_encrypted"`
+	PostalCode        string     `encx:"encrypt,hash_basic" db:"postal_code_encrypted"`
+	Country           string     `encx:"encrypt,hash_basic" db:"country_encrypted"`
+	Latitude          *string    `encx:"encrypt,hash_basic" db:"latitude_encrypted"`
+	Longitude         *string    `encx:"encrypt,hash_basic" db:"longitude_encrypted"`
+	LocationType      string     `encx:"encrypt,hash_basic" db:"location_type_encrypted"`
+	LocationNotes     string     `encx:"encrypt,hash_basic" db:"location_notes_encrypted"`
 	CreatedAt         time.Time  `db:"created_at"`
 	UpdatedAt         time.Time  `encx:"encrypt" db:"updated_at_encrypted"`
 }
@@ -29,12 +40,20 @@ type CaseFilter struct {
 	ClientID          *uuid.UUID  `json:"client_id,omitempty"`
 	Status            *CaseStatus `json:"status,omitempty"`
 	AssignedContactID *uuid.UUID  `json:"assigned_contact_id,omitempty"`
+	CaseSubjectID     *uuid.UUID  `json:"case_subject_id,omitempty"`
 	CaseType          *string     `json:"case_type,omitempty"`
+	City              *string     `json:"city,omitempty"`
+	PostalCode        *string     `json:"postal_code,omitempty"`
+	Country           *string     `json:"country,omitempty"`
 	DateCreatedFrom   *time.Time  `json:"date_created_from,omitempty"`
 	DateCreatedTo     *time.Time  `json:"date_created_to,omitempty"`
 	DateUpdatedFrom   *time.Time  `json:"date_updated_from,omitempty"`
 	DateUpdatedTo     *time.Time  `json:"date_updated_to,omitempty"`
 	Search            *string     `json:"search,omitempty"`
+	// Hash fields (populated by application layer for repository filtering)
+	CityHash       *string `json:"-"`
+	PostalCodeHash *string `json:"-"`
+	CountryHash    *string `json:"-"`
 }
 
 // Pagination represents pagination parameters.
