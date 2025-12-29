@@ -1,4 +1,4 @@
-package personofinterest
+package case_subject
 
 type PersonRole string
 

@@ -1,4 +1,4 @@
-package personofinterest
+package case_subject
 
 import (
 	"time"
@@ -6,7 +6,7 @@ import (
 	"github.com/google/uuid"
 )
 
-type PersonOfInterest struct {
+type CaseSubject struct {
 	ID         uuid.UUID
 	CaseID     []uuid.UUID
 	Lastname   string `encx:"encrypt,hash_basic"`
