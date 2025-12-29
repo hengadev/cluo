@@ -2,7 +2,9 @@
   "SourceHashes": {
     "internal/common/auth/session/session.go": "98b736798866317fede7588e2cc117d4378b52004ed272e0fdcbd5aea16f0d38",
     "internal/common/testutils/auth.go": "752ead024c993d043837c06488d5e923ee654a260120100a641167e2752bad37",
-    "internal/domain/case/case.go": "8071039668f38a094aa0cd1a554a391d4064bb3eeb566993932730bd6fcc247e",
+    "internal/domain/case/case.go": "2a077b4c704fee780ac7724a4ad4a9e176dc968f84b5e270432b6b6f9b002378",
+    "internal/domain/case/case_location.go": "3fd4acfd25b7f110dc475732134d663a60cbaee05fdfc2be756409334db18994",
+    "internal/domain/case_subject/case_subject.go": "3064fdd2a82512799fbc444b32925fda043b595892885a88945a9e2bebf9d5d3",
     "internal/domain/client/client.go": "e5eff69b9628b61892f3ab40066bc7419cf3511aad07644e5e4f50fd276e8bff",
     "internal/domain/client/client_dto.go": "9e28dfd777792231f84aa483c04572fde5f117694e3f673de6972039ff2b1c2e",
     "internal/domain/client/contact.go": "4013e8520a2d0e9b8325673b31488774812a97358092094e4580660fe8dab223",
@@ -13,11 +15,12 @@
     "internal/domain/document/invoice.go": "7a0d2c0c7d9930dddae7de0b5bb4916ad1f08b30556c17c1e0b2578ab100628f",
     "internal/domain/document/mandate.go": "57e10d583a3cd0e2b75363764a98cc90b23fe77c731d3a66619b2929d7a3946c",
     "internal/domain/media/media.go": "f4287f1e4ea473e7bd81114566fed37e4362ed646d73e40496cf2828109bbece",
+    "internal/domain/person-of-interest/case_subject.go": "6cf744c794bef1ece1df02bd60a57f245867810612973b7a0fa1b47a4a5620b8",
     "internal/domain/person-of-interest/person_of_interest.go": "0ff3c08a7899f113c1386410f32a4d2e984ac1dc0dacea7bd92d74d49ec14ca2",
     "internal/domain/signature.go": "b6b69504bbb6ddbc3c1d85d365bd3cfadc59871544d9809b5ad94b3b3bdd1bab",
     "internal/domain/token.go": "22cf48bf9f23bc8007a193544d0938356de63c0ed15d172ccd98dbf1d3020359",
     "internal/domain/user.go": "58b2898421d1a1dba35d899057454bc1ce1f012cbbfecc5ea392a513c5dc3628",
-    "internal/domain/user/user.go": "d4ae2fc0d360aad42358a9b19f2633335c93bd4f28b2a3283c7dd26aa291f9ca"
+    "internal/domain/user/user.go": "bd247435ff051db26d0dfe8dedeaea26582b4c3df91883709754cc8bfa243fa2"
   },
   "ConfigHash": "",
   "GeneratedFiles": {
@@ -33,8 +36,18 @@
     },
     "internal/domain/case/case_encx.go": {
       "SourceFile": "internal/domain/case/case.go",
-      "SourceHash": "8071039668f38a094aa0cd1a554a391d4064bb3eeb566993932730bd6fcc247e",
-      "GeneratedTime": "2025-12-26T19:03:06.897020861+01:00"
+      "SourceHash": "2a077b4c704fee780ac7724a4ad4a9e176dc968f84b5e270432b6b6f9b002378",
+      "GeneratedTime": "2025-12-29T01:18:08.200837931+01:00"
+    },
+    "internal/domain/case/case_location_encx.go": {
+      "SourceFile": "internal/domain/case/case_location.go",
+      "SourceHash": "3fd4acfd25b7f110dc475732134d663a60cbaee05fdfc2be756409334db18994",
+      "GeneratedTime": "2025-12-28T09:41:11.236897663+01:00"
+    },
+    "internal/domain/case_subject/case_subject_encx.go": {
+      "SourceFile": "internal/domain/case_subject/case_subject.go",
+      "SourceHash": "3064fdd2a82512799fbc444b32925fda043b595892885a88945a9e2bebf9d5d3",
+      "GeneratedTime": "2025-12-29T01:18:08.204156342+01:00"
     },
     "internal/domain/client/client_dto_encx.go": {
       "SourceFile": "internal/domain/client/client_dto.go",
@@ -59,7 +72,7 @@
     "internal/domain/document/contract_encx.go": {
       "SourceFile": "internal/domain/document/contract.go",
       "SourceHash": "b7c10ee103d51c07fa492a72b11cf8c12406a69410207ec0f032be4b9ecd8ebe",
-      "GeneratedTime": "2025-12-12T07:30:56.661605147+01:00"
+      "GeneratedTime": "2025-12-28T09:37:44.225820363+01:00"
     },
     "internal/domain/document/document_base_encx.go": {
       "SourceFile": "internal/domain/document/document_base.go",
@@ -69,12 +82,12 @@
     "internal/domain/document/estimate_encx.go": {
       "SourceFile": "internal/domain/document/estimate.go",
       "SourceHash": "c4bc9341a3baf94fe6533ed1bdff4931472509d902054d198be11b4209ca495b",
-      "GeneratedTime": "2025-12-12T07:30:56.658798899+01:00"
+      "GeneratedTime": "2025-12-28T09:37:44.226585444+01:00"
     },
     "internal/domain/document/invoice_encx.go": {
       "SourceFile": "internal/domain/document/invoice.go",
       "SourceHash": "7a0d2c0c7d9930dddae7de0b5bb4916ad1f08b30556c17c1e0b2578ab100628f",
-      "GeneratedTime": "2025-12-12T07:30:56.65991356+01:00"
+      "GeneratedTime": "2025-12-28T09:37:44.227677131+01:00"
     },
     "internal/domain/document/mandate_encx.go": {
       "SourceFile": "internal/domain/document/mandate.go",
@@ -84,7 +97,12 @@
     "internal/domain/media/media_encx.go": {
       "SourceFile": "internal/domain/media/media.go",
       "SourceHash": "f4287f1e4ea473e7bd81114566fed37e4362ed646d73e40496cf2828109bbece",
-      "GeneratedTime": "2025-12-26T19:03:06.909858674+01:00"
+      "GeneratedTime": "2025-12-29T01:18:08.226676434+01:00"
+    },
+    "internal/domain/person-of-interest/case_subject_encx.go": {
+      "SourceFile": "internal/domain/person-of-interest/case_subject.go",
+      "SourceHash": "6cf744c794bef1ece1df02bd60a57f245867810612973b7a0fa1b47a4a5620b8",
+      "GeneratedTime": "2025-12-28T09:37:44.235844616+01:00"
     },
     "internal/domain/person-of-interest/person_of_interest_encx.go": {
       "SourceFile": "internal/domain/person-of-interest/person_of_interest.go",
@@ -103,8 +121,8 @@
     },
     "internal/domain/user/user_encx.go": {
       "SourceFile": "internal/domain/user/user.go",
-      "SourceHash": "d4ae2fc0d360aad42358a9b19f2633335c93bd4f28b2a3283c7dd26aa291f9ca",
-      "GeneratedTime": "2025-12-12T07:30:56.663817116+01:00"
+      "SourceHash": "bd247435ff051db26d0dfe8dedeaea26582b4c3df91883709754cc8bfa243fa2",
+      "GeneratedTime": "2025-12-28T09:37:44.237410977+01:00"
     },
     "internal/domain/user_encx.go": {
       "SourceFile": "internal/domain/user.go",
@@ -112,5 +130,5 @@
       "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
     }
   },
-  "LastGenerated": "2025-12-26T19:03:06.910793255+01:00"
+  "LastGenerated": "2025-12-29T01:18:08.226676665+01:00"
 }

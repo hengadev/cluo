@@ -8,8 +8,8 @@ import (
 
 type User struct {
 	ID        uuid.UUID
-	Email     string `encx:"hash_basic,encrypt"`
-	Password  string `encx:"hash_secure"`
-	Role      string `encx:"encrypt"`
+	Email     string    `encx:"hash_basic,encrypt"`
+	Password  string    `encx:"hash_secure"`
+	Role      string    `encx:"encrypt"`
 	CreatedAt time.Time `encx:"encrypt"`
 }
