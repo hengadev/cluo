@@ -17,15 +17,40 @@ func (c *Case) ToResponse() *CaseResponse {
 		assignedContactIDStr = &contactIDStr
 	}
 
+	var caseSubjectIDStr *string
+	if c.CaseSubjectID != nil {
+		subjectIDStr := c.CaseSubjectID.String()
+		caseSubjectIDStr = &subjectIDStr
+	}
+
+	// Helper function to convert non-empty strings to pointers
+	stringToPtr := func(s string) *string {
+		if s == "" {
+			return nil
+		}
+		return &s
+	}
+
 	return &CaseResponse{
 		ID:                c.ID.String(),
 		Title:             c.Title,
 		Description:       c.Description,
 		ClientID:          c.ClientID.String(),
 		AssignedContactID: assignedContactIDStr,
+		CaseSubjectID:     caseSubjectIDStr,
 		ExternalReference: c.ExternalReference,
 		CaseType:          c.CaseType,
 		Status:            string(c.Status),
+		Placename:         stringToPtr(c.Placename),
+		Address1:          stringToPtr(c.Address1),
+		Address2:          stringToPtr(c.Address2),
+		City:              stringToPtr(c.City),
+		PostalCode:        stringToPtr(c.PostalCode),
+		Country:           stringToPtr(c.Country),
+		Latitude:          c.Latitude,
+		Longitude:         c.Longitude,
+		LocationType:      stringToPtr(c.LocationType),
+		LocationNotes:     stringToPtr(c.LocationNotes),
 		CreatedAt:         c.CreatedAt,
 		UpdatedAt:         c.UpdatedAt,
 	}
@@ -37,10 +62,21 @@ type CaseResponse struct {
 	Title             string    `json:"title"`
 	Description       string    `json:"description"`
 	ClientID          string    `json:"clientId"`
-	AssignedContactID *string   `json:"assignedContactID"`
-	ExternalReference *string   `json:"externalReference"`
+	AssignedContactID *string   `json:"assignedContactID,omitempty"`
+	CaseSubjectID     *string   `json:"caseSubjectId,omitempty"`
+	ExternalReference *string   `json:"externalReference,omitempty"`
 	CaseType          string    `json:"caseType"`
 	Status            string    `json:"status"`
+	Placename         *string   `json:"placename,omitempty"`
+	Address1          *string   `json:"address1,omitempty"`
+	Address2          *string   `json:"address2,omitempty"`
+	City              *string   `json:"city,omitempty"`
+	PostalCode        *string   `json:"postalCode,omitempty"`
+	Country           *string   `json:"country,omitempty"`
+	Latitude          *string   `json:"latitude,omitempty"`
+	Longitude         *string   `json:"longitude,omitempty"`
+	LocationType      *string   `json:"locationType,omitempty"`
+	LocationNotes     *string   `json:"locationNotes,omitempty"`
 	CreatedAt         time.Time `json:"createdAt"`
 	UpdatedAt         time.Time `json:"updatedAt"`
 }
@@ -49,10 +85,21 @@ type CreateCaseRequest struct {
 	Title             string  `json:"title"`
 	Description       string  `json:"description"`
 	ClientID          string  `json:"clientId"`
-	AssignedContactID *string `json:"assignedContactID"`
-	ExternalReference *string `json:"externalReference"`
+	AssignedContactID *string `json:"assignedContactID,omitempty"`
+	CaseSubjectID     *string `json:"caseSubjectId,omitempty"`
+	ExternalReference *string `json:"externalReference,omitempty"`
 	CaseType          string  `json:"caseType"`
 	Status            string  `json:"status"`
+	Placename         *string `json:"placename,omitempty"`
+	Address1          *string `json:"address1,omitempty"`
+	Address2          *string `json:"address2,omitempty"`
+	City              *string `json:"city,omitempty"`
+	PostalCode        *string `json:"postalCode,omitempty"`
+	Country           *string `json:"country,omitempty"`
+	Latitude          *string `json:"latitude,omitempty"`
+	Longitude         *string `json:"longitude,omitempty"`
+	LocationType      *string `json:"locationType,omitempty"`
+	LocationNotes     *string `json:"locationNotes,omitempty"`
 }
 
 func (r *CreateCaseRequest) Valid(ctx context.Context) error {
@@ -103,6 +150,67 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 		errs.Set("caseType", "caseType must be less than 100 characters")
 	}
 
+	// Validate CaseSubjectID (optional)
+	if r.CaseSubjectID != nil && strings.TrimSpace(*r.CaseSubjectID) != "" {
+		if _, err := uuid.Parse(*r.CaseSubjectID); err != nil {
+			errs.Set("caseSubjectId", "caseSubjectId must be a valid UUID")
+		}
+	}
+
+	// Validate location fields (all optional)
+	if r.Placename != nil && len(*r.Placename) > 200 {
+		errs.Set("placename", "placename must be less than 200 characters")
+	}
+
+	if r.Address1 != nil && len(*r.Address1) > 200 {
+		errs.Set("address1", "address1 must be less than 200 characters")
+	}
+
+	if r.Address2 != nil && len(*r.Address2) > 200 {
+		errs.Set("address2", "address2 must be less than 200 characters")
+	}
+
+	if r.City != nil && len(*r.City) > 100 {
+		errs.Set("city", "city must be less than 100 characters")
+	}
+
+	if r.PostalCode != nil && len(*r.PostalCode) > 20 {
+		errs.Set("postalCode", "postalCode must be less than 20 characters")
+	}
+
+	if r.Country != nil && len(*r.Country) > 100 {
+		errs.Set("country", "country must be less than 100 characters")
+	}
+
+	if r.LocationType != nil && len(*r.LocationType) > 100 {
+		errs.Set("locationType", "locationType must be less than 100 characters")
+	}
+
+	if r.LocationNotes != nil && len(*r.LocationNotes) > 1000 {
+		errs.Set("locationNotes", "locationNotes must be less than 1000 characters")
+	}
+
+	// Validate latitude and longitude format (optional, but must be valid decimal if provided)
+	if r.Latitude != nil && strings.TrimSpace(*r.Latitude) != "" {
+		// Simple validation: should be parseable as float and within valid range
+		var lat float64
+		if _, err := fmt.Sscanf(*r.Latitude, "%f", &lat); err != nil {
+			errs.Set("latitude", "latitude must be a valid decimal number")
+		} else if lat < -90.0 || lat > 90.0 {
+			errs.Set("latitude", "latitude must be between -90 and 90")
+		}
+	}
+
+	if r.Longitude != nil && strings.TrimSpace(*r.Longitude) != "" {
+		// Simple validation: should be parseable as float and within valid range
+		var lon float64
+		if _, err := fmt.Sscanf(*r.Longitude, "%f", &lon); err != nil {
+			errs.Set("longitude", "longitude must be a valid decimal number")
+		} else if lon < -180.0 || lon > 180.0 {
+			errs.Set("longitude", "longitude must be between -180 and 180")
+		}
+	}
+
 	return errs.AsError()
 }
 
@@ -132,15 +240,43 @@ func NewCase(r *CreateCaseRequest) *Case {
 		}
 	}
 
+	// Parse case subject ID if provided
+	var caseSubjectID *uuid.UUID
+	if r.CaseSubjectID != nil {
+		subjectID, err := uuid.Parse(*r.CaseSubjectID)
+		if err == nil {
+			caseSubjectID = &subjectID
+		}
+	}
+
+	// Helper to dereference string pointers, returning empty string if nil
+	ptrToString := func(s *string) string {
+		if s == nil {
+			return ""
+		}
+		return *s
+	}
+
 	return &Case{
 		ID:                uuid.New(),
 		Title:             r.Title,
 		Description:       r.Description,
 		ClientID:          clientID,
 		AssignedContactID: assignedContactID,
+		CaseSubjectID:     caseSubjectID,
 		ExternalReference: r.ExternalReference,
 		CaseType:          r.CaseType,
 		Status:            status,
+		Placename:         ptrToString(r.Placename),
+		Address1:          ptrToString(r.Address1),
+		Address2:          ptrToString(r.Address2),
+		City:              ptrToString(r.City),
+		PostalCode:        ptrToString(r.PostalCode),
+		Country:           ptrToString(r.Country),
+		Latitude:          r.Latitude,
+		Longitude:         r.Longitude,
+		LocationType:      ptrToString(r.LocationType),
+		LocationNotes:     ptrToString(r.LocationNotes),
 		CreatedAt:         now,
 		UpdatedAt:         now,
 	}
@@ -160,9 +296,20 @@ type UpdateCaseRequest struct {
 	Description       *string    `json:"description"`
 	ClientID          *uuid.UUID `json:"clientId"`
 	AssignedContactID *uuid.UUID `json:"assignedContactId"`
+	CaseSubjectID     *uuid.UUID `json:"caseSubjectId"`
 	ExternalReference *string    `json:"externalReference"`
 	CaseType          *string    `json:"caseType"`
 	Status            *string    `json:"status"`
+	Placename         *string    `json:"placename"`
+	Address1          *string    `json:"address1"`
+	Address2          *string    `json:"address2"`
+	City              *string    `json:"city"`
+	PostalCode        *string    `json:"postalCode"`
+	Country           *string    `json:"country"`
+	Latitude          *string    `json:"latitude"`
+	Longitude         *string    `json:"longitude"`
+	LocationType      *string    `json:"locationType"`
+	LocationNotes     *string    `json:"locationNotes"`
 }
 
 func (r *UpdateCaseRequest) Valid(ctx context.Context) error {
@@ -214,6 +361,63 @@ func (r *UpdateCaseRequest) Valid(ctx context.Context) error {
 		}
 	}
 
+	// Validate CaseSubjectID (optional but if provided, cannot be nil UUID)
+	if r.CaseSubjectID != nil && *r.CaseSubjectID == uuid.Nil {
+		errs.Set("caseSubjectId", "caseSubjectId cannot be nil UUID if provided")
+	}
+
+	// Validate location fields (all optional, check length if provided)
+	if r.Placename != nil && len(*r.Placename) > 200 {
+		errs.Set("placename", "placename must be less than 200 characters")
+	}
+
+	if r.Address1 != nil && len(*r.Address1) > 200 {
+		errs.Set("address1", "address1 must be less than 200 characters")
+	}
+
+	if r.Address2 != nil && len(*r.Address2) > 200 {
+		errs.Set("address2", "address2 must be less than 200 characters")
+	}
+
+	if r.City != nil && len(*r.City) > 100 {
+		errs.Set("city", "city must be less than 100 characters")
+	}
+
+	if r.PostalCode != nil && len(*r.PostalCode) > 20 {
+		errs.Set("postalCode", "postalCode must be less than 20 characters")
+	}
+
+	if r.Country != nil && len(*r.Country) > 100 {
+		errs.Set("country", "country must be less than 100 characters")
+	}
+
+	if r.LocationType != nil && len(*r.LocationType) > 100 {
+		errs.Set("locationType", "locationType must be less than 100 characters")
+	}
+
+	if r.LocationNotes != nil && len(*r.LocationNotes) > 1000 {
+		errs.Set("locationNotes", "locationNotes must be less than 1000 characters")
+	}
+
+	// Validate latitude and longitude format (optional, but must be valid decimal if provided)
+	if r.Latitude != nil && strings.TrimSpace(*r.Latitude) != "" {
+		var lat float64
+		if _, err := fmt.Sscanf(*r.Latitude, "%f", &lat); err != nil {
+			errs.Set("latitude", "latitude must be a valid decimal number")
+		} else if lat < -90.0 || lat > 90.0 {
+			errs.Set("latitude", "latitude must be between -90 and 90")
+		}
+	}
+
+	if r.Longitude != nil && strings.TrimSpace(*r.Longitude) != "" {
+		var lon float64
+		if _, err := fmt.Sscanf(*r.Longitude, "%f", &lon); err != nil {
+			errs.Set("longitude", "longitude must be a valid decimal number")
+		} else if lon < -180.0 || lon > 180.0 {
+			errs.Set("longitude", "longitude must be between -180 and 180")
+		}
+	}
+
 	return errs.AsError()
 }
 
@@ -222,7 +426,11 @@ type ListCasesRequest struct {
 	ClientID          *string `json:"clientId,omitempty"`
 	Status            *string `json:"status,omitempty"`
 	AssignedContactID *string `json:"assignedContactId,omitempty"`
+	CaseSubjectID     *string `json:"caseSubjectId,omitempty"`
 	CaseType          *string `json:"caseType,omitempty"`
+	City              *string `json:"city,omitempty"`
+	PostalCode        *string `json:"postalCode,omitempty"`
+	Country           *string `json:"country,omitempty"`
 	DateCreatedFrom   *string `json:"dateCreatedFrom,omitempty"`
 	DateCreatedTo     *string `json:"dateCreatedTo,omitempty"`
 	DateUpdatedFrom   *string `json:"dateUpdatedFrom,omitempty"`
@@ -261,6 +469,13 @@ func (r *ListCasesRequest) Valid(ctx context.Context) error {
 		}
 	}
 
+	// Validate CaseSubjectID (optional)
+	if r.CaseSubjectID != nil && strings.TrimSpace(*r.CaseSubjectID) != "" {
+		if _, err := uuid.Parse(*r.CaseSubjectID); err != nil {
+			errs.Set("caseSubjectId", "caseSubjectId must be a valid UUID")
+		}
+	}
+
 	// Validate Status (optional)
 	if r.Status != nil && strings.TrimSpace(*r.Status) != "" {
 		status := CaseStatus(strings.ToLower(strings.TrimSpace(*r.Status)))
@@ -274,6 +489,24 @@ func (r *ListCasesRequest) Valid(ctx context.Context) error {
 		if len(*r.CaseType) > 100 {
 			errs.Set("caseType", "caseType must be less than 100 characters")
 		}
+	}
+
+	// Validate location filters (optional)
+	if r.City != nil && len(*r.City) > 100 {
+		errs.Set("city", "city must be less than 100 characters")
+	}
+
+	if r.PostalCode != nil && len(*r.PostalCode) > 20 {
+		errs.Set("postalCode", "postalCode must be less than 20 characters")
+	}
+
+	if r.Country != nil && len(*r.Country) > 100 {
+		errs.Set("country", "country must be less than 100 characters")
+	}
+
+	// Validate Search (optional)
+	if r.Search != nil && len(*r.Search) > 1000 {
+		errs.Set("search", "search must be less than 1000 characters")
 	}
 
 	// Validate date formats (optional)
@@ -335,10 +568,35 @@ func (r *ListCasesRequest) ToCaseFilter() (CaseFilter, error) {
 		filter.AssignedContactID = &contactID
 	}
 
+	// Parse CaseSubjectID
+	if r.CaseSubjectID != nil && strings.TrimSpace(*r.CaseSubjectID) != "" {
+		subjectID, err := uuid.Parse(*r.CaseSubjectID)
+		if err != nil {
+			return filter, fmt.Errorf("invalid caseSubjectId: %w", err)
+		}
+		filter.CaseSubjectID = &subjectID
+	}
+
 	// Parse CaseType
 	if r.CaseType != nil && strings.TrimSpace(*r.CaseType) != "" {
 		caseType := strings.TrimSpace(*r.CaseType)
 		filter.CaseType = &caseType
+	}
+
+	// Parse location filters
+	if r.City != nil && strings.TrimSpace(*r.City) != "" {
+		city := strings.TrimSpace(*r.City)
+		filter.City = &city
+	}
+
+	if r.PostalCode != nil && strings.TrimSpace(*r.PostalCode) != "" {
+		postalCode := strings.TrimSpace(*r.PostalCode)
+		filter.PostalCode = &postalCode
+	}
+
+	if r.Country != nil && strings.TrimSpace(*r.Country) != "" {
+		country := strings.TrimSpace(*r.Country)
+		filter.Country = &country
 	}
 
 	// Parse date fields
