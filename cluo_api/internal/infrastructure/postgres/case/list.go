@@ -38,9 +38,38 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 		}
 	}
 
+	if f.CaseSubjectID != nil {
+		if *f.CaseSubjectID == (uuid.UUID{}) { // Check for nil UUID
+			whereClauses = append(whereClauses, "case_subject_id IS NULL")
+		} else {
+			whereClauses = append(whereClauses, fmt.Sprintf("case_subject_id = $%d", argIndex))
+			args = append(args, *f.CaseSubjectID)
+			argIndex++
+		}
+	}
+
 	if f.CaseType != nil {
 		whereClauses = append(whereClauses, fmt.Sprintf("case_type = $%d", argIndex))
 		args = append(args, *f.CaseType)
+		argIndex++
+	}
+
+	// Add location hash filters (hashes computed by application layer)
+	if f.CityHash != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("city_hash = $%d", argIndex))
+		args = append(args, *f.CityHash)
+		argIndex++
+	}
+
+	if f.PostalCodeHash != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("postal_code_hash = $%d", argIndex))
+		args = append(args, *f.PostalCodeHash)
+		argIndex++
+	}
+
+	if f.CountryHash != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("country_hash = $%d", argIndex))
+		args = append(args, *f.CountryHash)
 		argIndex++
 	}
 
@@ -76,19 +105,19 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 	// Get paginated results
 	query := fmt.Sprintf(`
 		SELECT
-			id,
-			client_id,
-			assigned_contact_id,
-			case_type,
-			created_at,
-			title_encrypted,
-			description_encrypted,
-			external_reference_encrypted,
-			status_encrypted,
-			updated_at_encrypted,
-			dek_encrypted,
-			key_version,
-			metadata
+			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
+			placename_encrypted, placename_hash,
+			address1_encrypted, address1_hash,
+			address2_encrypted, address2_hash,
+			city_encrypted, city_hash,
+			postal_code_encrypted, postal_code_hash,
+			country_encrypted, country_hash,
+			latitude_encrypted, latitude_hash,
+			longitude_encrypted, longitude_hash,
+			location_type_encrypted, location_type_hash,
+			location_notes_encrypted, location_notes_hash,
+			updated_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.cases
 		%s
 		ORDER BY created_at DESC
@@ -107,19 +136,19 @@ func (r *Repository) List(ctx context.Context, f caseDomain.CaseFilter, p caseDo
 	for rows.Next() {
 		caseEncx := &caseDomain.CaseEncx{}
 		err := rows.Scan(
-			&caseEncx.ID,
-			&caseEncx.ClientID,
-			&caseEncx.AssignedContactID,
-			&caseEncx.CaseType,
-			&caseEncx.CreatedAt,
-			&caseEncx.TitleEncrypted,
-			&caseEncx.DescriptionEncrypted,
-			&caseEncx.ExternalReferenceEncrypted,
-			&caseEncx.StatusEncrypted,
-			&caseEncx.UpdatedAtEncrypted,
-			&caseEncx.DEKEncrypted,
-			&caseEncx.KeyVersion,
-			&caseEncx.Metadata,
+			&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+			&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.ExternalReferenceHash, &caseEncx.StatusEncrypted,
+			&caseEncx.PlacenameEncrypted, &caseEncx.PlacenameHash,
+			&caseEncx.Address1Encrypted, &caseEncx.Address1Hash,
+			&caseEncx.Address2Encrypted, &caseEncx.Address2Hash,
+			&caseEncx.CityEncrypted, &caseEncx.CityHash,
+			&caseEncx.PostalCodeEncrypted, &caseEncx.PostalCodeHash,
+			&caseEncx.CountryEncrypted, &caseEncx.CountryHash,
+			&caseEncx.LatitudeEncrypted, &caseEncx.LatitudeHash,
+			&caseEncx.LongitudeEncrypted, &caseEncx.LongitudeHash,
+			&caseEncx.LocationTypeEncrypted, &caseEncx.LocationTypeHash,
+			&caseEncx.LocationNotesEncrypted, &caseEncx.LocationNotesHash,
+			&caseEncx.UpdatedAtEncrypted, &caseEncx.DEKEncrypted, &caseEncx.KeyVersion, &caseEncx.Metadata,
 		)
 		if err != nil {
 			return nil, 0, fmt.Errorf("failed to scan case row: %w", err)
