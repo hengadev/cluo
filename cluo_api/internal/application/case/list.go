@@ -21,6 +21,20 @@ func (s *CaseService) List(ctx context.Context, r *caseDomain.ListCasesRequest) 
 		return nil, fmt.Errorf("failed to parse filters: %w", err)
 	}
 
+	// Compute hashes for location filters (application layer responsibility)
+	if caseFilter.City != nil {
+		cityHash := s.crypto.HashBasic(ctx, []byte(*caseFilter.City))
+		caseFilter.CityHash = &cityHash
+	}
+	if caseFilter.PostalCode != nil {
+		postalCodeHash := s.crypto.HashBasic(ctx, []byte(*caseFilter.PostalCode))
+		caseFilter.PostalCodeHash = &postalCodeHash
+	}
+	if caseFilter.Country != nil {
+		countryHash := s.crypto.HashBasic(ctx, []byte(*caseFilter.Country))
+		caseFilter.CountryHash = &countryHash
+	}
+
 	// Create pagination object
 	pagination := caseDomain.Pagination{
 		Page:     r.Page,

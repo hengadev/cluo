@@ -46,10 +46,27 @@ func (s *CaseService) CreateCase(ctx context.Context, r *caseDomain.CreateCaseRe
 		}
 	}
 
+	// Check if case subject exists (if provided)
+	if r.CaseSubjectID != nil {
+		caseSubjectUUID, err := uuid.Parse(*r.CaseSubjectID)
+		if err != nil {
+			return nil, errs.NewInvalidValueErr("invalid case subject ID format")
+		}
+
+		exists, err = s.caseSubjectRepo.ExistsCaseSubject(ctx, caseSubjectUUID)
+		if err != nil {
+			return nil, fmt.Errorf("failed to check case subject existence: %w", err)
+		}
+
+		if !exists {
+			return nil, errs.NewRepositoryNotFoundErr(fmt.Errorf("case subject with ID %s not found", *r.CaseSubjectID), "case_subject")
+		}
+	}
+
 	c := caseDomain.NewCase(r)
 	cEncx, err := caseDomain.ProcessCaseEncx(ctx, s.crypto, c)
 	if err != nil {
-		return nil, errs.NewNotDecryptedErr("case", err)
+		return nil, errs.NewNotEncryptedErr("case", err)
 	}
 
 	if err := s.repo.CreateCase(ctx, cEncx); err != nil {
