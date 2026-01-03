@@ -1,10 +1,10 @@
-export const VIEW_STATES = {
+export const LAYOUT_STATES = {
     List: "List",
     Grid: "Grid",
 } as const;
 
-export type ViewState = typeof VIEW_STATES[keyof typeof VIEW_STATES];
-export const View_STATES_ARRAY = Object.values(VIEW_STATES);
+export type LayoutState = typeof LAYOUT_STATES[keyof typeof LAYOUT_STATES];
+export const LAYOUT_STATES_ARRAY = Object.values(LAYOUT_STATES);
 
 
 export type CardType = {

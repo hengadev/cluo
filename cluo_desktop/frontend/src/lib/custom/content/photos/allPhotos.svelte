@@ -1,12 +1,12 @@
 <script lang="ts">
-    import { type ViewState, VIEW_STATES } from "./types";
+    import { type LayoutState, LAYOUT_STATES } from "./types";
 
     import { type CardType } from "./types";
     import CardGrid from "./_cardGrid.svelte";
     import CardList from "./_cardList.svelte";
 
-    let viewMode = $state<ViewState>(VIEW_STATES.Grid);
-    // let viewMode = $state<ViewState>(VIEW_STATES.List);
+    let viewMode = $state<LayoutState>(LAYOUT_STATES.Grid);
+    // let viewMode = $state<LayoutState>(LAYOUT_STATES.List);
 
     const cards: CardType[] = [
         { title: "Client contract", tags: ["contract", "signed"] },
@@ -16,11 +16,11 @@
 </script>
 
 <div class="grid">
-    {#if viewMode === VIEW_STATES.Grid}
+    {#if viewMode === LAYOUT_STATES.Grid}
         {#each cards as card}
             <CardGrid {card} />
         {/each}
-    {:else if viewMode === VIEW_STATES.List}
+    {:else if viewMode === LAYOUT_STATES.List}
         {#each cards as card}
             <CardList {card} />
         {/each}
