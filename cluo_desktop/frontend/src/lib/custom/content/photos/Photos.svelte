@@ -7,7 +7,6 @@
         ArrowUpNarrowWide,
     } from "@lucide/svelte";
     import AllPhotos from "./allPhotos.svelte";
-    import Selection from "./selection.svelte";
 </script>
 
 <div class="content p-6">
@@ -38,7 +37,7 @@
             <AllPhotos />
         </Tabs.Content>
         <Tabs.Content value="selection" class="select-none pt-3">
-            <Selection />
+            <div>here is the content with the selection</div>
         </Tabs.Content>
     </Tabs.Root>
 </div>
