@@ -11,7 +11,8 @@
 
     import { type SidebarState, SIDEBAR_STATES } from "$lib/types/sidebar";
     import Content from "./Content.svelte";
-    let sidebarState = $state<SidebarState>(SIDEBAR_STATES.Informations);
+    // let sidebarState = $state<SidebarState>(SIDEBAR_STATES.Informations);
+    let sidebarState = $state<SidebarState>(SIDEBAR_STATES.Photos);
 </script>
 
 <Toaster />

@@ -46,7 +46,7 @@
 
     <div class="grid gap-4">
         <Button.Root
-            class="bg-background border-1 border-border-input p-2 !mt-1 rounded-input flex items-center cursor-pointer {isExpanded
+            class="bg-background border-1 border-border-input p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 {isExpanded
                 ? 'justify-start gap-3 px-4'
                 : 'justify-center'}"
             onclick={() =>
@@ -73,7 +73,7 @@
         </div>
         <ProfilePopover>
             <Button.Root
-                class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer {isExpanded
+                class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
                     ? 'justify-start gap-3 px-4 py-3 w-full'
                     : 'justify-center mx-auto size-12'}"
             >
@@ -108,7 +108,7 @@
         </button>
     {:else}
         <Tooltip.Provider>
-            <Tooltip.Root delayDuration={100}>
+            <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
                     class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {item.title ===
