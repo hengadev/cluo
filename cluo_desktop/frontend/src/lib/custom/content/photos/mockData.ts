@@ -1,0 +1,133 @@
+import { type Image } from "./types";
+
+export const cards: Image[] = [
+    {
+        id: "evi-001",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/surveillance_cafe_meeting.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240115%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240115T143200Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123def456",
+        filename: "surveillance_cafe_meeting.jpg",
+        filesize: 2458624,
+        caption:
+            "Subject meeting with unknown individual at Le Petit Café - 14:32",
+        isPublished: true,
+        createdAt: "2024-01-15T14:32:00Z",
+    },
+    {
+        id: "evi-002",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/vehicle_parking.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240115%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240115T091500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=xyz789",
+        filename: "vehicle_parking.jpg",
+        filesize: 1890544,
+        caption: "Subject's vehicle parked at 42 Rue de la Paix - 09:15",
+        isPublished: false,
+        createdAt: "2024-01-15T09:15:00Z",
+    },
+    {
+        id: "evi-003",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/document_fragment.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240114%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240114T184500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=def456",
+        filename: "document_fragment.jpg",
+        filesize: 956272,
+        caption:
+            "Partial document recovered from subject's trash - handwriting analysis pending",
+        isPublished: true,
+        createdAt: "2024-01-14T18:45:00Z",
+    },
+    {
+        id: "evi-004",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/apartment_entrance.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240114%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240114T221000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ghi789",
+        filename: "apartment_entrance.jpg",
+        filesize: 3145728,
+        caption:
+            "Subject entering apartment building with unidentified male - 22:10",
+        isPublished: true,
+        createdAt: "2024-01-14T22:10:00Z",
+    },
+    {
+        id: "evi-005",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/phone_records.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240113%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240113T112000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=jkl012",
+        filename: "phone_records.jpg",
+        filesize: 524288,
+        caption:
+            "Excerpt from phone records - multiple calls to +33 6 XX XX XX XX",
+        isPublished: false,
+        createdAt: "2024-01-13T11:20:00Z",
+    },
+    {
+        id: "evi-006",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/bank_statement.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240112%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240112T163000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=mno345",
+        filename: "bank_statement.jpg",
+        filesize: 1474560,
+        caption:
+            "Suspicious transaction - €15,000 withdrawal on January 8th",
+        isPublished: true,
+        createdAt: "2024-01-12T16:30:00Z",
+    },
+    {
+        id: "evi-007",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/witness_statement.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240111%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240111T100000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=pqr678",
+        filename: "witness_statement.jpg",
+        filesize: 786432,
+        caption: "Statement from neighbor - unusual activity late at night",
+        isPublished: true,
+        createdAt: "2024-01-11T10:00:00Z",
+    },
+    {
+        id: "evi-008",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/office_building.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240110%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240110T084500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=stu901",
+        filename: "office_building.jpg",
+        filesize: 3145728,
+        caption:
+            "Subject photographed entering office building at 12 Avenue des Champs-Élysées",
+        isPublished: true,
+        createdAt: "2024-01-10T08:45:00Z",
+    },
+    {
+        id: "evi-009",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/receipt_evidence.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240109%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240109T201500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=vwx234",
+        filename: "receipt_evidence.jpg",
+        filesize: 655360,
+        caption: "Restaurant receipt - two persons, €127.50, January 9th",
+        isPublished: false,
+        createdAt: "2024-01-09T20:15:00Z",
+    },
+    {
+        id: "evi-010",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/trash_documents.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240108%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240108T053000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=yza567",
+        filename: "trash_documents.jpg",
+        filesize: 1048576,
+        caption:
+            "Recovered documents from subject's residential waste - shredded partial reconstruction",
+        isPublished: false,
+        createdAt: "2024-01-08T05:30:00Z",
+    },
+    {
+        id: "evi-011",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/gym_membership.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240107%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240107T142000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=bcd890",
+        filename: "gym_membership.jpg",
+        filesize: 458752,
+        caption:
+            "Fitness club membership card found - shared membership with second individual",
+        isPublished: true,
+        createdAt: "2024-01-07T14:20:00Z",
+    },
+    {
+        id: "evi-012",
+        caseId: "CASE-2024-0847",
+        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/train_tickets.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240106%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240106T120000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=def123",
+        filename: "train_tickets.jpg",
+        filesize: 737280,
+        caption:
+            "Train tickets to Nice - round trip, same day travel, December 28th",
+        isPublished: true,
+        createdAt: "2024-01-06T12:00:00Z",
+    },
+];
