@@ -25,7 +25,13 @@ export const FILTER_STATES = {
 export type FilterState = typeof FILTER_STATES[keyof typeof FILTER_STATES];
 export const FILTER_STATES_ARRAY = Object.values(FILTER_STATES);
 
-export type CardType = {
-    title: string;
-    tags: string[];
+export type Image = {
+    id: string;
+    caseId: string;
+    url: string;
+    filename: string;
+    filesize: number;
+    caption: string;
+    isPublished: boolean;
+    createdAt: string;
 };
