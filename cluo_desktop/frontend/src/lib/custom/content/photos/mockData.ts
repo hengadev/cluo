@@ -1,6 +1,6 @@
 import { type Image } from "./types";
 
-export const cards: Image[] = [
+export const images: Image[] = [
     {
         id: "evi-001",
         caseId: "CASE-2024-0847",
