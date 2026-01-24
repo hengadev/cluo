@@ -11,7 +11,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"github.com/Leviosa-care/leviosa/backend/internal/common/errs"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 )
 
 func TestClassifyServiceError(t *testing.T) {
