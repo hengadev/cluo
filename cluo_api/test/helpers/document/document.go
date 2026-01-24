@@ -309,13 +309,13 @@ func NewTestDocumentVersion(t *testing.T) *document.DocumentVersion {
 	reason := "Initial version"
 
 	return &document.DocumentVersion{
-		ID:         uuid.New(),
+		ID:         1,
 		DocumentID: uuid.New(),
 		DocType:    document.DocumentTypeEstimate,
 		Version:    version,
-		AuthorID:   authorID,
+		AuthorID:   &authorID,
 		Data:       []byte(data),
-		Reason:     reason,
+		Reason:     &reason,
 		CreatedAt:  time.Now(),
 	}
 }
@@ -328,7 +328,8 @@ func NewTestDocumentVersionForDocument(t *testing.T, documentID uuid.UUID, docTy
 	docVersion.DocumentID = documentID
 	docVersion.DocType = docType
 	docVersion.Version = version
-	docVersion.Reason = fmt.Sprintf("Version %d of document", version)
+	reason := fmt.Sprintf("Version %d of document", version)
+	docVersion.Reason = &reason
 
 	return docVersion
 }

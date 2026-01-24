@@ -347,4 +347,3 @@ func TestCreateCase(t *testing.T) {
 		t.Log("✓ Invalid payload error handled correctly")
 	})
 }
-
