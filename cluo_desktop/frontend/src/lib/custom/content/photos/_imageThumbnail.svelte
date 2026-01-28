@@ -21,12 +21,6 @@
         class="w-full aspect-square object-cover"
     />
 
-    <!-- Filename -->
-    <div class="p-2">
-        <p class="text-xs text-foreground truncate" title={image.filename}>
-            {image.filename}
-        </p>
-    </div>
 
     {#if !isInReport}
         <!-- Add Button (visible on hover) -->
