@@ -1,7 +1,7 @@
 <script lang="ts">
     import LibraryPanel from "./_libraryPanel.svelte";
     import ReportPanel from "./_reportPanel.svelte";
-    import FloatingToolbar, { type ViewMode, type SortMode } from "./_floatingToolbar.svelte";
+    import FloatingToolbar, { type ViewMode, type SortMode, type LayoutMode } from "./_floatingToolbar.svelte";
 
     import { images } from "./mockData";
     import type { Image, ReportImage } from "./types";
@@ -14,6 +14,7 @@
     let selectMode = $state(false);
     let viewMode = $state<ViewMode>("grid-compact");
     let sortMode = $state<SortMode>("newest");
+    let layoutMode = $state<LayoutMode>("split");
     let burstGroupsEnabled = $state(false);
     let selectedIds = $state<Set<string>>(new Set());
     let fileInput = $state<HTMLInputElement>();
@@ -113,9 +114,8 @@
         // TODO: Implement burst grouping logic
     }
 
-    function handleShowSelected(): void {
-        // TODO: Show selected photos panel/sidebar
-        console.log("Show selected photos");
+    function handleLayoutModeChange(mode: LayoutMode): void {
+        layoutMode = mode;
     }
 </script>
 
@@ -130,9 +130,9 @@
         class="hidden"
     />
 
-    <!-- Two-Panel Layout -->
-    <div class="grid grid-cols-2 gap-6">
-        <!-- Left: Project Image Library -->
+    <!-- Panel Layout -->
+    {#if layoutMode === "library"}
+        <!-- Library Only -->
         <LibraryPanel
             images={displayImages()}
             {reportedIds}
@@ -148,27 +148,54 @@
             }}
             onAdd={addToReport}
         />
+    {:else if layoutMode === "split"}
+        <!-- Split View -->
+        <div class="grid grid-cols-2 gap-6">
+            <LibraryPanel
+                images={displayImages()}
+                {reportedIds}
+                {viewMode}
+                {selectMode}
+                selectedIds={selectedIds}
+                onSelectionChange={(id) => {
+                    if (selectedIds.has(id)) {
+                        selectedIds = new Set([...selectedIds].filter(x => x !== id));
+                    } else {
+                        selectedIds = new Set([...selectedIds, id]);
+                    }
+                }}
+                onAdd={addToReport}
+            />
 
-        <!-- Right: Included in Report -->
+            <ReportPanel
+                images={reportImages}
+                onRemove={removeFromReport}
+                onReorder={updateOrder}
+                onCaptionChange={updateCaption}
+            />
+        </div>
+    {:else}
+        <!-- Report Only -->
         <ReportPanel
             images={reportImages}
             onRemove={removeFromReport}
             onReorder={updateOrder}
             onCaptionChange={updateCaption}
         />
-    </div>
+    {/if}
 
     <!-- Floating Toolbar -->
     <FloatingToolbar
         {selectMode}
         {viewMode}
         {sortMode}
+        {layoutMode}
         hasBurstGroups={burstGroupsEnabled}
         onSelectModeToggle={handleSelectModeToggle}
         onImport={handleImport}
         onBurstGroupToggle={handleBurstGroupToggle}
         onViewModeChange={(mode) => viewMode = mode}
         onSortModeChange={(mode) => sortMode = mode}
-        onShowSelected={handleShowSelected}
+        onLayoutModeChange={handleLayoutModeChange}
     />
 </div>
