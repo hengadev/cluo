@@ -1,28 +1,23 @@
 <script lang="ts">
-    import { type LayoutState, LAYOUT_STATES } from "./types";
+    import { type LayoutState, type Image, LAYOUT_STATES } from "./types";
 
-    import { type CardType } from "./types";
     import CardGrid from "./_cardGrid.svelte";
     import CardList from "./_cardList.svelte";
 
-    let viewMode = $state<LayoutState>(LAYOUT_STATES.Grid);
-    // let viewMode = $state<LayoutState>(LAYOUT_STATES.List);
+    interface Props {
+        layoutValue: LayoutState;
+        images: Image[];
+    }
 
-    const cards: CardType[] = [
-        { title: "Client contract", tags: ["contract", "signed"] },
-        { title: "Evidence photo", tags: ["contract", "signed"] },
-        { title: "Medical report", tags: ["contract", "signed"] },
-    ];
+    let { layoutValue, images }: Props = $props();
 </script>
 
-<div class="grid">
-    {#if viewMode === LAYOUT_STATES.Grid}
-        {#each cards as card}
-            <CardGrid {card} />
-        {/each}
-    {:else if viewMode === LAYOUT_STATES.List}
-        {#each cards as card}
-            <CardList {card} />
-        {/each}
-    {/if}
+<div class="pt-8 grid grid-cols-6 gap-4">
+    {#each images as image}
+        {#if layoutValue === LAYOUT_STATES.Grid}
+            <CardGrid card={image} />
+        {:else if layoutValue === LAYOUT_STATES.List}
+            <CardList card={image} />
+        {/if}
+    {/each}
 </div>

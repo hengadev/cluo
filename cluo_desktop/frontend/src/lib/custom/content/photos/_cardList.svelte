@@ -10,12 +10,13 @@
     <div class="image"></div>
     <div class="p-2">
         <p class="title text-base font-semibold">
-            this is the card list{card.title}
+            {card.filename}
         </p>
         <div class="tags p-2 flex gap-2">
-            {#each card.tags as tag}
-                <p class="tag text-xs rounded-xl">{tag}</p>
-            {/each}
+            here is some tag that exists here
+            <!-- {#each card.tags as tag} -->
+            <!--     <p class="tag text-xs rounded-xl">{tag}</p> -->
+            <!-- {/each} -->
         </div>
     </div>
 </div>

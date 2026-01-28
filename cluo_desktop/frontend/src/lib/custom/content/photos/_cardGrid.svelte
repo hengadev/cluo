@@ -1,32 +1,30 @@
 <script lang="ts">
     import { type CardType } from "./types";
+    import { Check } from "@lucide/svelte";
     type Props = {
         card: CardType;
     };
     let { card }: Props = $props();
+
+    import { Button } from "bits-ui";
+    let selected = $state(false);
 </script>
 
-<div class="border-border-input border-1">
-    <div class="image"></div>
-    <div class="p-2">
-        <p class="title text-base font-semibold">{card.title}</p>
-        <div class="tags p-2 flex gap-2">
-            {#each card.tags as tag}
-                <p class="tag text-xs rounded-xl">{tag}</p>
-            {/each}
-        </div>
-    </div>
-</div>
-
-<style>
-    .image {
-        background-color: #fafafa;
-        height: 200px;
-        width: 200px;
-    }
-    .tag {
-        background-color: #dedede;
-        padding: 0.5rem 1rem;
-        max-width: 100px;
-    }
-</style>
+<Button.Root
+    class="border-border-input border-1 max-w-120 rounded-input relative {selected
+        ? `border border-red-500`
+        : `border-0`} p-4"
+    onclick={() => (selected = !selected)}
+>
+    <div>here goes the caption if there is any</div>
+    <div class="aspect-square bg-dark-50 w-full overflow-hidden"></div>
+    <Button.Root
+        class="absolute top-4 right-4 w-6 aspect-square bg-white"
+        onclick={() => (selected = !selected)}
+    >
+        {#if selected}
+            <Check />
+        {/if}
+    </Button.Root>
+    <div>here is some other text</div>
+</Button.Root>
