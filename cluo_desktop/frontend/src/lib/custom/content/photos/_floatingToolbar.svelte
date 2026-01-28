@@ -1,33 +1,36 @@
 <script lang="ts">
-    import { Camera, Grid3x3, List, ArrowDownWideNarrow, Layers, CheckSquare } from "@lucide/svelte";
+    import { Camera, Grid3x3, Columns, FileText, ArrowDownWideNarrow, Layers, CheckSquare } from "@lucide/svelte";
 
     export type ViewMode = "grid-compact" | "grid-comfortable";
     export type SortMode = "newest" | "oldest" | "filename";
+    export type LayoutMode = "library" | "split" | "report";
 
     interface Props {
         selectMode: boolean;
         viewMode: ViewMode;
         sortMode: SortMode;
+        layoutMode: LayoutMode;
         hasBurstGroups: boolean;
         onSelectModeToggle: () => void;
         onImport: () => void;
         onBurstGroupToggle: () => void;
         onViewModeChange: (mode: ViewMode) => void;
         onSortModeChange: (mode: SortMode) => void;
-        onShowSelected: () => void;
+        onLayoutModeChange: (mode: LayoutMode) => void;
     }
 
     let {
         selectMode,
         viewMode,
         sortMode,
+        layoutMode,
         hasBurstGroups,
         onSelectModeToggle,
         onImport,
         onBurstGroupToggle,
         onViewModeChange,
         onSortModeChange,
-        onShowSelected,
+        onLayoutModeChange,
     }: Props = $props();
 
     let showViewMenu = $state(false);
@@ -166,14 +169,36 @@
 
         <div class="w-px h-6 bg-border-card"></div>
 
-        <!-- Show Selected -->
-        <button
-            class="px-4 h-10 rounded-full flex items-center justify-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-            onclick={onShowSelected}
-            title="Afficher la sélection"
-        >
-            <span>Sélection</span>
-        </button>
+        <!-- Layout Mode Toggle -->
+        <div class="flex bg-muted rounded-full p-1">
+            <button
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'library'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'}"
+                onclick={() => onLayoutModeChange("library")}
+                title="Bibliothèque uniquement"
+            >
+                <Grid3x3 size={16} />
+            </button>
+            <button
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'split'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'}"
+                onclick={() => onLayoutModeChange("split")}
+                title="Vue partagée"
+            >
+                <Columns size={16} />
+            </button>
+            <button
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'report'
+                    ? 'bg-background text-foreground shadow-sm'
+                    : 'text-muted-foreground hover:text-foreground'}"
+                onclick={() => onLayoutModeChange("report")}
+                title="Rapport uniquement"
+            >
+                <FileText size={16} />
+            </button>
+        </div>
     </div>
 </div>
 
