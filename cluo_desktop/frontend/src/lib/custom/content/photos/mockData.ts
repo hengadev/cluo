@@ -4,7 +4,7 @@ export const images: Image[] = [
     {
         id: "evi-001",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/surveillance_cafe_meeting.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240115%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240115T143200Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=abc123def456",
+        url: "https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=800&auto=format&fit=crop",
         filename: "surveillance_cafe_meeting.jpg",
         filesize: 2458624,
         caption:
@@ -15,7 +15,7 @@ export const images: Image[] = [
     {
         id: "evi-002",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/vehicle_parking.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240115%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240115T091500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=xyz789",
+        url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&auto=format&fit=crop",
         filename: "vehicle_parking.jpg",
         filesize: 1890544,
         caption: "Subject's vehicle parked at 42 Rue de la Paix - 09:15",
@@ -25,7 +25,7 @@ export const images: Image[] = [
     {
         id: "evi-003",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/document_fragment.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240114%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240114T184500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=def456",
+        url: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",
         filename: "document_fragment.jpg",
         filesize: 956272,
         caption:
@@ -36,7 +36,7 @@ export const images: Image[] = [
     {
         id: "evi-004",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/apartment_entrance.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240114%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240114T221000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=ghi789",
+        url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
         filename: "apartment_entrance.jpg",
         filesize: 3145728,
         caption:
@@ -47,7 +47,7 @@ export const images: Image[] = [
     {
         id: "evi-005",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/phone_records.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240113%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240113T112000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=jkl012",
+        url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop",
         filename: "phone_records.jpg",
         filesize: 524288,
         caption:
@@ -58,7 +58,7 @@ export const images: Image[] = [
     {
         id: "evi-006",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/bank_statement.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240112%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240112T163000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=mno345",
+        url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop",
         filename: "bank_statement.jpg",
         filesize: 1474560,
         caption:
@@ -69,7 +69,7 @@ export const images: Image[] = [
     {
         id: "evi-007",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/witness_statement.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240111%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240111T100000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=pqr678",
+        url: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop",
         filename: "witness_statement.jpg",
         filesize: 786432,
         caption: "Statement from neighbor - unusual activity late at night",
@@ -79,7 +79,7 @@ export const images: Image[] = [
     {
         id: "evi-008",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/office_building.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240110%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240110T084500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=stu901",
+        url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop",
         filename: "office_building.jpg",
         filesize: 3145728,
         caption:
@@ -90,7 +90,7 @@ export const images: Image[] = [
     {
         id: "evi-009",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/receipt_evidence.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240109%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240109T201500Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=vwx234",
+        url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
         filename: "receipt_evidence.jpg",
         filesize: 655360,
         caption: "Restaurant receipt - two persons, €127.50, January 9th",
@@ -100,7 +100,7 @@ export const images: Image[] = [
     {
         id: "evi-010",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/trash_documents.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240108%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240108T053000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=yza567",
+        url: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop",
         filename: "trash_documents.jpg",
         filesize: 1048576,
         caption:
@@ -111,7 +111,7 @@ export const images: Image[] = [
     {
         id: "evi-011",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/gym_membership.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240107%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240107T142000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=bcd890",
+        url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop",
         filename: "gym_membership.jpg",
         filesize: 458752,
         caption:
@@ -122,7 +122,7 @@ export const images: Image[] = [
     {
         id: "evi-012",
         caseId: "CASE-2024-0847",
-        url: "https://s3.eu-west-3.amazonaws.com/pi-case-files-private/CASE-2024-0847/train_tickets.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIOSFODNN7EXAMPLE%2F20240106%2Feu-west-3%2Fs3%2Faws4_request&X-Amz-Date=20240106T120000Z&X-Amz-Expires=3600&X-Amz-SignedHeaders=host&X-Amz-Signature=def123",
+        url: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&auto=format&fit=crop",
         filename: "train_tickets.jpg",
         filesize: 737280,
         caption:
