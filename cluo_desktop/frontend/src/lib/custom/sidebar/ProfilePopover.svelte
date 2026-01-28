@@ -58,9 +58,7 @@
 {/snippet}
 {#snippet button(btn: Button)}
     {@const Icon = btn.icon}
-    <Button.Root
-        class="p-2 w-full rounded-input hover:bg-muted cursor-pointer"
-    >
+    <Button.Root class="p-2 w-full rounded-input hover:bg-muted cursor-pointer">
         <div class="text-base flex gap-2">
             <Icon size={16} />
             <p>{btn.title}</p>
