@@ -1,14 +1,29 @@
 <script lang="ts">
     import ImageThumbnail from "./_imageThumbnail.svelte";
     import type { Image } from "./types";
+    import type { ViewMode } from "./_floatingToolbar.svelte";
 
     interface Props {
         images: Image[];
         reportedIds: Set<string>;
+        viewMode: ViewMode;
+        selectMode: boolean;
+        selectedIds: Set<string>;
+        onSelectionChange: (id: string) => void;
         onAdd: (image: Image) => void;
     }
 
-    let { images, reportedIds, onAdd }: Props = $props();
+    let {
+        images,
+        reportedIds,
+        viewMode,
+        selectMode,
+        selectedIds,
+        onSelectionChange,
+        onAdd,
+    }: Props = $props();
+
+    let gridCols = $derived(viewMode === "grid-compact" ? "grid-cols-3" : "grid-cols-2");
 </script>
 
 <div class="border border-border-card rounded-card p-4 bg-background">
@@ -24,12 +39,15 @@
         </div>
     {:else}
         <div
-            class="grid grid-cols-3 gap-3 max-h-[70vh] overflow-y-auto py-4 px-2"
+            class="grid {gridCols} gap-3 max-h-[70vh] overflow-y-auto py-4 px-2"
         >
             {#each images as image (image.id)}
                 <ImageThumbnail
                     {image}
                     isInReport={reportedIds.has(image.id)}
+                    {selectMode}
+                    isSelected={selectedIds.has(image.id)}
+                    onSelectionChange={() => onSelectionChange(image.id)}
                     onAdd={() => onAdd(image)}
                 />
             {/each}
