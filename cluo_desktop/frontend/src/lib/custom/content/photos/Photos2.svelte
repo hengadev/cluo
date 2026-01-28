@@ -1,8 +1,7 @@
 <script lang="ts">
-    import { Button } from "bits-ui";
-    import { Camera } from "@lucide/svelte";
     import LibraryPanel from "./_libraryPanel.svelte";
     import ReportPanel from "./_reportPanel.svelte";
+    import FloatingToolbar, { type ViewMode, type SortMode } from "./_floatingToolbar.svelte";
 
     import { images } from "./mockData";
     import type { Image, ReportImage } from "./types";
@@ -10,6 +9,30 @@
     let allImages = $state<Image[]>(images);
     let reportImages = $state<ReportImage[]>([]);
     let reportedIds = $derived(new Set(reportImages.map((img) => img.id)));
+
+    // Toolbar state
+    let selectMode = $state(false);
+    let viewMode = $state<ViewMode>("grid-compact");
+    let sortMode = $state<SortMode>("newest");
+    let burstGroupsEnabled = $state(false);
+    let selectedIds = $state<Set<string>>(new Set());
+
+    // Sorted and filtered images for library panel
+    let displayImages = $derived(() => {
+        let sorted = [...allImages];
+        switch (sortMode) {
+            case "newest":
+                sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                break;
+            case "oldest":
+                sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                break;
+            case "filename":
+                sorted.sort((a, b) => a.filename.localeCompare(b.filename));
+                break;
+        }
+        return sorted;
+    });
 
     function addToReport(image: Image): void {
         if (reportedIds.has(image.id)) return;
@@ -41,25 +64,48 @@
             img.id === id ? { ...img, reportCaption: caption } : img,
         );
     }
+
+    // Toolbar handlers
+    function handleImport(): void {
+        // TODO: Implement camera import
+        console.log("Import from camera");
+    }
+
+    function handleSelectModeToggle(): void {
+        selectMode = !selectMode;
+        if (!selectMode) {
+            selectedIds = new Set();
+        }
+    }
+
+    function handleBurstGroupToggle(): void {
+        burstGroupsEnabled = !burstGroupsEnabled;
+        // TODO: Implement burst grouping logic
+    }
+
+    function handleShowSelected(): void {
+        // TODO: Show selected photos panel/sidebar
+        console.log("Show selected photos");
+    }
 </script>
 
-<div class="content p-6">
-    <!-- Header Row -->
-    <header class="flex justify-end items-center mb-6">
-        <Button.Root
-            class="gap-2 items-center h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex px-4 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98]"
-        >
-            <Camera size={18} />
-            <span>Importer depuis la caméra</span>
-        </Button.Root>
-    </header>
-
+<div class="content p-6 pb-32">
     <!-- Two-Panel Layout -->
     <div class="grid grid-cols-2 gap-6">
         <!-- Left: Project Image Library -->
         <LibraryPanel
-            images={allImages}
+            images={displayImages()}
             {reportedIds}
+            {viewMode}
+            {selectMode}
+            selectedIds={selectedIds}
+            onSelectionChange={(id) => {
+                if (selectedIds.has(id)) {
+                    selectedIds = new Set([...selectedIds].filter(x => x !== id));
+                } else {
+                    selectedIds = new Set([...selectedIds, id]);
+                }
+            }}
             onAdd={addToReport}
         />
 
@@ -71,4 +117,18 @@
             onCaptionChange={updateCaption}
         />
     </div>
+
+    <!-- Floating Toolbar -->
+    <FloatingToolbar
+        {selectMode}
+        {viewMode}
+        {sortMode}
+        hasBurstGroups={burstGroupsEnabled}
+        onSelectModeToggle={handleSelectModeToggle}
+        onImport={handleImport}
+        onBurstGroupToggle={handleBurstGroupToggle}
+        onViewModeChange={(mode) => viewMode = mode}
+        onSortModeChange={(mode) => sortMode = mode}
+        onShowSelected={handleShowSelected}
+    />
 </div>
