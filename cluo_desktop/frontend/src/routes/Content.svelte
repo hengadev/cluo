@@ -1,7 +1,8 @@
 <script lang="ts">
     import Informations from "$lib/custom/content/informations/Informations.svelte";
     import Users from "$lib/custom/content/users/Users.svelte";
-    import Photos from "$lib/custom/content/photos/Photos.svelte";
+    // import Photos from "$lib/custom/content/photos/Photos.svelte";
+    import Photos2 from "$lib/custom/content/photos/Photos2.svelte";
     import Facture from "$lib/custom/content/Facture.svelte";
     import Rapport from "$lib/custom/content/rapport/Rapport.svelte";
     import Mandat from "$lib/custom/content/Mandat.svelte";
@@ -22,7 +23,7 @@
     {#if sidebarState === SIDEBAR_STATES.Informations}
         <Informations />
     {:else if sidebarState === SIDEBAR_STATES.Photos}
-        <Photos />
+        <Photos2 />
     {:else if sidebarState === SIDEBAR_STATES.Utilisateurs}
         <Users />
     {:else if sidebarState === SIDEBAR_STATES.Pièces}
