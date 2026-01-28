@@ -86,7 +86,7 @@
 
     {#if images.length === 0}
         <!-- Empty State -->
-        <div class="flex flex-col items-center justify-center py-12 text-center">
+        <div class="flex flex-col items-center justify-center min-h-[70vh] text-center">
             <Image size={48} class="text-muted-foreground/50 mb-4" />
             <p class="text-muted-foreground">Aucune image dans le rapport</p>
             <p class="text-sm text-muted-foreground/70 mt-1">Cliquez sur le bouton + des images pour les ajouter</p>
