@@ -35,3 +35,8 @@ export type Image = {
     isPublished: boolean;
     createdAt: string;
 };
+
+export type ReportImage = Image & {
+    order: number;
+    reportCaption: string;
+};
