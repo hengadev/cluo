@@ -16,6 +16,7 @@
     let sortMode = $state<SortMode>("newest");
     let burstGroupsEnabled = $state(false);
     let selectedIds = $state<Set<string>>(new Set());
+    let fileInput = $state<HTMLInputElement>();
 
     // Sorted and filtered images for library panel
     let displayImages = $derived(() => {
@@ -67,8 +68,37 @@
 
     // Toolbar handlers
     function handleImport(): void {
-        // TODO: Implement camera import
-        console.log("Import from camera");
+        fileInput?.click();
+    }
+
+    async function handleFileSelect(event: Event): Promise<void> {
+        const target = event.target as HTMLInputElement;
+        const files = target.files;
+        if (!files || files.length === 0) return;
+
+        const newImages: Image[] = [];
+
+        for (const file of Array.from(files)) {
+            if (!file.type.startsWith("image/")) continue;
+
+            const url = URL.createObjectURL(file);
+            const newImage: Image = {
+                id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+                caseId: "CASE-2024-0847",
+                url,
+                filename: file.name,
+                filesize: file.size,
+                caption: "",
+                isPublished: false,
+                createdAt: new Date().toISOString(),
+            };
+            newImages.push(newImage);
+        }
+
+        allImages = [...allImages, ...newImages];
+
+        // Reset the input so the same files can be selected again if needed
+        target.value = "";
     }
 
     function handleSelectModeToggle(): void {
@@ -90,6 +120,16 @@
 </script>
 
 <div class="content p-6 pb-32">
+    <!-- Hidden File Input -->
+    <input
+        type="file"
+        bind:this={fileInput}
+        accept="image/*"
+        multiple
+        onchange={handleFileSelect}
+        class="hidden"
+    />
+
     <!-- Two-Panel Layout -->
     <div class="grid grid-cols-2 gap-6">
         <!-- Left: Project Image Library -->
