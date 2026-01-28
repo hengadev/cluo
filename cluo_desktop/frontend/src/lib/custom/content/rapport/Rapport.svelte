@@ -47,6 +47,8 @@
         onmousedown={handleMouseDown}
         role="separator"
         aria-orientation="vertical"
+        tabindex="0"
+        aria-label="Resize panels"
     >
         <div
             class="absolute inset-y-0 -left-1 -right-1 group-hover:bg-dark-10"
