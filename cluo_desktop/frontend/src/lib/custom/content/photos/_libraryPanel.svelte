@@ -1,6 +1,7 @@
 <script lang="ts">
     import ImageThumbnail from "./_imageThumbnail.svelte";
     import BurstGroupThumbnail from "./_burstGroupThumbnail.svelte";
+    import BurstGroupModal from "./_burstGroupModal.svelte";
     import type { Image, BurstGroup } from "./types";
     import type { ViewMode } from "./_floatingToolbar.svelte";
 
@@ -25,6 +26,16 @@
         onSelectionChange,
         onAdd,
     }: Props = $props();
+
+    let openBurstGroupId = $state<string | null>(null);
+
+    function handleOpenBurstModal(groupId: string): void {
+        openBurstGroupId = groupId;
+    }
+
+    function handleCloseBurstModal(): void {
+        openBurstGroupId = null;
+    }
 
     let gridStyle = $derived(
         viewMode === "grid-compact"
@@ -74,7 +85,7 @@
                                 onSelectionChange(img.id);
                             }
                         }}
-                        onAdd={onAdd}
+                        onOpenBurstModal={() => handleOpenBurstModal(group.id)}
                     />
                 {/each}
                 {#each soloImages as image (image.id)}
@@ -89,5 +100,18 @@
                 {/each}
             </div>
         </div>
+    {/if}
+
+    <!-- Burst Group Modal -->
+    {#if openBurstGroupId}
+        {@const burstGroup = burstGroups.find((g) => g.id === openBurstGroupId)}
+        {#if burstGroup}
+            <BurstGroupModal
+                images={burstGroup.images}
+                {reportedIds}
+                onClose={handleCloseBurstModal}
+                {onAdd}
+            />
+        {/if}
     {/if}
 </div>
