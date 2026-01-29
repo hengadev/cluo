@@ -45,12 +45,12 @@
     {#if selectMode}
         <!-- Selection Checkbox Overlay -->
         <div
-            class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all {isSelected
-                ? 'bg-primary border-primary'
-                : 'bg-white/80 border-white'}"
+            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-sm {isSelected
+                ? 'bg-foreground border-foreground'
+                : 'bg-background border-dark'}"
         >
             {#if isSelected}
-                <Check size={14} class="text-primary-foreground" />
+                <Check size={16} class="text-background" />
             {/if}
         </div>
     {:else}
