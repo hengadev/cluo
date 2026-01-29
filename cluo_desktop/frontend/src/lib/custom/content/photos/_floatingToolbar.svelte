@@ -56,7 +56,7 @@
             onclick={onImport}
             title="Importer depuis la caméra"
         >
-            <Camera size={18} />
+            <Camera size={22} />
         </button>
 
         <div class="w-px h-6 bg-border-card"></div>
@@ -69,7 +69,7 @@
             onclick={onSelectModeToggle}
             title="Mode sélection"
         >
-            <CheckSquare size={18} />
+            <CheckSquare size={22} />
         </button>
 
         <!-- Burst Group -->
@@ -80,7 +80,7 @@
             onclick={onBurstGroupToggle}
             title="Groupes en mode rafale"
         >
-            <Layers size={18} />
+            <Layers size={22} />
         </button>
 
         <div class="w-px h-6 bg-border-card"></div>
@@ -93,9 +93,9 @@
                 title="Mode d'affichage"
             >
                 {#if viewMode === "grid-compact"}
-                    <Grid3x3 size={18} />
+                    <Grid3x3 size={22} />
                 {:else}
-                    <List size={18} />
+                    <List size={22} />
                 {/if}
             </button>
 
@@ -113,7 +113,7 @@
                             showViewMenu = false;
                         }}
                     >
-                        <Grid3x3 size={14} />
+                        <Grid3x3 size={18} />
                         Grille compacte
                     </button>
                     <button
@@ -126,7 +126,7 @@
                             showViewMenu = false;
                         }}
                     >
-                        <List size={14} />
+                        <List size={18} />
                         Grille large
                     </button>
                 </div>
@@ -140,7 +140,7 @@
                 onclick={() => (showSortMenu = !showSortMenu)}
                 title="Trier par"
             >
-                <ArrowDownWideNarrow size={18} />
+                <ArrowDownWideNarrow size={22} />
             </button>
 
             {#if showSortMenu}
@@ -199,7 +199,7 @@
                 onclick={() => onLayoutModeChange("library")}
                 title="Bibliothèque uniquement"
             >
-                <Grid3x3 size={16} />
+                <Grid3x3 size={20} />
             </button>
             <button
                 class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
@@ -209,7 +209,7 @@
                 onclick={() => onLayoutModeChange("split")}
                 title="Vue partagée"
             >
-                <Columns size={16} />
+                <Columns size={20} />
             </button>
             <button
                 class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
@@ -219,7 +219,7 @@
                 onclick={() => onLayoutModeChange("report")}
                 title="Rapport uniquement"
             >
-                <FileText size={16} />
+                <FileText size={20} />
             </button>
         </div>
     </div>
