@@ -23,23 +23,28 @@
         onAdd,
     }: Props = $props();
 
-    let gridCols = $derived(viewMode === "grid-compact" ? "grid-cols-3" : "grid-cols-2");
+    let gridStyle = $derived(
+        viewMode === "grid-compact"
+            ? "grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"
+            : "grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"
+    );
 </script>
 
-<div class="border border-border-card rounded-card p-4 bg-background">
-    <h2 class="text-lg font-semibold mb-8 text-foreground">
+<div class="border border-border-card rounded-card p-4 bg-background h-full flex flex-col">
+    <h2 class="text-lg font-semibold mb-4 text-foreground">
         Bibliothèque d'images du projet
     </h2>
 
     {#if images.length === 0}
         <div
-            class="flex flex-col items-center justify-center py-12 text-center"
+            class="flex flex-col items-center justify-center flex-1 text-center"
         >
             <p class="text-muted-foreground">Aucune image disponible</p>
         </div>
     {:else}
         <div
-            class="grid {gridCols} gap-3 max-h-[70vh] overflow-y-auto py-4 px-2"
+            class="grid gap-3 overflow-y-auto py-4 px-2"
+            style={gridStyle}
         >
             {#each images as image (image.id)}
                 <ImageThumbnail
