@@ -78,27 +78,37 @@
     }
 </script>
 
-<div class="border border-border-card rounded-card p-4 bg-background h-full flex flex-col">
+<div
+    class="border border-border-card rounded-card p-4 bg-background h-full w-full flex flex-col"
+>
     <div class="flex justify-between items-center mb-4">
-        <h2 class="text-lg font-semibold text-foreground">Inclus dans le rapport</h2>
-        <span class="text-sm text-muted-foreground">{images.length} image{images.length !== 1 ? 's' : ''}</span>
+        <h2 class="text-lg font-semibold text-foreground">
+            Inclus dans le rapport
+        </h2>
+        <span class="text-sm text-muted-foreground"
+            >{images.length} image{images.length !== 1 ? "s" : ""}</span
+        >
     </div>
 
     {#if images.length === 0}
         <!-- Empty State -->
-        <div class="flex flex-col items-center justify-center flex-1 text-center">
+        <div
+            class="flex flex-col items-center justify-center flex-1 text-center"
+        >
             <Image size={48} class="text-muted-foreground/50 mb-4" />
             <p class="text-muted-foreground">Aucune image dans le rapport</p>
-            <p class="text-sm text-muted-foreground/70 mt-1">Cliquez sur le bouton + des images pour les ajouter</p>
+            <p class="text-sm text-muted-foreground/70 mt-1">
+                Cliquez sur le bouton + des images pour les ajouter
+            </p>
         </div>
     {:else}
         <!-- Image List -->
-        <div class="space-y-3 flex-1 overflow-y-auto pr-1">
+        <div class="space-y-3 flex-1 min-h-0 overflow-y-auto pr-1">
             {#each images as image (image.id)}
                 <ReportImageCard
                     {image}
-                    onRemove={onRemove}
-                    onCaptionChange={onCaptionChange}
+                    {onRemove}
+                    {onCaptionChange}
                     isDragging={draggedId === image.id}
                     isDragOver={dragOverId === image.id}
                     onDragStart={handleDragStart}
