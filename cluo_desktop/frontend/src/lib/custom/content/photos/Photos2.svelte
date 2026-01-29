@@ -119,7 +119,7 @@
     }
 </script>
 
-<div class="content p-6 pb-32">
+<div class="content p-6 pr-6 h-[calc(100vh-80px)] flex flex-col">
     <!-- Hidden File Input -->
     <input
         type="file"
@@ -131,6 +131,7 @@
     />
 
     <!-- Panel Layout -->
+    <div class="flex-1 min-h-0 overflow-hidden">
     {#if layoutMode === "library"}
         <!-- Library Only -->
         <LibraryPanel
@@ -150,7 +151,7 @@
         />
     {:else if layoutMode === "split"}
         <!-- Split View -->
-        <div class="grid grid-cols-2 gap-6">
+        <div class="grid grid-cols-2 gap-6 h-full">
             <LibraryPanel
                 images={displayImages()}
                 {reportedIds}
@@ -183,6 +184,7 @@
             onCaptionChange={updateCaption}
         />
     {/if}
+    </div>
 
     <!-- Floating Toolbar -->
     <FloatingToolbar
