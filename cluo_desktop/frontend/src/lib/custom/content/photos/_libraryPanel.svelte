@@ -1,10 +1,12 @@
 <script lang="ts">
     import ImageThumbnail from "./_imageThumbnail.svelte";
-    import type { Image } from "./types";
+    import BurstGroupThumbnail from "./_burstGroupThumbnail.svelte";
+    import type { Image, BurstGroup } from "./types";
     import type { ViewMode } from "./_floatingToolbar.svelte";
 
     interface Props {
         images: Image[];
+        burstGroups: BurstGroup[];
         reportedIds: Set<string>;
         viewMode: ViewMode;
         selectMode: boolean;
@@ -15,6 +17,7 @@
 
     let {
         images,
+        burstGroups,
         reportedIds,
         viewMode,
         selectMode,
@@ -27,6 +30,16 @@
         viewMode === "grid-compact"
             ? "grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"
             : "grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));",
+    );
+
+    // Track which image IDs are in burst groups
+    let burstGroupImageIds = $derived(
+        new Set(burstGroups.flatMap((g) => g.images.map((img) => img.id))),
+    );
+
+    // Filter out images that are in burst groups
+    let soloImages = $derived(
+        images.filter((img) => !burstGroupImageIds.has(img.id)),
     );
 </script>
 
@@ -46,7 +59,25 @@
     {:else}
         <div class="flex-1 min-h-0 overflow-y-auto p-4">
             <div class="grid gap-3" style={gridStyle}>
-                {#each images as image (image.id)}
+                {#each burstGroups as group (group.id)}
+                    <BurstGroupThumbnail
+                        images={group.images}
+                        isInReport={group.images.some((img) =>
+                            reportedIds.has(img.id),
+                        )}
+                        {selectMode}
+                        isSelected={group.images.some((img) =>
+                            selectedIds.has(img.id),
+                        )}
+                        onSelectionChange={() => {
+                            for (const img of group.images) {
+                                onSelectionChange(img.id);
+                            }
+                        }}
+                        onAdd={onAdd}
+                    />
+                {/each}
+                {#each soloImages as image (image.id)}
                     <ImageThumbnail
                         {image}
                         isInReport={reportedIds.has(image.id)}
