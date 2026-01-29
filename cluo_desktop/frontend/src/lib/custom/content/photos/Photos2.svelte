@@ -8,7 +8,7 @@
     } from "./_floatingToolbar.svelte";
 
     import { images } from "./mockData";
-    import type { Image, ReportImage } from "./types";
+    import type { Image, ReportImage, BurstGroup } from "./types";
 
     let allImages = $state<Image[]>(images);
     let reportImages = $state<ReportImage[]>([]);
@@ -47,6 +47,50 @@
                 break;
         }
         return sorted;
+    });
+
+    // Burst group detection
+    let burstGroups = $derived<BurstGroup[]>(() => {
+        if (!burstGroupsEnabled) return [];
+
+        const BURST_TIME_WINDOW_MS = 2000; // 2 seconds
+        const MIN_GROUP_SIZE = 3;
+
+        // Sort by timestamp
+        const sorted = [...allImages].sort(
+            (a, b) =>
+                new Date(a.createdAt).getTime() -
+                new Date(b.createdAt).getTime(),
+        );
+
+        const groups: Image[][] = [];
+        let currentGroup: Image[] = [sorted[0]];
+
+        for (let i = 1; i < sorted.length; i++) {
+            const prevTime = new Date(
+                currentGroup[currentGroup.length - 1].createdAt,
+            ).getTime();
+            const currTime = new Date(sorted[i].createdAt).getTime();
+            const diffMs = currTime - prevTime;
+
+            if (diffMs <= BURST_TIME_WINDOW_MS) {
+                currentGroup.push(sorted[i]);
+            } else {
+                groups.push(currentGroup);
+                currentGroup = [sorted[i]];
+            }
+        }
+        groups.push(currentGroup);
+
+        // Filter to only actual bursts and convert to BurstGroup type
+        return groups
+            .filter((g) => g.length >= MIN_GROUP_SIZE)
+            .map((groupImages, index) => ({
+                id: `burst-${index}`,
+                images: groupImages,
+                startTimestamp: groupImages[0].createdAt,
+                endTimestamp: groupImages[groupImages.length - 1].createdAt,
+            }));
     });
 
     function addToReport(image: Image): void {
@@ -124,7 +168,6 @@
 
     function handleBurstGroupToggle(): void {
         burstGroupsEnabled = !burstGroupsEnabled;
-        // TODO: Implement burst grouping logic
     }
 
     function handleLayoutModeChange(mode: LayoutMode): void {
@@ -149,6 +192,7 @@
             <!-- Library Only -->
             <LibraryPanel
                 images={displayImages()}
+                burstGroups={burstGroups()}
                 {reportedIds}
                 {viewMode}
                 {selectMode}
@@ -170,6 +214,7 @@
             <div class="flex items-center gap-6 h-full overflow-y-auto">
                 <LibraryPanel
                     images={displayImages()}
+                    burstGroups={burstGroups()}
                     {reportedIds}
                     {viewMode}
                     {selectMode}
