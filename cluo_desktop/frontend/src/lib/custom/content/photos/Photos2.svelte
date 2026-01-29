@@ -1,7 +1,11 @@
 <script lang="ts">
     import LibraryPanel from "./_libraryPanel.svelte";
     import ReportPanel from "./_reportPanel.svelte";
-    import FloatingToolbar, { type ViewMode, type SortMode, type LayoutMode } from "./_floatingToolbar.svelte";
+    import FloatingToolbar, {
+        type ViewMode,
+        type SortMode,
+        type LayoutMode,
+    } from "./_floatingToolbar.svelte";
 
     import { images } from "./mockData";
     import type { Image, ReportImage } from "./types";
@@ -15,6 +19,7 @@
     let viewMode = $state<ViewMode>("grid-compact");
     let sortMode = $state<SortMode>("newest");
     let layoutMode = $state<LayoutMode>("split");
+    // let layoutMode = $state<LayoutMode>("library");
     let burstGroupsEnabled = $state(false);
     let selectedIds = $state<Set<string>>(new Set());
     let fileInput = $state<HTMLInputElement>();
@@ -24,10 +29,18 @@
         let sorted = [...allImages];
         switch (sortMode) {
             case "newest":
-                sorted.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                sorted.sort(
+                    (a, b) =>
+                        new Date(b.createdAt).getTime() -
+                        new Date(a.createdAt).getTime(),
+                );
                 break;
             case "oldest":
-                sorted.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+                sorted.sort(
+                    (a, b) =>
+                        new Date(a.createdAt).getTime() -
+                        new Date(b.createdAt).getTime(),
+                );
                 break;
             case "filename":
                 sorted.sort((a, b) => a.filename.localeCompare(b.filename));
@@ -132,58 +145,62 @@
 
     <!-- Panel Layout -->
     <div class="flex-1 min-h-0 overflow-hidden">
-    {#if layoutMode === "library"}
-        <!-- Library Only -->
-        <LibraryPanel
-            images={displayImages()}
-            {reportedIds}
-            {viewMode}
-            {selectMode}
-            selectedIds={selectedIds}
-            onSelectionChange={(id) => {
-                if (selectedIds.has(id)) {
-                    selectedIds = new Set([...selectedIds].filter(x => x !== id));
-                } else {
-                    selectedIds = new Set([...selectedIds, id]);
-                }
-            }}
-            onAdd={addToReport}
-        />
-    {:else if layoutMode === "split"}
-        <!-- Split View -->
-        <div class="grid grid-cols-2 gap-6 h-full">
+        {#if layoutMode === "library"}
+            <!-- Library Only -->
             <LibraryPanel
                 images={displayImages()}
                 {reportedIds}
                 {viewMode}
                 {selectMode}
-                selectedIds={selectedIds}
+                {selectedIds}
                 onSelectionChange={(id) => {
                     if (selectedIds.has(id)) {
-                        selectedIds = new Set([...selectedIds].filter(x => x !== id));
+                        selectedIds = new Set(
+                            [...selectedIds].filter((x) => x !== id),
+                        );
                     } else {
                         selectedIds = new Set([...selectedIds, id]);
                     }
                 }}
                 onAdd={addToReport}
             />
-
+        {:else if layoutMode === "split"}
+            <!-- Split View -->
+            <!-- <div class="grid grid-cols-2 gap-6 h-full overflow-y-auto"> -->
+            <div class="flex items-center gap-6 h-full overflow-y-auto">
+                <LibraryPanel
+                    images={displayImages()}
+                    {reportedIds}
+                    {viewMode}
+                    {selectMode}
+                    {selectedIds}
+                    onSelectionChange={(id) => {
+                        if (selectedIds.has(id)) {
+                            selectedIds = new Set(
+                                [...selectedIds].filter((x) => x !== id),
+                            );
+                        } else {
+                            selectedIds = new Set([...selectedIds, id]);
+                        }
+                    }}
+                    onAdd={addToReport}
+                />
+                <ReportPanel
+                    images={reportImages}
+                    onRemove={removeFromReport}
+                    onReorder={updateOrder}
+                    onCaptionChange={updateCaption}
+                />
+            </div>
+        {:else}
+            <!-- Report Only -->
             <ReportPanel
                 images={reportImages}
                 onRemove={removeFromReport}
                 onReorder={updateOrder}
                 onCaptionChange={updateCaption}
             />
-        </div>
-    {:else}
-        <!-- Report Only -->
-        <ReportPanel
-            images={reportImages}
-            onRemove={removeFromReport}
-            onReorder={updateOrder}
-            onCaptionChange={updateCaption}
-        />
-    {/if}
+        {/if}
     </div>
 
     <!-- Floating Toolbar -->
@@ -196,8 +213,8 @@
         onSelectModeToggle={handleSelectModeToggle}
         onImport={handleImport}
         onBurstGroupToggle={handleBurstGroupToggle}
-        onViewModeChange={(mode) => viewMode = mode}
-        onSortModeChange={(mode) => sortMode = mode}
+        onViewModeChange={(mode) => (viewMode = mode)}
+        onSortModeChange={(mode) => (sortMode = mode)}
         onLayoutModeChange={handleLayoutModeChange}
     />
 </div>
