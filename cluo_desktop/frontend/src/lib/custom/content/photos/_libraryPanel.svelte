@@ -26,12 +26,14 @@
     let gridStyle = $derived(
         viewMode === "grid-compact"
             ? "grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"
-            : "grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));"
+            : "grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));",
     );
 </script>
 
-<div class="border border-border-card rounded-card p-4 bg-background h-full flex flex-col">
-    <h2 class="text-lg font-semibold mb-4 text-foreground">
+<div
+    class="border border-border-card rounded-card p-4 bg-background h-full flex flex-col w-full"
+>
+    <h2 class="text-lg font-semibold mb-4 text-foreground py-2">
         Bibliothèque d'images du projet
     </h2>
 
@@ -42,20 +44,19 @@
             <p class="text-muted-foreground">Aucune image disponible</p>
         </div>
     {:else}
-        <div
-            class="grid gap-3 overflow-y-auto py-4 px-2"
-            style={gridStyle}
-        >
-            {#each images as image (image.id)}
-                <ImageThumbnail
-                    {image}
-                    isInReport={reportedIds.has(image.id)}
-                    {selectMode}
-                    isSelected={selectedIds.has(image.id)}
-                    onSelectionChange={() => onSelectionChange(image.id)}
-                    onAdd={() => onAdd(image)}
-                />
-            {/each}
+        <div class="flex-1 min-h-0 overflow-y-auto p-4">
+            <div class="grid gap-3" style={gridStyle}>
+                {#each images as image (image.id)}
+                    <ImageThumbnail
+                        {image}
+                        isInReport={reportedIds.has(image.id)}
+                        {selectMode}
+                        isSelected={selectedIds.has(image.id)}
+                        onSelectionChange={() => onSelectionChange(image.id)}
+                        onAdd={() => onAdd(image)}
+                    />
+                {/each}
+            </div>
         </div>
     {/if}
 </div>
