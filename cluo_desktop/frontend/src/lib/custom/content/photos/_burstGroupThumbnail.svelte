@@ -8,7 +8,7 @@
         selectMode: boolean;
         isSelected: boolean;
         onSelectionChange: () => void;
-        onAdd: (image: Image) => void;
+        onOpenBurstModal: () => void;
     }
 
     let {
@@ -17,7 +17,7 @@
         selectMode,
         isSelected,
         onSelectionChange,
-        onAdd,
+        onOpenBurstModal,
     }: Props = $props();
 
     let firstImage = $derived(images[0]);
@@ -26,9 +26,9 @@
     function handleClick(): void {
         if (selectMode) {
             onSelectionChange();
-        } else if (!isInReport) {
-            // Add first image of burst
-            onAdd(firstImage);
+        } else {
+            // Open burst modal to select which images to add
+            onOpenBurstModal();
         }
     }
 </script>
@@ -116,34 +116,8 @@
                 </svg>
             {/if}
         </div>
-    {:else if !isInReport}
-        <!-- Add Button (visible on hover) -->
-        <button
-            class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-mini flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/90 active:scale-95 z-10"
-            onclick={(e) => {
-                e.stopPropagation();
-                onAdd(firstImage);
-            }}
-            title="Ajouter au rapport"
-        >
-            <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                class="text-foreground"
-            >
-                <line x1="12" y1="5" x2="12" y2="19"></line>
-                <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-        </button>
-    {:else}
-        <!-- Check Indicator (always visible when in report) -->
+    {:else if isInReport}
+        <!-- Check Indicator (some photos in report) -->
         <div
             class="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-mini z-10"
         >
