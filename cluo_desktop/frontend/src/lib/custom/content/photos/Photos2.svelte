@@ -20,7 +20,7 @@
     let sortMode = $state<SortMode>("newest");
     let layoutMode = $state<LayoutMode>("split");
     // let layoutMode = $state<LayoutMode>("library");
-    let burstGroupsEnabled = $state(false);
+    let burstGroupsEnabled = $state(true);
     let selectedIds = $state<Set<string>>(new Set());
     let fileInput = $state<HTMLInputElement>();
 
