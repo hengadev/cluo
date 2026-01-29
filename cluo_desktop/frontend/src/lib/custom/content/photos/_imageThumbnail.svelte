@@ -30,25 +30,25 @@
 </script>
 
 <div
-    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover transition-colors cursor-pointer {selectMode
+    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover transition-colors cursor-pointer aspect-square {selectMode
         ? 'select-none'
-        : ''} {isSelected
-        ? 'ring-2 ring-primary ring-offset-2'
-        : ''}"
+        : ''} {isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}"
     onclick={handleClick}
 >
     <!-- Image Preview -->
     <img
         src={image.url}
         alt={image.filename}
-        class="w-full aspect-square object-cover"
+        class="w-full h-full object-cover"
     />
 
     {#if selectMode}
         <!-- Selection Checkbox Overlay -->
-        <div class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all {isSelected
-            ? 'bg-primary border-primary'
-            : 'bg-white/80 border-white'}">
+        <div
+            class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all {isSelected
+                ? 'bg-primary border-primary'
+                : 'bg-white/80 border-white'}"
+        >
             {#if isSelected}
                 <Check size={14} class="text-primary-foreground" />
             {/if}
