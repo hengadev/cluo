@@ -40,3 +40,10 @@ export type ReportImage = Image & {
     order: number;
     reportCaption: string;
 };
+
+export type BurstGroup = {
+    id: string;
+    images: Image[];
+    startTimestamp: string;
+    endTimestamp: string;
+};
