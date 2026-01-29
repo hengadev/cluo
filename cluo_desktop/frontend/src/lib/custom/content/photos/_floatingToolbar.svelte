@@ -5,44 +5,37 @@
         Columns,
         FileText,
         ArrowDownWideNarrow,
-        List,
         Layers,
         CheckSquare,
     } from "@lucide/svelte";
 
-    export type ViewMode = "grid-compact" | "grid-comfortable";
     export type SortMode = "newest" | "oldest" | "filename";
     export type LayoutMode = "library" | "split" | "report";
 
     interface Props {
         selectMode: boolean;
-        viewMode: ViewMode;
         sortMode: SortMode;
         layoutMode: LayoutMode;
         hasBurstGroups: boolean;
         onSelectModeToggle: () => void;
         onImport: () => void;
         onBurstGroupToggle: () => void;
-        onViewModeChange: (mode: ViewMode) => void;
         onSortModeChange: (mode: SortMode) => void;
         onLayoutModeChange: (mode: LayoutMode) => void;
     }
 
     let {
         selectMode,
-        viewMode,
         sortMode,
         layoutMode,
         hasBurstGroups,
         onSelectModeToggle,
         onImport,
         onBurstGroupToggle,
-        onViewModeChange,
         onSortModeChange,
         onLayoutModeChange,
     }: Props = $props();
 
-    let showViewMenu = $state(false);
     let showSortMenu = $state(false);
 </script>
 
@@ -84,54 +77,6 @@
         </button>
 
         <div class="w-px h-6 bg-border-card"></div>
-
-        <!-- View Mode -->
-        <div class="relative">
-            <button
-                class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                onclick={() => (showViewMenu = !showViewMenu)}
-                title="Mode d'affichage"
-            >
-                {#if viewMode === "grid-compact"}
-                    <Grid3x3 size={22} />
-                {:else}
-                    <List size={22} />
-                {/if}
-            </button>
-
-            {#if showViewMenu}
-                <div
-                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]"
-                >
-                    <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode ===
-                        'grid-compact'
-                            ? 'text-foreground bg-muted/50'
-                            : 'text-muted-foreground'}"
-                        onclick={() => {
-                            onViewModeChange("grid-compact");
-                            showViewMenu = false;
-                        }}
-                    >
-                        <Grid3x3 size={18} />
-                        Grille compacte
-                    </button>
-                    <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode ===
-                        'grid-comfortable'
-                            ? 'text-foreground bg-muted/50'
-                            : 'text-muted-foreground'}"
-                        onclick={() => {
-                            onViewModeChange("grid-comfortable");
-                            showViewMenu = false;
-                        }}
-                    >
-                        <List size={18} />
-                        Grille large
-                    </button>
-                </div>
-            {/if}
-        </div>
 
         <!-- Sort Mode -->
         <div class="relative">
@@ -228,7 +173,6 @@
 <!-- Click outside to close menus -->
 <svelte:window
     onclick={() => {
-        showViewMenu = false;
         showSortMenu = false;
     }}
 />

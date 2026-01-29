@@ -2,7 +2,6 @@
     import LibraryPanel from "./_libraryPanel.svelte";
     import ReportPanel from "./_reportPanel.svelte";
     import FloatingToolbar, {
-        type ViewMode,
         type SortMode,
         type LayoutMode,
     } from "./_floatingToolbar.svelte";
@@ -16,7 +15,6 @@
 
     // Toolbar state
     let selectMode = $state(false);
-    let viewMode = $state<ViewMode>("grid-compact");
     let sortMode = $state<SortMode>("newest");
     let layoutMode = $state<LayoutMode>("split");
     // let layoutMode = $state<LayoutMode>("library");
@@ -194,7 +192,6 @@
                 images={displayImages()}
                 burstGroups={burstGroups()}
                 {reportedIds}
-                {viewMode}
                 {selectMode}
                 {selectedIds}
                 onSelectionChange={(id) => {
@@ -216,7 +213,6 @@
                     images={displayImages()}
                     burstGroups={burstGroups()}
                     {reportedIds}
-                    {viewMode}
                     {selectMode}
                     {selectedIds}
                     onSelectionChange={(id) => {
@@ -251,14 +247,12 @@
     <!-- Floating Toolbar -->
     <FloatingToolbar
         {selectMode}
-        {viewMode}
         {sortMode}
         {layoutMode}
         hasBurstGroups={burstGroupsEnabled}
         onSelectModeToggle={handleSelectModeToggle}
         onImport={handleImport}
         onBurstGroupToggle={handleBurstGroupToggle}
-        onViewModeChange={(mode) => (viewMode = mode)}
         onSortModeChange={(mode) => (sortMode = mode)}
         onLayoutModeChange={handleLayoutModeChange}
     />

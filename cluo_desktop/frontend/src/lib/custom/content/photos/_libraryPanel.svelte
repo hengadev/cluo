@@ -3,13 +3,11 @@
     import BurstGroupThumbnail from "./_burstGroupThumbnail.svelte";
     import BurstGroupModal from "./_burstGroupModal.svelte";
     import type { Image, BurstGroup } from "./types";
-    import type { ViewMode } from "./_floatingToolbar.svelte";
 
     interface Props {
         images: Image[];
         burstGroups: BurstGroup[];
         reportedIds: Set<string>;
-        viewMode: ViewMode;
         selectMode: boolean;
         selectedIds: Set<string>;
         onSelectionChange: (id: string) => void;
@@ -20,7 +18,6 @@
         images,
         burstGroups,
         reportedIds,
-        viewMode,
         selectMode,
         selectedIds,
         onSelectionChange,
@@ -37,11 +34,7 @@
         openBurstGroupId = null;
     }
 
-    let gridStyle = $derived(
-        viewMode === "grid-compact"
-            ? "grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));"
-            : "grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));",
-    );
+    let gridStyle = "grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));";
 
     // Track which image IDs are in burst groups
     let burstGroupImageIds = $derived(
