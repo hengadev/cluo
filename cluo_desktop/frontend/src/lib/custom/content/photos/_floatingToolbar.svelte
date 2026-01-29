@@ -1,5 +1,14 @@
 <script lang="ts">
-    import { Camera, Grid3x3, Columns, FileText, ArrowDownWideNarrow, Layers, CheckSquare } from "@lucide/svelte";
+    import {
+        Camera,
+        Grid3x3,
+        Columns,
+        FileText,
+        ArrowDownWideNarrow,
+        List,
+        Layers,
+        CheckSquare,
+    } from "@lucide/svelte";
 
     export type ViewMode = "grid-compact" | "grid-comfortable";
     export type SortMode = "newest" | "oldest" | "filename";
@@ -38,7 +47,9 @@
 </script>
 
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
-    <div class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-lg">
+    <div
+        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-lg"
+    >
         <!-- Import -->
         <button
             class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
@@ -78,7 +89,7 @@
         <div class="relative">
             <button
                 class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                onclick={() => showViewMenu = !showViewMenu}
+                onclick={() => (showViewMenu = !showViewMenu)}
                 title="Mode d'affichage"
             >
                 {#if viewMode === "grid-compact"}
@@ -89,9 +100,12 @@
             </button>
 
             {#if showViewMenu}
-                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]">
+                <div
+                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]"
+                >
                     <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode === 'grid-compact'
+                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode ===
+                        'grid-compact'
                             ? 'text-foreground bg-muted/50'
                             : 'text-muted-foreground'}"
                         onclick={() => {
@@ -103,7 +117,8 @@
                         Grille compacte
                     </button>
                     <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode === 'grid-comfortable'
+                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted flex items-center gap-2 {viewMode ===
+                        'grid-comfortable'
                             ? 'text-foreground bg-muted/50'
                             : 'text-muted-foreground'}"
                         onclick={() => {
@@ -122,16 +137,19 @@
         <div class="relative">
             <button
                 class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
-                onclick={() => showSortMenu = !showSortMenu}
+                onclick={() => (showSortMenu = !showSortMenu)}
                 title="Trier par"
             >
                 <ArrowDownWideNarrow size={18} />
             </button>
 
             {#if showSortMenu}
-                <div class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]">
+                <div
+                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]"
+                >
                     <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode === 'newest'
+                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode ===
+                        'newest'
                             ? 'text-foreground bg-muted/50'
                             : 'text-muted-foreground'}"
                         onclick={() => {
@@ -142,7 +160,8 @@
                         Plus récent
                     </button>
                     <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode === 'oldest'
+                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode ===
+                        'oldest'
                             ? 'text-foreground bg-muted/50'
                             : 'text-muted-foreground'}"
                         onclick={() => {
@@ -153,7 +172,8 @@
                         Plus ancien
                     </button>
                     <button
-                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode === 'filename'
+                        class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode ===
+                        'filename'
                             ? 'text-foreground bg-muted/50'
                             : 'text-muted-foreground'}"
                         onclick={() => {
@@ -172,7 +192,8 @@
         <!-- Layout Mode Toggle -->
         <div class="flex bg-muted rounded-full p-1">
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'library'
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                'library'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("library")}
@@ -181,7 +202,8 @@
                 <Grid3x3 size={16} />
             </button>
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'split'
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                'split'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("split")}
@@ -190,7 +212,8 @@
                 <Columns size={16} />
             </button>
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode === 'report'
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                'report'
                     ? 'bg-background text-foreground shadow-sm'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("report")}
@@ -203,4 +226,9 @@
 </div>
 
 <!-- Click outside to close menus -->
-<svelte:window onclick={() => { showViewMenu = false; showSortMenu = false; }} />
+<svelte:window
+    onclick={() => {
+        showViewMenu = false;
+        showSortMenu = false;
+    }}
+/>
