@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Informations from "$lib/custom/content/informations/Informations.svelte";
+    import Informations from "./informations/Informations.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
