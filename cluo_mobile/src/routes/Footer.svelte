@@ -1,7 +1,13 @@
 <script lang="ts">
-    import { ArrowRight, Square } from "@lucide/svelte";
+    import { ArrowRight, Square, Check, X } from "@lucide/svelte";
     import { goto } from "$app/navigation";
+    import AudioPlayer from "$lib/components/AudioPlayer.svelte";
+    import { uploadRecording } from "$lib/api";
+    import { snackbar } from "$lib/stores/snackbar";
 
+    type FooterState = "idle" | "recording" | "preview";
+
+    let footerState: FooterState = $state("idle");
     let isRecording = $state(false);
     let dragX = $state(0);
     let isDragging = $state(false);
@@ -12,6 +18,7 @@
     let audioChunks: Blob[] = $state([]);
     let recordingDuration = $state(0);
     let timerInterval: number | null = null;
+    let recordedBlob: Blob | null = $state(null);
 
     let containerElement: HTMLDivElement;
 
@@ -32,12 +39,12 @@
     const maxDrag = $derived(containerWidth - buttonWidth - 32); // 32px for padding
 
     function handleDragStart(e: MouseEvent | TouchEvent) {
-        if (isRecording) return;
+        if (footerState !== "idle") return;
         isDragging = true;
     }
 
     function handleDragMove(e: MouseEvent | TouchEvent) {
-        if (!isDragging || isRecording) return;
+        if (!isDragging || footerState !== "idle") return;
 
         const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
         const rect = containerElement.getBoundingClientRect();
@@ -48,7 +55,7 @@
     }
 
     function handleDragEnd() {
-        if (!isDragging || isRecording) return;
+        if (!isDragging || footerState !== "idle") return;
         isDragging = false;
 
         // If dragged more than 80% of the way, start recording
@@ -63,19 +70,39 @@
     async function startRecording() {
         try {
             dragX = 0;
+            footerState = "recording";
+
+            // Get supported MIME type
+            const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : MediaRecorder.isTypeSupported("audio/mp4")
+                    ? "audio/mp4"
+                    : "";
+
+            if (!mimeType) {
+                throw new Error("No supported audio format found");
+            }
 
             const stream = await navigator.mediaDevices.getUserMedia({
-                audio: true,
+                audio: {
+                    sampleRate: 48000,
+                    channelCount: 1,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                },
             });
 
-            mediaRecorder = new MediaRecorder(stream);
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
             audioChunks = [];
 
             mediaRecorder.ondataavailable = (e) => {
-                audioChunks.push(e.data);
+                if (e.data.size > 0) {
+                    audioChunks.push(e.data);
+                }
             };
 
-            mediaRecorder.start();
+            mediaRecorder.start(1000); // Collect data every second
             isRecording = true;
 
             // Start timer
@@ -87,6 +114,7 @@
             console.error("Failed to start recording:", error);
             // Reset state if recording failed
             dragX = 0;
+            footerState = "idle";
             isRecording = false;
             if (timerInterval !== null) {
                 clearInterval(timerInterval);
@@ -107,9 +135,11 @@
             // Stop all tracks to release the microphone
             mediaRecorder!.stream.getTracks().forEach((track) => track.stop());
 
-            await sendAudio(audioBlob);
+            // Store blob for preview
+            recordedBlob = audioBlob;
+            footerState = "preview";
 
-            // Clear chunks after sending
+            // Clear chunks
             audioChunks = [];
         };
 
@@ -123,32 +153,48 @@
         }
     }
 
-    async function sendAudio(blob: Blob) {
+    function discardRecording() {
+        recordedBlob = null;
+        footerState = "idle";
+        dragX = 0;
+    }
+
+    async function keepRecording() {
+        if (!recordedBlob) return;
+
         try {
-            const formData = new FormData();
-            formData.append("audio", blob, "recording.webm");
+            await sendAudio(recordedBlob);
+        } catch (error) {
+            console.error("Failed to send audio:", error);
+            // Show error and stay in preview state
+        }
+    }
 
-            const response = await fetch("/api/audio", {
-                method: "POST",
-                body: formData,
-            });
+    let isUploading = $state(false);
+    let lastUploadBlob: Blob | null = $state(null);
 
-            if (!response.ok) {
-                throw new Error(`Failed to send audio: ${response.statusText}`);
-            }
+    async function sendAudio(blob: Blob) {
+        if (isUploading) return;
 
-            // TODO: Get actual recording ID from the response
-            // const data = await response.json();
-            // const recordingId = data.id;
+        try {
+            isUploading = true;
+            lastUploadBlob = blob;
 
-            // For now, generate a temporary ID
-            const recordingId = Date.now().toString();
+            const response = await uploadRecording(blob);
+            const recordingId = response.id;
 
-            // Navigate to processing page
+            // Reset state and navigate to processing page
+            recordedBlob = null;
+            footerState = "idle";
             goto(`/processing/${recordingId}`);
         } catch (error) {
             console.error("Failed to send audio:", error);
-            // TODO: Show feedback about failed upload
+            snackbar.error(
+                "Failed to upload recording",
+                () => lastUploadBlob && sendAudio(lastUploadBlob)
+            );
+        } finally {
+            isUploading = false;
         }
     }
 </script>
@@ -164,7 +210,7 @@
     bind:this={containerElement}
     class="relative flex justify-center items-center bg-dark-900 px-4 py-6 min-h-20 overflow-hidden"
 >
-    {#if !isRecording}
+    {#if footerState === "idle"}
         <div class="absolute inset-0 flex items-center justify-center">
             <p class="text-dark-200 text-base select-none">Slide to start</p>
         </div>
@@ -179,7 +225,7 @@
         >
             <ArrowRight class="text-foreground" />
         </button>
-    {:else}
+    {:else if footerState === "recording"}
         <div class="flex justify-between items-center w-full">
             <div class="w-12"></div>
 
@@ -198,6 +244,26 @@
             >
                 <Square class="text-white" fill="white" size={20} />
             </button>
+        </div>
+    {:else if footerState === "preview" && recordedBlob}
+        <div class="flex flex-col gap-3 w-full">
+            <AudioPlayer src={recordedBlob} duration={recordingDuration} />
+            <div class="flex gap-3">
+                <button
+                    class="flex-1 flex items-center justify-center gap-2 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
+                    onclick={discardRecording}
+                >
+                    <X size={18} />
+                    <span class="text-sm font-medium">Discard</span>
+                </button>
+                <button
+                    class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors"
+                    onclick={keepRecording}
+                >
+                    <Check size={18} />
+                    <span class="text-sm font-medium">Keep & Upload</span>
+                </button>
+            </div>
         </div>
     {/if}
 </div>
