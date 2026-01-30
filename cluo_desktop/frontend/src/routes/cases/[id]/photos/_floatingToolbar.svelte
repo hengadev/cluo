@@ -39,13 +39,13 @@
     let showSortMenu = $state(false);
 </script>
 
-<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
+<div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
     <div
-        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-lg"
+        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300"
     >
         <!-- Import -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
             onclick={onImport}
             title="Importer depuis la caméra"
         >
@@ -56,7 +56,7 @@
 
         <!-- Select Mode -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center transition-all {selectMode
+            class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 {selectMode
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
             onclick={onSelectModeToggle}
@@ -67,7 +67,7 @@
 
         <!-- Burst Group -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center transition-all {hasBurstGroups
+            class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 {hasBurstGroups
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
             onclick={onBurstGroupToggle}
@@ -81,7 +81,7 @@
         <!-- Sort Mode -->
         <div class="relative">
             <button
-                class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
                 onclick={() => (showSortMenu = !showSortMenu)}
                 title="Trier par"
             >
