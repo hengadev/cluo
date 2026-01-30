@@ -1,9 +1,6 @@
 <script lang="ts">
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
-    import Facture from "$lib/custom/content/Facture.svelte";
-    import Mandat from "$lib/custom/content/Mandat.svelte";
-    import Devis from "$lib/custom/content/Devis.svelte";
 
     // Update the current case store when navigating to a case's document type
     $effect(() => {
@@ -13,29 +10,19 @@
         }
     });
 
-    // Map document types to their components
+    // Map document types to their display names
     const docType = $derived($page.params.type);
 
-    // Get the component to render
-    const Component = $derived(() => {
-        switch (docType) {
-            case "facture":
-                return Facture;
-            case "mandat":
-                return Mandat;
-            case "devis":
-                return Devis;
-            default:
-                return null;
-        }
-    });
+    const docTypeNames: Record<string, string> = {
+        facture: "Factures",
+        mandat: "Mandats",
+        devis: "Devis"
+    };
+
+    const displayName = $derived(docTypeNames[docType] || docType);
 </script>
 
-{#if Component()}
-    {@const Comp = Component()}
-    <Comp />
-{:else}
-    <div class="p-8">
-        <p class="text-muted-foreground">Type de document inconnu: {docType}</p>
-    </div>
-{/if}
+<div class="p-8">
+    <h1 class="text-2xl font-bold mb-4">{displayName}</h1>
+    <p class="text-muted-foreground">Gestion des {displayName.toLowerCase()} du dossier</p>
+</div>

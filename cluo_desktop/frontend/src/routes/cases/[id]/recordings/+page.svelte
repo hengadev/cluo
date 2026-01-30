@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Recordings from "$lib/custom/content/recordings/Recordings.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
@@ -12,4 +11,7 @@
     });
 </script>
 
-<Recordings />
+<div class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Enregistrements</h1>
+    <p class="text-muted-foreground">Gestion des enregistrements du dossier</p>
+</div>

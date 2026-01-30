@@ -1,5 +1,4 @@
 <script lang="ts">
-    import Reseaux from "$lib/custom/content/Reseaux.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
@@ -12,4 +11,7 @@
     });
 </script>
 
-<Reseaux />
+<div class="p-8">
+    <h1 class="text-2xl font-bold mb-4">Réseaux</h1>
+    <p class="text-muted-foreground">Gestion des réseaux du dossier</p>
+</div>
