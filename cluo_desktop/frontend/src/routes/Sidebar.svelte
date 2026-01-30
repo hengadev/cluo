@@ -51,14 +51,15 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300 animate-fade-in"
+    style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
 >
     <!-- Chevron toggle button -->
     <button
         onclick={() => (isExpanded = !isExpanded)}
-        class="absolute bottom-16 text-dark-500 right-[-1.25rem] border-dark-50 bg-dark-50 p-2 rounded-3xl hover:bg-muted transition-colors"
+        class="absolute bottom-16 text-dark-500 right-[-1.25rem] border-dark-50 bg-dark-50 p-2 rounded-3xl hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
         title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
         type="button"
     >
