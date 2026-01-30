@@ -64,6 +64,9 @@ func run(ctx context.Context) error {
 	// Create HTTP server
 	srv := server.New(ctr, cfg, logger)
 
+	// Start background workers (transcription, etc.)
+	ctr.StartBackgroundWorkers(ctx)
+
 	// Setup graceful shutdown
 	ctx, cancel := signal.NotifyContext(ctx, os.Interrupt, syscall.SIGTERM)
 	defer cancel()
@@ -80,6 +83,9 @@ func run(ctx context.Context) error {
 	select {
 	case <-ctx.Done():
 		logger.InfoContext(ctx, "Shutdown signal received")
+
+		// Stop background workers first
+		ctr.StopBackgroundWorkers()
 
 		// Create shutdown context with timeout
 		shutdownCtx, shutdownCancel := context.WithTimeout(

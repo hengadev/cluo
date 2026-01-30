@@ -10,6 +10,9 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
+	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
+	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
+	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
 )
 
 // Server represents the HTTP server.
@@ -113,6 +116,9 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 	if s.container.MediaService() != nil {
 		s.registerMediaRoutes(mux)
 	}
+
+	// Register AI routes
+	s.registerAIRoutes(mux)
 }
 
 func (s *Server) registerCaseRoutes(mux *http.ServeMux) {
@@ -129,4 +135,33 @@ func (s *Server) registerClientRoutes(mux *http.ServeMux) {
 func (s *Server) registerMediaRoutes(mux *http.ServeMux) {
 	// Import and use the existing media handler
 	s.logger.Info("Media routes registered")
+}
+
+func (s *Server) registerAIRoutes(mux *http.ServeMux) {
+	authMW := s.container.AuthMiddleware()
+	if authMW == nil {
+		s.logger.Warn("Auth middleware not available, skipping AI route registration")
+		return
+	}
+
+	// Register text transformation routes
+	if s.container.TextTransformationService() != nil {
+		handler := aiTextTransformationHandler.New(s.container.TextTransformationService(), authMW)
+		handler.RegisterRoutes(mux)
+		s.logger.Info("Text transformation routes registered")
+	}
+
+	// Register speech-to-text routes
+	if s.container.SpeechToTextService() != nil {
+		handler := aiSpeechToTextHandler.New(s.container.SpeechToTextService(), authMW)
+		handler.RegisterRoutes(mux)
+		s.logger.Info("Speech-to-text routes registered")
+	}
+
+	// Register transcript analysis routes
+	if s.container.TranscriptAnalysisService() != nil {
+		handler := aiTranscriptAnalysisHandler.New(s.container.TranscriptAnalysisService(), authMW)
+		handler.RegisterRoutes(mux)
+		s.logger.Info("Transcript analysis routes registered")
+	}
 }
