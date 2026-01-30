@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Rapport from "$lib/custom/content/rapport/Rapport.svelte";
+    import Rapport from "./Rapport.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
