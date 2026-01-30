@@ -7,7 +7,7 @@
     import { Button, Tooltip } from "bits-ui";
 </script>
 
-<div class="header border-1 border-dark-50">
+<div class="header border-1 border-dark-50 animate-fade-in" style="animation-delay: 100ms;">
     <div class="grid">
         <div class="left">
             <div class="current-case">
@@ -39,9 +39,9 @@
     <Tooltip.Provider>
         <Tooltip.Root delayDuration={100}>
             <Tooltip.Trigger
-                class="rounded-10px p-3 bg-dark-50 ring-offset-background active:scale-[0.98] active:transition:all 
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 
-                    hover:bg-dark-100/50 {item.bg} text-{item.fg}"
+                class="rounded-10px p-3 bg-dark-50 ring-offset-background active:scale-[0.98] active:transition:all
+		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2
+                    hover:bg-dark-100/50 hover:scale-105 transition-all duration-200 {item.bg} text-{item.fg}"
             >
                 <Button.Root class="cursor-pointer">
                     <Icon size={24} strokeWidth={1.75} />
