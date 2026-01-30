@@ -37,7 +37,7 @@
 </div>
 
 {#snippet client()}
-    <div class="border-1 border-dark-50 rounded-input p-6 grid gap-2">
+    <div class="border-1 border-dark-50 rounded-input p-6 grid gap-2 animate-fade-in hover:shadow-md transition-shadow duration-300" style="animation-delay: 200ms;">
         <div class="flex justify-between items-center">
             <p class="text-dark-600">CLIENT DETAILS</p>
             <Briefcase />
@@ -63,7 +63,7 @@
 {/snippet}
 
 {#snippet header()}
-    <div class="grid gap-5 p-6 border-1 border-dark-50 rounded-input">
+    <div class="grid gap-5 p-6 border-1 border-dark-50 rounded-input animate-fade-in hover:shadow-md transition-shadow duration-300" style="animation-delay: 100ms;">
         <div class="flex gap-4 items-center">
             <p class="bg-green-300 px-2 py-1 rounded-input">STATUS: OPEN</p>
             <p class="text-dark-400">Created Oct 24, 2023</p>
@@ -77,7 +77,7 @@
 {/snippet}
 
 {#snippet project()}
-    <div class="border-1 border-dark-50 max-w-256 rounded-input flex-1">
+    <div class="border-1 border-dark-50 max-w-256 rounded-input flex-1 animate-fade-in hover:shadow-md transition-shadow duration-300" style="animation-delay: 300ms;">
         <div class="bg-dark-50 p-3">
             <p>Case details</p>
         </div>
