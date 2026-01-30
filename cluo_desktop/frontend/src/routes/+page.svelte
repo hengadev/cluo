@@ -37,11 +37,11 @@
 </script>
 
 <div class="p-8">
-    <h1 class="text-3xl font-bold mb-8">Tableau de bord</h1>
+    <h1 class="text-3xl font-bold mb-8 animate-fade-in">Tableau de bord</h1>
 
     <div class="grid gap-6">
         <section>
-            <h2 class="text-xl font-semibold mb-4">Dossiers récents</h2>
+            <h2 class="text-xl font-semibold mb-4 animate-fade-in" style="animation-delay: 100ms;">Dossiers récents</h2>
 
             {#if loading}
                 <p class="text-muted-foreground">Chargement...</p>
@@ -51,9 +51,10 @@
                 </p>
             {:else}
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {#each cases as caseItem}
+                    {#each cases as caseItem, index}
                         <button
-                            class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover transition-colors text-left"
+                            class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in"
+                            style="animation-delay: {200 + index * 100}ms;"
                             onclick={() => selectCase(caseItem.id)}
                         >
                             <h3 class="font-semibold text-foreground">{caseItem.title}</h3>
