@@ -238,9 +238,9 @@ func NewTestInvoice(t *testing.T) *document.Invoice {
 			CreatedAt: now,
 			UpdatedAt: now,
 		},
-		InvoiceNumber:    "INV-2024-001",
-		IssueDate:        now,
-		DueDate:          dueDate,
+		InvoiceNumber: "INV-2024-001",
+		IssueDate:     now,
+		DueDate:       dueDate,
 		LineItems: []document.InvoiceItem{
 			{
 				Description: "Investigation Services",
@@ -255,19 +255,19 @@ func NewTestInvoice(t *testing.T) *document.Invoice {
 				Subtotal:    500.00,
 			},
 		},
-		TotalAmount:       6500.00,
-		TaxRate:           0.10,
-		TaxAmount:         650.00,
-		Notes:             &notes,
-		PaymentStatus:     document.PaymentStatusUnpaid,
+		TotalAmount:      6500.00,
+		TaxRate:          0.10,
+		TaxAmount:        650.00,
+		Notes:            &notes,
+		PaymentStatus:    document.PaymentStatusUnpaid,
 		PaidAt:           nil,
 		PaidAmount:       nil,
 		PaymentMethod:    nil,
 		LinkedContractID: nil,
-		Currency:          &currency,
-		PaymentTerms:      &paymentTerms,
-		LateFee:           nil,
-		LateFeeRate:       nil,
+		Currency:         &currency,
+		PaymentTerms:     &paymentTerms,
+		LateFee:          nil,
+		LateFeeRate:      nil,
 	}
 }
 
@@ -382,3 +382,4 @@ func CreateDocumentWorkflow(t *testing.T, caseID, clientID uuid.UUID) (*document
 
 	return estimate, mandate, contract, invoice
 }
+
