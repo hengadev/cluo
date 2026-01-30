@@ -30,7 +30,7 @@
 </script>
 
 <div
-    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover transition-colors cursor-pointer aspect-square {selectMode
+    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover hover:shadow-md transition-all duration-300 cursor-pointer aspect-square {selectMode
         ? 'select-none'
         : ''} {isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}"
     onclick={handleClick}
@@ -39,7 +39,7 @@
     <img
         src={image.url}
         alt={image.filename}
-        class="w-full h-full object-cover"
+        class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
     />
 
     {#if selectMode}
