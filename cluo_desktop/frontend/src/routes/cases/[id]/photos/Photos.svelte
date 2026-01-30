@@ -21,8 +21,33 @@
         SORT_STATES,
     } from "./types";
 
+    import { isMockEnabled } from "$lib/config";
+    import { images as mockImages } from "./mockData";
+    import { fetchCaseImages } from "$lib/services/api";
+    import { onMount } from "svelte";
+
     // NOTE: That thing should be props to be honest
-    import { images } from "./mockData";
+    let images = $state(mockImages);
+    let loading = $state(false);
+
+    // Load images based on mock flag
+    onMount(async () => {
+        if (!isMockEnabled()) {
+            loading = true;
+            try {
+                // TODO: Get caseId from route params when API is ready
+                const apiImages = await fetchCaseImages("CASE-2024-0847");
+                if (apiImages.length > 0) {
+                    images = apiImages as typeof images;
+                }
+            } catch (error) {
+                console.error("Failed to fetch images:", error);
+                images = [];
+            } finally {
+                loading = false;
+            }
+        }
+    });
 
     interface Layout {
         value: LayoutState;
@@ -124,7 +149,15 @@
             </div>
         </div>
         <Tabs.Content value="all" class="select-none pt-3">
-            <AllPhotos {layoutValue} {images} />
+            {#if loading}
+                <p class="text-muted-foreground">Chargement des photos...</p>
+            {:else if images.length === 0}
+                <p class="text-muted-foreground">
+                    Aucune photo disponible. {isMockEnabled() ? '' : '(API non configurée)'}
+                </p>
+            {:else}
+                <AllPhotos {layoutValue} {images} />
+            {/if}
         </Tabs.Content>
         <Tabs.Content value="selection" class="select-none pt-3">
             <div>here is the content with the selection</div>
