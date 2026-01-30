@@ -2,8 +2,10 @@
     import { Home, User, ChevronRight, ChevronLeft } from "@lucide/svelte";
     import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
-    import { type SidebarState } from "$lib/types/sidebar";
     import { items, type SidebarItem } from "$lib/constructor/sidebar";
+    import { currentCase } from "$lib/stores/case";
+    import { goto } from "$app/navigation";
+    import { page } from "$app/stores";
 
     const size: number = 24;
 
@@ -17,18 +19,47 @@
             "Le message de ce toast n'est la qu'a titre indicatif en realite.",
     };
 
-    type Props = { sidebarState: SidebarState };
-    let { sidebarState = $bindable() }: Props = $props();
-
-    let selected: string = $state(sidebarState);
     let isExpanded: boolean = $state(false);
+
+    // Get the current route path for highlighting
+    function getRouteForItem(item: SidebarItem): string {
+        // Replace :id with actual case ID if available
+        const caseId = $currentCase.id;
+        if (!caseId) {
+            // For case-specific routes without a case, return empty
+            if (item.path.includes(':id')) return '';
+            return item.path;
+        }
+        return item.path.replace(':id', caseId);
+    }
+
+    function isActive(item: SidebarItem): boolean {
+        const routePath = getRouteForItem(item);
+        if (!routePath) return false;
+        return $page.url.pathname === routePath;
+    }
+
+    function handleItemClick(item: SidebarItem) {
+        const routePath = getRouteForItem(item);
+
+        if (!routePath) {
+            // No case ID selected - show toast
+            toastState.add(
+                TOAST_LEVELS.Warning,
+                "Aucun dossier sélectionné",
+                "Veuillez d'abord sélectionner un dossier"
+            );
+            return;
+        }
+
+        goto(routePath);
+    }
 </script>
 
 <div
     class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300"
-    style="width: {isExpanded ? '200px' : 'auto'}; align-items: {isExpanded
-        ? 'stretch'
-        : 'center'};"
+    style:width={isExpanded ? '200px' : 'auto'}
+    style:align-items={isExpanded ? 'stretch' : 'center'}
 >
     <!-- Chevron toggle button -->
     <button
@@ -65,7 +96,7 @@
     <div class="flex flex-col justify-between h-full">
         <div
             class="flex flex-col gap-2"
-            style="align-items: {isExpanded ? 'stretch' : 'center'};"
+            style:align-items={isExpanded ? 'stretch' : 'center'}
         >
             {#each items as item}
                 {@render button(item)}
@@ -88,18 +119,14 @@
 
 {#snippet button(item: SidebarItem)}
     {@const Icon = item.icon}
+    {@const active = isActive(item)}
     {#if isExpanded}
         <button
             class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {item.title ===
-            selected
+		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
                 ? 'bg-foreground text-background'
                 : 'bg-transparent text-foreground hover:bg-muted'}"
-            onclick={() => {
-                item.fn;
-                selected = item.title;
-                sidebarState = item.title;
-            }}
+            onclick={() => handleItemClick(item)}
         >
             <Icon size={24} strokeWidth={1.75} />
             <span class="text-sm font-medium whitespace-nowrap"
@@ -111,15 +138,10 @@
             <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
                     class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {item.title ===
-                    selected
+		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
                         ? 'bg-foreground text-background'
                         : 'bg-transparent text-foreground hover:bg-muted'}"
-                    onclick={() => {
-                        item.fn;
-                        selected = item.title;
-                        sidebarState = item.title;
-                    }}
+                    onclick={() => handleItemClick(item)}
                 >
                     <Button.Root class="cursor-pointer">
                         <Icon size={24} strokeWidth={1.75} />
