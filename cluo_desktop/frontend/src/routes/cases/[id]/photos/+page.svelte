@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Photos2 from "$lib/custom/content/photos/Photos2.svelte";
+    import Photos2 from "./Photos2.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
