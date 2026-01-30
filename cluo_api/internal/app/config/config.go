@@ -17,6 +17,7 @@ type Config struct {
 	Vault         VaultConfig
 	S3            S3Config
 	Observability ObservabilityConfig
+	AI            AIConfig
 }
 
 // Load loads configuration from environment variables.
@@ -64,6 +65,11 @@ func Load() (*Config, error) {
 	cfg.Observability, err = loadObservabilityConfig(cfg.Environment)
 	if err != nil {
 		return nil, fmt.Errorf("observability config: %w", err)
+	}
+
+	cfg.AI, err = loadAIConfig()
+	if err != nil {
+		return nil, fmt.Errorf("ai config: %w", err)
 	}
 
 	// Validate the complete configuration
