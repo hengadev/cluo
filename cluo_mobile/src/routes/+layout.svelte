@@ -5,6 +5,7 @@
     import { dev } from '$app/environment';
 
     import Footer from "./Footer.svelte";
+    import Snackbar from "$lib/components/Snackbar.svelte";
 
     let { children } = $props();
 
@@ -27,3 +28,5 @@
         </div>
     {/if}
 </div>
+
+<Snackbar />
