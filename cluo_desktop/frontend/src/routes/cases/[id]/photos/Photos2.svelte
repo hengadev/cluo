@@ -6,10 +6,33 @@
         type LayoutMode,
     } from "./_floatingToolbar.svelte";
 
-    import { images } from "./mockData";
+    import { isMockEnabled } from "$lib/config";
+    import { images as mockImages } from "./mockData";
+    import { fetchCaseImages } from "$lib/services/api";
     import type { Image, ReportImage, BurstGroup } from "./types";
+    import { onMount } from "svelte";
 
-    let allImages = $state<Image[]>(images);
+    let allImages = $state<Image[]>(mockImages);
+    let loading = $state(false);
+
+    // Load images based on mock flag
+    onMount(async () => {
+        if (!isMockEnabled()) {
+            loading = true;
+            try {
+                // TODO: Get caseId from route params when API is ready
+                const apiImages = await fetchCaseImages("CASE-2024-0847");
+                if (apiImages.length > 0) {
+                    allImages = apiImages as Image[];
+                }
+            } catch (error) {
+                console.error("Failed to fetch images:", error);
+                allImages = [];
+            } finally {
+                loading = false;
+            }
+        }
+    });
     let reportImages = $state<ReportImage[]>([]);
     let reportedIds = $derived(new Set(reportImages.map((img) => img.id)));
 
@@ -186,7 +209,17 @@
 
     <!-- Panel Layout -->
     <div class="flex-1 min-h-0 overflow-hidden">
-        {#if layoutMode === "library"}
+        {#if loading}
+            <div class="flex items-center justify-center h-full">
+                <p class="text-muted-foreground">Chargement des photos...</p>
+            </div>
+        {:else if allImages.length === 0}
+            <div class="flex items-center justify-center h-full">
+                <p class="text-muted-foreground">
+                    Aucune photo disponible. {isMockEnabled() ? '' : '(API non configurée)'}
+                </p>
+            </div>
+        {:else if layoutMode === "library"}
             <!-- Library Only -->
             <LibraryPanel
                 images={displayImages()}
