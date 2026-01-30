@@ -9,6 +9,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/common/auth/session"
 	"github.com/hengadev/cluo_api/internal/common/middleware/auth"
+	"github.com/hengadev/cluo_api/internal/infrastructure/worker"
 	"github.com/hengadev/cluo_api/internal/ports"
 	"github.com/hengadev/encx"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -40,6 +41,14 @@ type Container struct {
 	documentService ports.DocumentService
 	mediaService    ports.MediaService
 	storage         ports.StorageService
+
+	// AI Services
+	textTransformationService ports.TextTransformationService
+	speechToTextService       ports.SpeechToTextService
+	transcriptAnalysisService ports.TranscriptAnalysisService
+	transcriptionRepo         ports.TranscriptionRepository
+	transcriptionJobRepo      ports.TranscriptionJobRepository
+	transcriptionWorker       *worker.TranscriptionWorker
 
 	// Auth
 	sessionRepo    session.SessionRepository
@@ -75,6 +84,12 @@ func New(ctx context.Context, cfg *config.Config, logger *slog.Logger) (*Contain
 	if err := c.initAuth(ctx); err != nil {
 		c.Shutdown(ctx)
 		return nil, fmt.Errorf("init auth: %w", err)
+	}
+
+	// Initialize AI services
+	if err := c.initAIServices(ctx); err != nil {
+		// AI services are optional, log warning but continue
+		c.logger.WarnContext(ctx, "AI services initialization failed", "error", err)
 	}
 
 	logger.InfoContext(ctx, "Container initialized successfully")
@@ -159,3 +174,35 @@ func (c *Container) MediaService() ports.MediaService {
 func (c *Container) AuthMiddleware() auth.AuthMiddleware {
 	return c.authMiddleware
 }
+
+// TextTransformationService returns the text transformation service.
+func (c *Container) TextTransformationService() ports.TextTransformationService {
+	return c.textTransformationService
+}
+
+// SpeechToTextService returns the speech-to-text service.
+func (c *Container) SpeechToTextService() ports.SpeechToTextService {
+	return c.speechToTextService
+}
+
+// TranscriptAnalysisService returns the transcript analysis service.
+func (c *Container) TranscriptAnalysisService() ports.TranscriptAnalysisService {
+	return c.transcriptAnalysisService
+}
+
+// StartBackgroundWorkers starts all background workers.
+func (c *Container) StartBackgroundWorkers(ctx context.Context) {
+	if c.transcriptionWorker != nil {
+		c.transcriptionWorker.Start(ctx)
+		c.logger.InfoContext(ctx, "Transcription worker started")
+	}
+}
+
+// StopBackgroundWorkers stops all background workers gracefully.
+func (c *Container) StopBackgroundWorkers() {
+	if c.transcriptionWorker != nil {
+		c.transcriptionWorker.Stop()
+		c.logger.Info("Transcription worker stopped")
+	}
+}
+
