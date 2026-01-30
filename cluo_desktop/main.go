@@ -1,7 +1,10 @@
 package main
 
 import (
+	"context"
 	"embed"
+
+	"cluo_desktop/updater"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -15,6 +18,9 @@ func main() {
 	// Create an instance of the app structure
 	app := NewApp()
 
+	// Create an instance of the updater
+	upd := updater.NewUpdater()
+
 	// Create application with options
 	err := wails.Run(&options.App{
 		Title:  "cluo_desktop",
@@ -24,9 +30,13 @@ func main() {
 			Assets: assets,
 		},
 		BackgroundColour: &options.RGBA{R: 27, G: 38, B: 54, A: 1},
-		OnStartup:        app.startup,
+		OnStartup: func(ctx context.Context) {
+			app.startup(ctx)
+			upd.Startup(ctx)
+		},
 		Bind: []interface{}{
 			app,
+			upd,
 		},
 	})
 

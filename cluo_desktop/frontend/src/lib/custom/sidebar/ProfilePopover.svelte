@@ -1,20 +1,24 @@
 <script lang="ts">
     import { Button, Popover, Separator } from "bits-ui";
-    import { User, LogOut, BadgeCheck, Bell, CreditCard } from "@lucide/svelte";
+    import { User, LogOut, BadgeCheck, Bell, CreditCard, RefreshCw } from "@lucide/svelte";
     import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+    import UpdateDialog from "$lib/custom/global/UpdateDialog.svelte";
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
 
-    type Button = {
+    type ButtonItem = {
         icon: typeof import("@lucide/svelte").Icon;
         title: string;
+        onclick?: () => void;
     };
-    let buttons: Button[] = [
+    let buttons: ButtonItem[] = [
         { icon: BadgeCheck, title: "Account" },
         { icon: CreditCard, title: "Billing" },
         { icon: Bell, title: "Notifications" },
     ];
+
+    let updateDialogOpen = $state(false);
 </script>
 
 <Popover.Root>
@@ -46,6 +50,16 @@
                 {/each}
             </div>
             {@render separator()}
+            <Button.Root
+                class="p-2 w-full rounded-input hover:bg-muted cursor-pointer"
+                onclick={() => (updateDialogOpen = true)}
+            >
+                <div class="text-base flex gap-2">
+                    <RefreshCw size={16} />
+                    <p>Check for Updates</p>
+                </div>
+            </Button.Root>
+            {@render separator()}
             <ConfirmDialog>
                 {@render button({ icon: LogOut, title: "Se deconnecter" })}
             </ConfirmDialog>
@@ -53,10 +67,12 @@
     </Popover.Portal>
 </Popover.Root>
 
+<UpdateDialog bind:open={updateDialogOpen} />
+
 {#snippet separator()}
     <Separator.Root class="bg-dark-10 !my-1 -mx-4 block h-px" />
 {/snippet}
-{#snippet button(btn: Button)}
+{#snippet button(btn: ButtonItem)}
     {@const Icon = btn.icon}
     <Button.Root class="p-2 w-full rounded-input hover:bg-muted cursor-pointer">
         <div class="text-base flex gap-2">
