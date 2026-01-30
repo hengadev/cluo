@@ -12,12 +12,6 @@
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
     const toastState = getToastContext();
-    const mockToast = {
-        level: TOAST_LEVELS.Info,
-        title: "Un titre pour le toast",
-        message:
-            "Le message de ce toast n'est la qu'a titre indicatif en realite.",
-    };
 
     let isExpanded: boolean = $state(false);
 
@@ -80,12 +74,7 @@
             class="bg-background border-1 border-border-input p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 {isExpanded
                 ? 'justify-start gap-3 px-4'
                 : 'justify-center'}"
-            onclick={() =>
-                toastState.add(
-                    mockToast.level,
-                    mockToast.title,
-                    mockToast.message,
-                )}
+            onclick={() => goto("/")}
         >
             <Home {size} strokeWidth={1.5} />
             {#if isExpanded}
