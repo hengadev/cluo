@@ -49,7 +49,7 @@
 		const menuHeight = 50; // approximate height
 
 		menuPosition = {
-			top: start.top - editorRect.top - menuHeight - 8, // 8px gap
+			top: start.top - editorRect.top - menuHeight + 96, // 96px gap
 			left:
 				Math.min(start.left, end.left) - editorRect.left + Math.abs(end.left - start.left) / 2 - menuWidth / 2
 		};
