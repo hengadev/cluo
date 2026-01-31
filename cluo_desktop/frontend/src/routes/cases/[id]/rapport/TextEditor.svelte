@@ -19,6 +19,18 @@
         Heading2,
         Heading3,
     } from "@lucide/svelte";
+    import type { AITextOperation } from "$lib/services/api";
+    import AIFloatingMenu from "./_aiFloatingMenu.svelte";
+
+    interface Props {
+        onAIOperation?: (
+            operation: AITextOperation,
+            selectedText: string,
+            selectionRange: { from: number; to: number }
+        ) => void;
+    }
+
+    let { onAIOperation }: Props = $props();
 
     let editorElement: HTMLElement;
     let editor: Editor;
@@ -34,6 +46,10 @@
         isH2: false,
         isH3: false,
     });
+
+    // AI operation state
+    let selectedText = $state("");
+    let selectionRange = $state<{ from: number; to: number } | null>(null);
 
     onMount(() => {
         editor = new Editor({
@@ -87,6 +103,16 @@
         editorState.isH1 = editor.isActive("heading", { level: 1 });
         editorState.isH2 = editor.isActive("heading", { level: 2 });
         editorState.isH3 = editor.isActive("heading", { level: 3 });
+
+        // Track selection for AI operations
+        const { from, to, empty } = editor.state.selection;
+        if (!empty && from !== to) {
+            selectionRange = { from, to };
+            selectedText = editor.state.doc.textBetween(from, to, " ");
+        } else {
+            selectionRange = null;
+            selectedText = "";
+        }
     }
 
     onDestroy(() => {
@@ -133,6 +159,15 @@
 
     function redo() {
         editor.chain().focus().redo().run();
+    }
+
+    // Replace selected text with AI suggestion (callable from parent)
+    export function replaceSelectedText(newText: string, range: { from: number; to: number }) {
+        editor
+            .chain()
+            .focus()
+            .insertContentAt({ from: range.from, to: range.to }, newText)
+            .run();
     }
 </script>
 
@@ -279,6 +314,14 @@
             </button>
         </div>
     </div>
+
+    <!-- AI Floating Menu -->
+    {#if selectionRange && selectedText.trim().length >= 3}
+        <AIFloatingMenu
+            {editor}
+            onOperationClick={(op) => onAIOperation?.(op, selectedText, selectionRange)}
+        />
+    {/if}
 
     <!-- Editor -->
     <!-- <div class="flex-1 overflow-y-auto bg-muted"> -->
