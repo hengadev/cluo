@@ -560,6 +560,99 @@ export async function requestAITextOperation(
 }
 
 // =============================================================================
+// AI CHAT OPERATIONS
+// =============================================================================
+
+import type {
+	SendMessageRequest,
+	SendMessageResponse,
+	GetConversationResponse,
+	ListConversationsResponse,
+	ChatConversation,
+	ChatMessage,
+} from '../types/chat';
+
+/**
+ * Send a chat message
+ */
+export async function sendChatMessage(
+	caseId: string,
+	request: SendMessageRequest,
+): Promise<SendMessageResponse> {
+	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const url = new URL(`${baseURL}/api/ai/chat/message`);
+	url.searchParams.set('case_id', caseId);
+
+	const response = await fetch(url.toString(), {
+		method: 'POST',
+		headers: { 'Content-Type': 'application/json' },
+		credentials: 'include',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		const error = await response.json().catch(() => ({ message: response.statusText }));
+		throw new Error(error.message || `API error: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Get a conversation with messages
+ */
+export async function getChatConversation(
+	conversationId: string,
+): Promise<GetConversationResponse> {
+	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
+		credentials: 'include',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to get conversation: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * List conversations for a case
+ */
+export async function listChatConversations(
+	caseId: string,
+): Promise<ListConversationsResponse> {
+	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const url = new URL(`${baseURL}/api/ai/chat/conversations`);
+	url.searchParams.set('case_id', caseId);
+
+	const response = await fetch(url.toString(), {
+		credentials: 'include',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to list conversations: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Delete a conversation
+ */
+export async function deleteChatConversation(conversationId: string): Promise<void> {
+	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
+		method: 'DELETE',
+		credentials: 'include',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to delete conversation: ${response.status}`);
+	}
+}
+
+// =============================================================================
 // LEGACY TYPES (for backward compatibility)
 // =============================================================================
 
