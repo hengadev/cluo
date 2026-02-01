@@ -1,5 +1,5 @@
 <script lang="ts">
-    import Photos2 from "./Photos2.svelte";
+    import Photos from "./Photos.svelte";
     import { currentCase } from "$lib/stores/case";
     import { page } from "$app/stores";
 
@@ -12,4 +12,4 @@
     });
 </script>
 
-<Photos2 />
+<Photos />
