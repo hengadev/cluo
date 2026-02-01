@@ -10,6 +10,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
+	aiChatHandler "github.com/hengadev/cluo_api/internal/interface/ai_chat"
 	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
 	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
@@ -163,5 +164,12 @@ func (s *Server) registerAIRoutes(mux *http.ServeMux) {
 		handler := aiTranscriptAnalysisHandler.New(s.container.TranscriptAnalysisService(), authMW)
 		handler.RegisterRoutes(mux)
 		s.logger.Info("Transcript analysis routes registered")
+	}
+
+	// Register chat routes
+	if s.container.ChatService() != nil {
+		handler := aiChatHandler.New(s.container.ChatService(), authMW)
+		handler.RegisterRoutes(mux)
+		s.logger.Info("Chat routes registered")
 	}
 }

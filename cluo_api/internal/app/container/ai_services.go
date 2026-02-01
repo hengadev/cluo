@@ -7,11 +7,13 @@ import (
 
 	"github.com/google/uuid"
 	ollamaClient "github.com/hengadev/cluo_api/internal/infrastructure/ollama"
+	aiChatRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_chat"
 	aiTranscriptionJobRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_transcription_job"
 	aiTranscriptionRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_transcription"
 	whisperClient "github.com/hengadev/cluo_api/internal/infrastructure/whisper"
 	"github.com/hengadev/cluo_api/internal/infrastructure/webhook"
 	"github.com/hengadev/cluo_api/internal/infrastructure/worker"
+	aiChatApp "github.com/hengadev/cluo_api/internal/application/ai_chat"
 	aiTextTransformationApp "github.com/hengadev/cluo_api/internal/application/ai_text_transformation"
 	aiSpeechToTextApp "github.com/hengadev/cluo_api/internal/application/ai_speech_to_text"
 	aiTranscriptAnalysisApp "github.com/hengadev/cluo_api/internal/application/ai_transcript_analysis"
@@ -64,6 +66,10 @@ func (c *Container) initOllama(ctx context.Context) error {
 		c.crypto,
 		c.logger,
 	)
+
+	// Create chat repository and service
+	chatRepo := aiChatRepo.New(ctx, c.dbPool)
+	c.chatService = aiChatApp.New(chatRepo, ollama, c.crypto, c.logger)
 
 	c.logger.InfoContext(ctx, "Ollama client initialized",
 		"baseURL", cfg.BaseURL,

@@ -49,6 +49,7 @@ type Container struct {
 	transcriptionRepo         ports.TranscriptionRepository
 	transcriptionJobRepo      ports.TranscriptionJobRepository
 	transcriptionWorker       *worker.TranscriptionWorker
+	chatService              ports.ChatService
 
 	// Auth
 	sessionRepo    session.SessionRepository
@@ -188,6 +189,11 @@ func (c *Container) SpeechToTextService() ports.SpeechToTextService {
 // TranscriptAnalysisService returns the transcript analysis service.
 func (c *Container) TranscriptAnalysisService() ports.TranscriptAnalysisService {
 	return c.transcriptAnalysisService
+}
+
+// ChatService returns the chat service.
+func (c *Container) ChatService() ports.ChatService {
+	return c.chatService
 }
 
 // StartBackgroundWorkers starts all background workers.
