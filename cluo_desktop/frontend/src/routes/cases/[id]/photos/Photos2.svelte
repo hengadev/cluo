@@ -11,6 +11,7 @@
     import { fetchCaseImages } from "$lib/services/api";
     import type { Image, ReportImage, BurstGroup } from "./types";
     import { onMount } from "svelte";
+    import { page } from "$app/stores";
 
     let allImages = $state<Image[]>(mockImages);
     let loading = $state(false);
@@ -20,8 +21,8 @@
         if (!isMockEnabled()) {
             loading = true;
             try {
-                // TODO: Get caseId from route params when API is ready
-                const apiImages = await fetchCaseImages("CASE-2024-0847");
+                const caseId = $page.params.id;
+                const apiImages = await fetchCaseImages(caseId);
                 if (apiImages.length > 0) {
                     allImages = apiImages as Image[];
                 }
@@ -163,7 +164,7 @@
             const url = URL.createObjectURL(file);
             const newImage: Image = {
                 id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                caseId: "CASE-2024-0847",
+                caseId: $page.params.id,
                 url,
                 filename: file.name,
                 filesize: file.size,

@@ -25,6 +25,7 @@
     import { images as mockImages } from "./mockData";
     import { fetchCaseImages } from "$lib/services/api";
     import { onMount } from "svelte";
+    import { page } from "$app/stores";
 
     // NOTE: That thing should be props to be honest
     let images = $state(mockImages);
@@ -35,8 +36,8 @@
         if (!isMockEnabled()) {
             loading = true;
             try {
-                // TODO: Get caseId from route params when API is ready
-                const apiImages = await fetchCaseImages("CASE-2024-0847");
+                const caseId = $page.params.id;
+                const apiImages = await fetchCaseImages(caseId);
                 if (apiImages.length > 0) {
                     images = apiImages as typeof images;
                 }

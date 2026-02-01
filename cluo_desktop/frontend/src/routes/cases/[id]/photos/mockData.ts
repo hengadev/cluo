@@ -1,9 +1,12 @@
 import { type Image } from "./types";
 
+// Use a valid case ID from the main mock data (inProgress1 - Affaire Dupont)
+const CASE_ID = "950e8400-e29b-41d4-a716-446655440101";
+
 export const images: Image[] = [
     {
         id: "evi-001",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1555212697-194d092e3b8f?w=800&auto=format&fit=crop",
         filename: "cafe_meeting_burst_1.jpg",
         filesize: 2458624,
@@ -14,7 +17,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-002",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&auto=format&fit=crop",
         filename: "cafe_meeting_burst_2.jpg",
         filesize: 1890544,
@@ -24,7 +27,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-003",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1450101499163-c8848c66ca85?w=800&auto=format&fit=crop",
         filename: "cafe_meeting_burst_3.jpg",
         filesize: 956272,
@@ -35,7 +38,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-004",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?w=800&auto=format&fit=crop",
         filename: "cafe_meeting_burst_4.jpg",
         filesize: 3145728,
@@ -46,7 +49,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-005",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop",
         filename: "phone_records.jpg",
         filesize: 524288,
@@ -57,7 +60,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-006",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop",
         filename: "bank_statement.jpg",
         filesize: 1474560,
@@ -68,7 +71,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-007",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?w=800&auto=format&fit=crop",
         filename: "witness_statement.jpg",
         filesize: 786432,
@@ -78,7 +81,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-008",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop",
         filename: "office_building.jpg",
         filesize: 3145728,
@@ -89,7 +92,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-009",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
         filename: "receipt_evidence.jpg",
         filesize: 655360,
@@ -99,7 +102,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-010",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop",
         filename: "trash_documents.jpg",
         filesize: 1048576,
@@ -110,7 +113,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-011",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop",
         filename: "gym_membership.jpg",
         filesize: 458752,
@@ -121,7 +124,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-012",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1474487548417-781cb71495f3?w=800&auto=format&fit=crop",
         filename: "train_tickets.jpg",
         filesize: 737280,
@@ -132,7 +135,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-013",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&auto=format&fit=crop",
         filename: "surveillance_camera_footage.jpg",
         filesize: 2048576,
@@ -142,7 +145,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-014",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=800&auto=format&fit=crop",
         filename: "handwritten_note.jpg",
         filesize: 892928,
@@ -152,7 +155,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-015",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop",
         filename: "laptop_screenshot.jpg",
         filesize: 1730150,
@@ -162,7 +165,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-016",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1551410224-699683e15636?w=800&auto=format&fit=crop",
         filename: "atm_transaction.jpg",
         filesize: 1310720,
@@ -172,7 +175,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-017",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1595152772835-219674b2a8a6?w=800&auto=format&fit=crop",
         filename: "hotel_key_card.jpg",
         filesize: 589824,
@@ -182,7 +185,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-018",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1544396821-4dd40b938ad3?w=800&auto=format&fit=crop",
         filename: "fingerprint_evidence.jpg",
         filesize: 2162688,
@@ -192,7 +195,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-019",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1588666309990-d68f08e3d4a6?w=800&auto=format&fit=crop",
         filename: "pawn_shop_ticket.jpg",
         filesize: 471859,
@@ -202,7 +205,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-020",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1516549655169-df83a0774514?w=800&auto=format&fit=crop",
         filename: "medical_records.jpg",
         filesize: 1572864,
@@ -212,7 +215,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-021",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop",
         filename: "residence_burst_1.jpg",
         filesize: 2831152,
@@ -222,7 +225,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-022",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=800&auto=format&fit=crop",
         filename: "residence_burst_2.jpg",
         filesize: 2097152,
@@ -232,7 +235,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-023",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
         filename: "residence_burst_3.jpg",
         filesize: 921600,
@@ -242,7 +245,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-024",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=800&auto=format&fit=crop",
         filename: "apartment_building_exterior.jpg",
         filesize: 3670016,
@@ -252,7 +255,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-025",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1521737711867-e3b97375f902?w=800&auto=format&fit=crop",
         filename: "cafe_interior.jpg",
         filesize: 2458624,
@@ -262,7 +265,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-026",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1461896836934-ffe607ba8211?w=800&auto=format&fit=crop",
         filename: "taxi_manifest.jpg",
         filesize: 655360,
@@ -272,7 +275,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-027",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop",
         filename: "data_analysis_chart.jpg",
         filesize: 1572864,
@@ -282,7 +285,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-028",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1554224151-4693b4a3f37b?w=800&auto=format&fit=crop",
         filename: "jewelry_store.jpg",
         filesize: 1925194,
@@ -292,7 +295,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-029",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?w=800&auto=format&fit=crop",
         filename: "laptop_keyboard.jpg",
         filesize: 1048576,
@@ -302,7 +305,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-030",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1544531586-fde5298cdd40?w=800&auto=format&fit=crop",
         filename: "restaurant_scene.jpg",
         filesize: 2621440,
@@ -312,7 +315,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-031",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526676037777-05a232554f77?w=800&auto=format&fit=crop",
         filename: "park_surveillance.jpg",
         filesize: 3145728,
@@ -322,7 +325,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-032",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526304640152-d461568d50e6?w=800&auto=format&fit=crop",
         filename: "clothing_store.jpg",
         filesize: 1835008,
@@ -332,7 +335,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-033",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1484101403633-562f891dc89a?w=800&auto=format&fit=crop",
         filename: "automotive_repair.jpg",
         filesize: 2264924,
@@ -342,7 +345,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-034",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop",
         filename: "office_workspace.jpg",
         filesize: 1572864,
@@ -352,7 +355,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-035",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop",
         filename: "supermarket_receipt.jpg",
         filesize: 524288,
@@ -362,7 +365,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-036",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800&auto=format&fit=crop",
         filename: "phone_forensic.jpg",
         filesize: 1310720,
@@ -372,7 +375,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-037",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1497366754035-f200968a6e72?w=800&auto=format&fit=crop",
         filename: "building_lobby.jpg",
         filesize: 2458624,
@@ -382,7 +385,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-038",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop",
         filename: "cafe_terrace.jpg",
         filesize: 2048576,
@@ -392,7 +395,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-039",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&auto=format&fit=crop",
         filename: "night_street_scene.jpg",
         filesize: 1925194,
@@ -402,7 +405,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-040",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
         filename: "financial_spreadsheet.jpg",
         filesize: 786432,
@@ -412,7 +415,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-041",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=800&auto=format&fit=crop",
         filename: "rural_location.jpg",
         filesize: 3145728,
@@ -422,7 +425,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-042",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop",
         filename: "storage_unit.jpg",
         filesize: 1730150,
@@ -432,7 +435,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-043",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1504389557843-93b7219b7931?w=800&auto=format&fit=crop",
         filename: "nightclub_entrance.jpg",
         filesize: 2621440,
@@ -442,7 +445,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-044",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=800&auto=format&fit=crop",
         filename: "keyboard_closeup.jpg",
         filesize: 1048576,
@@ -452,7 +455,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-045",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&auto=format&fit=crop",
         filename: "dashcam_footage.jpg",
         filesize: 3670016,
@@ -462,7 +465,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-046",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
         filename: "insurance_documents.jpg",
         filesize: 892928,
@@ -472,7 +475,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-047",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1516979187457-637abb4f9353?w=800&auto=format&fit=crop",
         filename: "email_thread.jpg",
         filesize: 1572864,
@@ -482,7 +485,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-048",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1542831371-29b0f74f9713?w=800&auto=format&fit=crop",
         filename: "server_room.jpg",
         filesize: 2097152,
@@ -492,7 +495,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-049",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526778548025-fa2f459cd5c1?w=800&auto=format&fit=crop",
         filename: "hotel_burst_1.jpg",
         filesize: 1226800,
@@ -502,7 +505,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-050",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1484101403633-56de8ae18c73?w=800&auto=format&fit=crop",
         filename: "hotel_burst_2.jpg",
         filesize: 1925194,
@@ -512,7 +515,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-051",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop",
         filename: "hotel_burst_3.jpg",
         filesize: 524288,
@@ -522,7 +525,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-052",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&auto=format&fit=crop",
         filename: "hotel_burst_4.jpg",
         filesize: 2621440,
@@ -532,7 +535,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-053",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop",
         filename: "corporate_building.jpg",
         filesize: 3145728,
@@ -542,7 +545,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-054",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1516321497487-e288fb19713f?w=800&auto=format&fit=crop",
         filename: "handwriting_sample.jpg",
         filesize: 786432,
@@ -552,7 +555,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-055",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526676037777-05a232554f77?w=800&auto=format&fit=crop",
         filename: "warehouse_location.jpg",
         filesize: 2264924,
@@ -562,7 +565,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-056",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=800&auto=format&fit=crop",
         filename: "location_tracking.jpg",
         filesize: 1572864,
@@ -572,7 +575,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-057",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1554224155-8d04cb21cd6c?w=800&auto=format&fit=crop",
         filename: "shredded_documents.jpg",
         filesize: 1048576,
@@ -582,7 +585,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-058",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=800&auto=format&fit=crop",
         filename: "mobile_device.jpg",
         filesize: 892928,
@@ -592,7 +595,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-059",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d?w=800&auto=format&fit=crop",
         filename: "gym_surveillance.jpg",
         filesize: 2458624,
@@ -602,7 +605,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-060",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=800&auto=format&fit=crop",
         filename: "gym_membership_renewal.jpg",
         filesize: 655360,
@@ -612,7 +615,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-061",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1559526324-4b87b5e36e44?w=800&auto=format&fit=crop",
         filename: "wire_transfer.jpg",
         filesize: 1310720,
@@ -622,7 +625,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-062",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf?w=800&auto=format&fit=crop",
         filename: "cafe_meeting_2.jpg",
         filesize: 2048576,
@@ -632,7 +635,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-063",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?w=800&auto=format&fit=crop",
         filename: "parked_vehicle_2.jpg",
         filesize: 1835008,
@@ -642,7 +645,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-064",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=800&auto=format&fit=crop",
         filename: "dinner_receipt.jpg",
         filesize: 458752,
@@ -652,7 +655,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-065",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=800&auto=format&fit=crop",
         filename: "metro_ticket.jpg",
         filesize: 524288,
@@ -662,7 +665,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-066",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1497366216548-37526070297c?w=800&auto=format&fit=crop",
         filename: "office_building_night.jpg",
         filesize: 2621440,
@@ -672,7 +675,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-067",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1519389950473-47ba0277781c?w=800&auto=format&fit=crop",
         filename: "workspace_desk.jpg",
         filesize: 1572864,
@@ -682,7 +685,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-068",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1526506118085-60ce8714f8c5?w=800&auto=format&fit=crop",
         filename: "evening_stroll.jpg",
         filesize: 1925194,
@@ -692,7 +695,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-069",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&auto=format&fit=crop",
         filename: "bank_safe_deposit.jpg",
         filesize: 1048576,
@@ -702,7 +705,7 @@ export const images: Image[] = [
     },
     {
         id: "evi-070",
-        caseId: "CASE-2024-0847",
+        caseId: CASE_ID,
         url: "https://images.unsplash.com/photo-1504711434969-e33886168f5c?w=800&auto=format&fit=crop",
         filename: "surveillance_summary.jpg",
         filesize: 2264924,
