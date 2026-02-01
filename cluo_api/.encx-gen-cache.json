@@ -2,6 +2,9 @@
   "SourceHashes": {
     "internal/common/auth/session/session.go": "98b736798866317fede7588e2cc117d4378b52004ed272e0fdcbd5aea16f0d38",
     "internal/common/testutils/auth.go": "752ead024c993d043837c06488d5e923ee654a260120100a641167e2752bad37",
+    "internal/domain/ai/chat.go": "417cbffe1dfdac2388d2e9d280c79fb3996d6b1ca0ba35f4b8e0f12ae32befe3",
+    "internal/domain/ai/chat_conversation.go": "085190bc5eb2bf001ebc8e1ba1546cbfd2c3f957ae114fc14bcf533f04d4c62d",
+    "internal/domain/ai/chat_message.go": "18941a9459f45576f79e707c05eb6359ec5b0d9d9649ec0a42dcc737d1c88d54",
     "internal/domain/ai/speech_to_text.go": "3b6f60d30a3a55e5db5d787fc3ad350bd93ebec48b152e115eedb3581453068a",
     "internal/domain/ai/text_transformation.go": "8a2df424bb3525954531fffc9a4c205314d7e56a90ec22409838f5cf431d4cf3",
     "internal/domain/ai/transcript_analysis.go": "064ce6b3c7b81748b05880df21d7579a218083faf26db541ddf25840348b8a2c",
@@ -36,6 +39,21 @@
       "SourceFile": "internal/common/testutils/auth.go",
       "SourceHash": "752ead024c993d043837c06488d5e923ee654a260120100a641167e2752bad37",
       "GeneratedTime": "2025-12-12T07:30:56.64664768+01:00"
+    },
+    "internal/domain/ai/chat_conversation_encx.go": {
+      "SourceFile": "internal/domain/ai/chat_conversation.go",
+      "SourceHash": "085190bc5eb2bf001ebc8e1ba1546cbfd2c3f957ae114fc14bcf533f04d4c62d",
+      "GeneratedTime": "2026-02-01T22:55:57.080776406+01:00"
+    },
+    "internal/domain/ai/chat_encx.go": {
+      "SourceFile": "internal/domain/ai/chat.go",
+      "SourceHash": "417cbffe1dfdac2388d2e9d280c79fb3996d6b1ca0ba35f4b8e0f12ae32befe3",
+      "GeneratedTime": "2026-02-01T22:54:27.446990075+01:00"
+    },
+    "internal/domain/ai/chat_message_encx.go": {
+      "SourceFile": "internal/domain/ai/chat_message.go",
+      "SourceHash": "18941a9459f45576f79e707c05eb6359ec5b0d9d9649ec0a42dcc737d1c88d54",
+      "GeneratedTime": "2026-02-01T22:55:57.080480749+01:00"
     },
     "internal/domain/ai/speech_to_text_encx.go": {
       "SourceFile": "internal/domain/ai/speech_to_text.go",
@@ -148,5 +166,5 @@
       "GeneratedTime": "2025-11-05T10:58:19.174594417+01:00"
     }
   },
-  "LastGenerated": "2026-01-30T19:02:18.07313635+01:00"
+  "LastGenerated": "2026-02-01T22:55:57.080776707+01:00"
 }
