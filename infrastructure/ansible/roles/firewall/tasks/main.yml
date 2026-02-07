@@ -1,0 +1,95 @@
+---
+# Firewall Role (UFW)
+# Implements firewall security using UFW
+
+- name: Install UFW
+  ansible.builtin.apt:
+    name: ufw
+    state: present
+  tags: ufw
+
+- name: Reset UFW to default
+  community.general.ufw:
+    state: reset
+  tags: ufw
+
+- name: Set default policies
+  community.general.ufw:
+    direction: "{{ item.direction }}"
+    policy: "{{ item.policy }}"
+  loop:
+    - { direction: "incoming", policy: "deny" }
+    - { direction: "outgoing", policy: "allow" }
+    - { direction: "routed", policy: "deny" }
+  tags: ufw
+
+- name: Allow SSH (from Cloudflare or specific IPs)
+  community.general.ufw:
+    rule: allow
+    port: "{{ ssh_port | default(22) }}"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ allowed_ssh_ips | default(['0.0.0.0/0']) }}"
+  tags: ufw
+
+- name: Allow HTTP and HTTPS
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+  loop:
+    - "80"
+    - "443"
+  tags: ufw
+
+- name: Allow application ports (internal only)
+  community.general.ufw:
+    rule: allow
+    port: "{{ item }}"
+    proto: tcp
+    from_ip: "127.0.0.1"
+  loop:
+    - "3000"   # Mobile (SvelteKit)
+    - "3001"   # Web (SvelteKit)
+    - "8080"   # API (Go)
+    - "5432"   # PostgreSQL
+    - "6379"   # Redis
+  tags: ufw
+
+- name: Allow Cloudflare IPs (for HTTPS)
+  community.general.ufw:
+    rule: allow
+    port: "443"
+    proto: tcp
+    from_ip: "{{ item }}"
+  loop: "{{ cloudflare_ips | default([]) }}"
+  when: cloudflare_ips is defined and cloudflare_ips | length > 0
+  tags: ufw
+
+- name: Rate limit SSH
+  community.general.ufw:
+    rule: limit
+    port: "{{ ssh_port | default(22) }}"
+    proto: tcp
+  tags: ufw
+
+- name: Enable UFW logging
+  community.general.ufw:
+    logging: "on"
+  tags: ufw
+
+- name: Enable UFW
+  community.general.ufw:
+    state: enabled
+  tags: ufw
+
+- name: Show UFW status
+  ansible.builtin.command: ufw status verbose
+  register: ufw_status
+  changed_when: false
+  tags: ufw
+
+- name: Display UFW status
+  ansible.builtin.debug:
+    var: ufw_status.stdout_lines
+  tags: ufw

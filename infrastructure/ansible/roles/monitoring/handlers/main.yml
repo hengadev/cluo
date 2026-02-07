@@ -1,0 +1,7 @@
+---
+- name: Enable monitoring service
+  ansible.builtin.systemd:
+    daemon_reload: true
+    name: cluo-monitoring
+    enabled: true
+    state: started

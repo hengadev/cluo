@@ -1,0 +1,83 @@
+---
+# Automatic Updates Role
+# Configures unattended security updates
+
+- name: Install unattended-upgrades
+  ansible.builtin.apt:
+    name: unattended-upgrades
+    state: present
+  tags: updates
+
+- name: Configure unattended-upgrades
+  ansible.builtin.copy:
+    content: |
+      Unattended-Upgrade::Allowed-Origins {
+          "${distro_id}:${distro_codename}";
+          "${distro_id}:${distro_codename}-security";
+          "${distro_id}ESMApps:${distro_codename}-apps-security";
+          "${distro_id}ESM:${distro_codename}-infra-security";
+      };
+
+      Unattended-Upgrade::AutoFixInterruptedDpkg "true";
+      Unattended-Upgrade::MinimalSteps "true";
+      Unattended-Upgrade::Remove-Unused-Kernel-Packages "true";
+      Unattended-Upgrade::Remove-Unused-Dependencies "true";
+      Unattended-Upgrade::Automatic-Reboot "false";
+      Unattended-Upgrade::Automatic-Reboot-Time "02:00";
+      Unattended-Upgrade::Verbose "true";
+      Unattended-Upgrade::Debug "false";
+      Unattended-Upgrade::OnlyOnACPower "true";
+
+      # Skip updates for Docker (manage separately)
+      Unattended-Upgrade::Package-Blacklist {
+          "docker";
+          "docker-ce";
+          "docker-compose";
+      };
+    dest: /etc/apt/apt.conf.d/50unattended-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+  tags: updates
+
+- name: Enable auto updates
+  ansible.builtin.copy:
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Download-Upgradeable-Packages "1";
+      APT::Periodic::AutocleanInterval "7";
+      APT::Periodic::Unattended-Upgrade "1";
+      APT::Periodic::Verbose "1";
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
+    owner: root
+    group: root
+    mode: "0644"
+  tags: updates
+
+- name: Ensure unattended-upgrades is running
+  ansible.builtin.service:
+    name: unattended-upgrades
+    state: started
+    enabled: true
+  tags: updates
+
+- name: Install apt-listchanges
+  ansible.builtin.apt:
+    name: apt-listchanges
+    state: present
+  tags: updates
+
+- name: Configure apt-listchanges
+  ansible.builtin.copy:
+    content: |
+      apt-listchanges {
+          frontend=mail
+          email_address={{ admin_email | default('root@localhost') }}
+          confirm=true
+          which=news
+      }
+    dest: /etc/apt/listchanges.conf
+    owner: root
+    group: root
+    mode: "0644"
+  tags: updates

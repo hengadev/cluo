@@ -1,0 +1,101 @@
+---
+# CLUO Server Setup Playbook
+# Usage: ansible-playbook site.yml -i inventory.yml
+
+- name: CLUO Server Setup
+  hosts: webservers
+  gather_facts: true
+
+  pre_tasks:
+    - name: Display target server
+      ansible.builtin.debug:
+        msg: "Configuring {{ inventory_hostname }} ({{ ansible_default_ipv4.address }})"
+
+    - name: Check if system is Debian/Ubuntu based
+      ansible.builtin.assert:
+        that:
+          - ansible_os_family == "Debian"
+        fail_msg: "This playbook only supports Debian/Ubuntu based systems"
+        success_msg: "OS is supported: {{ ansible_distribution }} {{ ansible_distribution_version }}"
+
+  roles:
+    # 1. System hardening and security
+    - role: system_hardening
+      tags:
+        - security
+        - hardening
+
+    # 2. SSH hardening
+    - role: ssh_hardening
+      tags:
+        - security
+        - ssh
+
+    # 3. Firewall configuration
+    - role: firewall
+      tags:
+        - security
+        - firewall
+
+    # 4. Fail2ban for intrusion prevention
+    - role: fail2ban
+      tags:
+        - security
+        - fail2ban
+      when: enable_fail2ban | default(true)
+
+    # 5. Docker installation
+    - role: docker
+      tags:
+        - docker
+
+    # 6. Application user setup
+    - role: app_user
+      tags:
+        - app
+        - user
+
+    # 7. Application deployment
+    - role: app_deploy
+      tags:
+        - app
+        - deploy
+
+    # 8. Monitoring setup
+    - role: monitoring
+      tags:
+        - monitoring
+      when: enable_monitoring | default(false)
+
+    # 9. Automatic security updates
+    - role: automatic_updates
+      tags:
+        - updates
+      when: enable_automatic_updates | default(true)
+
+    # 10. Backup setup
+    - role: backup
+      tags:
+        - backup
+      when: enable_backups | default(false)
+
+  post_tasks:
+    - name: Display deployment summary
+      ansible.builtin.debug:
+        msg:
+          - "=========================================="
+          - "CLUO deployment completed successfully!"
+          - "=========================================="
+          - "Server: {{ inventory_hostname }}"
+          - "IP: {{ ansible_default_ipv4.address }}"
+          - "App directory: {{ app_dir }}"
+          - "Docker Compose: {{ app_dir }}/docker-compose.yml"
+          - ""
+          - "Next steps:"
+          - "1. SSH into the server:"
+          - "   ssh {{ app_user }}@{{ ansible_default_ipv4.address }}"
+          - "2. Check container status:"
+          - "   cd {{ app_dir }} && docker compose ps"
+          - "3. View logs:"
+          - "   cd {{ app_dir }} && docker compose logs -f"
+          - "=========================================="

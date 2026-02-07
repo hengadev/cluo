@@ -1,0 +1,80 @@
+---
+# CLUO - Common Variables for All Hosts
+# Copy this to group_vars/all.yml and customize
+
+# Application settings
+app_name: cluo
+app_user: cluo
+app_group: cluo
+app_dir: /opt/cluo
+app_env: production
+
+# Domain settings
+domain: yourdomain.com
+api_domain: api.yourdomain.com
+web_domain: app.yourdomain.com
+mobile_domain: mobile.yourdomain.com
+
+# PostgreSQL settings
+postgres_version: "16"
+postgres_db: cluo
+postgres_user: cluo
+# postgres_password: Use vault (see vault.yml.example)
+
+# Redis settings
+# redis_password: Use vault (see vault.yml.example)
+
+# AWS S3 settings
+s3_bucket: cluo-media-prod
+s3_region: eu-central-1
+# aws_access_key_id: Use vault (see vault.yml.example)
+# aws_secret_access_key: Use vault (see vault.yml.example)
+
+# Security settings
+ssh_port: 22
+# List of IPs allowed to SSH (0.0.0.0/0 for any)
+allowed_ssh_ips:
+  - "0.0.0.0/0"
+
+# Cloudflare IPs (for firewall)
+# Get from: https://www.cloudflare.com/ips-v4
+cloudflare_ips:
+  - "173.245.48.0/20"
+  - "103.21.244.0/22"
+  - "103.22.200.0/22"
+  - "103.31.4.0/22"
+  - "141.101.64.0/18"
+  - "108.162.192.0/18"
+  - "190.93.240.0/20"
+  - "188.114.96.0/20"
+  - "197.234.240.0/22"
+  - "198.41.128.0/17"
+  - "162.158.0.0/15"
+  - "104.16.0.0/13"
+  - "104.24.0.0/14"
+  - "172.64.0.0/13"
+  - "131.0.72.0/22"
+
+# Security features
+enable_fail2ban: true
+enable_automatic_updates: true
+enable_monitoring: true
+enable_loki: false
+enable_backups: true
+
+# Monitoring
+monitoring_enabled: true
+
+# Backup settings
+backup_retention_days: 7
+
+# Admin notifications
+admin_email: admin@yourdomain.com
+
+# Application repository (optional)
+# app_repo: https://github.com/yourusername/cluo.git
+# app_version: main
+
+# Public SSH keys for app user
+# ssh_public_keys: |
+#   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample user@host

@@ -1,0 +1,166 @@
+---
+# System Hardening Role
+# Implements baseline security configurations
+
+- name: Update apt cache
+  ansible.builtin.apt:
+    update_cache: true
+    cache_valid_time: 3600
+  tags: apt
+
+- name: Upgrade all packages
+  ansible.builtin.apt:
+    upgrade: dist
+    autoremove: true
+    autoclean: true
+  tags: upgrade
+
+- name: Install essential security packages
+  ansible.builtin.apt:
+    name:
+      - curl
+      - wget
+      - git
+      - vim
+      - htop
+      - net-tools
+      - telnet
+      - ca-certificates
+      - gnupg
+      - lsb-release
+      - apt-transport-https
+      - software-properties-common
+      - unzip
+      - rsyslog
+      - logrotate
+      - auditd
+      - audispd-plugins
+    state: present
+  tags: packages
+
+- name: Configure sysctl - Network hardening
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-security.conf
+  loop:
+    - { name: "net.ipv4.ip_forward", value: "0" }
+    - { name: "net.ipv4.conf.all.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.send_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.accept_source_route", value: "0" }
+    - { name: "net.ipv4.conf.default.accept_source_route", value: "0" }
+    - { name: "net.ipv4.conf.all.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.default.accept_redirects", value: "0" }
+    - { name: "net.ipv4.conf.all.secure_redirects", value: "1" }
+    - { name: "net.ipv4.conf.default.secure_redirects", value: "1" }
+    - { name: "net.ipv4.conf.all.log_martians", value: "1" }
+    - { name: "net.ipv4.conf.default.log_martians", value: "1" }
+    - { name: "net.ipv4.icmp_echo_ignore_broadcasts", value: "1" }
+    - { name: "net.ipv4.icmp_ignore_bogus_error_responses", value: "1" }
+    - { name: "net.ipv4.conf.all.rp_filter", value: "1" }
+    - { name: "net.ipv4.conf.default.rp_filter", value: "1" }
+    - { name: "net.ipv4.tcp_syncookies", value: "1" }
+    - { name: "net.ipv4.tcp_max_syn_backlog", value: "2048" }
+    - { name: "net.ipv4.tcp_synack_retries", value: "2" }
+    - { name: "net.ipv4.tcp_syn_retries", value: "5" }
+    - { name: "kernel.randomize_va_space", value: "2" }
+  tags: sysctl
+
+- name: Limit core dumps
+  ansible.posix.sysctl:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-security.conf
+  loop:
+    - { name: "fs.suid_dumpable", value: "0" }
+    - { name: "kernel.core_pattern", value: "|/bin/false" }
+  tags: sysctl
+
+- name: Disable unused filesystems
+  ansible.builtin.copy:
+    content: |
+      install cramfs /bin/true
+      install freevxfs /bin/true
+      install jffs2 /bin/true
+      install hfs /bin/true
+      install hfsplus /bin/true
+      install squashfs /bin/true
+      install udf /bin/true
+    dest: /etc/modprobe.d/disable-filesystems.conf
+    owner: root
+    group: root
+    mode: "0644"
+  tags: filesystems
+
+- name: Configure login.defs - Password aging
+  ansible.builtin.lineinfile:
+    path: /etc/login.defs
+    regexp: "^{{ item.key }}\\s"
+    line: "{{ item.key }} {{ item.value }}"
+    state: present
+  loop:
+    - { key: "PASS_MAX_DAYS", value: "90" }
+    - { key: "PASS_MIN_DAYS", value: "7" }
+    - { key: "PASS_WARN_AGE", value: "14" }
+    - { key: "LOGIN_RETRIES", value: "5" }
+    - { key: "LOGIN_TIMEOUT", value: "60" }
+  tags: password
+
+- name: Configure common-password - PAM settings
+  ansible.builtin.lineinfile:
+    path: /etc/pam.d/common-password
+    regexp: "^password\\s+\\[success=1 default=ignore\\]\\s+pam_unix\\.so\\s+sha512"
+    line: "password [success=1 default=ignore] pam_unix.so sha512 shadow remember=5 minlen=12"
+    state: present
+  tags: password
+
+- name: Disable root login via password
+  ansible.builtin.lineinfile:
+    path: /etc/ssh/sshd_config
+    regexp: "^#?PermitRootLogin"
+    line: "PermitRootLogin prohibit-password"
+    state: present
+  notify: Restart sshd
+  tags: ssh
+
+- name: Ensure only necessary groups exist
+  ansible.builtin.group:
+    name: "{{ item }}"
+    state: present
+  loop:
+    - sudo
+    - docker
+  tags: groups
+
+- name: Remove dangerous packages (if present)
+  ansible.builtin.apt:
+    name:
+      - telnetd
+      - rsh-server
+      - rsh-redone-server
+    state: absent
+    autoremove: true
+  failed_when: false
+  tags: packages
+
+- name: Configure logrotate for application logs
+  ansible.builtin.copy:
+    content: |
+      /var/log/*.log {
+          daily
+          missingok
+          rotate 14
+          compress
+          delaycompress
+          copytruncate
+          notifempty
+      }
+    dest: /etc/logrotate.d/cluo
+    owner: root
+    group: root
+    mode: "0644"
+  tags: logging

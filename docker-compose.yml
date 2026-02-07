@@ -1,0 +1,108 @@
+services:
+  # =============================================================================
+  # Infrastructure
+  # =============================================================================
+  postgres:
+    image: postgres:16-alpine
+    container_name: cluo-postgres
+    environment:
+      POSTGRES_USER: cluo
+      POSTGRES_PASSWORD: cluo_dev_password
+      POSTGRES_DB: cluo
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cluo"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cluo-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: cluo-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cluo-network
+
+  # =============================================================================
+  # Application Services
+  # =============================================================================
+  api:
+    build:
+      context: ./cluo_api
+      dockerfile: Dockerfile
+    container_name: cluo-api
+    environment:
+      CLUO_ENVIRONMENT: development
+      CLUO_SERVER_HOST: 0.0.0.0
+      CLUO_SERVER_PORT: 8080
+      CLUO_DB_HOST: postgres
+      CLUO_DB_PORT: 5432
+      CLUO_DB_NAME: cluo
+      CLUO_DB_USER: cluo
+      CLUO_DB_PASSWORD: cluo_dev_password
+      CLUO_DB_SSL_MODE: disable
+      CLUO_REDIS_HOST: redis
+      CLUO_REDIS_PORT: 6379
+      CLUO_LOG_LEVEL: debug
+      CLUO_LOG_STYLE: dev
+    ports:
+      - "8080:8080"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - cluo-network
+
+  mobile:
+    build:
+      context: ./cluo_mobile
+      dockerfile: Dockerfile
+    container_name: cluo-mobile
+    environment:
+      PUBLIC_API_URL: http://api:8080
+    ports:
+      - "3000:3000"
+    depends_on:
+      - api
+    networks:
+      - cluo-network
+
+  web:
+    build:
+      context: ./cluo_web
+      dockerfile: Dockerfile
+    container_name: cluo-web
+    environment:
+      PUBLIC_API_URL: http://api:8080
+    ports:
+      - "3001:3000"
+    depends_on:
+      - api
+    networks:
+      - cluo-network
+
+# =============================================================================
+# Networks & Volumes
+# =============================================================================
+networks:
+  cluo-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:

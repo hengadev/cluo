@@ -1,0 +1,178 @@
+---
+# SSH Hardening Role
+# Implements SSH security best practices
+
+- name: Create SSH directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/ssh
+    - /etc/ssh/sshd_config.d
+
+- name: Deploy hardened SSH configuration
+  ansible.builtin.copy:
+    content: |
+      # SSH Hardening Configuration
+      # Based on CIS Benchmark and NIST guidelines
+
+      # Port
+      Port {{ ssh_port | default(22) }}
+
+      # Protocol
+      Protocol 2
+
+      # Host key algorithms
+      HostKeyAlgorithms ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256,rsa-sha2-512
+
+      # Ciphers
+      Ciphers chacha20-poly1305@openssh.com,aes256-gcm@openssh.com,aes128-gcm@openssh.com
+
+      # MACs
+      MACs hmac-sha2-256-etm@openssh.com,hmac-sha2-512-etm@openssh.com,umac-128-etm@openssh.com
+
+      # Kex algorithms
+      KexAlgorithms curve25519-sha256,curve25519-sha256@libssh.org,diffie-hellman-group16-sha512,diffie-hellman-group18-sha512
+
+      # Authentication
+      PubkeyAuthentication yes
+      PasswordAuthentication no
+      ChallengeResponseAuthentication no
+      UsePAM yes
+
+      # Root login
+      PermitRootLogin prohibit-password
+
+      # X11 forwarding
+      X11Forwarding no
+
+      # TCP forwarding
+      AllowTcpForwarding no
+      GatewayPorts no
+
+      # Tunnel
+      PermitTunnel no
+
+      # Agent forwarding
+      AllowAgentForwarding no
+
+      # Banner
+      Banner /etc/issue.net
+
+      # Logging
+      SyslogFacility AUTH
+      LogLevel VERBOSE
+
+      # Session limits
+      MaxAuthTries 3
+      MaxStartups 10:30:100
+      LoginGraceTime 60
+
+      # Client alive
+      ClientAliveInterval 300
+      ClientAliveCountMax 2
+
+      # Privilege separation
+      UsePrivilegeSeparation sandbox
+
+      # PAM
+      UsePAM yes
+
+      # Moduli
+      # Ensure strong moduli (handled by separate task)
+
+      # Allow users
+      # AllowUsers {{ app_user | default('cluo') }}
+
+      # Deny users
+      DenyUsers root
+
+      # Ignore rhosts
+      IgnoreRhosts yes
+      IgnoreUserKnownHosts no
+
+      # Hostbased authentication
+      HostbasedAuthentication no
+
+      # Strict modes
+      StrictModes yes
+
+      # Print motd
+      PrintMotd no
+      PrintLastLog yes
+
+      # Compression
+      Compression no
+
+      # DNS
+      UseDNS yes
+    dest: /etc/ssh/sshd_config.d/50-harding.conf
+    owner: root
+    group: root
+    mode: "0600"
+    validate: "sshd -t -f %s"
+  notify: Restart sshd
+  tags: ssh_config
+
+- name: Create SSH banner
+  ansible.builtin.copy:
+    content: |
+      ***************************************************************************
+      * This system is for authorized use only. All activity may be monitored. *
+      * Unauthorized access is prohibited and will be prosecuted.              *
+      ***************************************************************************
+    dest: /etc/issue.net
+    owner: root
+    group: root
+    mode: "0644"
+  tags: banner
+
+- name: Remove weak SSH keys (if they exist)
+  ansible.builtin.shell:
+    cmd: |
+      ssh-keygen -G /etc/ssh/moduli -b 3072 > /tmp/moduli.new &&
+      mv /tmp/moduli.new /etc/ssh/moduli
+  args:
+    creates: /etc/ssh/moduli.bak
+  failed_when: false
+  notify: Restart sshd
+  tags: moduli
+
+- name: Backup original moduli
+  ansible.builtin.copy:
+    src: /etc/ssh/moduli
+    dest: /etc/ssh/moduli.bak
+    remote_src: true
+    mode: "0644"
+  when: not ansible_check_mode
+  tags: moduli
+
+- name: Ensure .ssh directory exists for app user
+  ansible.builtin.file:
+    path: "/home/{{ app_user | default('cluo') }}/.ssh"
+    state: directory
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_user | default('cluo') }}"
+    mode: "0700"
+  when: app_user is defined
+  tags: ssh_keys
+
+- name: Create authorized_keys for app user
+  ansible.builtin.copy:
+    content: "{{ ssh_public_keys | default('') }}"
+    dest: "/home/{{ app_user | default('cluo') }}/.ssh/authorized_keys"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_user | default('cluo') }}"
+    mode: "0600"
+  when: app_user is defined and ssh_public_keys is defined
+  tags: ssh_keys
+
+- name: Ensure SSH daemon is enabled and running
+  ansible.builtin.service:
+    name: sshd
+    state: started
+    enabled: true
+  tags: service

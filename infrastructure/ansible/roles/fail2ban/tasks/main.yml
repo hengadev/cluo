@@ -1,0 +1,129 @@
+---
+# Fail2ban Role
+# Implements intrusion prevention
+
+- name: Install Fail2ban
+  ansible.builtin.apt:
+    name: fail2ban
+    state: present
+  tags: fail2ban
+
+- name: Ensure Fail2ban directories exist
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  loop:
+    - /etc/fail2ban
+    - /etc/fail2ban/jail.d
+  tags: fail2ban
+
+- name: Deploy Fail2ban local configuration
+  ansible.builtin.copy:
+    content: |
+      [DEFAULT]
+      # Ban duration (in seconds)
+      bantime = 3600
+
+      # Find time window (in seconds)
+      findtime = 600
+
+      # Maximum retry attempts
+      maxretry = 5
+
+      # Destination email for notifications
+      destemail = {{ admin_email | default('root@localhost') }}
+
+      # Sender email
+      sendername = Fail2ban
+      sender = fail2ban@{{ inventory_hostname }}
+
+      # Action
+      action = %(action_)s
+
+      # Ignore IP addresses
+      ignoreip = 127.0.0.1/8 ::1
+
+      [sshd]
+      enabled = true
+      port = {{ ssh_port | default(22) }}
+      filter = sshd
+      logpath = /var/log/auth.log
+      maxretry = 3
+      bantime = 7200
+      findtime = 600
+
+      [sshd-ddos]
+      enabled = true
+      port = {{ ssh_port | default(22) }}
+      filter = sshd-ddos
+      logpath = /var/log/auth.log
+      maxretry = 2
+      bantime = 86400
+      findtime = 300
+
+      [nginx-http-auth]
+      enabled = true
+      filter = nginx-http-auth
+      logpath = /var/log/nginx/error.log
+      maxretry = 5
+      bantime = 3600
+
+      [nginx-limit-req]
+      enabled = true
+      filter = nginx-limit-req
+      logpath = /var/log/nginx/error.log
+      maxretry = 5
+      bantime = 3600
+
+      [recidive]
+      enabled = true
+      filter = recidive
+      logpath = /var/log/fail2ban.log
+      bantime = 864000
+      findtime = 86400
+      maxretry = 3
+    dest: /etc/fail2ban/jail.d/local.conf
+    owner: root
+    group: root
+    mode: "0644"
+    validate: "fail2ban-client -t %s"
+  notify: Restart Fail2ban
+  tags: fail2ban
+
+- name: Create custom filters directory
+  ansible.builtin.file:
+    path: /etc/fail2ban/filter.d
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+  tags: fail2ban
+
+- name: Deploy custom nginx filters
+  ansible.builtin.copy:
+    content: |
+      [Definition]
+      failregex = limiting requests, excess:.* by zone.*client: <HOST>
+      ignoreregex =
+    dest: /etc/fail2ban/filter.d/nginx-limit-req.conf
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart Fail2ban
+  tags: fail2ban
+
+- name: Ensure Fail2ban is enabled and running
+  ansible.builtin.service:
+    name: fail2ban
+    state: started
+    enabled: true
+  tags: fail2ban
+
+- name: Check Fail2ban status
+  ansible.builtin.command: fail2ban-client status
+  register: fail2ban_status
+  changed_when: false
+  tags: fail2ban

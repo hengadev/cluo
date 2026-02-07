@@ -1,0 +1,202 @@
+---
+# Application Deployment Role
+# Deploys the CLUO application using Docker Compose
+
+- name: Check if git repository is configured
+  ansible.builtin.stat:
+    path: "{{ app_dir | default('/opt/cluo') }}/.git"
+  register: git_repo
+  tags: deploy
+
+- name: Clone application repository
+  ansible.builtin.git:
+    repo: "{{ app_repo | default('omit') }}"
+    dest: "{{ app_dir | default('/opt/cluo') }}"
+    version: "{{ app_version | default('main') }}"
+    force: true
+  become_user: "{{ app_user | default('cluo') }}"
+  when:
+    - app_repo is defined
+    - not git_repo.stat.exists or app_force_clone | default(false)
+  tags: deploy
+  ignore_errors: true
+
+- name: Copy docker-compose.yml
+  ansible.builtin.copy:
+    src: "{{ docker_compose_src | default('files/docker-compose.yml') }}"
+    dest: "{{ app_dir | default('/opt/cluo') }}/docker-compose.yml"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0640"
+    remote_src: false
+  tags: deploy
+  ignore_errors: true
+
+- name: Create docker-compose override for production
+  ansible.builtin.copy:
+    content: |
+      services:
+        postgres:
+          restart: always
+          volumes:
+            - postgres_data:/var/lib/postgresql/data
+          environment:
+            POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
+
+        redis:
+          restart: always
+          volumes:
+            - redis_data:/data
+          command: redis-server --requirepass {{ redis_password }}
+
+        api:
+          restart: always
+          depends_on:
+            - postgres
+            - redis
+          environment:
+            APP_ENV: production
+          healthcheck:
+            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+            start_period: 40s
+
+        web:
+          restart: always
+          depends_on:
+            - api
+          healthcheck:
+            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+
+        mobile:
+          restart: always
+          depends_on:
+            - api
+          healthcheck:
+            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
+            interval: 30s
+            timeout: 10s
+            retries: 3
+      volumes:
+        postgres_data:
+        redis_data:
+    dest: "{{ app_dir | default('/opt/cluo') }}/docker-compose.override.yml"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0640"
+  tags: compose
+
+- name: Create Caddyfile for reverse proxy
+  ansible.builtin.copy:
+    content: |
+      {
+        email {{ admin_email | default('admin@' + domain) }}
+      }
+
+      # API subdomain
+      {{ api_domain | default('api.' + domain) }} {
+        reverse_proxy localhost:8080
+        log {
+          output file /var/log/caddy/api.log
+        }
+      }
+
+      # Web subdomain
+      {{ web_domain | default('app.' + domain) }} {
+        reverse_proxy localhost:3001
+        log {
+          output file /var/log/caddy/web.log
+        }
+      }
+
+      # Mobile subdomain
+      {{ mobile_domain | default('mobile.' + domain) }} {
+        reverse_proxy localhost:3000
+        log {
+          output file /var/log/caddy/mobile.log
+        }
+      }
+    dest: "{{ app_dir | default('/opt/cluo') }}/Caddyfile"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0640"
+  tags: caddy
+
+- name: Pull Docker images
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml pull
+    chdir: "{{ app_dir | default('/opt/cluo') }}"
+  become_user: "{{ app_user | default('cluo') }}"
+  register: docker_pull
+  changed_when: "'Downloaded' in docker_pull.stdout or 'Pulled' in docker_pull.stdout"
+  tags: deploy
+  ignore_errors: true
+
+- name: Start Docker Compose services
+  ansible.builtin.command:
+    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
+    chdir: "{{ app_dir | default('/opt/cluo') }}"
+  become_user: "{{ app_user | default('cluo') }}"
+  register: docker_up
+  changed_when: docker_up.rc == 0
+  tags: deploy
+
+- name: Wait for services to be healthy
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ item }}"
+    delay: 5
+    timeout: 120
+    state: started
+  loop:
+    - 3000
+    - 3001
+    - 8080
+  ignore_errors: true
+  tags: deploy
+
+- name: Check running containers
+  ansible.builtin.command:
+    cmd: docker compose ps
+    chdir: "{{ app_dir | default('/opt/cluo') }}"
+  become_user: "{{ app_user | default('cluo') }}"
+  register: docker_ps
+  changed_when: false
+  tags: deploy
+
+- name: Display container status
+  ansible.builtin.debug:
+    var: docker_ps.stdout_lines
+  tags: deploy
+
+- name: Create systemd service for Docker Compose
+  ansible.builtin.copy:
+    content: |
+      [Unit]
+      Description=CLUO Docker Compose Application
+      Requires=docker.service
+      After=docker.service
+
+      [Service]
+      Type=oneshot
+      RemainAfterExit=yes
+      WorkingDirectory={{ app_dir | default('/opt/cluo') }}
+      ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
+      ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.override.yml down
+      TimeoutStartSec=0
+      User={{ app_user | default('cluo') }}
+      Group={{ app_group | default(app_user | default('cluo')) }}
+
+      [Install]
+      WantedBy=multi-user.target
+    dest: /etc/systemd/system/cluo.service
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Daemon-reload and enable cluo service
+  tags: systemd

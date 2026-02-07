@@ -1,0 +1,65 @@
+# Copy this file to inventory.yml and update with your server details
+# DO NOT commit inventory.yml with real IPs to git
+
+all:
+  vars:
+    # Application settings
+    app_name: cluo
+    app_user: cluo
+    app_group: cluo
+    app_dir: /opt/cluo
+
+    # Docker settings
+    docker_compose_version: "2.24.0"
+
+    # Domain settings
+    domain: yourdomain.com
+    api_domain: api.yourdomain.com
+    web_domain: app.yourdomain.com
+    mobile_domain: mobile.yourdomain.com
+
+    # AWS S3 settings (from Terraform outputs)
+    s3_bucket: cluo-media-dev
+    s3_region: eu-central-1
+
+    # Database settings
+    postgres_version: "16"
+    postgres_password: ""  # Use vault or ansible-vault
+    postgres_db: cluo
+    postgres_user: cluo
+
+    # Redis settings
+    redis_password: ""  # Use vault or ansible-vault
+
+    # Security settings
+    enable_fail2ban: true
+    enable_automatic_updates: true
+    ssh_port: 22
+    allowed_ssh_users: []
+
+    # Monitoring
+    enable_monitoring: true
+    enable_loki: true
+
+    # Backup settings
+    enable_backups: true
+    backup_retention_days: 7
+
+  children:
+    webservers:
+      hosts:
+        cluo-prod:
+          ansible_host: YOUR_SERVER_IP
+          ansible_user: root
+          # If using SSH key:
+          # ansible_private_key_file: ~/.ssh/your_key
+
+    # For multiple environments
+    # staging:
+    #   hosts:
+    #     cluo-staging:
+    #       ansible_host: STAGING_IP
+    # production:
+    #   hosts:
+    #     cluo-prod:
+    #       ansible_host: PRODUCTION_IP
