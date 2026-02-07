@@ -5,7 +5,7 @@
  * When false, makes actual API calls to the backend.
  */
 
-import { isMockEnabled } from '../config';
+import { isMockEnabled, API_BASE_URL } from '../config';
 import type {
 	User,
 	Client,
@@ -132,12 +132,6 @@ export async function fetchAllCases(): Promise<Case[]> {
 	// TODO: Implement actual API call
 	throw new Error('API not implemented');
 }
-
-/**
- * Fetch all cases (alias for backward compatibility)
- * @deprecated Use fetchAllCases instead
- */
-export const fetchCases = fetchAllCases;
 
 /**
  * Fetch a case by ID with full details
@@ -529,7 +523,7 @@ export const AI_OPERATION_LABELS: Record<AITextOperation, { label: string; descr
 export async function requestAITextOperation(
 	request: AITextOperationRequest
 ): Promise<AITextOperationResponse> {
-	const baseURL = import.meta.env.VITE_API_BASE_URL || "http://localhost:8080";
+	const baseURL = API_BASE_URL;
 	const timeout = AI_CONFIG.DEFAULT_TIMEOUT;
 
 	const controller = new AbortController();
@@ -579,7 +573,7 @@ export async function sendChatMessage(
 	caseId: string,
 	request: SendMessageRequest,
 ): Promise<SendMessageResponse> {
-	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const baseURL = API_BASE_URL;
 	const url = new URL(`${baseURL}/api/ai/chat/message`);
 	url.searchParams.set('case_id', caseId);
 
@@ -604,7 +598,7 @@ export async function sendChatMessage(
 export async function getChatConversation(
 	conversationId: string,
 ): Promise<GetConversationResponse> {
-	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const baseURL = API_BASE_URL;
 	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
 		credentials: 'include',
 	});
@@ -622,7 +616,7 @@ export async function getChatConversation(
 export async function listChatConversations(
 	caseId: string,
 ): Promise<ListConversationsResponse> {
-	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const baseURL = API_BASE_URL;
 	const url = new URL(`${baseURL}/api/ai/chat/conversations`);
 	url.searchParams.set('case_id', caseId);
 
@@ -641,7 +635,7 @@ export async function listChatConversations(
  * Delete a conversation
  */
 export async function deleteChatConversation(conversationId: string): Promise<void> {
-	const baseURL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+	const baseURL = API_BASE_URL;
 	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
 		method: 'DELETE',
 		credentials: 'include',
@@ -652,16 +646,3 @@ export async function deleteChatConversation(conversationId: string): Promise<vo
 	}
 }
 
-// =============================================================================
-// LEGACY TYPES (for backward compatibility)
-// =============================================================================
-
-/**
- * @deprecated Use Case interface instead
- */
-export interface ApiCase {
-	id: string;
-	title: string;
-	description?: string;
-	// Add other case fields as needed
-}
