@@ -1,0 +1,269 @@
+<script lang="ts">
+    import { ArrowRight, Square, Check, X } from "@lucide/svelte";
+    import { goto } from "$app/navigation";
+    import AudioPlayer from "$lib/components/AudioPlayer.svelte";
+    import { uploadRecording } from "$lib/api";
+    import { snackbar } from "$lib/stores/snackbar";
+
+    type FooterState = "idle" | "recording" | "preview";
+
+    let footerState: FooterState = $state("idle");
+    let isRecording = $state(false);
+    let dragX = $state(0);
+    let isDragging = $state(false);
+    let containerWidth = $state(0);
+    let buttonWidth = $state(60); // Approximate button width
+
+    let mediaRecorder: MediaRecorder | null = $state(null);
+    let audioChunks: Blob[] = $state([]);
+    let recordingDuration = $state(0);
+    let timerInterval: number | null = null;
+    let recordedBlob: Blob | null = $state(null);
+
+    let containerElement: HTMLDivElement;
+
+    // Format duration as MM:SS
+    const formattedDuration = $derived(() => {
+        const minutes = Math.floor(recordingDuration / 60);
+        const seconds = recordingDuration % 60;
+        return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
+    });
+
+    // Maximum distance the button can be dragged
+    $effect(() => {
+        if (containerElement) {
+            containerWidth = containerElement.offsetWidth;
+        }
+    });
+
+    const maxDrag = $derived(containerWidth - buttonWidth - 32); // 32px for padding
+
+    function handleDragStart(e: MouseEvent | TouchEvent) {
+        if (footerState !== "idle") return;
+        isDragging = true;
+    }
+
+    function handleDragMove(e: MouseEvent | TouchEvent) {
+        if (!isDragging || footerState !== "idle") return;
+
+        const clientX = "touches" in e ? e.touches[0].clientX : e.clientX;
+        const rect = containerElement.getBoundingClientRect();
+        const newX = clientX - rect.left - buttonWidth / 2;
+
+        // Constrain drag within bounds
+        dragX = Math.max(0, Math.min(newX, maxDrag));
+    }
+
+    function handleDragEnd() {
+        if (!isDragging || footerState !== "idle") return;
+        isDragging = false;
+
+        // If dragged more than 80% of the way, start recording
+        if (dragX > maxDrag * 0.8) {
+            startRecording();
+        } else {
+            // Reset position
+            dragX = 0;
+        }
+    }
+
+    async function startRecording() {
+        try {
+            dragX = 0;
+            footerState = "recording";
+
+            // Get supported MIME type
+            const mimeType = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+                ? "audio/webm;codecs=opus"
+                : MediaRecorder.isTypeSupported("audio/mp4")
+                    ? "audio/mp4"
+                    : "";
+
+            if (!mimeType) {
+                throw new Error("No supported audio format found");
+            }
+
+            const stream = await navigator.mediaDevices.getUserMedia({
+                audio: {
+                    sampleRate: 48000,
+                    channelCount: 1,
+                    echoCancellation: true,
+                    noiseSuppression: true,
+                    autoGainControl: true,
+                },
+            });
+
+            mediaRecorder = new MediaRecorder(stream, { mimeType });
+            audioChunks = [];
+
+            mediaRecorder.ondataavailable = (e) => {
+                if (e.data.size > 0) {
+                    audioChunks.push(e.data);
+                }
+            };
+
+            mediaRecorder.start(1000); // Collect data every second
+            isRecording = true;
+
+            // Start timer
+            recordingDuration = 0;
+            timerInterval = window.setInterval(() => {
+                recordingDuration++;
+            }, 1000);
+        } catch (error) {
+            console.error("Failed to start recording:", error);
+            // Reset state if recording failed
+            dragX = 0;
+            footerState = "idle";
+            isRecording = false;
+            if (timerInterval !== null) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+    }
+
+    async function stopRecording() {
+        if (!mediaRecorder) return;
+
+        // Set onstop handler before calling stop() to avoid race condition
+        mediaRecorder.onstop = async () => {
+            const audioBlob = new Blob(audioChunks, {
+                type: mediaRecorder!.mimeType,
+            });
+
+            // Stop all tracks to release the microphone
+            mediaRecorder!.stream.getTracks().forEach((track) => track.stop());
+
+            // Store blob for preview
+            recordedBlob = audioBlob;
+            footerState = "preview";
+
+            // Clear chunks
+            audioChunks = [];
+        };
+
+        mediaRecorder.stop();
+        isRecording = false;
+
+        // Stop timer
+        if (timerInterval !== null) {
+            clearInterval(timerInterval);
+            timerInterval = null;
+        }
+    }
+
+    function discardRecording() {
+        recordedBlob = null;
+        footerState = "idle";
+        dragX = 0;
+    }
+
+    async function keepRecording() {
+        if (!recordedBlob) return;
+
+        try {
+            await sendAudio(recordedBlob);
+        } catch (error) {
+            console.error("Failed to send audio:", error);
+            // Show error and stay in preview state
+        }
+    }
+
+    let isUploading = $state(false);
+    let lastUploadBlob: Blob | null = $state(null);
+
+    async function sendAudio(blob: Blob) {
+        if (isUploading) return;
+
+        try {
+            isUploading = true;
+            lastUploadBlob = blob;
+
+            const response = await uploadRecording(blob);
+            const recordingId = response.id;
+
+            // Reset state and navigate to processing page
+            recordedBlob = null;
+            footerState = "idle";
+            goto(`/processing/${recordingId}`);
+        } catch (error) {
+            console.error("Failed to send audio:", error);
+            snackbar.error(
+                "Failed to upload recording",
+                () => lastUploadBlob && sendAudio(lastUploadBlob)
+            );
+        } finally {
+            isUploading = false;
+        }
+    }
+</script>
+
+<svelte:window
+    onmousemove={handleDragMove}
+    onmouseup={handleDragEnd}
+    ontouchmove={handleDragMove}
+    ontouchend={handleDragEnd}
+/>
+
+<div
+    bind:this={containerElement}
+    class="relative flex justify-center items-center bg-dark-900 px-4 py-6 min-h-20 overflow-hidden"
+>
+    {#if footerState === "idle"}
+        <div class="absolute inset-0 flex items-center justify-center">
+            <p class="text-dark-200 text-base select-none">Slide to start</p>
+        </div>
+
+        <button
+            class="absolute left-4 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
+            style="transform: translateX({dragX}px); transition: {isDragging
+                ? 'none'
+                : 'transform 0.3s ease-out'}"
+            onmousedown={handleDragStart}
+            ontouchstart={handleDragStart}
+        >
+            <ArrowRight class="text-foreground" />
+        </button>
+    {:else if footerState === "recording"}
+        <div class="flex justify-between items-center w-full">
+            <div class="w-12"></div>
+
+            <div class="flex items-center gap-2">
+                <div
+                    class="w-3 h-3 bg-destructive rounded-full animate-pulse"
+                ></div>
+                <p class="text-dark-200 text-lg font-mono font-semibold">
+                    {formattedDuration()}
+                </p>
+            </div>
+
+            <button
+                class="flex bg-destructive p-3 rounded-2xl hover:bg-destructive/90 transition-colors"
+                onclick={stopRecording}
+            >
+                <Square class="text-white" fill="white" size={20} />
+            </button>
+        </div>
+    {:else if footerState === "preview" && recordedBlob}
+        <div class="flex flex-col gap-3 w-full">
+            <AudioPlayer src={recordedBlob} duration={recordingDuration} />
+            <div class="flex gap-3">
+                <button
+                    class="flex-1 flex items-center justify-center gap-2 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
+                    onclick={discardRecording}
+                >
+                    <X size={18} />
+                    <span class="text-sm font-medium">Discard</span>
+                </button>
+                <button
+                    class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors"
+                    onclick={keepRecording}
+                >
+                    <Check size={18} />
+                    <span class="text-sm font-medium">Keep & Upload</span>
+                </button>
+            </div>
+        </div>
+    {/if}
+</div>
