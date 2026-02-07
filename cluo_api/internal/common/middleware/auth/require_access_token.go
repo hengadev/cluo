@@ -106,14 +106,10 @@ func (m *SessionAuthMiddleware) RequireAccessToken(next mw.Handler) mw.Handler {
 			return
 		}
 
-		logger.InfoContext(ctx, "Auth middleware: Session retrieved and decrypted",
+		logger.DebugContext(ctx, "Auth middleware: Session retrieved and decrypted",
 			"operation", "require_access_token",
-			"method", r.Method,
-			"path", r.URL.Path,
 			"session_id", sessionID,
-			"user_id", sessionStruct.UserID,
-			"session_state", sessionStruct.State,
-			"user_role", sessionStruct.Role)
+			"user_id", sessionStruct.UserID)
 
 		// Check session expiration
 		if time.Now().After(sessionStruct.ExpiresAt) {
@@ -166,14 +162,6 @@ func (m *SessionAuthMiddleware) RequireAccessToken(next mw.Handler) mw.Handler {
 		// Add session info to context
 		ctx = context.WithValue(ctx, session.GetSessionContextKey(), sessionInfo)
 		r = r.WithContext(ctx)
-
-		logger.InfoContext(ctx, "Auth middleware: Access token validation successful",
-			"operation", "require_access_token",
-			"method", r.Method,
-			"path", r.URL.Path,
-			"session_id", sessionID,
-			"user_id", sessionStruct.UserID,
-			"user_role", sessionStruct.Role)
 
 		// Continue to next handler
 		next(w, r)

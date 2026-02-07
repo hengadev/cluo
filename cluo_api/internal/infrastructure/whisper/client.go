@@ -98,16 +98,20 @@ func (c *Client) parseOutput(output string) (*ports.WhisperResult, error) {
 	lines := strings.Split(output, "\n")
 
 	var jsonOutput string
-	// Look for JSON object (starts with {)
-	for _, line := range lines {
+	// Look for JSON object (starts with {) and collect multi-line JSON
+	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "{") {
-			// This might be a multi-line JSON, collect until we find closing brace
-			jsonOutput = trimmed
-			for strings.Count(jsonOutput, "{") > strings.Count(jsonOutput, "}") {
-				// Continue reading lines until JSON is complete
-				// This is a simple heuristic; in production, use a proper JSON stream parser
-				break
+			// Collect lines starting from the opening brace
+			var builder strings.Builder
+			for j := i; j < len(lines); j++ {
+				builder.WriteString(lines[j])
+				builder.WriteString("\n")
+				candidate := builder.String()
+				if strings.Count(candidate, "{") <= strings.Count(candidate, "}") {
+					jsonOutput = candidate
+					break
+				}
 			}
 			break
 		}

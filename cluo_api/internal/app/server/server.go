@@ -11,9 +11,12 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
 	aiChatHandler "github.com/hengadev/cluo_api/internal/interface/ai_chat"
-	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
+	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
 	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
+	caseHandler "github.com/hengadev/cluo_api/internal/interface/case"
+	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
+	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
 )
 
 // Server represents the HTTP server.
@@ -123,18 +126,20 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 }
 
 func (s *Server) registerCaseRoutes(mux *http.ServeMux) {
-	// Import and use the existing case handler
-	// This will be done when wiring everything together
+	handler := caseHandler.New(s.container.CaseService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
 	s.logger.Info("Case routes registered")
 }
 
 func (s *Server) registerClientRoutes(mux *http.ServeMux) {
-	// Import and use the existing client handler
+	handler := clientHandler.New(s.container.ClientService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
 	s.logger.Info("Client routes registered")
 }
 
 func (s *Server) registerMediaRoutes(mux *http.ServeMux) {
-	// Import and use the existing media handler
+	handler := mediaHandler.New(s.container.MediaService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
 	s.logger.Info("Media routes registered")
 }
 

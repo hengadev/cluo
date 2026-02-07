@@ -2,16 +2,15 @@ package httpx
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 )
 
-// Helper to respond with JSON data (e.g., for validation errors from errsx.Map)
+// RespondWithJSON responds with JSON data.
 func RespondWithJSON(w http.ResponseWriter, data any, status int) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	if err := json.NewEncoder(w).Encode(data); err != nil {
-		log.Printf("Error encoding JSON response: %v", err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		slog.Error("Failed to encode JSON response", "error", err)
 	}
 }

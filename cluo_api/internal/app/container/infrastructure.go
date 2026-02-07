@@ -179,7 +179,10 @@ func (c *Container) initCrypto(ctx context.Context) error {
 		return fmt.Errorf("vault client not initialized")
 	}
 
-	// Set environment variables for encx providers
+	// TODO: os.Setenv is not thread-safe in Go. The encx hashicorp providers currently
+	// require VAULT_ADDR and VAULT_TOKEN to be set as environment variables during
+	// initialization. This should be refactored to pass config directly once encx
+	// supports explicit configuration instead of reading from env vars.
 	originalAddr := os.Getenv("VAULT_ADDR")
 	originalToken := os.Getenv("VAULT_TOKEN")
 

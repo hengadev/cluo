@@ -1,7 +1,7 @@
 package document
 
 import (
-	encx "github.com/hengadev/encx"
+	"github.com/hengadev/encx"
 	"github.com/hengadev/cluo_api/internal/ports"
 )
 
