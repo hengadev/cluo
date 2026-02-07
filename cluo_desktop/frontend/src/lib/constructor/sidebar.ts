@@ -1,0 +1,33 @@
+import {
+    ReceiptEuro,
+    Handshake,
+    Info,
+    FileText,
+    Globe,
+    Camera,
+    UserPen,
+    Users,
+    Paperclip,
+    Mic,
+} from "@lucide/svelte";
+
+import { SIDEBAR_STATES, type SidebarState } from "$lib/types/sidebar";
+
+export type SidebarItem = {
+    icon: typeof import('@lucide/svelte').Icon;
+    title: SidebarState;
+    path: string;  // Route path for navigation
+}
+
+export const items: SidebarItem[] = [
+    { icon: Info, title: SIDEBAR_STATES.Informations, path: "/cases/:id" },
+    { icon: Paperclip, title: SIDEBAR_STATES.Pièces, path: "/cases/:id/pieces" },
+    { icon: Users, title: SIDEBAR_STATES.Utilisateurs, path: "/users" },
+    { icon: Mic, title: SIDEBAR_STATES.Enregistrements, path: "/cases/:id/recordings" },
+    { icon: FileText, title: SIDEBAR_STATES.Rapport, path: "/cases/:id/rapport" },
+    { icon: Camera, title: SIDEBAR_STATES.Photos, path: "/cases/:id/photos" },
+    { icon: ReceiptEuro, title: SIDEBAR_STATES.Facture, path: "/cases/:id/documents/facture" },
+    { icon: Handshake, title: SIDEBAR_STATES.Mandat, path: "/cases/:id/documents/mandat" },
+    { icon: UserPen, title: SIDEBAR_STATES.Devis, path: "/cases/:id/documents/devis" },
+    { icon: Globe, title: SIDEBAR_STATES.Reseaux, path: "/cases/:id/reseaux" },
+]
