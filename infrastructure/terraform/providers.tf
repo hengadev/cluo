@@ -1,5 +1,5 @@
 # Hetzner Provider
-provider "hetzner" {
+provider "hcloud" {
   token = var.hetzner_token
 }
 
