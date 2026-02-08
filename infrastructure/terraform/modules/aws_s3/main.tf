@@ -37,17 +37,65 @@ resource "aws_s3_bucket_public_access_block" "media" {
   restrict_public_buckets = true
 }
 
-# Bucket lifecycle policy (optional - for cost optimization)
+# Bucket lifecycle policy
 resource "aws_s3_bucket_lifecycle_configuration" "media" {
   bucket = aws_s3_bucket.media.id
 
-  rule {
-    id     = "delete-old-versions"
-    status = "Enabled"
+  # Default rule: delete old versions after 30 days
+  dynamic "rule" {
+    for_each = length(var.lifecycle_rules) == 0 ? [1] : []
+    content {
+      id     = "delete-old-versions"
+      status = "Enabled"
 
-    noncurrent_version_expiration {
-      noncurrent_days = 30
+      noncurrent_version_expiration {
+        noncurrent_days = 30
+      }
     }
+  }
+
+  # Custom lifecycle rules
+  dynamic "rule" {
+    for_each = var.lifecycle_rules
+    content {
+      id     = rule.value.id
+      status = rule.value.status
+
+      dynamic "noncurrent_version_expiration" {
+        for_each = rule.value.noncurrent_version_expiration_days != null ? [1] : []
+        content {
+          noncurrent_days = rule.value.noncurrent_version_expiration_days
+        }
+      }
+
+      dynamic "transition" {
+        for_each = rule.value.transition_days != null ? [1] : []
+        content {
+          days          = rule.value.transition_days
+          storage_class = rule.value.transition_storage_class
+        }
+      }
+
+      dynamic "expiration" {
+        for_each = rule.value.expiration_days != null ? [1] : []
+        content {
+          days = rule.value.expiration_days
+        }
+      }
+    }
+  }
+}
+
+# CORS configuration for presigned GET URLs
+resource "aws_s3_bucket_cors_configuration" "media" {
+  count  = length(var.cors_allowed_origins) > 0 ? 1 : 0
+  bucket = aws_s3_bucket.media.id
+
+  cors_rule {
+    allowed_headers = ["*"]
+    allowed_methods = ["GET", "HEAD"]
+    allowed_origins = var.cors_allowed_origins
+    max_age_seconds = 3600
   }
 }
 
