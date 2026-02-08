@@ -20,26 +20,49 @@ output "dns_records" {
   value       = module.cloudflare.dns_records
 }
 
-# AWS S3 outputs
+# AWS S3 media bucket outputs
 output "s3_bucket_name" {
-  description = "Name of the S3 bucket"
+  description = "Name of the S3 media bucket"
   value       = module.aws_s3.bucket_name
 }
 
 output "s3_bucket_arn" {
-  description = "ARN of the S3 bucket"
+  description = "ARN of the S3 media bucket"
   value       = module.aws_s3.bucket_arn
 }
 
 output "iam_access_key_id" {
-  description = "IAM access key ID for S3 access"
+  description = "IAM access key ID for S3 media access"
   value       = module.aws_s3.iam_access_key_id
   sensitive   = true
 }
 
 output "iam_secret_access_key" {
-  description = "IAM secret access key for S3 access"
+  description = "IAM secret access key for S3 media access"
   value       = module.aws_s3.iam_secret_access_key
+  sensitive   = true
+}
+
+# AWS S3 backup bucket outputs
+output "backup_bucket_name" {
+  description = "Name of the S3 backup bucket"
+  value       = module.aws_s3_backup.bucket_name
+}
+
+output "backup_bucket_arn" {
+  description = "ARN of the S3 backup bucket"
+  value       = module.aws_s3_backup.bucket_arn
+}
+
+output "backup_iam_access_key_id" {
+  description = "IAM access key ID for S3 backup access"
+  value       = module.aws_s3_backup.iam_access_key_id
+  sensitive   = true
+}
+
+output "backup_iam_secret_access_key" {
+  description = "IAM secret access key for S3 backup access"
+  value       = module.aws_s3_backup.iam_secret_access_key
   sensitive   = true
 }
 
