@@ -1,9 +1,9 @@
 output "dns_records" {
   description = "DNS records created"
   value = {
-    api    = cloudflare_record.api.hostname
-    web    = cloudflare_record.web.hostname
-    mobile = cloudflare_record.mobile.hostname
+    api      = cloudflare_record.api.hostname
+    web      = cloudflare_record.web.hostname
+    mobile   = cloudflare_record.mobile.hostname
     wildcard = cloudflare_record.wildcard.hostname
   }
 }
@@ -21,4 +21,9 @@ output "web_hostname" {
 output "mobile_hostname" {
   description = "Mobile hostname"
   value       = cloudflare_record.mobile.hostname
+}
+
+output "ssl_mode" {
+  description = "Cloudflare SSL/TLS mode"
+  value       = cloudflare_zone_settings_override.settings.settings[0].ssl
 }
