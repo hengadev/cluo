@@ -24,3 +24,9 @@ variable "firewall_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_backups" {
+  description = "Whether to enable Hetzner automatic backups"
+  type        = bool
+  default     = true
+}

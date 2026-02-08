@@ -7,15 +7,14 @@
 
 # Server resource
 resource "hcloud_server" "main" {
-  name        = var.server_name
-  server_type = var.server_type
-  location    = var.server_location
-  image       = "ubuntu-24.04"
-  ssh_keys    = var.ssh_keys
+  name         = var.server_name
+  server_type  = var.server_type
+  location     = var.server_location
+  image        = "ubuntu-24.04"
+  ssh_keys     = var.ssh_keys
   firewall_ids = var.firewall_ids
 
-  # Enable backups (optional, costs extra)
-  # backups = true
+  backups = var.enable_backups
 
   # User data for cloud-init
   user_data = <<-EOF
