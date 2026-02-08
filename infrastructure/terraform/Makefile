@@ -1,7 +1,7 @@
 # CLUO Terraform Makefile
 # Usage: make <target>
 
-.PHONY: help init validate plan apply destroy refresh fmt output upgrade clean graph show
+.PHONY: help init validate plan apply destroy refresh fmt output upgrade clean graph show env-plan env-apply env-destroy
 
 # Default target
 .DEFAULT_GOAL := help
@@ -9,6 +9,7 @@
 # Variables
 TF_ARGS ?=
 AUTO_APPROVE ?= 0
+ENV ?=
 
 # Colors for output
 BLUE := \033[0;34m
@@ -241,6 +242,48 @@ prod-apply: ## Production apply (with confirmation)
 	else \
 		echo "Aborted"; \
 	fi
+
+# Environment targets (usage: make env-plan ENV=dev)
+env-plan: validate ## Plan for a specific environment (ENV=dev|prod)
+	@if [ -z "$(ENV)" ]; then \
+		echo "$(RED)Error: ENV variable not set$(NC)"; \
+		echo "Usage: make env-plan ENV=dev"; \
+		exit 1; \
+	fi
+	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
+		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(BLUE)Planning for $(ENV) environment...$(NC)"
+	terraform plan -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
+
+env-apply: validate ## Apply for a specific environment (ENV=dev|prod)
+	@if [ -z "$(ENV)" ]; then \
+		echo "$(RED)Error: ENV variable not set$(NC)"; \
+		echo "Usage: make env-apply ENV=dev"; \
+		exit 1; \
+	fi
+	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
+		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(YELLOW)Applying for $(ENV) environment...$(NC)"
+	terraform apply -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
+	@echo "$(GREEN)✓ Apply complete for $(ENV)$(NC)"
+
+env-destroy: ## Destroy for a specific environment (ENV=dev|prod)
+	@if [ -z "$(ENV)" ]; then \
+		echo "$(RED)Error: ENV variable not set$(NC)"; \
+		echo "Usage: make env-destroy ENV=dev"; \
+		exit 1; \
+	fi
+	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
+		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(RED)Destroying $(ENV) environment...$(NC)"
+	terraform destroy -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
+	@echo "$(GREEN)✓ Destroy complete for $(ENV)$(NC)"
 
 # Save outputs for Ansible
 save-outputs: output-json ## Save outputs to file for Ansible

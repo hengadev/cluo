@@ -1,20 +1,50 @@
-# Copy this file to terraform.tfvars and fill in your values
-# DO NOT commit terraform.tfvars to git (it contains sensitive data)
+# CLUO Terraform Configuration Example
+# ======================================
+#
+# Option 1 (recommended): Use environment-specific tfvars files
+#   make env-plan ENV=dev
+#   make env-apply ENV=prod
+#   See environments/dev/ and environments/prod/ for examples.
+#
+# Option 2: Copy this file and fill in your values
+#   cp terraform.tfvars.example terraform.tfvars
+#   DO NOT commit terraform.tfvars to git (it may contain sensitive data).
 
-# Project settings
+# ---- Project settings ----
 project_name = "cluo"
-environment  = "dev"
-domain_name  = "yourdomain.com"  # Your root domain in Cloudflare
+environment  = "dev" # dev | staging | prod
+domain_name  = "yourdomain.com"
 
-# Hetzner settings
-hetzner_token         = "your_hetzner_api_token"
-hetzner_server_type   = "cpx11"  # 2 vCPU, 2 GB RAM - adjust as needed
-hetzner_server_location = "nbg1" # Nuremberg - choose: nbg1, fsn1, hel1, ash
-hetzner_ssh_keys      = ["your-ssh-key-name"]  # SSH key names in Hetzner
+# ---- Hetzner settings ----
+# Authentication: set via environment variable (do NOT put token here)
+#   export TF_VAR_hetzner_token="your_hetzner_api_token"
+#
+# SSH keys: must be pre-created in Hetzner Cloud Console before running Terraform.
+#   1. Go to https://console.hetzner.cloud → select project → Security → SSH Keys
+#   2. Click "Add SSH Key" and paste your public key (~/.ssh/id_ed25519.pub)
+#   3. Give it a name (e.g., "my-laptop") — use that name below
+hetzner_server_type     = "cpx11"  # 2 vCPU, 2 GB RAM (dev). Use cpx21 for prod.
+hetzner_server_location = "nbg1"   # Nuremberg. Options: nbg1, fsn1, hel1, ash
+hetzner_ssh_keys        = ["your-ssh-key-name"]
+hetzner_enable_backups  = true     # Automatic server backups (costs ~20% of server price)
 
-# Cloudflare settings
-cloudflare_api_token  = "your_cloudflare_api_token"  # Zone:Edit + DNS:Edit permissions
-cloudflare_zone_id    = "your_cloudflare_zone_id"
+# ---- Cloudflare settings ----
+# Authentication: set via environment variable (do NOT put token here)
+#   export TF_VAR_cloudflare_api_token="your_cloudflare_api_token"
+# Required API token permissions: Zone Settings:Edit, Zone:Edit, DNS:Edit
+cloudflare_zone_id = "your_cloudflare_zone_id"
 
-# AWS settings
-aws_region            = "eu-central-1"  # Frankfurt - closest to Hetzner Nuremberg
+# ---- AWS settings ----
+# Authentication: configure AWS credentials via one of these methods (do NOT put them here):
+#   1. Environment variables: export AWS_ACCESS_KEY_ID="..." && export AWS_SECRET_ACCESS_KEY="..."
+#   2. AWS CLI profile:       aws configure --profile cluo && export AWS_PROFILE=cluo
+#   3. Shared credentials:    ~/.aws/credentials
+aws_region = "eu-central-1" # Frankfurt — closest to Hetzner Nuremberg
+
+# S3 CORS allowed origins for presigned media URLs
+# Include localhost origins for local development, production domains for prod
+s3_cors_allowed_origins = [
+  "http://localhost:3000",
+  "https://app.yourdomain.com",
+  "https://mobile.yourdomain.com",
+]
