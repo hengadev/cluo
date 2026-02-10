@@ -11,6 +11,7 @@ provider "cloudflare" {
 # AWS Provider (for S3 only)
 provider "aws" {
   region = var.aws_region
+  profile = "terraform-cluo"
 
   default_tags {
     tags = {
