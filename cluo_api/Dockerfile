@@ -12,19 +12,20 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o cluo ./cmd/cluo/*.go && \
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o cluo ./cmd/cluo/*.go && \
     upx --best --lzma cluo # Compress the binary
+
+RUN adduser -D runner
+RUN mkdir -p /app/data && chown -R runner:runner /app
 
 FROM scratch
 WORKDIR /app
 
+COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /app/cluo .
 COPY --from=builder /app/migrations/production ./migrations/production/
 COPY --from=builder /app/*.env ./
-
-RUN adduser -D runner
-
-RUN mkdir -p /app/data && chown -R runner:runner /app
+COPY --from=builder /app/data ./data/
 
 USER runner
 
