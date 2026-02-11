@@ -15,9 +15,4 @@ terraform {
       version = "~> 5.0"
     }
   }
-
-  backend "http" {
-    # Example: Use Terraform Cloud or your own backend
-    # For local development, you can use local backend or comment this out
-  }
 }
