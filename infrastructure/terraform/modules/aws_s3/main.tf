@@ -48,6 +48,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "media" {
       id     = "delete-old-versions"
       status = "Enabled"
 
+      filter {}
+
       noncurrent_version_expiration {
         noncurrent_days = 30
       }
@@ -60,6 +62,8 @@ resource "aws_s3_bucket_lifecycle_configuration" "media" {
     content {
       id     = rule.value.id
       status = rule.value.status
+
+      filter {}
 
       dynamic "noncurrent_version_expiration" {
         for_each = rule.value.noncurrent_version_expiration_days != null ? [1] : []
