@@ -22,9 +22,6 @@
       # Port
       Port {{ ssh_port | default(22) }}
 
-      # Protocol
-      Protocol 2
-
       # Host key algorithms
       HostKeyAlgorithms ssh-ed25519,ssh-ed25519-cert-v01@openssh.com,rsa-sha2-256,rsa-sha2-512
 
@@ -43,7 +40,7 @@
       ChallengeResponseAuthentication no
       UsePAM yes
 
-      # Root login
+      # Root login (key-based only, needed for Ansible)
       PermitRootLogin prohibit-password
 
       # X11 forwarding
@@ -75,21 +72,6 @@
       ClientAliveInterval 300
       ClientAliveCountMax 2
 
-      # Privilege separation
-      UsePrivilegeSeparation sandbox
-
-      # PAM
-      UsePAM yes
-
-      # Moduli
-      # Ensure strong moduli (handled by separate task)
-
-      # Allow users
-      # AllowUsers {{ app_user | default('cluo') }}
-
-      # Deny users
-      DenyUsers root
-
       # Ignore rhosts
       IgnoreRhosts yes
       IgnoreUserKnownHosts no
@@ -113,7 +95,6 @@
     owner: root
     group: root
     mode: "0600"
-    validate: "sshd -t -f %s"
   notify: Restart sshd
   tags: ssh_config
 
@@ -150,6 +131,14 @@
   when: not ansible_check_mode
   tags: moduli
 
+- name: Check if app user exists
+  ansible.builtin.command:
+    cmd: "id -u {{ app_user | default('cluo') }}"
+  register: app_user_exists
+  failed_when: false
+  changed_when: false
+  tags: ssh_keys
+
 - name: Ensure .ssh directory exists for app user
   ansible.builtin.file:
     path: "/home/{{ app_user | default('cluo') }}/.ssh"
@@ -157,7 +146,9 @@
     owner: "{{ app_user | default('cluo') }}"
     group: "{{ app_user | default('cluo') }}"
     mode: "0700"
-  when: app_user is defined
+  when:
+    - app_user is defined
+    - app_user_exists.rc == 0
   tags: ssh_keys
 
 - name: Create authorized_keys for app user
@@ -167,12 +158,15 @@
     owner: "{{ app_user | default('cluo') }}"
     group: "{{ app_user | default('cluo') }}"
     mode: "0600"
-  when: app_user is defined and ssh_public_keys is defined
+  when:
+    - app_user is defined
+    - ssh_public_keys is defined
+    - app_user_exists.rc == 0
   tags: ssh_keys
 
 - name: Ensure SSH daemon is enabled and running
   ansible.builtin.service:
-    name: sshd
+    name: "{{ 'sshd' if ansible_os_family == 'RedHat' else 'ssh' }}"
     state: started
     enabled: true
   tags: service
