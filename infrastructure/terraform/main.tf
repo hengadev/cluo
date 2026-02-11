@@ -61,13 +61,13 @@ module "aws_s3_backup" {
   # No CORS needed for backup bucket
   cors_allowed_origins = []
 
-  # Custom lifecycle: move to STANDARD_IA after 1 day, expire after 90 days
+  # Custom lifecycle: move to STANDARD_IA after 30 days, expire after 90 days
   lifecycle_rules = [
     {
       id                                 = "backup-lifecycle"
       status                             = "Enabled"
       noncurrent_version_expiration_days = null
-      transition_days                    = 1
+      transition_days                    = 30
       transition_storage_class           = "STANDARD_IA"
       expiration_days                    = 90
     }
