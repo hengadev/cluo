@@ -1,50 +1,131 @@
-# CLUO Terraform Configuration Example
-# ======================================
-#
-# Option 1 (recommended): Use environment-specific tfvars files
-#   make env-plan ENV=dev
-#   make env-apply ENV=prod
-#   See environments/dev/ and environments/prod/ for examples.
-#
-# Option 2: Copy this file and fill in your values
-#   cp terraform.tfvars.example terraform.tfvars
-#   DO NOT commit terraform.tfvars to git (it may contain sensitive data).
+# =============================================================================
+# Cluo Terraform Configuration Example
+# Single VPS Architecture: Staging + Production on one server
+# =============================================================================
 
-# ---- Project settings ----
+# -----------------------------------------------------------------------------
+# Usage Instructions
+# -----------------------------------------------------------------------------
+#
+# 1. Copy this file to terraform.tfvars:
+#    cp terraform.tfvars.example terraform.tfvars
+#
+# 2. Fill in all required values below
+#
+# 3. DO NOT commit terraform.tfvars to git (it contains sensitive data)
+#
+# 4. For sensitive values, use environment variables instead:
+#    export TF_VAR_hcloud_token="your_hetzner_token"
+#    export TF_VAR_cloudflare_token="your_cloudflare_token"
+#    export TF_VAR_staging_db_password="strong_password_here"
+#    export TF_VAR_production_db_password="strong_password_here"
+
+# -----------------------------------------------------------------------------
+# Core Settings
+# -----------------------------------------------------------------------------
+
 project_name = "cluo"
-environment  = "dev" # dev | staging | prod
-domain_name  = "yourdomain.com"
+domain_name  = "clientvault.fr"
+aws_region   = "eu-central-1"
 
-# ---- Hetzner settings ----
-# Authentication: set via environment variable (do NOT put token here)
-#   export TF_VAR_hetzner_token="your_hetzner_api_token"
-#
-# SSH keys: must be pre-created in Hetzner Cloud Console before running Terraform.
-#   1. Go to https://console.hetzner.cloud → select project → Security → SSH Keys
-#   2. Click "Add SSH Key" and paste your public key (~/.ssh/id_ed25519.pub)
-#   3. Give it a name (e.g., "my-laptop") — use that name below
-hetzner_server_type     = "cpx11"  # 2 vCPU, 2 GB RAM (dev). Use cpx21 for prod.
-hetzner_server_location = "nbg1"   # Nuremberg. Options: nbg1, fsn1, hel1, ash
-hetzner_ssh_keys        = ["your-ssh-key-name"]
-hetzner_enable_backups  = true     # Automatic server backups (costs ~20% of server price)
+# -----------------------------------------------------------------------------
+# Hetzner Cloud Settings
+# -----------------------------------------------------------------------------
 
-# ---- Cloudflare settings ----
-# Authentication: set via environment variable (do NOT put token here)
-#   export TF_VAR_cloudflare_api_token="your_cloudflare_api_token"
-# Required API token permissions: Zone Settings:Edit, Zone:Edit, DNS:Edit
-cloudflare_zone_id = "your_cloudflare_zone_id"
+# Authentication (use environment variable for security):
+#   export TF_VAR_hcloud_token="your_hetzner_api_token"
 
-# ---- AWS settings ----
-# Authentication: configure AWS credentials via one of these methods (do NOT put them here):
-#   1. Environment variables: export AWS_ACCESS_KEY_ID="..." && export AWS_SECRET_ACCESS_KEY="..."
-#   2. AWS CLI profile:       aws configure --profile cluo && export AWS_PROFILE=cluo
-#   3. Shared credentials:    ~/.aws/credentials
-aws_region = "eu-central-1" # Frankfurt — closest to Hetzner Nuremberg
+# Server type: cpx31 recommended (8GB RAM for both environments)
+# See: https://www.hetzner.com/cloud#pricing
+server_type     = "cpx31"  # 4 vCPU, 8 GB RAM, 160 GB SSD
+server_location = "nbg1"   # Nuremberg (options: nbg1, fsn1, hel1)
+server_image    = "ubuntu-24.04"
 
-# S3 CORS allowed origins for presigned media URLs
-# Include localhost origins for local development, production domains for prod
-s3_cors_allowed_origins = [
-  "http://localhost:3000",
-  "https://app.yourdomain.com",
-  "https://mobile.yourdomain.com",
+# SSH key: Must be pre-created in Hetzner Cloud Console
+# 1. Go to https://console.hetzner.cloud → Security → SSH Keys
+# 2. Add your public key with name "terraform-cluo"
+ssh_key_name    = "terraform-cluo"
+
+# Enable automatic backups (additional 20% of server price)
+enable_backups  = true
+
+# -----------------------------------------------------------------------------
+# Cloudflare Settings
+# -----------------------------------------------------------------------------
+
+# Authentication (use environment variable for security):
+#   export TF_VAR_cloudflare_token="your_cloudflare_api_token"
+# Required permissions: Zone:Edit, DNS:Edit
+
+# Zone ID: Found in Cloudflare Dashboard → Your Domain → Overview
+zone_id = "your_cloudflare_zone_id_for_clientvault_fr"
+
+# Contact email for DMARC reports
+contact_email = "admin@clientvault.fr"
+
+# -----------------------------------------------------------------------------
+# Database Passwords
+# -----------------------------------------------------------------------------
+
+# Generate strong passwords for each environment
+# Use environment variables for security:
+#   export TF_VAR_staging_db_password="strong_random_password"
+#   export TF_VAR_production_db_password="different_strong_password"
+
+# -----------------------------------------------------------------------------
+# Email (SES) Settings
+# -----------------------------------------------------------------------------
+
+# DMARC policy: none, quarantine, or reject
+email_dmarc_policy = "quarantine"
+
+# Mail exchange servers for inbound email
+mx_servers = [
+  { server = "mx1.example.com", priority = 10 },
+  { server = "mx2.example.com", priority = 20 }
 ]
+
+# Mailbox provider DKIM records (optional, for email forwarding)
+email_dkim_records = {
+  # Example for Google Workspace:
+  # "google1._domainkey" = {
+  #   type    = "CNAME"
+  #   content = "google1._domainkey.example.com"
+  # }
+  # "default1._domainkey" = {
+  #   type    = "CNAME"
+  #   content = "default1.dkim.example.com"
+  # }
+}
+
+# =============================================================================
+# Server Port Allocation
+# =============================================================================
+#
+# Staging Environment (Ports 8000-8999):
+#   staging-api.clientvault.fr    → 8080
+#   staging.clientvault.fr        → 8100
+#   staging-mobile.clientvault.fr → 8200
+#
+# Production Environment (Ports 3000-3999, 5000-5999):
+#   api.clientvault.fr    → 5000
+#   clientvault.fr        → 3100
+#   www.clientvault.fr    → 3100 (redirect)
+#   mobile.clientvault.fr → 3200
+#
+# =============================================================================
+# Architecture Notes
+# =============================================================================
+#
+# Single VPS hosts both environments with:
+# - Docker Compose for orchestration
+# - Caddy reverse proxy for hostname-based routing
+# - Separate PostgreSQL databases (cluo_staging, cluo_production)
+# - Separate Redis instances
+# - Separate S3 buckets for assets
+#
+# All traffic through Cloudflare:
+# - SSL/TLS termination at Cloudflare edge
+# - DDoS protection
+# - Web Application Firewall (WAF)
+

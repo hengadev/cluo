@@ -1,7 +1,9 @@
-# CLUO Terraform Makefile
-# Usage: make <target>
+# =============================================================================
+# Cluo Terraform Makefile
+# Single VPS Architecture: Staging + Production
+# =============================================================================
 
-.PHONY: help init validate plan apply destroy refresh fmt output upgrade clean graph show env-plan env-apply env-destroy
+.PHONY: help init validate plan apply destroy refresh fmt output upgrade clean graph show
 
 # Default target
 .DEFAULT_GOAL := help
@@ -9,7 +11,6 @@
 # Variables
 TF_ARGS ?=
 AUTO_APPROVE ?= 0
-ENV ?=
 
 # Colors for output
 BLUE := \033[0;34m
@@ -21,10 +22,14 @@ NC := \033[0m # No Color
 help: ## Show this help message
 	@echo "$(BLUE)CLUO Terraform Commands$(NC)"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2}'
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "  $(GREEN)%-20s$(NC) %s\n", $$1, $$2}'
 	@echo ""
 	@echo "$(YELLOW)Usage:$(NC) make [target]"
 	@echo "$(YELLOW)Example:$(NC) make plan"
+
+# =============================================================================
+# Core Terraform Commands
+# =============================================================================
 
 init: ## Initialize Terraform working directory
 	@echo "$(BLUE)Initializing Terraform...$(NC)"
@@ -132,66 +137,6 @@ state-list: ## List resources in state
 	@echo "$(BLUE)Resources in state:$(NC)"
 	terraform state list
 
-state-rm: ## Remove resource from state (usage: make state-rm RESOURCE=resource.name)
-	@if [ -z "$(RESOURCE)" ]; then \
-		echo "$(RED)Error: RESOURCE variable not set$(NC)"; \
-		echo "Usage: make state-rm RESOURCE=resource.name"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Removing $(RESOURCE) from state...$(NC)"
-	terraform state rm $(RESOURCE)
-	@echo "$(GREEN)✓ Resource removed$(NC)"
-
-state-mv: ## Move resource in state (usage: make state-mv FROM=old.name TO=new.name)
-	@if [ -z "$(FROM)" ] || [ -z "$(TO)" ]; then \
-		echo "$(RED)Error: FROM or TO variable not set$(NC)"; \
-		echo "Usage: make state-mv FROM=old.name TO=new.name"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Moving $(FROM) to $(TO)...$(NC)"
-	terraform state mv $(FROM) $(TO)
-	@echo "$(GREEN)✓ Resource moved$(NC)"
-
-taint: ## Taint a resource (usage: make taint RESOURCE=resource.name)
-	@if [ -z "$(RESOURCE)" ]; then \
-		echo "$(RED)Error: RESOURCE variable not set$(NC)"; \
-		echo "Usage: make taint RESOURCE=resource.name"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Tainting $(RESOURCE)...$(NC)"
-	terraform taint $(RESOURCE)
-	@echo "$(GREEN)✓ Resource tainted$(NC)"
-
-untaint: ## Untaint a resource (usage: make untaint RESOURCE=resource.name)
-	@if [ -z "$(RESOURCE)" ]; then \
-		echo "$(RED)Error: RESOURCE variable not set$(NC)"; \
-		echo "Usage: make untaint RESOURCE=resource.name"; \
-		exit 1; \
-	fi
-	@echo "$(BLUE)Untainting $(RESOURCE)...$(NC)"
-	terraform untaint $(RESOURCE)
-	@echo "$(GREEN)✓ Resource untainted$(NC)"
-
-force-unlock: ## Force unlock Terraform state (usage: make force-unlock LOCK_ID=xxx)
-	@if [ -z "$(LOCK_ID)" ]; then \
-		echo "$(RED)Error: LOCK_ID variable not set$(NC)"; \
-		echo "Usage: make force-unlock LOCK_ID=xxx"; \
-		exit 1; \
-	fi
-	@echo "$(RED)Force unlocking state with $(LOCK_ID)...$(NC)"
-	terraform force-unlock $(LOCK_ID)
-	@echo "$(GREEN)✓ State unlocked$(NC)"
-
-import: ## Import existing resource (usage: make import ADDR=resource.name ID=resource-id)
-	@if [ -z "$(ADDR)" ] || [ -z "$(ID)" ]; then \
-		echo "$(RED)Error: ADDR or ID variable not set$(NC)"; \
-		echo "Usage: make import ADDR=resource.name ID=resource-id"; \
-		exit 1; \
-	fi
-	@echo "$(BLUE)Importing $(ADDR) with ID $(ID)...$(NC)"
-	terraform import $(ADDR) $(ID)
-	@echo "$(GREEN)✓ Resource imported$(NC)"
-
 clean: ## Remove Terraform cache and temporary files
 	@echo "$(YELLOW)Cleaning Terraform files...$(NC)"
 	@rm -rf .terraform
@@ -212,10 +157,6 @@ vars: ## Show example .tfvars file location
 		echo "  cp terraform.tfvars.example terraform.tfvars"; \
 	fi
 
-docs: ## Generate Terraform documentation
-	@echo "$(BLUE)Generating documentation...$(NC)"
-	@terraform-docs markdown ./ > README.md 2>/dev/null || echo "terraform-docs not installed, skipping..."
-
 version: ## Show Terraform version
 	@terraform version
 
@@ -223,12 +164,119 @@ test: ## Run Terraform tests (if configured)
 	@echo "$(BLUE)Running Terraform tests...$(NC)"
 	terraform test $(TF_ARGS)
 
-# CI/CD targets
 ci: fmt validate ## Run CI checks (format + validate)
 
-# Production targets
+# =============================================================================
+# Single VPS Architecture Targets
+# =============================================================================
+
+ssh: ## SSH into the VPS
+	@echo "$(BLUE)Connecting to VPS...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address)
+
+ssh-staging: ## SSH into VPS for staging environment
+	@echo "$(BLUE)Connecting to VPS (staging)...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) -t "cd /opt/cluo && bash"
+
+ssh-production: ## SSH into VPS for production environment
+	@echo "$(BLUE)Connecting to VPS (production)...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) -t "cd /opt/cluo && bash"
+
+urls: ## Show all environment URLs
+	@echo "$(BLUE)Staging URLs:$(NC)"
+	@terraform output -json staging_urls | jq -r '"  API:    \(.api)\n  Web:    \(.web)\n  Mobile: \(.mobile)\n  Assets: \(.assets)"'
+	@echo ""
+	@echo "$(BLUE)Production URLs:$(NC)"
+	@terraform output -json production_urls | jq -r '"  API:    \(.api)\n  Web:    \(.web)\n  WWW:    \(.www)\n  Mobile: \(.mobile)\n  Assets: \(.assets)"'
+
+dkim: ## Show SES DKIM tokens for DNS verification
+	@echo "$(BLUE)SES DKIM Tokens (add to Cloudflare DNS):$(NC)"
+	@terraform output -json ses_dkim_tokens | jq -r '.[] | "  \(.)._domainkey CNAME \(.).dkim.amazonses.com"'
+
+buckets: ## Show all S3 bucket names
+	@echo "$(BLUE)S3 Buckets:$(NC)"
+	@echo "  Assets Staging:    $$(terraform output -json assets_buckets | jq -r '.staging')"
+	@echo "  Assets Production: $$(terraform output -json assets_buckets | jq -r '.production')"
+	@echo "  Backups Staging:    $$(terraform output -json backup_buckets | jq -r '.staging')"
+	@echo "  Backups Production: $$(terraform output -json backup_buckets | jq -r '.production')"
+	@echo "  Terraform State:    $$(terraform output -json terraform_state_bucket | jq -r '.')"
+	@echo "  Vault Storage:      $$(terraform output -json vault_storage_bucket | jq -r '.')"
+
+vault-keys: ## Show Vault IAM credentials (sensitive)
+	@echo "$(RED)Vault S3 Access Credentials:$(NC)"
+	@echo "  KMS Key ID:    $$(terraform output -json vault_kms_key_id | jq -r '.')"
+	@echo "  Access Key ID: $$(terraform output -json vault_access_key_id | jq -r '.')"
+	@echo "  Secret Key:    $$(terraform output -json vault_secret_access_key | jq -r '.')"
+
+status: ## Show server and service status
+	@echo "$(BLUE)Checking server status...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "systemctl status caddy --no-pager | head -5"
+	@echo ""
+	@echo "$(BLUE)Docker containers:$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Ports}}' 2>/dev/null || echo 'Docker not accessible'"
+
+logs-caddy: ## Show Caddy reverse proxy logs
+	@echo "$(BLUE)Caddy logs:$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "journalctl -u caddy -n 50 --no-pager"
+
+logs-staging: ## Show staging Docker logs
+	@echo "$(BLUE)Staging logs:$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && docker-compose logs --tail=50 -f 2>/dev/null || echo 'Docker Compose not accessible'"
+
+restart-all: ## Restart all Docker services
+	@echo "$(YELLOW)Restarting all services...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && docker-compose restart 2>/dev/null || echo 'Docker Compose not accessible'"
+	@echo "$(GREEN)✓ Services restarted$(NC)"
+
+# =============================================================================
+# Deployment Targets
+# =============================================================================
+
+deploy: ## Deploy application to VPS (both environments)
+	@echo "$(YELLOW)Deploying to VPS...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && git pull && docker-compose up -d --build 2>/dev/null || echo 'Deployment failed'"
+	@echo "$(GREEN)✓ Deployment complete$(NC)"
+
+deploy-staging: ## Deploy staging environment only
+	@echo "$(YELLOW)Deploying staging...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && git pull && docker-compose up -d --build api_staging web_staging mobile_staging 2>/dev/null || echo 'Deployment failed'"
+	@echo "$(GREEN)✓ Staging deployment complete$(NC)"
+
+deploy-production: ## Deploy production environment only
+	@echo "$(YELLOW)Deploying production...$(NC)"
+	@read -p "Confirming PRODUCTION deployment. Continue? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && git pull && docker-compose up -d --build api_production web_production mobile_production 2>/dev/null || echo 'Deployment failed'"; \
+		echo "$(GREEN)✓ Production deployment complete$(NC)"; \
+	else \
+		echo "Aborted"; \
+	fi
+
+# =============================================================================
+# Backup Targets
+# =============================================================================
+
+backup-staging: ## Trigger staging database backup
+	@echo "$(YELLOW)Backing up staging database...$(NC)"
+	@ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && docker-compose exec postgres_staging pg_dump -U cluo cluo_staging | gzip > /tmp/staging_backup_$$(date +%Y%m%d_%H%M%S).sql.gz 2>/dev/null || echo 'Backup failed'"
+	@echo "$(GREEN)✓ Staging backup complete$(NC)"
+
+backup-production: ## Trigger production database backup
+	@echo "$(YELLOW)Backing up production database...$(NC)"
+	@read -p "Confirming production backup. Continue? [y/N] " confirm; \
+	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
+		ssh root@$$(terraform output -raw vps_ipv4_address) "cd /opt/cluo && docker-compose exec postgres_production pg_dump -U cluo cluo_production | gzip > /tmp/production_backup_$$(date +%Y%m%d_%H%M%S).sql.gz 2>/dev/null || echo 'Backup failed'"; \
+		echo "$(GREEN)✓ Production backup complete$(NC)"; \
+	else \
+		echo "Aborted"; \
+	fi
+
+# =============================================================================
+# Production Targets
+# =============================================================================
+
 prod-plan: ## Production plan (with confirmation)
-	@read -p "Confirming production environment. Continue? [y/N] " confirm; \
+	@read -p "Confirming PRODUCTION infrastructure changes. Continue? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		$(MAKE) plan; \
 	else \
@@ -236,57 +284,9 @@ prod-plan: ## Production plan (with confirmation)
 	fi
 
 prod-apply: ## Production apply (with confirmation)
-	@read -p "Confirming production environment. Continue? [y/N] " confirm; \
+	@read -p "Confirming PRODUCTION infrastructure changes. Continue? [y/N] " confirm; \
 	if [ "$$confirm" = "y" ] || [ "$$confirm" = "Y" ]; then \
 		$(MAKE) apply; \
 	else \
 		echo "Aborted"; \
 	fi
-
-# Environment targets (usage: make env-plan ENV=dev)
-env-plan: validate ## Plan for a specific environment (ENV=dev|prod)
-	@if [ -z "$(ENV)" ]; then \
-		echo "$(RED)Error: ENV variable not set$(NC)"; \
-		echo "Usage: make env-plan ENV=dev"; \
-		exit 1; \
-	fi
-	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
-		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(BLUE)Planning for $(ENV) environment...$(NC)"
-	terraform plan -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
-
-env-apply: validate ## Apply for a specific environment (ENV=dev|prod)
-	@if [ -z "$(ENV)" ]; then \
-		echo "$(RED)Error: ENV variable not set$(NC)"; \
-		echo "Usage: make env-apply ENV=dev"; \
-		exit 1; \
-	fi
-	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
-		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(YELLOW)Applying for $(ENV) environment...$(NC)"
-	terraform apply -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
-	@echo "$(GREEN)✓ Apply complete for $(ENV)$(NC)"
-
-env-destroy: ## Destroy for a specific environment (ENV=dev|prod)
-	@if [ -z "$(ENV)" ]; then \
-		echo "$(RED)Error: ENV variable not set$(NC)"; \
-		echo "Usage: make env-destroy ENV=dev"; \
-		exit 1; \
-	fi
-	@if [ ! -f environments/$(ENV)/terraform.tfvars ]; then \
-		echo "$(RED)Error: environments/$(ENV)/terraform.tfvars not found$(NC)"; \
-		exit 1; \
-	fi
-	@echo "$(RED)Destroying $(ENV) environment...$(NC)"
-	terraform destroy -var-file=environments/$(ENV)/terraform.tfvars $(TF_ARGS)
-	@echo "$(GREEN)✓ Destroy complete for $(ENV)$(NC)"
-
-# Save outputs for Ansible
-save-outputs: output-json ## Save outputs to file for Ansible
-	@echo "$(BLUE)Saving outputs for Ansible...$(NC)"
-	@terraform output -json > ../ansible/terraform-outputs.json
-	@echo "$(GREEN)✓ Outputs saved to ../ansible/terraform-outputs.json$(NC)"

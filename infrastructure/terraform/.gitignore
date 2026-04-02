@@ -1,20 +1,36 @@
+# =============================================================================
 # Terraform files
+# =============================================================================
+
+# State files (never commit)
 *.tfstate
 *.tfstate.*
+*.tfstate.backup
+
+# Variable files (never commit sensitive data)
 *.tfvars
 !terraform.tfvars.example
-!environments/*/terraform.tfvars
+
+# Terraform cache
 .terraform/
 .terraform.lock.hcl
-crash.log
-crash.*.log
 terraform.tfplan
 
+# Logs
+crash.log
+crash.*.log
+
+# =============================================================================
 # OS files
+# =============================================================================
+
 .DS_Store
 Thumbs.db
 
+# =============================================================================
 # IDE files
+# =============================================================================
+
 .vscode/
 .idea/
 *.swp
