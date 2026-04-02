@@ -14,11 +14,11 @@
 #
 # 3. DO NOT commit terraform.tfvars to git (it contains sensitive data)
 #
-# 4. For sensitive values, use environment variables instead:
-#    export TF_VAR_hcloud_token="your_hetzner_token"
-#    export TF_VAR_cloudflare_token="your_cloudflare_token"
-#    export TF_VAR_staging_db_password="strong_password_here"
-#    export TF_VAR_production_db_password="strong_password_here"
+# 4. AWS Profile: This configuration uses the "terraform-cluo" AWS profile.
+#    Make sure you have it configured:
+#    aws configure --profile terraform-cluo
+#
+# -----------------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
 # Core Settings
@@ -32,13 +32,14 @@ aws_region   = "eu-central-1"
 # Hetzner Cloud Settings
 # -----------------------------------------------------------------------------
 
-# Authentication (use environment variable for security):
-#   export TF_VAR_hcloud_token="your_hetzner_api_token"
+# Get your token at: https://console.hetzner.cloud → Security → API Tokens
+# Required permissions: Read & Write
+hcloud_token    = "your_hetzner_api_token_here"
 
 # Server type: cpx31 recommended (8GB RAM for both environments)
 # See: https://www.hetzner.com/cloud#pricing
 server_type     = "cpx31"  # 4 vCPU, 8 GB RAM, 160 GB SSD
-server_location = "nbg1"   # Nuremberg (options: nbg1, fsn1, hel1)
+server_location = "nbg1"   # Nuremberg (options: nbg1, fsn1, hel1, ash, sin, hil)
 server_image    = "ubuntu-24.04"
 
 # SSH key: Must be pre-created in Hetzner Cloud Console
@@ -53,24 +54,30 @@ enable_backups  = true
 # Cloudflare Settings
 # -----------------------------------------------------------------------------
 
-# Authentication (use environment variable for security):
-#   export TF_VAR_cloudflare_token="your_cloudflare_api_token"
-# Required permissions: Zone:Edit, DNS:Edit
+# Get your token at: https://dash.cloudflare.com/profile/api-tokens
+# Required permissions: Zone - Read, DNS - Edit
+cloudflare_token = "your_cloudflare_api_token_here"
 
 # Zone ID: Found in Cloudflare Dashboard → Your Domain → Overview
-zone_id = "your_cloudflare_zone_id_for_clientvault_fr"
+zone_id       = "your_cloudflare_zone_id_for_clientvault_fr"
 
 # Contact email for DMARC reports
 contact_email = "admin@clientvault.fr"
 
 # -----------------------------------------------------------------------------
-# Database Passwords
+# Database Settings (Single PostgreSQL Instance)
 # -----------------------------------------------------------------------------
+#
+# The single VPS runs one PostgreSQL instance with two databases:
+# - cluo_staging  (for staging environment)
+# - cluo_production (for production environment)
+#
+# PostgreSQL will be deployed via Docker Compose on the VPS.
 
-# Generate strong passwords for each environment
-# Use environment variables for security:
-#   export TF_VAR_staging_db_password="strong_random_password"
-#   export TF_VAR_production_db_password="different_strong_password"
+# PostgreSQL user password (shared for both databases)
+# Generate a strong password for the 'cluo' PostgreSQL user
+staging_db_password    = "your_strong_staging_db_password_here"
+production_db_password = "your_strong_production_db_password_here"
 
 # -----------------------------------------------------------------------------
 # Email (SES) Settings
