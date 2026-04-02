@@ -1,72 +1,147 @@
+# =============================================================================
+# Cluo Terraform Variables
+# Single VPS Architecture: Staging + Production on one server
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Core Variables
+# -----------------------------------------------------------------------------
+
 variable "project_name" {
   description = "Project name used for resource naming"
   type        = string
   default     = "cluo"
 }
 
-variable "environment" {
-  description = "Environment name (dev, staging, prod)"
-  type        = string
-  default     = "dev"
-}
-
 variable "domain_name" {
-  description = "Root domain name managed in Cloudflare"
+  description = "Primary domain name (e.g., clientvault.fr)"
   type        = string
 }
 
-# Hetzner variables
-variable "hetzner_token" {
+variable "aws_region" {
+  description = "AWS region for S3, SES, KMS, and CloudFront resources"
+  type        = string
+  default     = "eu-central-1"
+}
+
+# -----------------------------------------------------------------------------
+# Hetzner Cloud Variables
+# -----------------------------------------------------------------------------
+
+variable "hcloud_token" {
   description = "Hetzner Cloud API token"
   type        = string
   sensitive   = true
 }
 
-variable "hetzner_server_type" {
-  description = "Hetzner server type (e.g., cx22, cpx11, etc.)"
+variable "server_type" {
+  description = "Hetzner Cloud server type (cpx31 recommended for both envs: 8GB RAM)"
   type        = string
-  default     = "cpx11" # 2 vCPU, 2 GB RAM
+  default     = "cpx31"
+
+  validation {
+    condition     = can(regex("^cpx[0-9]{2}$", var.server_type))
+    error_message = "Server type must be a valid CX plan (e.g., cpx22, cpx31)."
+  }
 }
 
-variable "hetzner_server_location" {
-  description = "Hetzner server location (e.g., nbg1, fsn1, hel1)"
+variable "server_location" {
+  description = "Hetzner Cloud datacenter location"
   type        = string
   default     = "nbg1"
+
+  validation {
+    condition     = contains(["nbg1", "fsn1", "hel1", "hil", "ash", "sin"], var.server_location)
+    error_message = "Location must be a valid Hetzner datacenter code."
+  }
 }
 
-variable "hetzner_ssh_keys" {
-  description = "List of SSH key names to add to the server"
-  type        = list(string)
-  default     = []
+variable "server_image" {
+  description = "Server OS image"
+  type        = string
+  default     = "ubuntu-24.04"
 }
 
-variable "hetzner_enable_backups" {
-  description = "Whether to enable Hetzner automatic server backups"
+variable "ssh_key_name" {
+  description = "Name of existing SSH key in Hetzner Cloud"
+  type        = string
+  default     = "terraform-cluo"
+}
+
+variable "enable_backups" {
+  description = "Enable automatic backups (additional 20% of server price)"
   type        = bool
   default     = true
 }
 
-# Cloudflare variables
-variable "cloudflare_api_token" {
-  description = "Cloudflare API token with Zone Settings:Edit, Zone:Edit, and DNS:Edit permissions"
+# -----------------------------------------------------------------------------
+# Cloudflare Variables
+# -----------------------------------------------------------------------------
+
+variable "cloudflare_token" {
+  description = "Cloudflare API token with Zone:Edit and DNS:Edit permissions"
   type        = string
   sensitive   = true
 }
 
-variable "cloudflare_zone_id" {
+variable "zone_id" {
   description = "Cloudflare zone ID for the domain"
   type        = string
 }
 
-# AWS variables
-variable "aws_region" {
-  description = "AWS region for S3 bucket"
+variable "contact_email" {
+  description = "Contact email for DMARC reports"
   type        = string
-  default     = "eu-central-1"
 }
 
-variable "s3_cors_allowed_origins" {
-  description = "Allowed origins for S3 CORS on the media bucket (e.g., [\"https://app.example.com\"])"
-  type        = list(string)
-  default     = []
+# -----------------------------------------------------------------------------
+# Email (SES) Variables
+# -----------------------------------------------------------------------------
+
+variable "email_dkim_records" {
+  description = "Mailbox provider DKIM records for inbound email forwarding"
+  type = map(object({
+    type    = string
+    content = string
+  }))
+  default = {}
+}
+
+variable "email_dmarc_policy" {
+  description = "DMARC policy (none, quarantine, reject)"
+  type        = string
+  default     = "quarantine"
+
+  validation {
+    condition     = contains(["none", "quarantine", "reject"], var.email_dmarc_policy)
+    error_message = "DMARC policy must be one of: none, quarantine, reject."
+  }
+}
+
+variable "mx_servers" {
+  description = "Mail exchange servers for inbound email"
+  type = list(object({
+    server   = string
+    priority = number
+  }))
+  default = [
+    { server = "mx1.example.com", priority = 10 },
+    { server = "mx2.example.com", priority = 20 }
+  ]
+}
+
+# -----------------------------------------------------------------------------
+# Database Variables
+# -----------------------------------------------------------------------------
+
+variable "staging_db_password" {
+  description = "PostgreSQL password for staging database"
+  type        = string
+  sensitive   = true
+}
+
+variable "production_db_password" {
+  description = "PostgreSQL password for production database"
+  type        = string
+  sensitive   = true
 }

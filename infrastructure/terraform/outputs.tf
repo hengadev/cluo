@@ -1,78 +1,156 @@
-# Hetzner outputs
-output "server_ip" {
-  description = "Public IP address of the Hetzner server"
-  value       = module.hetzner.server_ip
+# =============================================================================
+# Cluo Terraform Outputs
+# Single VPS Architecture: Staging + Production
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# VPS Outputs
+# -----------------------------------------------------------------------------
+
+output "vps_ipv4_address" {
+  description = "VPS IPv4 address (hosts both staging and production)"
+  value       = hcloud_server.main.ipv4_address
 }
 
-output "server_name" {
-  description = "Name of the Hetzner server"
-  value       = module.hetzner.server_name
+output "ssh_connection_string" {
+  description = "SSH connection string"
+  value       = "ssh root@${hcloud_server.main.ipv4_address}"
 }
 
-output "server_ssh_command" {
-  description = "SSH command to connect to the server"
-  value       = "root@${module.hetzner.server_ip}"
+# -----------------------------------------------------------------------------
+# Environment URLs
+# -----------------------------------------------------------------------------
+
+output "staging_urls" {
+  value = {
+    api    = "https://staging-api.${var.domain_name}"
+    web    = "https://staging.${var.domain_name}"
+    mobile = "https://staging-mobile.${var.domain_name}"
+    assets = "https://assets-staging.${var.domain_name}"
+  }
+  description = "Staging environment URLs"
 }
 
-# Cloudflare outputs
-output "dns_records" {
-  description = "DNS records created in Cloudflare"
-  value       = module.cloudflare.dns_records
+output "production_urls" {
+  value = {
+    api    = "https://api.${var.domain_name}"
+    web    = "https://${var.domain_name}"
+    www    = "https://www.${var.domain_name}"
+    mobile = "https://mobile.${var.domain_name}"
+    assets = "https://assets.${var.domain_name}"
+  }
+  description = "Production environment URLs"
 }
 
-# AWS S3 media bucket outputs
-output "s3_bucket_name" {
-  description = "Name of the S3 media bucket"
-  value       = module.aws_s3.bucket_name
+# -----------------------------------------------------------------------------
+# S3 Buckets
+# -----------------------------------------------------------------------------
+
+output "assets_buckets" {
+  value = {
+    staging    = aws_s3_bucket.assets_staging.id
+    production = aws_s3_bucket.assets_production.id
+  }
+  description = "S3 buckets for assets"
 }
 
-output "s3_bucket_arn" {
-  description = "ARN of the S3 media bucket"
-  value       = module.aws_s3.bucket_arn
+output "backup_buckets" {
+  value = {
+    staging    = aws_s3_bucket.backups_staging.id
+    production = aws_s3_bucket.backups_production.id
+  }
+  description = "S3 buckets for PostgreSQL backups"
 }
 
-output "iam_access_key_id" {
-  description = "IAM access key ID for S3 media access"
-  value       = module.aws_s3.iam_access_key_id
+output "terraform_state_bucket" {
+  description = "S3 bucket for Terraform state"
+  value       = aws_s3_bucket.terraform_state.id
+}
+
+output "vault_storage_bucket" {
+  description = "S3 bucket for Vault storage"
+  value       = aws_s3_bucket.vault.id
+}
+
+# -----------------------------------------------------------------------------
+# SES Email
+# -----------------------------------------------------------------------------
+
+output "ses_dkim_tokens" {
+  value       = aws_ses_domain_dkim.main.dkim_tokens
+  description = "SES DKIM tokens for DNS verification"
+}
+
+output "ses_verification_token" {
+  value       = aws_ses_domain_identity.main.verification_token
+  description = "SES domain verification token"
   sensitive   = true
 }
 
-output "iam_secret_access_key" {
-  description = "IAM secret access key for S3 media access"
-  value       = module.aws_s3.iam_secret_access_key
+# -----------------------------------------------------------------------------
+# Vault
+# -----------------------------------------------------------------------------
+
+output "vault_kms_key_id" {
+  description = "KMS key ID for Vault auto-unseal"
+  value       = aws_kms_key.vault.id
+}
+
+output "vault_kms_key_arn" {
+  description = "KMS key ARN for Vault auto-unseal"
+  value       = aws_kms_key.vault.arn
+}
+
+output "vault_access_key_id" {
+  description = "IAM access key ID for Vault S3 storage"
+  value       = aws_iam_access_key.vault_key.id
   sensitive   = true
 }
 
-# AWS S3 backup bucket outputs
-output "backup_bucket_name" {
-  description = "Name of the S3 backup bucket"
-  value       = module.aws_s3_backup.bucket_name
-}
-
-output "backup_bucket_arn" {
-  description = "ARN of the S3 backup bucket"
-  value       = module.aws_s3_backup.bucket_arn
-}
-
-output "backup_iam_access_key_id" {
-  description = "IAM access key ID for S3 backup access"
-  value       = module.aws_s3_backup.iam_access_key_id
+output "vault_secret_access_key" {
+  description = "IAM secret access key for Vault S3 storage"
+  value       = aws_iam_access_key.vault_key.secret
   sensitive   = true
 }
 
-output "backup_iam_secret_access_key" {
-  description = "IAM secret access key for S3 backup access"
-  value       = module.aws_s3_backup.iam_secret_access_key
-  sensitive   = true
+# -----------------------------------------------------------------------------
+# CloudFront CDN
+# -----------------------------------------------------------------------------
+
+output "cloudfront_distribution_id" {
+  description = "CloudFront distribution ID for production assets"
+  value       = aws_cloudfront_distribution.assets.id
 }
 
-# Post-provisioning instructions
+output "cloudfront_domain_name" {
+  description = "CloudFront distribution domain name"
+  value       = aws_cloudfront_distribution.assets.domain_name
+}
+
+# -----------------------------------------------------------------------------
+# Post-Provisioning Instructions
+# -----------------------------------------------------------------------------
+
 output "next_steps" {
   description = "Next steps after Terraform apply"
   value       = <<-EOT
-    1. Connect to the server: ssh root@${module.hetzner.server_ip}
-    2. Install Docker and Docker Compose
-    3. Deploy your application using docker-compose.yml
-    4. Configure your .env with the S3 credentials from terraform output
+    1. SSH into the server:
+       ssh root@${hcloud_server.main.ipv4_address}
+
+    2. Wait for cloud-init to complete:
+       cloud-init status --wait
+
+    3. Verify Docker services are running:
+       docker ps
+
+    4. Check Caddy is running:
+       systemctl status caddy
+
+    5. View logs:
+       journalctl -u caddy -f
+
+    Environment URLs:
+      Staging:  https://staging.${var.domain_name}
+      Production: https://${var.domain_name}
   EOT
 }
