@@ -1,0 +1,150 @@
+#cloud-config
+# =============================================================================
+# Cluo Server Cloud-Init Configuration
+# Single VPS: Staging (8000-8999) + Production (3000-3999, 5000-5999)
+# =============================================================================
+
+package_update: true
+packages:
+  - curl
+  - git
+  - ufw
+  - fail2ban
+  - ca-certificates
+
+# =============================================================================
+# Environment Files
+# =============================================================================
+
+write_files:
+  # Staging environment file
+  - path: /opt/cluo/.env.staging
+    content: |
+      # Cluo Staging Environment
+      CLUO_ENVIRONMENT=staging
+      CLUO_DB_HOST=postgres_staging
+      CLUO_DB_NAME=${staging_db_name}
+      CLUO_DB_USER=cluo
+      CLUO_DB_PASSWORD=${staging_db_password}
+      CLUO_REDIS_HOST=redis_staging
+      CLUO_REDIS_PORT=6379
+      CLUO_API_PORT=8080
+      CLUO_WEB_PORT=8100
+      CLUO_MOBILE_PORT=8200
+      PUBLIC_API_URL=https://${staging_api_domain}
+      PUBLIC_WEB_URL=https://${staging_web_domain}
+      PUBLIC_MOBILE_URL=https://${staging_mobile_domain}
+      ASSETS_BUCKET=${staging_assets_bucket}
+      VAULT_ADDR=http://127.0.0.1:8200
+
+  # Production environment file
+  - path: /opt/cluo/.env.production
+    content: |
+      # Cluo Production Environment
+      CLUO_ENVIRONMENT=production
+      CLUO_DB_HOST=postgres_production
+      CLUO_DB_NAME=${production_db_name}
+      CLUO_DB_USER=cluo
+      CLUO_DB_PASSWORD=${production_db_password}
+      CLUO_REDIS_HOST=redis_production
+      CLUO_REDIS_PORT=6379
+      CLUO_API_PORT=5000
+      CLUO_WEB_PORT=3100
+      CLUO_MOBILE_PORT=3200
+      PUBLIC_API_URL=https://${production_api_domain}
+      PUBLIC_WEB_URL=https://${production_web_domain}
+      PUBLIC_MOBILE_URL=https://${production_mobile_domain}
+      ASSETS_BUCKET=${production_assets_bucket}
+      VAULT_ADDR=http://127.0.0.1:8200
+
+  # Caddyfile for multi-environment reverse proxy
+  - path: /etc/caddy/Caddyfile
+    content: |
+      # =============================================================================
+      # Cluo Multi-Environment Reverse Proxy
+      # Staging (8000-8999) + Production (3000-3999, 5000-5999)
+      # =============================================================================
+
+      # -----------------------------------------------------------------------------
+      # Staging Environment
+      # -----------------------------------------------------------------------------
+
+      ${staging_api_domain} {
+        reverse_proxy localhost:8080
+      }
+
+      ${staging_web_domain} {
+        reverse_proxy localhost:8100
+      }
+
+      ${staging_mobile_domain} {
+        reverse_proxy localhost:8200
+      }
+
+      # -----------------------------------------------------------------------------
+      # Production Environment
+      # -----------------------------------------------------------------------------
+
+      ${production_api_domain} {
+        reverse_proxy localhost:5000
+      }
+
+      ${production_web_domain}, www.${production_web_domain} {
+        reverse_proxy localhost:3100
+      }
+
+      ${production_mobile_domain} {
+        reverse_proxy localhost:3200
+      }
+
+# =============================================================================
+# Runtime Commands
+# =============================================================================
+
+runcmd:
+  # Update system packages
+  - apt-get update -y
+
+  # Install Docker
+  - curl -fsSL https://get.docker.com -o /tmp/get-docker.sh
+  - sh /tmp/get-docker.sh
+  - systemctl enable docker
+  - systemctl start docker
+
+  # Install Docker Compose
+  - curl -L "https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  - chmod +x /usr/local/bin/docker-compose
+
+  # Install Caddy
+  - apt install -y debian-keyring debian-archive-keyring apt-transport-https curl
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/gpg.key' | gpg --dearmor -o /usr/share/keyrings/caddy-stable-archive-keyring.gpg
+  - curl -1sLf 'https://dl.cloudsmith.io/public/caddy/stable/debian.deb.txt' | tee /etc/apt/sources.list.d/caddy-stable.list
+  - apt update
+  - apt install -y caddy
+  - systemctl restart caddy
+
+  # Configure firewall
+  - ufw allow 22/tcp
+  - ufw allow 80/tcp
+  - ufw allow 443/tcp
+  - ufw --force enable
+  - ufw reload
+
+  # Create application directory
+  - mkdir -p /opt/cluo
+  - cd /opt/cluo
+
+  # Clone repository
+  - git clone https://github.com/hengadev/cluo.git .
+
+  # Start Docker Compose services
+  - docker-compose up -d
+
+  # Verify services are running
+  - docker ps
+
+# =============================================================================
+# Final Message
+# =============================================================================
+
+final_message: "Cluo server initialization complete! System is ready at %timestamp."
