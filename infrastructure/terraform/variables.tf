@@ -35,9 +35,9 @@ variable "hcloud_token" {
 }
 
 variable "server_type" {
-  description = "Hetzner Cloud server type (cpx31 recommended for both envs: 8GB RAM)"
+  description = "Hetzner Cloud server type (cpx22 recommended for both envs: 8GB RAM)"
   type        = string
-  default     = "cpx31"
+  default     = "cpx22"
 
   validation {
     condition     = can(regex("^cpx[0-9]{2}$", var.server_type))

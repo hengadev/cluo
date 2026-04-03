@@ -36,9 +36,10 @@ aws_region   = "eu-central-1"
 # Required permissions: Read & Write
 hcloud_token    = "your_hetzner_api_token_here"
 
-# Server type: cpx31 recommended (8GB RAM for both environments)
+# Server type: cpx22 (8GB RAM) recommended for both environments
+# Same server type as used in germinal/leviosa projects
 # See: https://www.hetzner.com/cloud#pricing
-server_type     = "cpx31"  # 4 vCPU, 8 GB RAM, 160 GB SSD
+server_type     = "cpx22"  # 3 vCPU, 8 GB RAM, 160 GB SSD
 server_location = "nbg1"   # Nuremberg (options: nbg1, fsn1, hel1, ash, sin, hil)
 server_image    = "ubuntu-24.04"
 
