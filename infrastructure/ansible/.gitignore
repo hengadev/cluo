@@ -1,5 +1,6 @@
 # Ansible
 inventory.yml
+terraform-outputs.json
 *.retry
 .vault_pass
 
