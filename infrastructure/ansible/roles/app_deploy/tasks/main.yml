@@ -1,6 +1,16 @@
 ---
 # Application Deployment Role
 # Deploys the CLUO application using Docker Compose
+# Single VPS: Staging (8000-8999) + Production (3000-3999, 5000-5999)
+
+- name: Create application directory
+  ansible.builtin.file:
+    path: "{{ app_dir | default('/opt/cluo') }}"
+    state: directory
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0755"
+  tags: deploy
 
 - name: Check if git repository is configured
   ansible.builtin.stat:
@@ -28,95 +38,178 @@
     owner: "{{ app_user | default('cluo') }}"
     group: "{{ app_group | default(app_user | default('cluo')) }}"
     mode: "0640"
-    remote_src: false
   tags: deploy
-  ignore_errors: true
 
-- name: Create docker-compose override for production
+# -----------------------------------------------------------------------------
+# Staging Environment File
+# -----------------------------------------------------------------------------
+
+- name: Create staging environment file
   ansible.builtin.copy:
     content: |
-      services:
-        postgres:
-          restart: always
-          volumes:
-            - postgres_data:/var/lib/postgresql/data
-          environment:
-            POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
-
-        redis:
-          restart: always
-          volumes:
-            - redis_data:/data
-          command: redis-server --requirepass {{ redis_password }}
-
-        api:
-          restart: always
-          depends_on:
-            - postgres
-            - redis
-          environment:
-            APP_ENV: production
-          healthcheck:
-            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8080/health"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-            start_period: 40s
-
-        web:
-          restart: always
-          depends_on:
-            - api
-          healthcheck:
-            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3001/"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-
-        mobile:
-          restart: always
-          depends_on:
-            - api
-          healthcheck:
-            test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:3000/"]
-            interval: 30s
-            timeout: 10s
-            retries: 3
-      volumes:
-        postgres_data:
-        redis_data:
-    dest: "{{ app_dir | default('/opt/cluo') }}/docker-compose.override.yml"
+      # Cluo Staging Environment
+      CLUO_ENVIRONMENT=staging
+      CLUO_DB_HOST=postgres_staging
+      CLUO_DB_NAME={{ staging_postgres_db | default('cluo_staging') }}
+      CLUO_DB_USER={{ postgres_user | default('cluo') }}
+      CLUO_DB_PASSWORD={{ staging_postgres_password }}
+      CLUO_REDIS_HOST=redis_staging
+      CLUO_REDIS_PORT=6379
+      CLUO_API_PORT=8080
+      CLUO_WEB_PORT=8100
+      CLUO_MOBILE_PORT=8200
+      PUBLIC_API_URL=https://{{ staging_api_domain | default('staging-api.' + domain) }}
+      PUBLIC_WEB_URL=https://{{ staging_web_domain | default('staging.' + domain) }}
+      PUBLIC_MOBILE_URL=https://{{ staging_mobile_domain | default('staging-mobile.' + domain) }}
+      ASSETS_BUCKET={{ staging_assets_bucket | default('cluo-assets-staging') }}
+      AWS_REGION={{ aws_region | default('eu-central-1') }}
+      AWS_ACCESS_KEY_ID={{ staging_s3_access_key_id | default('') }}
+      AWS_SECRET_ACCESS_KEY={{ staging_s3_secret_access_key | default('') }}
+    dest: "{{ app_dir | default('/opt/cluo') }}/.env.staging"
     owner: "{{ app_user | default('cluo') }}"
     group: "{{ app_group | default(app_user | default('cluo')) }}"
-    mode: "0640"
-  tags: compose
+    mode: "0600"
+  tags: env
 
-- name: Create Caddyfile for reverse proxy
+# -----------------------------------------------------------------------------
+# Production Environment File
+# -----------------------------------------------------------------------------
+
+- name: Create production environment file
+  ansible.builtin.copy:
+    content: |
+      # Cluo Production Environment
+      CLUO_ENVIRONMENT=production
+      CLUO_DB_HOST=postgres_production
+      CLUO_DB_NAME={{ production_postgres_db | default('cluo_production') }}
+      CLUO_DB_USER={{ postgres_user | default('cluo') }}
+      CLUO_DB_PASSWORD={{ production_postgres_password }}
+      CLUO_REDIS_HOST=redis_production
+      CLUO_REDIS_PORT=6379
+      CLUO_API_PORT=5000
+      CLUO_WEB_PORT=3100
+      CLUO_MOBILE_PORT=3200
+      PUBLIC_API_URL=https://{{ production_api_domain | default('api.' + domain) }}
+      PUBLIC_WEB_URL=https://{{ production_web_domain | default(domain) }}
+      PUBLIC_MOBILE_URL=https://{{ production_mobile_domain | default('mobile.' + domain) }}
+      ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-production') }}
+      AWS_REGION={{ aws_region | default('eu-central-1') }}
+      AWS_ACCESS_KEY_ID={{ production_s3_access_key_id | default('') }}
+      AWS_SECRET_ACCESS_KEY={{ production_s3_secret_access_key | default('') }}
+    dest: "{{ app_dir | default('/opt/cluo') }}/.env.production"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0600"
+  tags: env
+
+# -----------------------------------------------------------------------------
+# Docker Compose .env file (for variable substitution in docker-compose.yml)
+# -----------------------------------------------------------------------------
+
+- name: Create Docker Compose .env file
+  ansible.builtin.copy:
+    content: |
+      # Docker Compose environment variables
+      # These variables are used for variable substitution in docker-compose.yml
+
+      # Docker image registry
+      DOCKER_REGISTRY={{ docker_registry | default('hengadev') }}
+
+      # App version (use 'latest' or specific tag)
+      APP_VERSION={{ app_version | default('latest') }}
+
+      # PostgreSQL user (shared across both databases)
+      POSTGRES_USER={{ postgres_user | default('cluo') }}
+
+      # Staging database password
+      STAGING_POSTGRES_DB={{ staging_postgres_db | default('cluo_staging') }}
+      STAGING_POSTGRES_PASSWORD={{ staging_postgres_password }}
+
+      # Production database password
+      PRODUCTION_POSTGRES_DB={{ production_postgres_db | default('cluo_production') }}
+      PRODUCTION_POSTGRES_PASSWORD={{ production_postgres_password }}
+
+      # Domain names
+      DOMAIN={{ domain }}
+
+      # Staging domains
+      STAGING_API_DOMAIN={{ staging_api_domain | default('staging-api.' + domain) }}
+      STAGING_WEB_DOMAIN={{ staging_web_domain | default('staging.' + domain) }}
+      STAGING_MOBILE_DOMAIN={{ staging_mobile_domain | default('staging-mobile.' + domain) }}
+
+      # Production domains
+      PRODUCTION_API_DOMAIN={{ production_api_domain | default('api.' + domain) }}
+      PRODUCTION_WEB_DOMAIN={{ production_web_domain | default(domain) }}
+      PRODUCTION_MOBILE_DOMAIN={{ production_mobile_domain | default('mobile.' + domain) }}
+
+      # S3 buckets
+      STAGING_ASSETS_BUCKET={{ staging_assets_bucket | default('cluo-assets-staging') }}
+      PRODUCTION_ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-production') }}
+
+      # AWS region
+      AWS_REGION={{ aws_region | default('eu-central-1') }}
+    dest: "{{ app_dir | default('/opt/cluo') }}/.env"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0600"
+  tags: env
+
+# -----------------------------------------------------------------------------
+# Caddyfile for Multi-Environment Reverse Proxy
+# -----------------------------------------------------------------------------
+
+- name: Create Caddyfile for multi-environment reverse proxy
   ansible.builtin.copy:
     content: |
       {
         email {{ admin_email | default('admin@' + domain) }}
       }
 
-      # API subdomain
-      {{ api_domain | default('api.' + domain) }} {
+      # =============================================================================
+      # Staging Environment (Ports 8000-8999)
+      # =============================================================================
+
+      {{ staging_api_domain | default('staging-api.' + domain) }} {
         reverse_proxy localhost:8080
+        log {
+          output file /var/log/caddy/staging-api.log
+        }
+      }
+
+      {{ staging_web_domain | default('staging.' + domain) }} {
+        reverse_proxy localhost:8100
+        log {
+          output file /var/log/caddy/staging-web.log
+        }
+      }
+
+      {{ staging_mobile_domain | default('staging-mobile.' + domain) }} {
+        reverse_proxy localhost:8200
+        log {
+          output file /var/log/caddy/staging-mobile.log
+        }
+      }
+
+      # =============================================================================
+      # Production Environment (Ports 3000-3999, 5000-5999)
+      # =============================================================================
+
+      {{ production_api_domain | default('api.' + domain) }} {
+        reverse_proxy localhost:5000
         log {
           output file /var/log/caddy/api.log
         }
       }
 
-      # Web subdomain
-      {{ web_domain | default('app.' + domain) }} {
-        reverse_proxy localhost:3001
+      {{ production_web_domain | default(domain) }}, www.{{ production_web_domain | default(domain) }} {
+        reverse_proxy localhost:3100
         log {
           output file /var/log/caddy/web.log
         }
       }
 
-      # Mobile subdomain
-      {{ mobile_domain | default('mobile.' + domain) }} {
-        reverse_proxy localhost:3000
+      {{ production_mobile_domain | default('mobile.' + domain) }} {
+        reverse_proxy localhost:3200
         log {
           output file /var/log/caddy/mobile.log
         }
@@ -127,9 +220,28 @@
     mode: "0640"
   tags: caddy
 
+- name: Create Caddy logs directory
+  ansible.builtin.file:
+    path: /var/log/caddy
+    state: directory
+    owner: caddy
+    group: caddy
+    mode: "0755"
+  tags: caddy
+
+- name: Deploy Caddyfile
+  ansible.builtin.command:
+    cmd: cp /opt/cluo/Caddyfile /etc/caddy/Caddyfile
+  notify: Reload Caddy
+  tags: caddy
+
+# -----------------------------------------------------------------------------
+# Docker Compose Operations
+# -----------------------------------------------------------------------------
+
 - name: Pull Docker images
   ansible.builtin.command:
-    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml pull
+    cmd: docker compose pull
     chdir: "{{ app_dir | default('/opt/cluo') }}"
   become_user: "{{ app_user | default('cluo') }}"
   register: docker_pull
@@ -139,14 +251,14 @@
 
 - name: Start Docker Compose services
   ansible.builtin.command:
-    cmd: docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
+    cmd: docker compose up -d
     chdir: "{{ app_dir | default('/opt/cluo') }}"
   become_user: "{{ app_user | default('cluo') }}"
   register: docker_up
   changed_when: docker_up.rc == 0
   tags: deploy
 
-- name: Wait for services to be healthy
+- name: Wait for staging services to be healthy
   ansible.builtin.wait_for:
     host: localhost
     port: "{{ item }}"
@@ -154,11 +266,25 @@
     timeout: 120
     state: started
   loop:
-    - 3000
-    - 3001
     - 8080
-  ignore_errors: true
+    - 8100
+    - 8200
   tags: deploy
+  ignore_errors: true
+
+- name: Wait for production services to be healthy
+  ansible.builtin.wait_for:
+    host: localhost
+    port: "{{ item }}"
+    delay: 5
+    timeout: 120
+    state: started
+  loop:
+    - 5000
+    - 3100
+    - 3200
+  tags: deploy
+  ignore_errors: true
 
 - name: Check running containers
   ansible.builtin.command:
@@ -174,6 +300,10 @@
     var: docker_ps.stdout_lines
   tags: deploy
 
+# -----------------------------------------------------------------------------
+# Systemd Service
+# -----------------------------------------------------------------------------
+
 - name: Create systemd service for Docker Compose
   ansible.builtin.copy:
     content: |
@@ -186,8 +316,8 @@
       Type=oneshot
       RemainAfterExit=yes
       WorkingDirectory={{ app_dir | default('/opt/cluo') }}
-      ExecStart=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.override.yml up -d
-      ExecStop=/usr/bin/docker compose -f docker-compose.yml -f docker-compose.override.yml down
+      ExecStart=/usr/bin/docker compose up -d
+      ExecStop=/usr/bin/docker compose down
       TimeoutStartSec=0
       User={{ app_user | default('cluo') }}
       Group={{ app_group | default(app_user | default('cluo')) }}
