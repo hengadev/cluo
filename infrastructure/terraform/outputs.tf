@@ -68,6 +68,34 @@ output "vault_storage_bucket" {
 }
 
 # -----------------------------------------------------------------------------
+# IAM Access Keys for Ansible/Application
+# -----------------------------------------------------------------------------
+
+output "staging_assets_iam_access_key" {
+  description = "IAM access key ID for staging assets S3 access"
+  value       = aws_iam_access_key.assets_staging_key.id
+  sensitive   = true
+}
+
+output "staging_assets_iam_secret_key" {
+  description = "IAM secret access key for staging assets S3 access"
+  value       = aws_iam_access_key.assets_staging_key.secret
+  sensitive   = true
+}
+
+output "production_assets_iam_access_key" {
+  description = "IAM access key ID for production assets S3 access"
+  value       = aws_iam_access_key.assets_production_key.id
+  sensitive   = true
+}
+
+output "production_assets_iam_secret_key" {
+  description = "IAM secret access key for production assets S3 access"
+  value       = aws_iam_access_key.assets_production_key.secret
+  sensitive   = true
+}
+
+# -----------------------------------------------------------------------------
 # SES Email
 # -----------------------------------------------------------------------------
 
