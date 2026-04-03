@@ -5,15 +5,6 @@
 # =============================================================================
 
 terraform {
-  # S3 backend for state management with locking
-  backend "s3" {
-    bucket         = "cluo-terraform-state"
-    key            = "terraform.tfstate"
-    region         = "eu-central-1"
-    encrypt        = true
-    use_lockfile   = true
-  }
-
   required_providers {
     # AWS provider for S3, SES, KMS, CloudFront, ACM
     aws = {
