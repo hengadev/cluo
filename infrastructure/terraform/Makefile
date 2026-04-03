@@ -115,6 +115,15 @@ output-json: ## Show Terraform outputs as JSON
 	@echo "$(BLUE)Terraform outputs (JSON):$(NC)"
 	@terraform output -json $(TF_ARGS)
 
+save-outputs: ## Save Terraform outputs to file for Ansible
+	@echo "$(BLUE)Saving Terraform outputs...$(NC)"
+	@terraform output -json > ../ansible/terraform-outputs.json
+	@echo "$(GREEN)✓ Outputs saved to ../ansible/terraform-outputs.json$(NC)"
+
+sync-inventory: save-outputs ## Update Ansible inventory from Terraform outputs
+	@echo "$(BLUE)Syncing Terraform outputs to Ansible inventory...$(NC)"
+	@../scripts/update-inventory.sh
+
 show: ## Show Terraform state
 	@echo "$(BLUE)Terraform state:$(NC)"
 	terraform show $(TF_ARGS)
