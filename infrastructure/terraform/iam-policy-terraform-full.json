@@ -64,6 +64,8 @@
         "iam:PutUserPolicy",
         "iam:DeleteUserPolicy",
         "iam:ListUserPolicies",
+        "iam:ListGroupsForUser",
+        "iam:RemoveUserFromGroup",
         "iam:TagUser",
         "iam:TagPolicy"
       ],
