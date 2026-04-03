@@ -154,7 +154,7 @@ services:
     environment:
       CLUO_ENVIRONMENT: production
       CLUO_SERVER_HOST: 0.0.0.0
-      CLUO_SERVER_PORT: 5000
+      CLUO_SERVER_PORT: 8080
       CLUO_DB_HOST: postgres_production
       CLUO_DB_PORT: 5432
       CLUO_DB_NAME: ${PRODUCTION_POSTGRES_DB:-cluo_production}
@@ -166,7 +166,7 @@ services:
       CLUO_LOG_LEVEL: info
       CLUO_LOG_STYLE: json
     ports:
-      - "5000:5000"
+      - "5000:8080"
     depends_on:
       postgres_production:
         condition: service_healthy
