@@ -2,7 +2,7 @@
 # Orchestrates Terraform (provisioning) and Ansible (configuration)
 # Usage: make <target>
 
-.PHONY: help provision configure setup teardown status clean
+.PHONY: help provision configure setup teardown status clean update-inventory
 
 # Default target
 .DEFAULT_GOAL := help
@@ -62,7 +62,10 @@ provision: ## Provision cloud resources (Terraform apply)
 	@$(MAKE) -C $(TERRAFORM_DIR) init
 	@$(MAKE) -C $(TERRAFORM_DIR) apply
 	@$(MAKE) -C $(TERRAFORM_DIR) save-outputs
+	@$(MAKE) update-inventory
 	@echo "$(GREEN)✓ Infrastructure provisioned$(NC)"
+	@echo ""
+	@echo "$(YELLOW)Next step: make configure${NC}"
 
 provision-plan: ## Preview infrastructure changes (Terraform plan)
 	@$(MAKE) -C $(TERRAFORM_DIR) init
@@ -75,6 +78,14 @@ terraform-%: ## Run any Terraform target (e.g., make terraform-plan)
 
 terraform-help: ## Show Terraform help
 	@$(MAKE) -C $(TERRAFORM_DIR) help
+
+# ============================================================================
+# INVENTORY MANAGEMENT
+# ============================================================================
+
+update-inventory: ## Update Ansible inventory from Terraform outputs
+	@echo "$(BLUE)Updating Ansible inventory from Terraform outputs...$(NC)"
+	@./scripts/update-inventory.sh
 
 # ============================================================================
 # ANSIBLE (CONFIGURATION)
