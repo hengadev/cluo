@@ -1,0 +1,149 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "TerraformStateManagement",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:ListBucket",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:PutPublicAccessBlock",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketLocation",
+        "s3:ListAllMyBuckets"
+      ],
+      "Resource": [
+        "arn:aws:s3:::cluo-terraform-state",
+        "arn:aws:s3:::cluo-terraform-state/*"
+      ]
+    },
+    {
+      "Sid": "S3BucketManagement",
+      "Effect": "Allow",
+      "Action": [
+        "s3:CreateBucket",
+        "s3:DeleteBucket",
+        "s3:ListBucket",
+        "s3:GetBucketVersioning",
+        "s3:PutBucketVersioning",
+        "s3:PutEncryptionConfiguration",
+        "s3:PutBucketPolicy",
+        "s3:PutPublicAccessBlock",
+        "s3:DeletePublicAccessBlock",
+        "s3:PutBucketAcl",
+        "s3:PutBucketOwnershipControls",
+        "s3:GetBucketPolicy",
+        "s3:GetBucketAcl",
+        "s3:GetBucketLocation",
+        "s3:ListAllMyBuckets",
+        "s3:PutLifecycleConfiguration"
+      ],
+      "Resource": [
+        "arn:aws:s3:::cluo-*",
+        "arn:aws:s3:::cluo-*/*"
+      ]
+    },
+    {
+      "Sid": "CloudFrontManagement",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:CreateDistribution",
+        "cloudfront:DeleteDistribution",
+        "cloudfront:UpdateDistribution",
+        "cloudfront:GetDistribution",
+        "cloudfront:ListDistributions",
+        "cloudfront:CreateOriginAccessControl",
+        "cloudfront:DeleteOriginAccessControl",
+        "cloudfront:GetOriginAccessControl",
+        "cloudfront:ListOriginAccessControls"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ACMCertificateManagement",
+      "Effect": "Allow",
+      "Action": [
+        "acm:RequestCertificate",
+        "acm:DeleteCertificate",
+        "acm:DescribeCertificate",
+        "acm:ListCertificates",
+        "acm:GetCertificate"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "KMSManagement",
+      "Effect": "Allow",
+      "Action": [
+        "kms:CreateKey",
+        "kms:DeleteAlias",
+        "kms:DescribeKey",
+        "kms:EnableKeyRotation",
+        "kms:GetKeyPolicy",
+        "kms:PutKeyPolicy",
+        "kms:CreateAlias",
+        "kms:ListAliases"
+      ],
+      "Resource": [
+        "arn:aws:kms:*:*:key/*",
+        "arn:aws:kms:*.*:alias/*"
+      ]
+    },
+    {
+      "Sid": "SESManagement",
+      "Effect": "Allow",
+      "Action": [
+        "ses:VerifyDomainIdentity",
+        "ses:VerifyDomainDkim",
+        "ses:DeleteIdentity",
+        "ses:GetIdentityVerificationAttributes",
+        "ses:DescribeActiveReceiptRuleSet",
+        "ses:SetIdentityMailFromDomain",
+        "ses:GetIdentityMailFromDomain",
+        "ses:DeleteIdentityMailFromDomain"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IAMManagementForTerraform",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "iam:GetUser",
+        "iam:ListUsers",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys",
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:GetPolicy",
+        "iam:ListPolicies",
+        "iam:AttachUserPolicy",
+        "iam:DetachUserPolicy",
+        "iam:ListAttachedUserPolicies",
+        "iam:PutUserPolicy",
+        "iam:DeleteUserPolicy",
+        "iam:ListUserPolicies"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:user/cluo-*",
+        "arn:aws:iam::*:policy/cluo-*"
+      ]
+    },
+    {
+      "Sid": "TagManagement",
+      "Effect": "Allow",
+      "Action": [
+        "tag:GetResources",
+        "tag:TagResources"
+      ],
+      "Resource": "*"
+    }
+  ]
+}

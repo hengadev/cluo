@@ -1,0 +1,76 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "S3FullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "s3:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "CloudFrontFullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "cloudfront:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "ACMFullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "acm:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SESFullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "ses:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "KMSFullAccess",
+      "Effect": "Allow",
+      "Action": [
+        "kms:*"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "IAMFullAccessForCluo",
+      "Effect": "Allow",
+      "Action": [
+        "iam:CreateUser",
+        "iam:DeleteUser",
+        "iam:GetUser",
+        "iam:ListUsers",
+        "iam:CreateAccessKey",
+        "iam:DeleteAccessKey",
+        "iam:ListAccessKeys",
+        "iam:CreatePolicy",
+        "iam:DeletePolicy",
+        "iam:GetPolicy",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
+        "iam:ListPolicies",
+        "iam:AttachUserPolicy",
+        "iam:DetachUserPolicy",
+        "iam:ListAttachedUserPolicies",
+        "iam:PutUserPolicy",
+        "iam:DeleteUserPolicy",
+        "iam:ListUserPolicies",
+        "iam:TagUser",
+        "iam:TagPolicy"
+      ],
+      "Resource": [
+        "arn:aws:iam::*:user/cluo-*",
+        "arn:aws:iam::*:policy/cluo-*"
+      ]
+    }
+  ]
+}
