@@ -1,19 +1,57 @@
 # CLUO Infrastructure
 
-This directory contains all infrastructure-as-code and configuration for deploying CLUO.
+This directory contains all infrastructure-as-code and configuration for deploying CLUO with a **single VPS multi-environment architecture**.
+
+## Architecture
+
+**Single Hetzner VPS** hosting both staging and production environments:
+
+| Environment | Services | Ports |
+|-------------|----------|-------|
+| **Staging** | API, Web, Mobile | 8080, 8100, 8200 |
+| **Production** | API, Web, Mobile | 5000, 3100, 3200 |
+
+Each environment has:
+- Separate PostgreSQL database (`cluo_staging`, `cluo_production`)
+- Separate Redis instance
+- Separate S3 buckets for assets
+- Hostname-based routing via Caddy reverse proxy
 
 ## Structure
 
 ```
 infrastructure/
 ├── terraform/     # Cloud resource provisioning
-│   ├── modules/   # Reusable Terraform modules
-│   └── README.md  # Terraform documentation
+│   ├── main.tf           # Core Terraform configuration
+│   ├── variables.tf      # Input variables
+│   ├── outputs.tf        # Output values for Ansible
+│   ├── hetzner.tf        # Hetzner VPS resources
+│   ├── cloudflare.tf     # DNS records
+│   ├── s3.tf             # S3 buckets (assets, backups, vault)
+│   ├── backups.tf        # IAM users for backups
+│   ├── cloud-init.yml.tftpl  # Server initialization template
+│   └── terraform.tfvars  # Your configuration values
 │
-└── ansible/       # Server configuration and deployment
-    ├── roles/     # Ansible roles for different tasks
-    ├── group_vars/ # Variables for groups of hosts
-    └── README.md  # Ansible documentation
+├── ansible/       # Server configuration and deployment
+│   ├── site.yml            # Main playbook
+│   ├── inventory.yml       # Server inventory (not in git)
+│   ├── inventory.yml.example
+│   ├── roles/
+│   │   ├── system_hardening/
+│   │   ├── ssh_hardening/
+│   │   ├── firewall/
+│   │   ├── fail2ban/
+│   │   ├── docker/
+│   │   ├── app_user/
+│   │   ├── app_deploy/     # Docker Compose deployment
+│   │   │   └── files/
+│   │   │       └── docker-compose.yml  # Multi-environment setup
+│   │   ├── monitoring/
+│   │   ├── automatic_updates/
+│   │   └── backup/
+│   └── README.md
+│
+└── Makefile       # Unified commands for Terraform + Ansible
 ```
 
 ## Quick Start
@@ -21,18 +59,23 @@ infrastructure/
 ### 1. Provision Infrastructure (Terraform)
 
 ```bash
-cd infrastructure/terraform
+cd infrastructure
 
-# Configure
+# Configure (if not done already)
+cd terraform
 cp terraform.tfvars.example terraform.tfvars
-# Edit with your tokens
+# Edit terraform.tfvars with your tokens
 
 # Provision
-terraform init
-terraform apply
+make init
+make apply
 
-# Save outputs
-terraform output -json > ../ansible/terraform-outputs.json
+# Get server IP and IAM credentials
+terraform output server_ipv4
+terraform output staging_assets_iam_access_key
+terraform output staging_assets_iam_secret_key
+terraform output production_assets_iam_access_key
+terraform output production_assets_iam_secret_key
 ```
 
 ### 2. Configure Server (Ansible)
@@ -40,20 +83,13 @@ terraform output -json > ../ansible/terraform-outputs.json
 ```bash
 cd infrastructure/ansible
 
-# Configure inventory
+# Configure inventory with Terraform outputs
 cp inventory.yml.example inventory.yml
-# Add server IP from Terraform output
-
-# Configure variables
-cp group_vars/all.yml.example group_vars/all.yml
-cp group_vars/vault.yml.example group_vars/vault.yml
-
-# Add secrets and encrypt
-nano group_vars/vault.yml
-ansible-vault encrypt group_vars/vault.yml
+nano inventory.yml  # Add server IP, credentials from Terraform
 
 # Deploy
-ansible-playbook -i inventory.yml site.yml --ask-vault-pass
+cd ..
+make configure
 ```
 
 ## Workflow
@@ -61,60 +97,80 @@ ansible-playbook -i inventory.yml site.yml --ask-vault-pass
 ```
 ┌─────────────────┐      ┌─────────────────┐      ┌─────────────────┐
 │   Hetzner VPS   │──────│   Cloudflare    │──────│      AWS S3     │
-│   (Terraform)   │      │   (Terraform)   │      │   (Terraform)   │
+│   Single Server │     │   DNS Routing   │      │   Assets/Backups│
+│   Staging+Prod  │      │   (Terraform)   │      │   (Terraform)   │
 └────────┬────────┘      └─────────────────┘      └─────────────────┘
          │
-         │ Ansible
+         │ Ansible Configuration
          ▼
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Server Configuration                        │
-│  ├─ System Hardening  │  ├─ SSH Hardening  │  ├─ Firewall      │
-│  ├─ Docker + Compose  │  ├─ App Deploy     │  ├─ Fail2ban      │
-│  ├─ Automatic Updates │  ├─ Monitoring     │  └─ Backups       │
+│                  Single VPS Configuration                       │
+│  ┌─────────────────┐  ┌─────────────────┐                      │
+│  │ Staging Env     │  │ Production Env  │                      │
+│  │ Ports: 8xxx     │  │ Ports: 3xxx/5xxx│                      │
+│  │ - postgres_stg  │  │ - postgres_prod │                      │
+│  │ - redis_stg     │  │ - redis_prod    │                      │
+│  │ - api/web/mobile│  │ - api/web/mobile│                      │
+│  └─────────────────┘  └─────────────────┘                      │
+│                                                                  │
+│  Caddy Reverse Proxy (hostname-based routing)                   │
+│  System Hardening, Firewall, Fail2ban, Docker                   │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
-## Security Checklist
+## Domain Routing
 
-### Terraform
-- [ ] S3 bucket is private
-- [ ] IAM user has minimal permissions
-- [ ] Cloudflare API token has least privilege
-- [ ] Terraform state is secured (backend configured)
+All traffic flows through Cloudflare to the single VPS:
 
-### Ansible
-- [ ] SSH keys only (no passwords)
-- [ ] Firewall configured
-- [ ] Fail2ban enabled
-- [ ] Secrets encrypted with ansible-vault
-- [ ] Automatic updates enabled
-- [ ] Backups configured
-
-### Operational
-- [ ] Monitoring enabled (cAdvisor/Node Exporter)
-- [ ] Logs configured and rotating
-- [ ] Backup script tested
-- [ ] Disaster recovery plan documented
+| Hostname | Route | Environment |
+|----------|-------|-------------|
+| `staging-api.clientvault.fr` | → port 8080 | Staging API |
+| `staging.clientvault.fr` | → port 8100 | Staging Web |
+| `staging-mobile.clientvault.fr` | → port 8200 | Staging Mobile |
+| `api.clientvault.fr` | → port 5000 | Production API |
+| `clientvault.fr` | → port 3100 | Production Web |
+| `mobile.clientvault.fr` | → port 3200 | Production Mobile |
 
 ## Cost Summary
 
 | Service | Est. Monthly Cost |
 |---------|-------------------|
-| Hetzner CPX11 | ~€4 |
-| AWS S3 (10GB) | ~€0.25 |
+| Hetzner CPX22 (3 vCPU, 8GB RAM) | ~€11 |
+| AWS S3 (assets + backups) | ~€1-2 |
 | Cloudflare Free | €0 |
-| **Total** | **~€4.25/month** |
+| **Total** | **~€12-13/month** |
+
+## Security Checklist
+
+### Terraform
+- [ ] S3 buckets configured with proper CORS
+- [ ] IAM users have minimal scoped permissions
+- [ ] Cloudflare API token has least privilege
+- [ ] Firewall restricts to Cloudflare IPs only
+
+### Ansible
+- [ ] SSH keys only (no passwords)
+- [ ] Firewall configured (UFW)
+- [ ] Fail2ban enabled
+- [ ] Automatic updates enabled
+- [ ] Caddy reverse proxy configured
+
+### Operational
+- [ ] Database backups configured
+- [ ] Log rotation configured
+- [ ] Container health checks enabled
+- [ ] Systemd service for auto-start
 
 ## Maintenance
 
 ### Daily
-- Monitor backup logs
-- Check application status
+- Monitor application logs
+- Check container health
 
 ### Weekly
 - Review security logs (Fail2ban)
-- Check disk space
-- Review Docker container health
+- Check disk space usage
+- Review backup status
 
 ### Monthly
 - Update Docker images
@@ -122,15 +178,65 @@ ansible-playbook -i inventory.yml site.yml --ask-vault-pass
 - Test backup restoration
 - Review AWS S3 costs
 
-### Quarterly
-- Security audit
-- Dependency updates
-- Performance review
-- Disaster recovery test
+## Useful Commands
+
+### Using Make (Recommended)
+
+```bash
+cd infrastructure
+
+make help              # Show all commands
+make setup             # Full setup: Terraform + Ansible
+make provision         # Run Terraform apply
+make configure         # Run Ansible playbook
+make status            # Check infrastructure status
+make logs              # View application logs
+make restart           # Restart services
+make ping              # Test server connectivity
+```
+
+### Terraform
+
+```bash
+cd terraform
+make init              # Initialize
+make plan              # Preview changes
+make apply             # Apply changes
+make destroy           # Destroy resources
+terraform output       # Show outputs
+```
+
+### Ansible
+
+```bash
+cd ansible
+ansible-playbook -i inventory.yml site.yml  # Full deployment
+ansible-playbook -i inventory.yml site.yml --tags app,deploy  # Specific roles
+ansible all -i inventory.yml -m ping       # Test connection
+```
+
+### Server Operations
+
+```bash
+# SSH to server
+ssh root@<server-ip>
+
+# Check all containers
+cd /opt/cluo && docker compose ps
+
+# View logs
+docker compose logs -f
+
+# Restart services
+docker compose restart
+
+# Restart specific environment
+docker compose restart api_staging web_staging mobile_staging
+```
 
 ## Troubleshooting
 
-### Terraform Issues
+### Terraform State Issues
 ```bash
 # State locked
 terraform force-unlock <LOCK_ID>
@@ -139,41 +245,25 @@ terraform force-unlock <LOCK_ID>
 terraform init -migrate-state
 ```
 
-### Ansible Issues
+### Ansible Connection Issues
 ```bash
 # Debug mode
 ansible-playbook -i inventory.yml site.yml -vvv
 
-# Skip specific host
-ansible-playbook -i inventory.yml site.yml --limit 'all:!problem-host'
+# Test SSH connection
+ssh root@<server-ip> -i ~/.ssh/cluo
 ```
 
-## Useful Commands
-
-### Terraform
+### Container Issues
 ```bash
-terraform plan              # Preview changes
-terraform apply             # Apply changes
-terraform destroy           # Destroy resources
-terraform output            # Show outputs
-terraform refresh           # Refresh state
-```
+# Check what's using a port
+sudo lsof -i :8080
 
-### Ansible
-```bash
-ansible all -i inventory.yml -m ping                    # Test connection
-ansible all -i inventory.yml -m setup                   # Gather facts
-ansible-playbook site.yml --check                       # Dry run
-ansible-playbook site.yml --tags docker                 # Run specific role
-```
+# View container logs
+docker compose logs api_staging
 
-### Server
-```bash
-ssh cluo@server                           # SSH to server
-docker compose ps                         # Check containers
-docker compose logs -f                    # View logs
-sudo ufw status                           # Check firewall
-sudo fail2ban-client status               # Check Fail2ban
+# Rebuild containers
+docker compose up -d --build
 ```
 
 ## Documentation
