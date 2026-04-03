@@ -35,7 +35,7 @@ output "production_urls" {
   value = {
     api    = "https://api.${var.domain_name}"
     web    = "https://${var.domain_name}"
-    www    = "https://www.${var.domain_name}"
+    www    = "https://www.${var.domain_name} (managed outside Terraform)"
     mobile = "https://mobile.${var.domain_name}"
     assets = "https://assets.${var.domain_name}"
   }
@@ -60,11 +60,6 @@ output "backup_buckets" {
     production = aws_s3_bucket.backups_production.id
   }
   description = "S3 buckets for PostgreSQL backups"
-}
-
-output "terraform_state_bucket" {
-  description = "S3 bucket for Terraform state"
-  value       = aws_s3_bucket.terraform_state.id
 }
 
 output "vault_storage_bucket" {
@@ -117,15 +112,16 @@ output "vault_secret_access_key" {
 # CloudFront CDN
 # -----------------------------------------------------------------------------
 
-output "cloudfront_distribution_id" {
-  description = "CloudFront distribution ID for production assets"
-  value       = aws_cloudfront_distribution.assets.id
-}
-
-output "cloudfront_domain_name" {
-  description = "CloudFront distribution domain name"
-  value       = aws_cloudfront_distribution.assets.domain_name
-}
+# CloudFront outputs - commented out as CloudFront is disabled for now
+# output "cloudfront_distribution_id" {
+#   description = "CloudFront distribution ID for production assets"
+#   value       = aws_cloudfront_distribution.assets.id
+# }
+#
+# output "cloudfront_domain_name" {
+#   description = "CloudFront distribution domain name"
+#   value       = aws_cloudfront_distribution.assets.domain_name
+# }
 
 # -----------------------------------------------------------------------------
 # Post-Provisioning Instructions
