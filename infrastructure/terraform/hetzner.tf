@@ -26,7 +26,7 @@ resource "hcloud_server" "main" {
 
   labels = {
     project     = var.project_name
-    environments = "staging,production"
+    environment = "multi"  # staging+production on single VPS
     managed_by  = "terraform"
   }
 
@@ -150,7 +150,7 @@ resource "hcloud_firewall" "main" {
 }
 
 # Attach firewall to server
-resource "hcloud_server_firewall" "main" {
-  server = hcloud_server.main.id
-  firewall = hcloud_firewall.main.id
+resource "hcloud_firewall_attachment" "main" {
+  firewall_id = hcloud_firewall.main.id
+  server_ids  = [hcloud_server.main.id]
 }
