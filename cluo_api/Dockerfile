@@ -29,5 +29,5 @@ COPY --from=builder /app/data ./data/
 
 USER runner
 
-EXPOSE 3500 3501
+EXPOSE 8080
 CMD ["./cluo"]
