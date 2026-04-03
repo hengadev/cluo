@@ -1,65 +1,130 @@
-# Copy this file to inventory.yml and update with your server details
-# DO NOT commit inventory.yml with real IPs to git
+# =============================================================================
+# Cluo Infrastructure Inventory Example
+# Single VPS: Staging + Production on one server
+# =============================================================================
+#
+# Usage:
+#   1. Copy this file to inventory.yml:
+#      cp inventory.yml.example inventory.yml
+#   2. Fill in the values from your Terraform outputs
+#   3. DO NOT commit inventory.yml to git (contains sensitive data)
+#
+# Getting Terraform outputs:
+#   cd infrastructure/terraform
+#   terraform output -json > outputs.json
+#
+# =============================================================================
 
 all:
   vars:
-    # Application settings
+    # --------------------------------------------------------------------------
+    # Application Settings
+    # --------------------------------------------------------------------------
     app_name: cluo
     app_user: cluo
     app_group: cluo
     app_dir: /opt/cluo
 
-    # Docker settings
+    # --------------------------------------------------------------------------
+    # Docker Settings
+    # --------------------------------------------------------------------------
     docker_compose_version: "2.24.0"
+    docker_registry: "hengadev"  # Or your Docker registry
 
-    # Domain settings
-    domain: yourdomain.com
-    api_domain: api.yourdomain.com
-    web_domain: app.yourdomain.com
-    mobile_domain: mobile.yourdomain.com
+    # --------------------------------------------------------------------------
+    # Domain Settings (from Terraform)
+    # --------------------------------------------------------------------------
+    domain: clientvault.fr
 
-    # AWS S3 settings (from Terraform outputs)
-    s3_bucket: cluo-media-dev
-    s3_region: eu-central-1
+    # Staging subdomains
+    staging_api_domain: staging-api.clientvault.fr
+    staging_web_domain: staging.clientvault.fr
+    staging_mobile_domain: staging-mobile.clientvault.fr
 
-    # Database settings
+    # Production subdomains
+    production_api_domain: api.clientvault.fr
+    production_web_domain: clientvault.fr
+    production_mobile_domain: mobile.clientvault.fr
+
+    # --------------------------------------------------------------------------
+    # Database Settings
+    # --------------------------------------------------------------------------
     postgres_version: "16"
-    postgres_password: ""  # Use vault or ansible-vault
-    postgres_db: cluo
     postgres_user: cluo
 
-    # Redis settings
-    redis_password: ""  # Use vault or ansible-vault
+    # Staging database
+    staging_postgres_db: cluo_staging
+    staging_postgres_password: "your_staging_db_password_here"  # From terraform.tfvars
 
-    # Security settings
+    # Production database
+    production_postgres_db: cluo_production
+    production_postgres_password: "your_production_db_password_here"  # From terraform.tfvars
+
+    # --------------------------------------------------------------------------
+    # Redis Settings
+    # --------------------------------------------------------------------------
+    redis_password: ""  # Set a secure password if needed
+
+    # --------------------------------------------------------------------------
+    # AWS S3 Settings (from Terraform outputs)
+    # --------------------------------------------------------------------------
+    aws_region: eu-central-1
+
+    # Staging S3
+    staging_assets_bucket: cluo-assets-staging
+    staging_backups_bucket: cluo-postgres-backups-staging
+    staging_s3_access_key_id: ""  # From Terraform output: staging_assets_iam_access_key
+    staging_s3_secret_access_key: ""  # From Terraform output: staging_assets_iam_secret_key
+
+    # Production S3
+    production_assets_bucket: cluo-assets-production
+    production_backups_bucket: cluo-postgres-backups-production
+    production_s3_access_key_id: ""  # From Terraform output: production_assets_iam_access_key
+    production_s3_secret_access_key: ""  # From Terraform output: production_assets_iam_secret_key
+
+    # Vault S3
+    vault_bucket: cluo-vault-storage
+
+    # --------------------------------------------------------------------------
+    # SSH Keys for App User
+    # --------------------------------------------------------------------------
+    # Add your public key(s) here to enable SSH access as the 'cluo' user
+    # Get your public key with: cat ~/.ssh/cluo.pub
+    ssh_public_keys: |
+      ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLE your_email@example.com
+
+    # --------------------------------------------------------------------------
+    # Security Settings
+    # --------------------------------------------------------------------------
     enable_fail2ban: true
     enable_automatic_updates: true
     ssh_port: 22
     allowed_ssh_users: []
 
+    # --------------------------------------------------------------------------
     # Monitoring
-    enable_monitoring: true
-    enable_loki: true
+    # --------------------------------------------------------------------------
+    enable_monitoring: false
+    enable_loki: false
 
-    # Backup settings
-    enable_backups: true
+    # --------------------------------------------------------------------------
+    # Backup Settings
+    # --------------------------------------------------------------------------
+    enable_backups: false  # Set to true after configuring IAM credentials
     backup_retention_days: 7
+
+    # --------------------------------------------------------------------------
+    # Email for notifications
+    # --------------------------------------------------------------------------
+    admin_email: admin@clientvault.fr
+    contact_email: admin@clientvault.fr
 
   children:
     webservers:
       hosts:
-        cluo-prod:
-          ansible_host: YOUR_SERVER_IP
+        cluo-vps:
+          # Get this from Terraform output: server_ipv4
+          ansible_host: "your_server_ip_here"  # From Terraform output
           ansible_user: root
-          # If using SSH key:
-          # ansible_private_key_file: ~/.ssh/your_key
-
-    # For multiple environments
-    # staging:
-    #   hosts:
-    #     cluo-staging:
-    #       ansible_host: STAGING_IP
-    # production:
-    #   hosts:
-    #     cluo-prod:
-    #       ansible_host: PRODUCTION_IP
+          # Path to your SSH key (the one configured in Hetzner Cloud: terraform-cluo)
+          ansible_private_key_file: ~/.ssh/cluo  # Or your SSH key path
