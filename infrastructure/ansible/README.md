@@ -1,12 +1,32 @@
 # CLUO Infrastructure - Ansible
 
-This Ansible playbook configures and secures a VPS for the CLUO application deployment.
+This Ansible playbook configures and secures a single VPS that hosts both **staging** and **production** environments for the CLUO application.
+
+## Architecture
+
+**Single VPS Multi-Environment Setup:**
+- **Staging Environment** (Ports 8000-8999)
+  - API: `staging-api.clientvault.fr` → port 8080
+  - Web: `staging.clientvault.fr` → port 8100
+  - Mobile: `staging-mobile.clientvault.fr` → port 8200
+
+- **Production Environment** (Ports 3000-3999, 5000-5999)
+  - API: `api.clientvault.fr` → port 5000
+  - Web: `clientvault.fr` → port 3100
+  - Mobile: `mobile.clientvault.fr` → port 3200
+
+Each environment has:
+- Separate PostgreSQL database (`cluo_staging`, `cluo_production`)
+- Separate Redis instance
+- Separate S3 buckets for assets
+- Separate environment files (`.env.staging`, `.env.production`)
 
 ## Prerequisites
 
 - Ansible >= 2.14 installed on your local machine
 - SSH access to the target VPS
-- VPS already provisioned (via Terraform or manually)
+- VPS already provisioned via Terraform
+- Terraform outputs available for IAM credentials
 
 ## Quick Start
 
@@ -24,9 +44,24 @@ sudo apt install ansible -y
 pip install ansible
 ```
 
-### 2. Configure Inventory
+### 2. Get Terraform Outputs
+
+First, get the required values from your Terraform deployment:
 
 ```bash
+cd infrastructure/terraform
+terraform output server_ipv4          # Server IP
+terraform output staging_assets_iam_access_key
+terraform output staging_assets_iam_secret_key
+terraform output production_assets_iam_access_key
+terraform output production_assets_iam_secret_key
+```
+
+### 3. Configure Inventory
+
+```bash
+cd infrastructure/ansible
+
 # Copy the example inventory
 cp inventory.yml.example inventory.yml
 
@@ -34,11 +69,24 @@ cp inventory.yml.example inventory.yml
 nano inventory.yml
 ```
 
-### 3. Run the Playbook
+**Required values in inventory.yml:**
+- `ansible_host`: Server IP from Terraform
+- `ansible_private_key_file`: Path to your SSH key (~/.ssh/cluo)
+- `staging_postgres_password`: From terraform.tfvars
+- `production_postgres_password`: From terraform.tfvars
+- `staging_s3_access_key_id`: From Terraform output
+- `staging_s3_secret_access_key`: From Terraform output
+- `production_s3_access_key_id`: From Terraform output
+- `production_s3_secret_access_key`: From Terraform output
+
+### 4. Run the Playbook
 
 ```bash
 # Full deployment
 ansible-playbook -i inventory.yml site.yml
+
+# Using Make (from infrastructure directory)
+make configure
 
 # Dry run (check mode)
 ansible-playbook -i inventory.yml site.yml --check
@@ -57,25 +105,68 @@ ansible-playbook -i inventory.yml site.yml --tags security,docker
 | `fail2ban` | Intrusion prevention | `security`, `fail2ban` |
 | `docker` | Docker and Docker Compose installation | `docker` |
 | `app_user` | Application user and directories | `app`, `user` |
-| `app_deploy` | Application deployment | `app`, `deploy` |
+| `app_deploy` | Multi-environment application deployment | `app`, `deploy` |
 | `monitoring` | cAdvisor and Node Exporter | `monitoring` |
 | `automatic_updates` | Unattended security updates | `updates` |
 | `backup` | Automated backups | `backup` |
 
-## Security Features Implemented
+## Docker Compose Services
+
+The deployment includes **12 containers** (6 per environment):
+
+### Staging Services
+- `postgres_staging`: PostgreSQL 16 for staging
+- `redis_staging`: Redis 7 for staging
+- `api_staging`: API backend (port 8080)
+- `web_staging`: Web frontend (port 8100)
+- `mobile_staging`: Mobile frontend (port 8200)
+
+### Production Services
+- `postgres_production`: PostgreSQL 16 for production
+- `redis_production`: Redis 7 for production
+- `api_production`: API backend (port 5000)
+- `web_production`: Web frontend (port 3100)
+- `mobile_production`: Mobile frontend (port 3200)
+
+## Reverse Proxy (Caddy)
+
+Caddy is configured to route traffic based on hostname:
+
+```
+staging-api.clientvault.fr    → localhost:8080 (staging API)
+staging.clientvault.fr        → localhost:8100 (staging Web)
+staging-mobile.clientvault.fr → localhost:8200 (staging Mobile)
+
+api.clientvault.fr    → localhost:5000 (production API)
+clientvault.fr        → localhost:3100 (production Web)
+mobile.clientvault.fr → localhost:3200 (production Mobile)
+```
+
+## Environment Files
+
+Two environment files are created:
+
+**.env.staging:**
+- Database: `cluo_staging`
+- API URL: `https://staging-api.clientvault.fr`
+- Assets bucket: `cluo-assets-staging`
+
+**.env.production:**
+- Database: `cluo_production`
+- API URL: `https://api.clientvault.fr`
+- Assets bucket: `cluo-assets-production`
+
+## Security Features
 
 ### System Hardening
 - Kernel parameters tuned for security
 - Strong password policies
 - Secure file permissions
 - Log rotation configured
-- Audit logging enabled
 
 ### SSH Hardening
-- Key-based authentication only (no passwords)
-- Restricted cipher suites and algorithms
-- Login banners
-- Session limits
+- Key-based authentication only
+- Restricted cipher suites
 - Root login disabled (prohibit-password)
 
 ### Firewall (UFW)
@@ -83,49 +174,11 @@ ansible-playbook -i inventory.yml site.yml --tags security,docker
 - SSH rate limiting
 - HTTP/HTTPS allowed
 - Application ports restricted to localhost
-- Cloudflare IP support
 
 ### Fail2ban
 - SSH brute-force protection
-- Nginx HTTP auth protection
-- Recidive (repeat offender) handling
 - Custom ban times
-
-### Automatic Updates
-- Unattended security updates
-- Automatic package updates
-- Update notifications
-- Docker packages excluded (managed separately)
-
-## Secrets Management
-
-For production, use Ansible Vault to encrypt sensitive data:
-
-```bash
-# Encrypt a string
-ansible-vault encrypt_string 'my_secret_password' --name 'postgres_password'
-
-# Create encrypted vault file
-ansible-vault create group_vars/all/vault.yml
-
-# Edit encrypted vault
-ansible-vault edit group_vars/all/vault.yml
-
-# Run playbook with vault
-ansible-playbook -i inventory.yml site.yml --ask-vault-pass
-```
-
-### Example vault.yml
-
-```yaml
-# Encrypted with: ansible-vault encrypt group_vars/all/vault.yml
-postgres_password: "your_secure_password_here"
-redis_password: "your_redis_password_here"
-jwt_secret: "your_jwt_secret_here"
-session_secret: "your_session_secret_here"
-aws_access_key_id: "your_aws_access_key"
-aws_secret_access_key: "your_aws_secret_key"
-```
+- Recidive handling
 
 ## Inventory Variables
 
@@ -135,32 +188,75 @@ aws_secret_access_key: "your_aws_secret_key"
 | `app_user` | Application user | `cluo` |
 | `app_dir` | Application directory | `/opt/cluo` |
 | `domain` | Root domain | - |
-| `api_domain` | API subdomain | `api.yourdomain.com` |
-| `web_domain` | Web subdomain | `app.yourdomain.com` |
-| `mobile_domain` | Mobile subdomain | `mobile.yourdomain.com` |
-| `ssh_port` | SSH port | `22` |
-| `enable_fail2ban` | Enable Fail2ban | `true` |
-| `enable_monitoring` | Enable monitoring | `false` |
-| `enable_automatic_updates` | Enable auto updates | `true` |
-| `enable_backups` | Enable backups | `false` |
+| `staging_api_domain` | Staging API subdomain | `staging-api.domain` |
+| `staging_web_domain` | Staging web subdomain | `staging.domain` |
+| `staging_mobile_domain` | Staging mobile subdomain | `staging-mobile.domain` |
+| `production_api_domain` | Production API subdomain | `api.domain` |
+| `production_web_domain` | Production web subdomain | `domain` |
+| `production_mobile_domain` | Production mobile subdomain | `mobile.domain` |
+| `staging_postgres_db` | Staging database name | `cluo_staging` |
+| `production_postgres_db` | Production database name | `cluo_production` |
+| `staging_assets_bucket` | Staging S3 bucket | `cluo-assets-staging` |
+| `production_assets_bucket` | Production S3 bucket | `cluo-assets-production` |
 
 ## Post-Deployment Checklist
 
 - [ ] Verify SSH access with key only
 - [ ] Check firewall status: `sudo ufw status`
 - [ ] Verify Fail2ban: `sudo fail2ban-client status`
-- [ ] Check Docker containers: `docker compose ps`
-- [ ] Test application endpoints
-- [ ] Verify backups: `ls -lh /opt/cluo/backups/`
-- [ ] Check monitoring: `curl http://localhost:8081` (cAdvisor)
+- [ ] Check all Docker containers: `docker compose ps`
+- [ ] Test staging endpoints
+- [ ] Test production endpoints
+- [ ] Verify Caddy is routing correctly
+- [ ] Check S3 connectivity
 
 ## Maintenance
+
+### View All Containers
+
+```bash
+# SSH into server
+ssh root@your-server-ip
+
+# Check containers
+cd /opt/cluo
+docker compose ps
+```
+
+### View Logs
+
+```bash
+# All logs
+docker compose logs -f
+
+# Staging API logs
+docker compose logs -f api_staging
+
+# Production API logs
+docker compose logs -f api_production
+
+# Caddy logs
+sudo journalctl -u caddy -f
+```
+
+### Restart Services
+
+```bash
+# Restart all services
+docker compose restart
+
+# Restart staging only
+docker compose restart api_staging web_staging mobile_staging
+
+# Restart production only
+docker compose restart api_production web_production mobile_production
+```
 
 ### Update Application
 
 ```bash
 # SSH into server
-ssh cluo@your-server-ip
+ssh root@your-server-ip
 
 # Pull latest changes
 cd /opt/cluo
@@ -170,54 +266,45 @@ git pull
 docker compose up -d --build
 ```
 
-### View Logs
-
-```bash
-# All logs
-docker compose logs -f
-
-# Specific service
-docker compose logs -f api
-
-# System logs
-sudo journalctl -u cluo -f
-```
-
-### Restore from Backup
-
-```bash
-cd /opt/cluo
-./restore.sh backups/postgres_20240101_020000.sql.gz
-```
-
 ## Troubleshooting
 
-### SSH Access Issues
+### Port Conflicts
 
-If you get locked out of SSH, you can use the Hetzner console:
-
-1. Log in to Hetzner Cloud Console
-2. Use VNC console to access the server
-3. Check SSH logs: `sudo journalctl -u sshd`
-
-### Docker Issues
-
+If you get port conflicts:
 ```bash
-# Check Docker status
-sudo systemctl status docker
+# Check what's using the port
+sudo lsof -i :8080
 
-# View Docker logs
-sudo journalctl -u docker -n 50
-
-# Restart Docker
-sudo systemctl restart docker
+# Kill the process if needed
+sudo kill -9 <PID>
 ```
 
-### Rollback Changes
+### Database Connection Issues
 
 ```bash
-# Re-run with specific tags
-ansible-playbook -i inventory.yml site.yml --tags docker
+# Check PostgreSQL is running
+docker compose ps postgres_staging
+docker compose ps postgres_production
+
+# View database logs
+docker compose logs postgres_staging
+docker compose logs postgres_production
+```
+
+### Caddy Routing Issues
+
+```bash
+# Check Caddy status
+sudo systemctl status caddy
+
+# View Caddy logs
+sudo journalctl -u caddy -n 50
+
+# Validate Caddyfile
+sudo caddy validate --config /etc/caddy/Caddyfile
+
+# Reload Caddy
+sudo systemctl reload caddy
 ```
 
 ## Development
@@ -228,24 +315,18 @@ ansible-playbook -i inventory.yml site.yml --tags docker
 # Check mode (no changes made)
 ansible-playbook -i inventory.yml site.yml --check --diff
 
-# Limit to specific host
-ansible-playbook -i inventory.yml site.yml --limit cluo-prod
-
 # Run with specific tags
-ansible-playbook -i inventory.yml site.yml --tags security
+ansible-playbook -i inventory.yml site.yml --tags app,deploy
+
+# Limit to specific host
+ansible-playbook -i inventory.yml site.yml --limit cluo-vps
 ```
-
-### Adding New Roles
-
-1. Create role directory: `ansible-galaxy init roles/new_role`
-2. Add tasks to `roles/new_role/tasks/main.yml`
-3. Reference in `site.yml`
 
 ## Security Notes
 
-1. **Never commit** `inventory.yml` with real IPs
+1. **Never commit** `inventory.yml` with real IPs or credentials
 2. **Use Ansible Vault** for secrets in production
 3. **Rotate credentials** regularly
 4. **Keep Ansible updated** for security patches
-5. **Review logs** for suspicious activity
-6. **Test in staging** before production changes
+5. **Test in staging** before production changes
+6. **Monitor logs** for suspicious activity
