@@ -60,14 +60,8 @@ resource "cloudflare_dns_record" "production_web" {
   ttl     = 1
 }
 
-resource "cloudflare_dns_record" "production_www" {
-  zone_id = var.zone_id
-  name    = "www"
-  type    = "CNAME"
-  content = var.domain_name
-  proxied = true
-  ttl     = 1
-}
+# Note: www record already exists in Cloudflare, not managed by Terraform
+# Ensure it points to ${var.domain_name} as a CNAME
 
 resource "cloudflare_dns_record" "production_api" {
   zone_id = var.zone_id
@@ -91,7 +85,7 @@ resource "cloudflare_dns_record" "production_assets" {
   zone_id = var.zone_id
   name    = "assets"
   type    = "CNAME"
-  content = aws_cloudfront_distribution.assets.domain_name
+  content = "cluo-assets-production.s3.amazonaws.com"
   proxied = false
   ttl     = 3600
 }
@@ -112,6 +106,7 @@ resource "cloudflare_dns_record" "mx" {
   content  = each.value.server
   priority = each.value.priority
   proxied  = false
+  ttl      = 3600
 }
 
 # SPF Record
@@ -176,15 +171,6 @@ resource "cloudflare_dns_record" "mailbox_dkim" {
 # ACM Certificate Validation for CloudFront
 # =============================================================================
 
-resource "cloudflare_dns_record" "acm_validation" {
-  for_each = {
-    for dvo in aws_acm_certificate_validation.assets : dvo.domain_validation_options[0].resource_record_name => dvo
-  }
-
-  zone_id = var.zone_id
-  name    = each.value.domain_validation_options[0].resource_record_name
-  type    = each.value.domain_validation_options[0].resource_record_type
-  content = each.value.domain_validation_options[0].resource_record_value
-  proxied = false
-  ttl     = 60
-}
+# Note: ACM validation DNS records must be created manually.
+# Run `terraform output acm_validation_records` after certificate creation
+# to get the DNS records to add to Cloudflare.
