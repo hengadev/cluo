@@ -1,91 +1,223 @@
+# =============================================================================
+# Cluo Multi-Environment Docker Compose
+# Single VPS: Staging (8000-8999) + Production (3000-3999, 5000-5999)
+# =============================================================================
+
 services:
-  # Infrastructure
-  postgres:
+  # =============================================================================
+  # Staging Environment (Ports 8000-8999)
+  # =============================================================================
+
+  # Staging PostgreSQL
+  postgres_staging:
     image: postgres:16-alpine
-    container_name: cluo-postgres
+    container_name: cluo-postgres-staging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-cluo}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB:-cluo}
+      POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${STAGING_POSTGRES_DB:-cluo_staging}
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_staging_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cluo"]
+      test: ["CMD-SHELL", "pg_isready -U cluo -d cluo_staging"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - cluo-network
+      - staging-network
+    restart: always
 
-  redis:
+  # Staging Redis
+  redis_staging:
     image: redis:7-alpine
-    container_name: cluo-redis
+    container_name: cluo-redis-staging
     volumes:
-      - redis_data:/data
+      - redis_staging_data:/data
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 5s
       timeout: 5s
       retries: 5
     networks:
-      - cluo-network
+      - staging-network
+    restart: always
 
-  # Application Services
-  api:
-    image: hengadev/cluo-api:${APP_VERSION:-latest}
-    container_name: cluo-api
+  # Staging API
+  api_staging:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-api:${APP_VERSION:-latest}
+    container_name: cluo-api-staging
+    env_file:
+      - .env.staging
     environment:
-      CLUO_ENVIRONMENT: production
+      CLUO_ENVIRONMENT: staging
       CLUO_SERVER_HOST: 0.0.0.0
       CLUO_SERVER_PORT: 8080
-      CLUO_DB_HOST: postgres
+      CLUO_DB_HOST: postgres_staging
       CLUO_DB_PORT: 5432
-      CLUO_DB_NAME: ${POSTGRES_DB:-cluo}
+      CLUO_DB_NAME: ${STAGING_POSTGRES_DB:-cluo_staging}
       CLUO_DB_USER: ${POSTGRES_USER:-cluo}
-      CLUO_DB_PASSWORD: ${POSTGRES_PASSWORD}
+      CLUO_DB_PASSWORD: ${STAGING_POSTGRES_PASSWORD}
       CLUO_DB_SSL_MODE: disable
-      CLUO_REDIS_HOST: redis
+      CLUO_REDIS_HOST: redis_staging
       CLUO_REDIS_PORT: 6379
       CLUO_LOG_LEVEL: info
       CLUO_LOG_STYLE: json
     ports:
       - "8080:8080"
     depends_on:
-      postgres:
+      postgres_staging:
         condition: service_healthy
-      redis:
+      redis_staging:
         condition: service_healthy
     networks:
-      - cluo-network
+      - staging-network
+    restart: always
 
-  mobile:
-    image: hengadev/cluo-mobile:${APP_VERSION:-latest}
-    container_name: cluo-mobile
+  # Staging Web
+  web_staging:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-web:${APP_VERSION:-latest}
+    container_name: cluo-web-staging
+    env_file:
+      - .env.staging
     environment:
-      PUBLIC_API_URL: http://api:8080
+      PUBLIC_API_URL: https://${STAGING_API_DOMAIN:-staging-api.clientvault.fr}
+      PUBLIC_WEB_URL: https://${STAGING_WEB_DOMAIN:-staging.clientvault.fr}
     ports:
-      - "3000:3000"
+      - "8100:3000"
     depends_on:
-      - api
+      - api_staging
     networks:
-      - cluo-network
+      - staging-network
+    restart: always
 
-  web:
-    image: hengadev/cluo-web:${APP_VERSION:-latest}
-    container_name: cluo-web
+  # Staging Mobile
+  mobile_staging:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-mobile:${APP_VERSION:-latest}
+    container_name: cluo-mobile-staging
+    env_file:
+      - .env.staging
     environment:
-      PUBLIC_API_URL: http://api:8080
+      PUBLIC_API_URL: https://${STAGING_API_DOMAIN:-staging-api.clientvault.fr}
+      PUBLIC_MOBILE_URL: https://${STAGING_MOBILE_DOMAIN:-staging-mobile.clientvault.fr}
     ports:
-      - "3001:3000"
+      - "8200:3000"
     depends_on:
-      - api
+      - api_staging
     networks:
-      - cluo-network
+      - staging-network
+    restart: always
+
+  # =============================================================================
+  # Production Environment (Ports 3000-3999, 5000-5999)
+  # =============================================================================
+
+  # Production PostgreSQL
+  postgres_production:
+    image: postgres:16-alpine
+    container_name: cluo-postgres-production
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-cluo}
+      POSTGRES_PASSWORD: ${PRODUCTION_POSTGRES_PASSWORD}
+      POSTGRES_DB: ${PRODUCTION_POSTGRES_DB:-cluo_production}
+    volumes:
+      - postgres_production_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U cluo -d cluo_production"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - production-network
+    restart: always
+
+  # Production Redis
+  redis_production:
+    image: redis:7-alpine
+    container_name: cluo-redis-production
+    volumes:
+      - redis_production_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - production-network
+    restart: always
+
+  # Production API
+  api_production:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-api:${APP_VERSION:-latest}
+    container_name: cluo-api-production
+    env_file:
+      - .env.production
+    environment:
+      CLUO_ENVIRONMENT: production
+      CLUO_SERVER_HOST: 0.0.0.0
+      CLUO_SERVER_PORT: 5000
+      CLUO_DB_HOST: postgres_production
+      CLUO_DB_PORT: 5432
+      CLUO_DB_NAME: ${PRODUCTION_POSTGRES_DB:-cluo_production}
+      CLUO_DB_USER: ${POSTGRES_USER:-cluo}
+      CLUO_DB_PASSWORD: ${PRODUCTION_POSTGRES_PASSWORD}
+      CLUO_DB_SSL_MODE: disable
+      CLUO_REDIS_HOST: redis_production
+      CLUO_REDIS_PORT: 6379
+      CLUO_LOG_LEVEL: info
+      CLUO_LOG_STYLE: json
+    ports:
+      - "5000:5000"
+    depends_on:
+      postgres_production:
+        condition: service_healthy
+      redis_production:
+        condition: service_healthy
+    networks:
+      - production-network
+    restart: always
+
+  # Production Web
+  web_production:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-web:${APP_VERSION:-latest}
+    container_name: cluo-web-production
+    env_file:
+      - .env.production
+    environment:
+      PUBLIC_API_URL: https://${PRODUCTION_API_DOMAIN:-api.clientvault.fr}
+      PUBLIC_WEB_URL: https://${PRODUCTION_WEB_DOMAIN:-clientvault.fr}
+    ports:
+      - "3100:3000"
+    depends_on:
+      - api_production
+    networks:
+      - production-network
+    restart: always
+
+  # Production Mobile
+  mobile_production:
+    image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-mobile:${APP_VERSION:-latest}
+    container_name: cluo-mobile-production
+    env_file:
+      - .env.production
+    environment:
+      PUBLIC_API_URL: https://${PRODUCTION_API_DOMAIN:-api.clientvault.fr}
+      PUBLIC_MOBILE_URL: https://${PRODUCTION_MOBILE_DOMAIN:-mobile.clientvault.fr}
+    ports:
+      - "3200:3000"
+    depends_on:
+      - api_production
+    networks:
+      - production-network
+    restart: always
 
 networks:
-  cluo-network:
+  staging-network:
+    driver: bridge
+  production-network:
     driver: bridge
 
 volumes:
-  postgres_data:
-  redis_data:
+  postgres_staging_data:
+  redis_staging_data:
+  postgres_production_data:
+  redis_production_data:
