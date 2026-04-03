@@ -49,13 +49,14 @@
     content: |
       # Cluo Staging Environment
       CLUO_ENVIRONMENT=staging
+      CLUO_SERVER_HOST=0.0.0.0
+      CLUO_SERVER_PORT=8080
       CLUO_DB_HOST=postgres_staging
       CLUO_DB_NAME={{ staging_postgres_db | default('cluo_staging') }}
       CLUO_DB_USER={{ postgres_user | default('cluo') }}
       CLUO_DB_PASSWORD={{ staging_postgres_password }}
       CLUO_REDIS_HOST=redis_staging
       CLUO_REDIS_PORT=6379
-      CLUO_API_PORT=8080
       CLUO_WEB_PORT=8100
       CLUO_MOBILE_PORT=8200
       PUBLIC_API_URL=https://{{ staging_api_domain | default('staging-api.' + domain) }}
@@ -80,13 +81,14 @@
     content: |
       # Cluo Production Environment
       CLUO_ENVIRONMENT=production
+      CLUO_SERVER_HOST=0.0.0.0
+      CLUO_SERVER_PORT=8080
       CLUO_DB_HOST=postgres_production
       CLUO_DB_NAME={{ production_postgres_db | default('cluo_production') }}
       CLUO_DB_USER={{ postgres_user | default('cluo') }}
       CLUO_DB_PASSWORD={{ production_postgres_password }}
       CLUO_REDIS_HOST=redis_production
       CLUO_REDIS_PORT=6379
-      CLUO_API_PORT=5000
       CLUO_WEB_PORT=3100
       CLUO_MOBILE_PORT=3200
       PUBLIC_API_URL=https://{{ production_api_domain | default('api.' + domain) }}
@@ -195,7 +197,7 @@
       # =============================================================================
 
       {{ production_api_domain | default('api.' + domain) }} {
-        reverse_proxy localhost:5000
+        reverse_proxy localhost:8080
         log {
           output file /var/log/caddy/api.log
         }
