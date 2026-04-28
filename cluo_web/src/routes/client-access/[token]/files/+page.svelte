@@ -16,8 +16,21 @@
 	<title>Dossier client</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-background px-4">
-	<div class="{cardVariants({ size: 'lg' })} max-w-md w-full">
+<div class="min-h-screen flex items-center justify-center bg-background px-4 py-16">
+	<div class="w-full max-w-md">
+
+		<div class="flex flex-col items-center gap-4 mb-10">
+			<div class="w-12 h-12 border border-dark-300 flex items-center justify-center">
+				<span class="font-mono text-xxs tracking-widest text-foreground">A·I·R</span>
+			</div>
+			<div class="text-center">
+				<p class="font-serif text-foreground text-2xl tracking-wide">Agence d'Investigations</p>
+				<p class="font-serif text-foreground text-2xl tracking-wide">et de Recherches</p>
+			</div>
+		</div>
+
+		<div class="{cardVariants({ size: 'lg' })} w-full">
+
 		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-4">Dossier client</p>
 
 		<h1 class="font-serif text-foreground text-2xl mb-2">
@@ -58,5 +71,6 @@
 		>
 			Télécharger les fichiers
 		</a>
+		</div>
 	</div>
 </div>
