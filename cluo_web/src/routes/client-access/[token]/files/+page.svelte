@@ -24,8 +24,8 @@
 				<span class="font-mono text-xxs tracking-widest text-foreground">A·I·R</span>
 			</div>
 			<div class="text-center">
-				<p class="font-serif text-foreground text-2xl tracking-wide">Agence d'Investigations</p>
-				<p class="font-serif text-foreground text-2xl tracking-wide">et de Recherches</p>
+				<p class="font-display font-bold text-foreground text-4xl leading-tight">Agence d'Investigations</p>
+				<p class="font-display font-bold text-foreground text-4xl leading-tight">et de Recherches</p>
 			</div>
 		</div>
 
