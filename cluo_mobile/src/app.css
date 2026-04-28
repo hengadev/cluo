@@ -313,11 +313,21 @@
  
 	body {
 		@apply bg-background text-foreground;
+		font-family: var(--font-sans);
 		font-feature-settings:
 			"rlig" 1,
 			"calt" 1;
 	}
- 
+
+	/* iOS Safari: prevent 300ms tap delay and ensure reliable tap registration
+	   after DOM changes (e.g. filter buttons, nav items inside drawers). */
+	button,
+	a,
+	[role="button"] {
+		touch-action: manipulation;
+		-webkit-tap-highlight-color: transparent;
+	}
+
 	::selection {
 		background: #fdffa4;
 		color: black;
@@ -334,5 +344,18 @@
  
 	.link {
 		@apply hover:text-foreground/80 focus-visible:ring-foreground focus-visible:ring-offset-background rounded-xs focus-visible:outline-hidden inline-flex items-center gap-1 font-medium underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-offset-2;
+	}
+}
+
+@layer utilities {
+	.animate-reveal {
+		will-change: opacity, transform;
+	}
+
+	@media (prefers-reduced-motion: reduce) {
+		.animate-reveal {
+			animation: none !important;
+			transition: none !important;
+		}
 	}
 }
