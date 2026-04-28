@@ -2,8 +2,7 @@ import type { Actions } from "./$types"
 import { fail } from '@sveltejs/kit';
 import { env } from "$env/dynamic/private"
 
-// here I just use the action brother
-export const action = {
+export const actions = {
     default: async ({ request }) => {
         // TODO: handle authentication
         const data = await request.formData()
