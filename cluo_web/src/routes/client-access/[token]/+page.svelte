@@ -8,14 +8,14 @@
 	let { data }: Props = $props();
 
 	const messages = {
-		expired: 'This link has expired.',
-		invalid: 'This link is not valid.',
-		unavailable: 'Access is currently unavailable.'
+		expired: 'Ce lien a expiré.',
+		invalid: 'Ce lien n\'est pas valide.',
+		unavailable: 'L\'accès est temporairement indisponible.'
 	};
 </script>
 
 <svelte:head>
-	<title>Client Access</title>
+	<title>Accès client</title>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-background px-4">
@@ -24,7 +24,7 @@
 			{messages[data.error]}
 		</h1>
 		<p class="text-foreground-alt text-sm">
-			Please contact us if you believe this is an error.
+			Veuillez nous contacter si vous pensez qu'il s'agit d'une erreur.
 		</p>
 	</div>
 </div>

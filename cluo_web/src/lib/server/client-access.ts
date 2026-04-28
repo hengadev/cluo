@@ -16,9 +16,9 @@ const USE_MOCK_DATA = env.USE_MOCK_DATA === 'true';
 const MOCK_CASE_ID = 'mock-case-001';
 
 const MOCK_SUMMARY: CaseSummary = {
-	title: 'Estate Dispute — Martin Family',
-	message: 'All documents have been reviewed and compiled for your records.',
-	filesSummary: ['Final report', 'Photographs', 'Supporting documents'],
+	title: 'Succession — Famille Martin',
+	message: 'Tous les documents ont été vérifiés et compilés pour votre dossier.',
+	filesSummary: ['Rapport final', 'Photographies', 'Documents complémentaires'],
 	expiresAt: new Date('2026-05-12')
 };
 
