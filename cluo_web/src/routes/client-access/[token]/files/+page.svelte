@@ -9,16 +9,16 @@
 	let { data }: Props = $props();
 
 	const formatDate = (date: Date) =>
-		new Intl.DateTimeFormat('en-US', { month: 'long', day: 'numeric', year: 'numeric' }).format(date);
+		new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
 </script>
 
 <svelte:head>
-	<title>Case Files</title>
+	<title>Dossier client</title>
 </svelte:head>
 
 <div class="min-h-screen flex items-center justify-center bg-background px-4">
 	<div class="{cardVariants({ size: 'lg' })} max-w-md w-full">
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-4">Case Files</p>
+		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-4">Dossier client</p>
 
 		<h1 class="font-serif text-foreground text-2xl mb-2">
 			{data.summary.title}
@@ -32,7 +32,7 @@
 
 		<hr class="border-border-card my-6">
 
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-3">Included</p>
+		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-3">Contenu</p>
 
 		<ul class="space-y-2 mb-6">
 			{#each data.summary.filesSummary as file}
@@ -44,7 +44,7 @@
 
 		<hr class="border-border-card my-6">
 
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-2">Available until</p>
+		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-2">Disponible jusqu'au</p>
 		<p class="text-foreground-alt text-sm mb-6">
 			{formatDate(data.summary.expiresAt)}
 		</p>
@@ -53,10 +53,10 @@
 			href="/client-access/{data.token}/download"
 			class={cn(
 				buttonVariants({ variant: 'default', size: 'lg' }),
-				'w-full'
+				'w-full text-white'
 			)}
 		>
-			Download Files
+			Télécharger les fichiers
 		</a>
 	</div>
 </div>
