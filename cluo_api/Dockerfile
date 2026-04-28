@@ -23,7 +23,6 @@ WORKDIR /app
 
 COPY --from=builder /etc/passwd /etc/passwd
 COPY --from=builder /app/cluo .
-COPY --from=builder /app/migrations/production ./migrations/production/
 COPY --from=builder /app/*.env ./
 COPY --from=builder /app/data ./data/
 
