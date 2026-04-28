@@ -77,7 +77,7 @@
 <div class="audio-player {className}">
 	<audio
 		bind:this={audioElement}
-		{src: audioSrc}
+		src={audioSrc}
 		ontimeupdate={handleTimeUpdate}
 		onplay={handlePlay}
 		onpause={handlePause}
