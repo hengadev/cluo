@@ -111,7 +111,7 @@
                 class="flex items-center gap-2 px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-colors font-semibold"
                 disabled={isRetrying}
             >
-                <RotateCw size={18} class:animate-spin={isRetrying} />
+                <RotateCw size={18} class={isRetrying ? 'animate-spin' : ''} />
                 <span>Retry</span>
             </button>
         </div>
