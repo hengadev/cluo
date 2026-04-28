@@ -19,7 +19,7 @@
 <div class="min-h-screen flex items-center justify-center bg-background px-4 py-16">
 	<div class="w-full max-w-md">
 
-		<div class="flex flex-col items-center gap-4 mb-10">
+		<div class="flex flex-col items-center gap-4 mb-16">
 			<div class="w-12 h-12 border border-dark-300 flex items-center justify-center">
 				<span class="font-mono text-xxs tracking-widest text-foreground">A·I·R</span>
 			</div>
