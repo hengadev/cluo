@@ -3,8 +3,10 @@ package session
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
+	"github.com/google/uuid"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -21,7 +23,8 @@ type RedisSessionRepository struct {
 }
 
 // NewRedisSessionRepository creates a new Redis-based session repository for authentication
-func NewRedisSessionRepository(client *redis.Client) SessionRepository {
+// Returns *RedisSessionRepository which implements both SessionRepository and AuthSessionRepository
+func NewRedisSessionRepository(client *redis.Client) *RedisSessionRepository {
 	return &RedisSessionRepository{
 		client: client,
 	}
@@ -80,4 +83,103 @@ func FormatRefreshTokenKey(refreshTokenHash string) string {
 
 func FormatUserSessionIndexKey(userIDHash string) string {
 	return fmt.Sprintf("%s%s", UserSessionIndexKeyPrefix, userIDHash)
+}
+
+// CreateSession creates a new session with access and refresh tokens
+func (r *RedisSessionRepository) CreateSession(ctx context.Context, sessionID uuid.UUID, accessTokenHash, refreshTokenHash, userIDHash string, sessionEncoded []byte, accessTTL, refreshTTL time.Duration) error {
+	sid := sessionID.String()
+
+	sessionKey := FormatSessionKey(sid)
+	if err := r.client.Set(ctx, sessionKey, sessionEncoded, accessTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("create session data", err)
+	}
+
+	accessTokenKey := FormatAccessTokenKey(accessTokenHash)
+	if err := r.client.Set(ctx, accessTokenKey, sid, accessTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("create access token mapping", err)
+	}
+
+	refreshTokenKey := FormatRefreshTokenKey(refreshTokenHash)
+	if err := r.client.Set(ctx, refreshTokenKey, sid, refreshTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("create refresh token mapping", err)
+	}
+
+	userSessionIndexKey := FormatUserSessionIndexKey(userIDHash)
+	if err := r.client.SAdd(ctx, userSessionIndexKey, sid).Err(); err != nil {
+		return errs.ClassifyRedisError("add session to user index", err)
+	}
+
+	return nil
+}
+
+// FindSessionByID retrieves session data by session ID
+func (r *RedisSessionRepository) FindSessionByID(ctx context.Context, sessionID uuid.UUID) ([]byte, error) {
+	sessionKey := FormatSessionKey(sessionID.String())
+	sessionData, err := r.client.Get(ctx, sessionKey).Bytes()
+	if err != nil {
+		return nil, errs.ClassifyRedisError("find session by ID", err)
+	}
+	return sessionData, nil
+}
+
+// RefreshTokenPair replaces the token pair for a session in Redis.
+func (r *RedisSessionRepository) RefreshTokenPair(ctx context.Context, oldRefreshTokenHash, newAccessTokenHash, newRefreshTokenHash string, sessionID uuid.UUID, updatedSessionData []byte, accessTTL, refreshTTL time.Duration) error {
+	sid := sessionID.String()
+
+	sessionKey := FormatSessionKey(sid)
+	if err := r.client.Set(ctx, sessionKey, updatedSessionData, accessTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("update session data", err)
+	}
+
+	oldRefreshTokenKey := FormatRefreshTokenKey(oldRefreshTokenHash)
+	if err := r.client.Del(ctx, oldRefreshTokenKey).Err(); err != nil {
+		return errs.ClassifyRedisError("delete old refresh token", err)
+	}
+
+	newAccessTokenKey := FormatAccessTokenKey(newAccessTokenHash)
+	if err := r.client.Set(ctx, newAccessTokenKey, sid, accessTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("create new access token mapping", err)
+	}
+
+	newRefreshTokenKey := FormatRefreshTokenKey(newRefreshTokenHash)
+	if err := r.client.Set(ctx, newRefreshTokenKey, sid, refreshTTL).Err(); err != nil {
+		return errs.ClassifyRedisError("create new refresh token mapping", err)
+	}
+
+	return nil
+}
+
+// RemoveSessionByID removes a session and its token mappings by session ID.
+func (r *RedisSessionRepository) RemoveSessionByID(ctx context.Context, sessionID uuid.UUID) error {
+	sid := sessionID.String()
+	sessionKey := FormatSessionKey(sid)
+
+	sessionData, err := r.client.Get(ctx, sessionKey).Result()
+	if err != nil {
+		return errs.ClassifyRedisError("get session data for removal", err)
+	}
+
+	sessionEncx, err := DecodeSession([]byte(sessionData))
+	if err != nil {
+		return errs.ClassifyRedisError("decode session for removal", err)
+	}
+
+	if err := r.client.Del(ctx, sessionKey).Err(); err != nil {
+		return errs.ClassifyRedisError("delete session data", err)
+	}
+
+	if err := r.client.Del(ctx, FormatAccessTokenKey(sessionEncx.AccessTokenHash)).Err(); err != nil {
+		return errs.ClassifyRedisError("delete access token", err)
+	}
+
+	if err := r.client.Del(ctx, FormatRefreshTokenKey(sessionEncx.RefreshTokenHash)).Err(); err != nil {
+		return errs.ClassifyRedisError("delete refresh token", err)
+	}
+
+	userSessionIndexKey := FormatUserSessionIndexKey(sessionEncx.UserIDHash)
+	if err := r.client.SRem(ctx, userSessionIndexKey, sid).Err(); err != nil {
+		return errs.ClassifyRedisError("remove session from user index", err)
+	}
+
+	return nil
 }
