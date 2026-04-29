@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	authService "github.com/hengadev/cluo_api/internal/application/auth"
 	caseService "github.com/hengadev/cluo_api/internal/application/case"
 	clientService "github.com/hengadev/cluo_api/internal/application/client"
 	mediaService "github.com/hengadev/cluo_api/internal/application/media"
@@ -31,6 +32,12 @@ func (c *Container) initServices(ctx context.Context) error {
 	// Initialize client service
 	c.clientService = clientService.New(c.clientRepo, c.crypto)
 	c.logger.InfoContext(ctx, "Client service initialized")
+
+	// Initialize auth service
+	if c.sessionRepo != nil && c.userRepo != nil {
+		c.authService = authService.New(c.userRepo, c.sessionRepo, c.crypto)
+		c.logger.InfoContext(ctx, "Auth service initialized")
+	}
 
 	// NOTE: Document service initialization is commented out due to existing compilation errors
 	// in the domain layer. Uncomment when the document domain is fixed.

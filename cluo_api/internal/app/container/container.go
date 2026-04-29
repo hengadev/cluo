@@ -34,6 +34,7 @@ type Container struct {
 	documentRepo        ports.DocumentRepository
 	documentVersionRepo ports.DocumentVersionRepository
 	mediaRepo           ports.MediaRepository
+	userRepo            ports.UserRepository
 
 	// Services
 	caseService     ports.CaseService
@@ -41,6 +42,7 @@ type Container struct {
 	documentService ports.DocumentService
 	mediaService    ports.MediaService
 	storage         ports.StorageService
+	authService     ports.AuthService
 
 	// AI Services
 	textTransformationService ports.TextTransformationService
@@ -52,7 +54,7 @@ type Container struct {
 	chatService              ports.ChatService
 
 	// Auth
-	sessionRepo    session.SessionRepository
+	sessionRepo    *session.RedisSessionRepository
 	authMiddleware auth.AuthMiddleware
 }
 
@@ -169,6 +171,11 @@ func (c *Container) DocumentService() ports.DocumentService {
 // MediaService returns the media service.
 func (c *Container) MediaService() ports.MediaService {
 	return c.mediaService
+}
+
+// AuthService returns the auth service.
+func (c *Container) AuthService() ports.AuthService {
+	return c.authService
 }
 
 // AuthMiddleware returns the authentication middleware.

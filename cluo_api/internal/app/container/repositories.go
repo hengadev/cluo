@@ -8,6 +8,7 @@ import (
 	caseSubjectRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case_subject"
 	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 	mediaRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/media"
+	userRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/user"
 	// NOTE: documentRepository is excluded due to existing compilation errors
 	// documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
 )
@@ -41,6 +42,10 @@ func (c *Container) initRepositories(ctx context.Context) error {
 	c.mediaRepo = mediaRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Media repository initialized")
 
+	// Initialize user repository
+	c.userRepo = userRepository.New(ctx, c.dbPool)
+	c.logger.InfoContext(ctx, "User repository initialized")
+
 	return nil
 }
 
@@ -62,6 +67,11 @@ func (c *Container) DocumentRepository() interface{} {
 // MediaRepository returns the media repository.
 func (c *Container) MediaRepository() interface{} {
 	return c.mediaRepo
+}
+
+// UserRepository returns the user repository.
+func (c *Container) UserRepository() interface{} {
+	return c.userRepo
 }
 
 // ensureRepositoriesInitialized checks if required repositories are available.

@@ -10,6 +10,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
+	authHandler "github.com/hengadev/cluo_api/internal/interface/auth"
 	aiChatHandler "github.com/hengadev/cluo_api/internal/interface/ai_chat"
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
 	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
@@ -106,6 +107,11 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 		return
 	}
 
+	// Register auth routes
+	if s.container.AuthService() != nil {
+		s.registerAuthRoutes(mux)
+	}
+
 	// Register case routes
 	if s.container.CaseService() != nil {
 		s.registerCaseRoutes(mux)
@@ -177,4 +183,10 @@ func (s *Server) registerAIRoutes(mux *http.ServeMux) {
 		handler.RegisterRoutes(mux)
 		s.logger.Info("Chat routes registered")
 	}
+}
+
+func (s *Server) registerAuthRoutes(mux *http.ServeMux) {
+	handler := authHandler.New(s.container.AuthService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Auth routes registered")
 }
