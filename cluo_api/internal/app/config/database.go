@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net/url"
 	"time"
 )
 
@@ -31,7 +32,7 @@ func (c DatabaseConfig) DSN() string {
 func (c DatabaseConfig) ConnectionString() string {
 	return fmt.Sprintf(
 		"postgres://%s:%s@%s:%d/%s?sslmode=%s",
-		c.User, c.Password, c.Host, c.Port, c.Name, c.SSLMode,
+		c.User, url.QueryEscape(c.Password), c.Host, c.Port, c.Name, c.SSLMode,
 	)
 }
 
