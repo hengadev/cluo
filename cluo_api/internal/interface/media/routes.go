@@ -3,12 +3,12 @@ package mediaHandler
 import (
 	"net/http"
 
-	// "github.com/hengadev/cluo_api/internal/common/contracts/identity"
+	"github.com/hengadev/cluo_api/internal/common/contracts/identity"
 	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 )
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
-	// RequireAuthenticated := h.authmw.RequireMinimumRole(identity.Client)
+	RequireAuthenticated := h.authmw.RequireMinimumRole(identity.Client)
 
 	// Upload media (authenticated users)
 	router.HandleFunc("POST "+UploadMediaEndpoint, RequireAuthenticated(mw.EnableCORS(h.UploadMedia)))

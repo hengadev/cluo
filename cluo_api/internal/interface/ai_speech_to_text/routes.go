@@ -3,12 +3,12 @@ package aiSpeechToTextHandler
 import (
 	"net/http"
 
-	// "github.com/hengadev/cluo_api/internal/common/contracts/identity"
+	"github.com/hengadev/cluo_api/internal/common/contracts/identity"
 	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 )
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
-	// RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
+	RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
 
 	// Job management endpoints (require admin role)
 	router.HandleFunc("POST /ai/speech/jobs", RequireAdministrator(mw.EnableCORS(h.SubmitJob)))

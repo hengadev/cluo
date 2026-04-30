@@ -3,12 +3,12 @@ package caseHandler
 import (
 	"net/http"
 
-	// "github.com/hengadev/cluo_api/internal/common/contracts/identity"
+	"github.com/hengadev/cluo_api/internal/common/contracts/identity"
 	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 )
 
 func (h *handler) RegisterRoutes(router *http.ServeMux) {
-	// RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
+	RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
 
 	// Individual case operations
 	router.HandleFunc("POST /cases", RequireAdministrator(mw.EnableCORS(h.CreateCase)))
