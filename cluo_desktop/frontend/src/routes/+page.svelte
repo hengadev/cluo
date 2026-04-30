@@ -58,7 +58,7 @@
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{#each cases as caseItem, index}
 						<button
-							class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in"
+							class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-md hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in cursor-pointer"
 							style="animation-delay: {200 + index * 100}ms;"
 							onclick={() => selectCase(caseItem.id)}
 						>
