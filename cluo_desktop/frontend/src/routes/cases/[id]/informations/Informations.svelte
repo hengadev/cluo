@@ -39,7 +39,10 @@
 	});
 
 	async function loadData() {
-		if (!caseId) return;
+		if (!caseId) {
+			loading = false;
+			return;
+		}
 
 		loading = true;
 		error = null;
