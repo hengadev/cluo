@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
-	import { Briefcase, MapPin } from "lucide-svelte";
+	import { Briefcase, MapPin } from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
@@ -32,7 +32,7 @@
 	let loading = true;
 	let error: string | null = null;
 
-	$: caseId = $page.params.id;
+	const caseId = $derived($page.params.id);
 
 	onMount(async () => {
 		await loadData();
