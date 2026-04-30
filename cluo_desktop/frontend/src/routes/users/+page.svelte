@@ -38,11 +38,13 @@
 	}
 </script>
 
-<div class="p-8">
-	<h1 class="text-2xl font-bold mb-4">Utilisateurs</h1>
-	<p class="text-muted-foreground mb-6">Gestion des utilisateurs</p>
-
-	{#if loading}
+<div class="p-8 grid gap-8">
+	<div class="">
+		<h1 class="text-2xl font-bold mb-4">Utilisateurs</h1>
+		<p class="text-muted-foreground mb-24">Gestion des utilisateurs</p>
+	</div>
+	<div class="grid gap-6">
+		{#if loading}
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
@@ -98,4 +100,5 @@
 			</table>
 		</div>
 	{/if}
+	</div>
 </div>
