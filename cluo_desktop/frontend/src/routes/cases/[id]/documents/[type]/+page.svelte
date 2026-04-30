@@ -10,8 +10,8 @@
 	} from "$lib/services/api";
 	import type { Invoice, Mandate, Estimate, Contract } from "$lib/types/entities";
 
-	$: caseId = $page.params.id;
-	$: docType = $page.params.type;
+	const caseId = $derived($page.params.id);
+	const docType = $derived($page.params.type);
 
 	// Update the current case store when navigating to a case's document type
 	$effect(() => {
