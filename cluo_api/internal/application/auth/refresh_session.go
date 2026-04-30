@@ -42,7 +42,7 @@ func (s *AuthService) RefreshSession(ctx context.Context, sessionID uuid.UUID) (
 
 	// Generate new tokens
 	now := time.Now()
-	accessTokenExpiry := now.Add(session.ActiveSessionDuration)
+	accessTokenExpiry := now.Add(session.AccessTokenDuration)
 	refreshTokenExpiry := now.Add(session.ActiveSessionDuration)
 
 	accessToken, err := session.GenerateToken()
@@ -70,7 +70,7 @@ func (s *AuthService) RefreshSession(ctx context.Context, sessionID uuid.UUID) (
 	}
 
 	// Update in Redis — get new token hashes from the encrypted struct
-	err = s.sessionRepo.RefreshTokenPair(ctx, oldRefreshTokenHash, updatedEncx.AccessTokenHash, updatedEncx.RefreshTokenHash, sess.ID, updatedSessionData, session.ActiveSessionDuration, session.ActiveSessionDuration)
+	err = s.sessionRepo.RefreshTokenPair(ctx, oldRefreshTokenHash, updatedEncx.AccessTokenHash, updatedEncx.RefreshTokenHash, sess.ID, updatedSessionData, session.AccessTokenDuration, session.ActiveSessionDuration)
 	if err != nil {
 		return nil, err
 	}

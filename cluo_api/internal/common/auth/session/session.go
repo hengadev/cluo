@@ -11,9 +11,10 @@ import (
 )
 
 const (
-	PendingSessionDuration = 30 * time.Minute // Shorter duration for registration workflow
-	ActiveSessionDuration  = 24 * time.Hour   // Standard duration for authenticated sessions
-	SessionDuration        = 24 * time.Hour   // Deprecated: use ActiveSessionDuration
+	AccessTokenDuration     = 15 * time.Minute // Short-lived, used for API access
+	PendingSessionDuration  = 30 * time.Minute // Shorter duration for registration workflow
+	ActiveSessionDuration   = 24 * time.Hour   // Refresh token / session lifetime
+	SessionDuration         = 24 * time.Hour   // Deprecated: use ActiveSessionDuration
 )
 
 type SessionState string

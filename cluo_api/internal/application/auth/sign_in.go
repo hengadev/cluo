@@ -61,7 +61,7 @@ func (s *AuthService) SignIn(ctx context.Context, req *user.SignInRequest) (*use
 // createSession creates a new session for a user
 func (s *AuthService) createSession(ctx context.Context, userID uuid.UUID, role identity.Role, state session.SessionState) (*user.CreateSessionResponse, error) {
 	now := time.Now()
-	accessTokenExpiry := now.Add(session.ActiveSessionDuration)
+	accessTokenExpiry := now.Add(session.AccessTokenDuration)
 	refreshTokenExpiry := now.Add(session.ActiveSessionDuration)
 
 	sessionID := uuid.New()
@@ -94,7 +94,7 @@ func (s *AuthService) createSession(ctx context.Context, userID uuid.UUID, role 
 		Role:         role,
 		State:        state,
 		CreatedAt:    now,
-		ExpiresAt:    accessTokenExpiry,
+		ExpiresAt:    refreshTokenExpiry,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	}
@@ -117,7 +117,7 @@ func (s *AuthService) createSession(ctx context.Context, userID uuid.UUID, role 
 	userIDHash := s.crypto.HashBasic(ctx, userIDBytes)
 
 	// Store session
-	err = s.sessionRepo.CreateSession(ctx, sessionID, accessTokenHash, refreshTokenHash, userIDHash, sessionEncoded, session.ActiveSessionDuration, session.ActiveSessionDuration)
+	err = s.sessionRepo.CreateSession(ctx, sessionID, accessTokenHash, refreshTokenHash, userIDHash, sessionEncoded, session.AccessTokenDuration, session.ActiveSessionDuration)
 	if err != nil {
 		return nil, err
 	}
