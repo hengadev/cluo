@@ -213,6 +213,7 @@ func (c *Container) initCrypto(ctx context.Context) error {
 	cfg := encx.Config{
 		KEKAlias:    "cluo-encryption-key",
 		PepperAlias: "cluo",
+		DBPath:      "data/.encx",
 	}
 
 	// Create crypto service
