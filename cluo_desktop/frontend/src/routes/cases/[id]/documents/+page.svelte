@@ -4,9 +4,9 @@
 	import { goto } from "$app/navigation";
 	import { onMount } from "svelte";
 	import { fetchCaseInvoices, fetchCaseMandates, fetchCaseEstimates, fetchCaseContracts } from "$lib/services/api";
-	import { ReceiptEuro, Handshake, FileText, ShieldCheck } from "lucide-svelte";
+	import { ReceiptEuro, Handshake, FileText, ShieldCheck } from "@lucide/svelte";
 
-	$: caseId = $page.params.id;
+	const caseId = $derived($page.params.id);
 
 	// Update the current case store when navigating to a case's documents
 	$effect(() => {
@@ -23,7 +23,10 @@
 	let error: string | null = null;
 
 	onMount(async () => {
-		if (!caseId) return;
+		if (!caseId) {
+			loading = false;
+			return;
+		}
 
 		try {
 			const [invoicesData, mandatesData, estimatesData, contractsData] = await Promise.all([
