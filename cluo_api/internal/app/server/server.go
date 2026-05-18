@@ -15,7 +15,7 @@ import (
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
 	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
 	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
-	caseHandler "github.com/hengadev/cluo_api/internal/interface/case"
+	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
 	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
 )
@@ -132,7 +132,7 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 }
 
 func (s *Server) registerCaseRoutes(mux *http.ServeMux) {
-	handler := caseHandler.New(s.container.CaseService(), s.container.AuthMiddleware())
+	handler := investigationHandler.New(s.container.CaseService(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Case routes registered")
 }

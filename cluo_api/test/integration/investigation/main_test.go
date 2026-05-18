@@ -1,4 +1,4 @@
-package media_test
+package investigation_test
 
 import (
 	"context"
@@ -12,8 +12,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/aws/aws-sdk-go-v2/service/s3"
-	mediaService "github.com/hengadev/cluo_api/internal/application/media"
+	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
 	session "github.com/hengadev/cluo_api/internal/common/auth/session"
 	services "github.com/hengadev/cluo_api/internal/common/contracts/services"
 	envmode "github.com/hengadev/cluo_api/internal/common/envmode"
@@ -22,9 +21,9 @@ import (
 	auth "github.com/hengadev/cluo_api/internal/common/middleware/auth"
 	tu "github.com/hengadev/cluo_api/internal/common/testutils"
 	investigationRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/investigation"
-	mediaRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/media"
-	s3Storage "github.com/hengadev/cluo_api/internal/infrastructure/s3"
-	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
+	subject "github.com/hengadev/cluo_api/internal/infrastructure/postgres/subject"
+	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
+	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	migrations "github.com/hengadev/cluo_api/internal/migrations"
 	ports "github.com/hengadev/cluo_api/internal/ports"
 
@@ -38,61 +37,67 @@ var (
 	testPool        *pgxpool.Pool
 	redisClient     *redis.Client
 	crypto          encx.CryptoService
-	mediaRepo       ports.MediaRepository
 	caseRepo        ports.CaseRepository
-	vaultSetup      *tu.ServiceVaultSetup
-	authCtx         *tu.AuthTestContext
+	clientRepo      ports.ClientRepository
+	vaultSetup      *tu.ServiceVaultSetup // Enhanced Vault setup with per-service keys
+	authCtx         *tu.AuthTestContext   // Authentication context for user/session tests
 	authSessionRepo session.SessionRepository
-	storage         ports.StorageService
-	s3Client        *s3.Client
-	localstack      *tu.LocalstackContainer
-	mediaSvc        ports.MediaService
-	handler         mediaHandler.Handler
-	testServerURL   string
-	testServer      *http.Server
+	caseSvc         ports.CaseService
+	handler         investigationHandler.Handler
+	testServerURL   string       // Global variable to hold the URL of the running test server
+	testServer      *http.Server // To allow graceful shutdown
 )
 
 func TestMain(m *testing.M) {
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	// Setup logger
+	// Create and configure logger for tests
 	loggerHandler, err := logger.SetHandler("debug", "dev")
 	if err != nil {
-		log.Fatalf("Failed to create logger: %v", err)
+		log.Fatalf("Failed to create logger handler: %v", err)
 	}
 	testLogger := slog.New(loggerHandler)
-	slog.SetDefault(testLogger)
+	slog.SetDefault(testLogger) // Set as default for the application
 
-	// Setup Postgres
+	// Postgres container
 	pgContainer, err := tu.SetupPostgres(ctx, nil)
 	if err != nil {
-		log.Fatalf("Failed to setup postgres: %v", err)
+		log.Fatalf("Failed to setup postgres container: %v", err)
 	}
 	defer tu.TeardownPostgres(ctx, nil, pgContainer)
 
-	// Create pool
+	// DB Pool
+	log.Println("Creating pgxpool...")
 	poolCtx, poolCancel := context.WithTimeout(ctx, 10*time.Second)
 	defer poolCancel()
 
 	pgCfg, err := pgxpool.ParseConfig(pgContainer.ConnectionString)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to parse config: %v", err))
+		panic(fmt.Sprintf("Failed to parse pgxpool config: %v", err))
 	}
 
+	// Configure pool settings for tests
 	pgCfg.MaxConns = 5
 	pgCfg.MinConns = 1
+	pgCfg.MaxConnLifetime = 30 * time.Minute
+	pgCfg.MaxConnIdleTime = 5 * time.Minute
 
 	testPool, err = pgxpool.NewWithConfig(poolCtx, pgCfg)
 	if err != nil {
-		panic(fmt.Sprintf("Failed to create pool: %v", err))
+		tu.TeardownPostgres(ctx, nil, pgContainer)
+		panic(fmt.Sprintf("Failed to open test database pool: %v", err))
 	}
+	log.Println("pgxpool created.")
 
+	// Ping database
 	if err = testPool.Ping(poolCtx); err != nil {
-		panic(fmt.Sprintf("Failed to ping database: %v", err))
+		panic(fmt.Sprintf("Failed to ping database pool: %v", err))
 	}
+	log.Println("Database pool ping successful.")
 
-	// Apply migrations
+	// Database migrations
+	log.Println("Applying database migrations...")
 	goose.SetBaseFS(migrations.FS)
 	if err = goose.SetDialect("pgx"); err != nil {
 		log.Fatalf("Setting dialect for migrations: %s\n", err)
@@ -104,21 +109,32 @@ func TestMain(m *testing.M) {
 	}
 	defer gooseDB.Close()
 
-	if err := goose.UpContext(ctx, gooseDB, "."); err != nil {
-		panic(fmt.Sprintf("Failed to apply migrations: %v", err))
+	if err = goose.UpContext(ctx, gooseDB, "."); err != nil {
+		panic(fmt.Sprintf("running all migrations: %s\n", err))
 	}
+	log.Println("Migrations applied.")
 
-	// Setup Redis
+	// Redis container
 	redisContainer, err := tu.SetupRedis(ctx, nil)
 	if err != nil {
-		log.Fatalf("Failed to setup redis: %v", err)
+		panic(fmt.Sprintf("Failed to setup redis container: %v", err))
 	}
 	defer tu.TeardownRedis(ctx, nil, redisContainer)
 
+	// Redis client
+	log.Println("Creating Redis client...")
 	redisClient = redisContainer.NewClient()
 
-	// Setup Vault
-	serviceNames := []string{services.App}
+	// Test Redis connection
+	if err = redisClient.Ping(ctx).Err(); err != nil {
+		tu.TeardownRedis(ctx, nil, redisContainer)
+		panic(fmt.Sprintf("Failed to ping Redis: %v", err))
+	}
+	log.Println("Redis client connected successfully.")
+
+	// Setup enhanced Vault testcontainer with per-service encryption (GDPR compliant)
+	log.Println("Setting up enhanced Vault testcontainer with per-service keys...")
+	serviceNames := []string{services.App} // Only settings service for this test
 	vaultSetup, err = tu.SetupServiceVault(ctx, nil, serviceNames)
 	if err != nil {
 		log.Fatalf("Failed to setup service Vault container: %v", err)
@@ -129,50 +145,22 @@ func TestMain(m *testing.M) {
 	os.Setenv("VAULT_ADDR", vaultSetup.VaultContainer.HTTPSEndpoint)
 	os.Setenv("VAULT_TOKEN", vaultSetup.VaultContainer.RootToken)
 
-	// Get service-specific crypto service
+	// Get service-specific crypto service (GDPR compliant)
 	var exists bool
 	crypto, exists = vaultSetup.GetServiceCrypto(services.App)
 	if !exists {
-		log.Fatal("App service crypto not found in vault setup")
+		log.Fatal("AuthUser service crypto not found in vault setup")
 	}
 	if crypto == nil {
-		log.Fatal("App crypto service is nil")
+		log.Fatal("AuthUser crypto service is nil")
 	}
+	log.Printf("✓ AuthUser service crypto initialized with per-service encryption key")
 
-	// Setup LocalStack for S3
-	localstack, err = tu.SetupLocalstack(ctx, nil)
-	if err != nil {
-		log.Fatalf("Failed to setup LocalStack: %v", err)
-	}
-	defer tu.TeardownLocalstack(ctx, nil, localstack)
-
-	// Create S3 client
-	s3Client, err = s3Storage.NewS3Client(ctx, s3Storage.ClientConfig{
-		Region:          "us-east-1",
-		AccessKeyID:     "test",
-		SecretAccessKey: "test",
-		Endpoint:        localstack.S3Endpoint,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create S3 client: %v", err)
-	}
-
-	// Create test bucket
-	bucketName := "test-media-bucket"
-	_, err = s3Client.CreateBucket(ctx, &s3.CreateBucketInput{
-		Bucket: &bucketName,
-	})
-	if err != nil {
-		log.Fatalf("Failed to create S3 bucket: %v", err)
-	}
-
-	// Create storage service
-	storage = s3Storage.New(s3Storage.Config{
-		Client:     s3Client,
-		BucketName: bucketName,
-		Region:     "us-east-1",
-		BaseURL:    fmt.Sprintf("%s/%s", localstack.S3Endpoint, bucketName),
-	})
+	// Log vault setup details for debugging
+	log.Printf("✓ Vault setup complete:")
+	log.Printf("  - Services: %d", len(vaultSetup.CryptoServices))
+	log.Printf("  - API Keys: %d", len(vaultSetup.ServiceKeys))
+	log.Printf("  - GDPR compliant per-service encryption: enabled")
 
 	// Initialize AuthTestContext for user/session testing
 	authCtx = &tu.AuthTestContext{
@@ -181,43 +169,45 @@ func TestMain(m *testing.M) {
 		Crypto: crypto,
 	}
 
-	// Create repositories
-	mediaRepo = mediaRepository.New(ctx, testPool)
+	log.Printf("✓ AuthTestContext initialized for user authentication testing")
+
+	// Initialize application layers
+	clientRepo = clientRepository.New(ctx, testPool)
+	caseSubjectRepo := subject.New(ctx, testPool)
 	caseRepo = investigationRepository.New(ctx, testPool)
+	caseSvc = investigationService.New(caseRepo, clientRepo, caseSubjectRepo, crypto)
 
-	// Create service
-	mediaSvc = mediaService.New(mediaRepo, caseRepo, storage, crypto)
+	// sessionRepo = sessionRepository.New(redisClient)
 
-	// Create handler
 	authSessionRepo = session.NewRedisSessionRepository(redisClient)
 	authmw := auth.NewSessionAuthMiddleware(authSessionRepo, crypto, nil)
-	handler = mediaHandler.New(mediaSvc, authmw)
+
+	handler = investigationHandler.New(caseSvc, authmw)
 
 	// Set required environment variables for logger middleware
 	os.Setenv("CLIENT_IP_HEADER", "X-Forwarded-For")
 	os.Setenv("LOGGING_SALT", "test_logging_salt_12345")
 
-	// Setup HTTP server
+	// HTTP server setup with logger middleware
 	router := http.NewServeMux()
 	handler.RegisterRoutes(router)
 
-	// Use the enhanced AttachLogger middleware
+	// Use the enhanced AttachLogger middleware from core package
 	loggerMiddleware := middleware.AttachLogger(envmode.Dev, testLogger)
 
-	listener, err := net.Listen("tcp", ":0")
+	listener, err := net.Listen("tcp", ":0") // Random available port
 	if err != nil {
-		log.Fatalf("Failed to create listener: %v", err)
+		log.Fatalf("Failed to listen for test server: %v", err)
 	}
-
 	testServerURL = "http://" + listener.Addr().String()
 	testServer = &http.Server{Handler: loggerMiddleware(router)}
 
+	// Start server in goroutine
 	go func() {
 		if err := testServer.Serve(listener); err != nil && err != http.ErrServerClosed {
-			log.Fatalf("Server error: %v", err)
+			log.Fatalf("Test server failed to serve: %v", err)
 		}
 	}()
-
 	log.Printf("Test HTTP server started at %s", testServerURL)
 
 	// Give server time to start
@@ -238,3 +228,4 @@ func TestMain(m *testing.M) {
 	// Exit with test result code
 	os.Exit(code)
 }
+

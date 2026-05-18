@@ -7,7 +7,7 @@ import (
 	"testing"
 
 	"github.com/google/uuid"
-	caseHelpers "github.com/hengadev/cluo_api/test/helpers/case"
+	caseHelpers "github.com/hengadev/cluo_api/test/helpers/investigation"
 	clientHelpers "github.com/hengadev/cluo_api/test/helpers/client"
 	mediaHelpers "github.com/hengadev/cluo_api/test/helpers/media"
 

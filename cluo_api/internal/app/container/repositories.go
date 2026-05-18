@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	caseRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case"
-	caseSubjectRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case_subject"
+	investigationRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/investigation"
+	subjectRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/subject"
 	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 	mediaRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/media"
 	userRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/user"
@@ -21,11 +21,11 @@ func (c *Container) initRepositories(ctx context.Context) error {
 	}
 
 	// Initialize case repository
-	c.caseRepo = caseRepository.New(ctx, c.dbPool)
+	c.caseRepo = investigationRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Case repository initialized")
 
 	// Initialize case subject repository
-	c.caseSubjectRepo = caseSubjectRepository.New(ctx, c.dbPool)
+	c.caseSubjectRepo = subjectRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Case subject repository initialized")
 
 	// Initialize client repository

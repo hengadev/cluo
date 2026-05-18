@@ -5,7 +5,7 @@ import (
 	"fmt"
 
 	authService "github.com/hengadev/cluo_api/internal/application/auth"
-	caseService "github.com/hengadev/cluo_api/internal/application/case"
+	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
 	clientService "github.com/hengadev/cluo_api/internal/application/client"
 	mediaService "github.com/hengadev/cluo_api/internal/application/media"
 	// NOTE: documentService is excluded due to existing compilation errors in the domain layer
@@ -26,7 +26,7 @@ func (c *Container) initServices(ctx context.Context) error {
 	}
 
 	// Initialize case service
-	c.caseService = caseService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.crypto)
+	c.caseService = investigationService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.crypto)
 	c.logger.InfoContext(ctx, "Case service initialized")
 
 	// Initialize client service
