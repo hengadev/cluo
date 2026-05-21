@@ -18,6 +18,9 @@ import (
 	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
 	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
+	pieceHandler "github.com/hengadev/cluo_api/internal/interface/piece"
+	rapportHandler "github.com/hengadev/cluo_api/internal/interface/rapport"
+	tokenHandler "github.com/hengadev/cluo_api/internal/interface/token"
 )
 
 // Server represents the HTTP server.
@@ -127,6 +130,21 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 		s.registerMediaRoutes(mux)
 	}
 
+	// Register piece routes
+	if s.container.PieceService() != nil {
+		s.registerPieceRoutes(mux)
+	}
+
+	// Register rapport routes
+	if s.container.RapportService() != nil {
+		s.registerRapportRoutes(mux)
+	}
+
+	// Register token routes
+	if s.container.TokenService() != nil {
+		s.registerTokenRoutes(mux)
+	}
+
 	// Register AI routes
 	s.registerAIRoutes(mux)
 }
@@ -147,6 +165,24 @@ func (s *Server) registerMediaRoutes(mux *http.ServeMux) {
 	handler := mediaHandler.New(s.container.MediaService(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Media routes registered")
+}
+
+func (s *Server) registerPieceRoutes(mux *http.ServeMux) {
+	handler := pieceHandler.New(s.container.PieceService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Piece routes registered")
+}
+
+func (s *Server) registerRapportRoutes(mux *http.ServeMux) {
+	handler := rapportHandler.New(s.container.RapportService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Rapport routes registered")
+}
+
+func (s *Server) registerTokenRoutes(mux *http.ServeMux) {
+	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Token routes registered")
 }
 
 func (s *Server) registerAIRoutes(mux *http.ServeMux) {

@@ -8,6 +8,9 @@ import (
 	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
 	clientService "github.com/hengadev/cluo_api/internal/application/client"
 	mediaService "github.com/hengadev/cluo_api/internal/application/media"
+	pieceService "github.com/hengadev/cluo_api/internal/application/piece"
+	rapportService "github.com/hengadev/cluo_api/internal/application/rapport"
+	tokenService "github.com/hengadev/cluo_api/internal/application/token"
 	// NOTE: documentService is excluded due to existing compilation errors in the domain layer
 	// documentService "github.com/hengadev/cluo_api/internal/application/document"
 )
@@ -56,6 +59,24 @@ func (c *Container) initServices(ctx context.Context) error {
 	if c.mediaRepo != nil && c.storage != nil {
 		c.mediaService = mediaService.New(c.mediaRepo, c.caseRepo, c.storage, c.crypto)
 		c.logger.InfoContext(ctx, "Media service initialized")
+	}
+
+	// Initialize piece service (if storage is available)
+	if c.pieceRepo != nil && c.storage != nil {
+		c.pieceService = pieceService.New(c.pieceRepo, c.caseRepo, c.storage, c.crypto)
+		c.logger.InfoContext(ctx, "Piece service initialized")
+	}
+
+	// Initialize rapport service
+	if c.rapportRepo != nil {
+		c.rapportService = rapportService.New(c.rapportRepo, c.caseRepo, c.crypto)
+		c.logger.InfoContext(ctx, "Rapport service initialized")
+	}
+
+	// Initialize token service
+	if c.tokenRepo != nil && c.mediaRepo != nil {
+		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.crypto)
+		c.logger.InfoContext(ctx, "Token service initialized")
 	}
 
 	return nil

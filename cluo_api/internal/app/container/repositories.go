@@ -8,6 +8,9 @@ import (
 	subjectRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/subject"
 	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 	mediaRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/media"
+	pieceRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/piece"
+	rapportRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/rapport"
+	tokenRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/token"
 	userRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/user"
 	// NOTE: documentRepository is excluded due to existing compilation errors
 	// documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
@@ -42,9 +45,21 @@ func (c *Container) initRepositories(ctx context.Context) error {
 	c.mediaRepo = mediaRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Media repository initialized")
 
+	// Initialize piece repository
+	c.pieceRepo = pieceRepository.New(ctx, c.dbPool)
+	c.logger.InfoContext(ctx, "Piece repository initialized")
+
 	// Initialize user repository
 	c.userRepo = userRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "User repository initialized")
+
+	// Initialize rapport repository
+	c.rapportRepo = rapportRepository.New(ctx, c.dbPool)
+	c.logger.InfoContext(ctx, "Rapport repository initialized")
+
+	// Initialize token repository
+	c.tokenRepo = tokenRepository.New(ctx, c.dbPool)
+	c.logger.InfoContext(ctx, "Token repository initialized")
 
 	return nil
 }

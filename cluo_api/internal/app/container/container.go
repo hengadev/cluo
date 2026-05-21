@@ -34,15 +34,21 @@ type Container struct {
 	documentRepo        ports.DocumentRepository
 	documentVersionRepo ports.DocumentVersionRepository
 	mediaRepo           ports.MediaRepository
+	pieceRepo           ports.PieceRepository
 	userRepo            ports.UserRepository
+	rapportRepo         ports.RapportRepository
+	tokenRepo           ports.TokenRepository
 
 	// Services
 	caseService     ports.CaseService
 	clientService   ports.ClientService
 	documentService ports.DocumentService
 	mediaService    ports.MediaService
+	pieceService    ports.PieceService
 	storage         ports.StorageService
 	authService     ports.AuthService
+	rapportService  ports.RapportService
+	tokenService    ports.TokenService
 
 	// AI Services
 	textTransformationService ports.TextTransformationService
@@ -173,6 +179,11 @@ func (c *Container) MediaService() ports.MediaService {
 	return c.mediaService
 }
 
+// PieceService returns the piece service.
+func (c *Container) PieceService() ports.PieceService {
+	return c.pieceService
+}
+
 // AuthService returns the auth service.
 func (c *Container) AuthService() ports.AuthService {
 	return c.authService
@@ -201,6 +212,21 @@ func (c *Container) TranscriptAnalysisService() ports.TranscriptAnalysisService 
 // ChatService returns the chat service.
 func (c *Container) ChatService() ports.ChatService {
 	return c.chatService
+}
+
+// RapportService returns the rapport service.
+func (c *Container) RapportService() ports.RapportService {
+	return c.rapportService
+}
+
+// RapportRepository returns the rapport repository.
+func (c *Container) RapportRepository() ports.RapportRepository {
+	return c.rapportRepo
+}
+
+// TokenService returns the token service.
+func (c *Container) TokenService() ports.TokenService {
+	return c.tokenService
 }
 
 // StartBackgroundWorkers starts all background workers.
