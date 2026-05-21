@@ -1,19 +1,4 @@
 package caseRepository
 
-import (
-	"context"
-
-	"github.com/hengadev/cluo_api/internal/ports"
-
-	"github.com/jackc/pgx/v5/pgxpool"
-	_ "github.com/jackc/pgx/v5/stdlib"
-)
-
-type Repository struct {
-	pool   *pgxpool.Pool
-	schema string
-}
-
-func New(ctx context.Context, pool *pgxpool.Pool) ports.ReportRepository {
-	return &Repository{pool: pool, schema: "auth"}
-}
+// Deprecated: rapport storage is implemented in internal/infrastructure/postgres/rapport.
+// This stub is preserved for historical reference only.

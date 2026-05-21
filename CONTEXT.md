@@ -21,15 +21,19 @@ A single investigation mission. Created when a Client commissions the Investigat
 **Lifecycle:**
 
 ```
-draft → in_progress → ready → released
+in_progress → ready → released
 ```
 
 | Status | Meaning |
 |---|---|
-| `draft` | Case created, work has not started yet |
-| `in_progress` | Investigation is actively ongoing |
-| `ready` | Investigation complete, report ready, not yet delivered to client |
-| `released` | Case delivered to client and formally closed |
+| `in_progress` | Case created; investigation is actively ongoing |
+| `ready` | Rapport is complete and reviewed; not yet delivered to client |
+| `released` | PI has sent the client their portal access (email + token generated atomically); case formally closed |
+
+Transitions:
+- Cases are created with status `in_progress`.
+- `POST /cases/{id}/mark-ready` — validates a Rapport exists, sets status to `ready`.
+- `POST /cases/{id}/release` — only callable when status is `ready`. Generates a portal access token, stubs the email send (real email adapter deferred), and sets status to `released`. Idempotent on status: once `released`, calling it again creates a new token and re-stubs the email without changing status (useful if the client loses the link).
 
 A Case has:
 - A **Client** (who commissioned it)
@@ -37,7 +41,7 @@ A Case has:
 - A **CaseType** (the nature of the investigation — see below)
 - A location (where the investigation takes place)
 
-**CaseType** is not a fixed enum. It is stored in a prefilled lookup table because the range of investigation types is too varied to hardcode (e.g. surveillance, insurance fraud, arson investigation, background check, missing person). Its primary purpose is to define a checklist of expected **Pièces** for a case — certain case types require specific exhibits that others do not.
+**CaseType** is not a fixed enum. It is stored in a `case_types` lookup table (`id`, `name`) because the range of investigation types is too varied to hardcode (e.g. surveillance, insurance fraud, arson investigation, background check, missing person). Common types are seeded at deploy time; the PI can also create, update, and delete types through the app. The relationship between CaseType and expected Pièces (checklist) is deferred — CaseType carries only a name for now.
 
 ### Client
 The person or organisation that hired the Investigator. Can be a private individual, insurance company, law firm, corporate entity, or government body.
@@ -47,16 +51,22 @@ A Client is distinct from a CaseSubject — the Client commissions the work; the
 A Client can have one or more **Contacts**: named individuals within the client organisation (e.g. a claims adjuster at an insurance firm, a partner at a law firm). A Case can be assigned to a specific Contact, who acts as the day-to-day point of contact for that mission.
 
 ### CaseSubject
-The person being investigated. Holds personal details (name, contact, address, occupation) and one or more **roles** within a case (e.g. suspect, witness). A CaseSubject can appear in multiple Cases.
+The person being investigated. Holds personal details (name, contact, address, occupation). A CaseSubject can appear in multiple Cases, but each Case has at most **one** primary CaseSubject (the main target of the investigation). Roles (suspect, witness, etc.) are not modelled — the CaseSubject is always the investigative target.
 
 ### Rapport
-The final written investigation report produced by the Investigator. A formal narrative document describing observations, timelines, and findings from the fieldwork, supported by published media. The Rapport is written in a rich-text editor (with AI writing assistance) in the desktop app and delivered to the Client as a downloadable PDF via the web portal (`cluo_web`). The Case moves to `ready` when the Rapport is complete, and to `released` when it has been delivered to the Client.
+The final written investigation report produced by the Investigator. A formal narrative document describing observations, timelines, and findings from the fieldwork, supported by published media. Written in a TipTap rich-text editor on the desktop app.
+
+Stored as **one Rapport per Case** — the backend holds a single encrypted blob (`content_encrypted BYTEA`) of the TipTap JSON document. The backend is opaque to the TipTap structure. No versioning. CRUD: create, get by case ID, update, delete.
+
+The Case moves to `ready` when the Rapport is marked complete, and to `released` when it has been delivered to the Client. The Rapport is delivered as a downloadable PDF via the web portal (`cluo_web`).
 
 ### Réseaux (OSINT Research)
-A section of a Case dedicated to open-source intelligence (OSINT) findings about the CaseSubject — social media profiles, public online presence, usernames, notable posts. The Investigator is not trained in OSINT; this section is planned to be AI-assisted, surfacing relevant findings automatically from the subject's known details.
+A section of a Case dedicated to open-source intelligence (OSINT) findings about the CaseSubject — social media profiles, public online presence, usernames, notable posts. The Investigator is not trained in OSINT; this section is AI-assisted and has no backend implementation until the AI layer is ready.
 
 ### Pièces (Exhibits)
 Supporting documents attached to a Case that were received externally or collected outside of direct fieldwork. Includes scanned documents, client-provided files, court exhibits, receipts, and any file that doesn't fit the photo/video/audio categories and isn't one of the four formal legal documents. Acts as a general-purpose file attachment bucket for the case.
+
+Stored in `cases.pieces`. One row per file; the file itself lives in S3. Fields: `ID`, `CaseID`, `FileName` (encrypted), `StorageKey`, `MimeType`, `Size`, `Notes` (encrypted), `CreatedAt`, `UpdatedAt`. Internal-only — not exposed to the client portal. CRUD: upload (S3 + metadata), get by ID, list by case, delete.
 
 ### Media
 A `MediaFile` is any image, video, or audio file collected during fieldwork and attached to a Case. The investigator captures a large volume of raw media; he selects a subset to publish to the client.
@@ -123,9 +133,11 @@ Tauri + SvelteKit desktop app for the **Investigator**. Used at the office (or a
 SvelteKit **PWA** for the **Investigator in the field**. Optimised for mobile use during surveillance. Primary function: capture audio recordings and upload them to the backend, linked to the active Case. Recordings are then transcribed by AI on the backend. Transcriptions feed into the Rapport writing workflow on the desktop.
 
 ### `cluo_web`
-SvelteKit web app for the **Client**. Credential-gated — no persistent account. Access is granted by a one-time code sent by email or SMS for a specific Case. The client can:
+SvelteKit web app for the **Client**. Credential-gated — no persistent account. Access is granted via a **magic link** the PI sends manually from the desktop app. The backend generates a random token, stores its SHA-256 hash in `cases.case_access_tokens`, and includes the raw token in the emailed link. Tokens expire after **30 days** (fixed); the PI can revoke them at any time. The client can:
 - View all Case documents (Estimate, Mandate, Contract, Invoice)
 - Download the Rapport PDF once the Case is `released`
+
+Token table: `id`, `case_id`, `token_hash`, `expires_at`, `revoked_at` (nullable), `created_at`. Operations: create (PI), validate (portal on every request), revoke (PI), list by case (PI).
 
 Signing of Mandate and Contract is handled out-of-band; by the time the case is `in_progress` both documents are already signed.
 

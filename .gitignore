@@ -33,3 +33,6 @@ Thumbs.db
 old_version/
 notes/
 ressources/
+
+# Local planning artefacts (PRDs, issues — not committed)
+.local/
