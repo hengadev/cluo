@@ -27,6 +27,7 @@ var (
 	ErrCategoryHasProducts = errors.New("category has associated products")
 	ErrUnauthorized        = errors.New("unauthorized action") // Authentication required/failed (401)
 	ErrForbidden           = errors.New("forbidden action")    // Access denied despite valid authentication (403)
+	ErrUnprocessableEntity = errors.New("unprocessable entity") // Semantically invalid request (422)
 
 	// Data serialization/deserialization errors (less common to originate here, more in handler/repo)
 	ErrMarshalJSON   = errors.New("json marshalling")
@@ -138,4 +139,8 @@ func NewPermissionErr(message string) error {
 
 func NewForbiddenErr(message string) error {
 	return fmt.Errorf("%w: %s", ErrForbidden, message)
+}
+
+func NewUnprocessableEntityErr(msg string) error {
+	return fmt.Errorf("%w: %s", ErrUnprocessableEntity, msg)
 }

@@ -119,6 +119,10 @@ func classifyServiceError(err error) int {
 	case errors.Is(err, errs.ErrAccountLocked):
 		return http.StatusLocked
 
+	// 422 Unprocessable Entity - Semantically invalid (precondition not met)
+	case errors.Is(err, errs.ErrUnprocessableEntity):
+		return http.StatusUnprocessableEntity
+
 	// 429 Too Many Requests - Rate limit exceeded
 	case errors.Is(err, errs.ErrRateLimit):
 		return http.StatusTooManyRequests

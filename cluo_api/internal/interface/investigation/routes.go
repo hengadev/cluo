@@ -20,6 +20,6 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /cases", RequireAdministrator(mw.EnableCORS(h.ListCases)))
 	router.HandleFunc("GET /clients/{clientId}/cases", RequireAdministrator(mw.EnableCORS(h.ListCasesByClient)))
 
-	// Legacy/placeholder routes (commented out)
-	// router.HandleFunc("POST /cases/{id}", h.DeliverCase)
+	// Status transition routes
+	router.HandleFunc("POST /cases/{id}/mark-ready", RequireAdministrator(mw.EnableCORS(h.MarkReady)))
 }

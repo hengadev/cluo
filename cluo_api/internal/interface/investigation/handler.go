@@ -14,6 +14,7 @@ type Handler interface {
 	DeleteCase(w http.ResponseWriter, r *http.Request)
 	ListCases(w http.ResponseWriter, r *http.Request)
 	ListCasesByClient(w http.ResponseWriter, r *http.Request)
+	MarkReady(w http.ResponseWriter, r *http.Request)
 	RegisterRoutes(router *http.ServeMux)
 }
 
