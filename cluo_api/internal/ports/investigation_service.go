@@ -15,4 +15,5 @@ type CaseService interface {
 	List(ctx context.Context, r *investigation.ListCasesRequest) (*investigation.ListCasesResponse, error)
 	ListByClient(ctx context.Context, r *investigation.ListByClientRequest) (*investigation.ListCasesResponse, error)
 	MarkReady(ctx context.Context, caseID uuid.UUID) (*investigation.CaseResponse, error)
+	Release(ctx context.Context, caseID uuid.UUID) (*investigation.ReleaseResponse, error)
 }

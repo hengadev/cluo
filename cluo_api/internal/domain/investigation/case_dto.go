@@ -10,6 +10,14 @@ import (
 	"github.com/hengadev/errsx"
 )
 
+type ReleaseResponse struct {
+	CaseID    string    `json:"caseId"`
+	TokenID   string    `json:"tokenId"`
+	RawToken  string    `json:"rawToken"`
+	PortalURL string    `json:"portalUrl"`
+	ExpiresAt time.Time `json:"expiresAt"`
+}
+
 func (c *Investigation) ToResponse() *CaseResponse {
 	var assignedContactIDStr *string
 	if c.AssignedContactID != nil {

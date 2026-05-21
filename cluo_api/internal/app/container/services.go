@@ -30,8 +30,14 @@ func (c *Container) initServices(ctx context.Context) error {
 		return nil
 	}
 
+	// Initialize token service early so caseService can depend on it.
+	if c.tokenRepo != nil && c.mediaRepo != nil {
+		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.crypto)
+		c.logger.InfoContext(ctx, "Token service initialized")
+	}
+
 	// Initialize case service
-	c.caseService = investigationService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.rapportRepo, c.crypto)
+	c.caseService = investigationService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.rapportRepo, c.tokenService, c.crypto)
 	c.logger.InfoContext(ctx, "Case service initialized")
 
 	// Initialize client service
@@ -73,12 +79,6 @@ func (c *Container) initServices(ctx context.Context) error {
 	if c.rapportRepo != nil {
 		c.rapportService = rapportService.New(c.rapportRepo, c.caseRepo, c.crypto)
 		c.logger.InfoContext(ctx, "Rapport service initialized")
-	}
-
-	// Initialize token service
-	if c.tokenRepo != nil && c.mediaRepo != nil {
-		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.crypto)
-		c.logger.InfoContext(ctx, "Token service initialized")
 	}
 
 	// Initialize case type service

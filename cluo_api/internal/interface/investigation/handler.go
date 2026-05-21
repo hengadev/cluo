@@ -15,6 +15,7 @@ type Handler interface {
 	ListCases(w http.ResponseWriter, r *http.Request)
 	ListCasesByClient(w http.ResponseWriter, r *http.Request)
 	MarkReady(w http.ResponseWriter, r *http.Request)
+	Release(w http.ResponseWriter, r *http.Request)
 	RegisterRoutes(router *http.ServeMux)
 }
 

@@ -22,4 +22,5 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 
 	// Status transition routes
 	router.HandleFunc("POST /cases/{id}/mark-ready", RequireAdministrator(mw.EnableCORS(h.MarkReady)))
+	router.HandleFunc("POST /cases/{id}/release", RequireAdministrator(mw.EnableCORS(h.Release)))
 }
