@@ -12,11 +12,12 @@ type Handler interface {
 }
 
 type handler struct {
-	svc        ports.TokenService
-	rapportSvc ports.RapportService
-	authmw     auth.AuthMiddleware
+	svc          ports.TokenService
+	rapportSvc   ports.RapportService
+	documentRepo ports.DocumentRepository // may be nil while document packages are disabled
+	authmw       auth.AuthMiddleware
 }
 
-func New(svc ports.TokenService, rapportSvc ports.RapportService, authmw auth.AuthMiddleware) Handler {
-	return &handler{svc: svc, rapportSvc: rapportSvc, authmw: authmw}
+func New(svc ports.TokenService, rapportSvc ports.RapportService, documentRepo ports.DocumentRepository, authmw auth.AuthMiddleware) Handler {
+	return &handler{svc: svc, rapportSvc: rapportSvc, documentRepo: documentRepo, authmw: authmw}
 }
