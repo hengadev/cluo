@@ -23,6 +23,12 @@ func (c *Investigation) ToResponse() *CaseResponse {
 		caseSubjectIDStr = &subjectIDStr
 	}
 
+	var caseTypeIDStr *string
+	if c.CaseTypeID != nil {
+		typeIDStr := c.CaseTypeID.String()
+		caseTypeIDStr = &typeIDStr
+	}
+
 	// Helper function to convert non-empty strings to pointers
 	stringToPtr := func(s string) *string {
 		if s == "" {
@@ -39,7 +45,7 @@ func (c *Investigation) ToResponse() *CaseResponse {
 		AssignedContactID: assignedContactIDStr,
 		CaseSubjectID:     caseSubjectIDStr,
 		ExternalReference: c.ExternalReference,
-		CaseType:          c.CaseType,
+		CaseTypeID:        caseTypeIDStr,
 		Status:            string(c.Status),
 		Placename:         stringToPtr(c.Placename),
 		Address1:          stringToPtr(c.Address1),
@@ -65,7 +71,7 @@ type CaseResponse struct {
 	AssignedContactID *string   `json:"assignedContactID,omitempty"`
 	CaseSubjectID     *string   `json:"caseSubjectId,omitempty"`
 	ExternalReference *string   `json:"externalReference,omitempty"`
-	CaseType          string    `json:"caseType"`
+	CaseTypeID        *string   `json:"caseTypeId,omitempty"`
 	Status            string    `json:"status"`
 	Placename         *string   `json:"placename,omitempty"`
 	Address1          *string   `json:"address1,omitempty"`
@@ -88,7 +94,7 @@ type CreateCaseRequest struct {
 	AssignedContactID *string `json:"assignedContactID,omitempty"`
 	CaseSubjectID     *string `json:"caseSubjectId,omitempty"`
 	ExternalReference *string `json:"externalReference,omitempty"`
-	CaseType          string  `json:"caseType"`
+	CaseTypeID        *string `json:"caseTypeId,omitempty"`
 	Status            string  `json:"status"`
 	Placename         *string `json:"placename,omitempty"`
 	Address1          *string `json:"address1,omitempty"`
@@ -139,15 +145,8 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 	} else {
 		status := Status(strings.ToLower(strings.TrimSpace(r.Status)))
 		if !status.IsValid() {
-			errs.Set("status", "status must be one of: draft, in_progress, ready, released")
+			errs.Set("status", "status must be one of: in_progress, ready, released")
 		}
-	}
-
-	// Validate CaseType (required)
-	if strings.TrimSpace(r.CaseType) == "" {
-		errs.Set("caseType", "caseType is required")
-	} else if len(r.CaseType) > 100 {
-		errs.Set("caseType", "caseType must be less than 100 characters")
 	}
 
 	// Validate CaseSubjectID (optional)
@@ -218,10 +217,10 @@ func (r *CreateCaseRequest) Valid(ctx context.Context) error {
 func New(r *CreateCaseRequest) *Investigation {
 	now := time.Now()
 
-	// Parse status, defaulting to Draft if invalid
+	// Parse status, defaulting to InProgress if invalid
 	status := Status(strings.ToLower(strings.TrimSpace(r.Status)))
 	if !status.IsValid() {
-		status = StatusDraft
+		status = StatusInProgress
 	}
 
 	// Parse client ID
@@ -249,6 +248,15 @@ func New(r *CreateCaseRequest) *Investigation {
 		}
 	}
 
+	// Parse case type ID if provided
+	var parsedCaseTypeID *uuid.UUID
+	if r.CaseTypeID != nil && strings.TrimSpace(*r.CaseTypeID) != "" {
+		typeID, err := uuid.Parse(*r.CaseTypeID)
+		if err == nil {
+			parsedCaseTypeID = &typeID
+		}
+	}
+
 	// Helper to dereference string pointers, returning empty string if nil
 	ptrToString := func(s *string) string {
 		if s == nil {
@@ -265,7 +273,7 @@ func New(r *CreateCaseRequest) *Investigation {
 		AssignedContactID: assignedContactID,
 		CaseSubjectID:     caseSubjectID,
 		ExternalReference: r.ExternalReference,
-		CaseType:          r.CaseType,
+		CaseTypeID:        parsedCaseTypeID,
 		Status:            status,
 		Placename:         ptrToString(r.Placename),
 		Address1:          ptrToString(r.Address1),
@@ -298,7 +306,7 @@ type UpdateCaseRequest struct {
 	AssignedContactID *uuid.UUID `json:"assignedContactId"`
 	CaseSubjectID     *uuid.UUID `json:"caseSubjectId"`
 	ExternalReference *string    `json:"externalReference"`
-	CaseType          *string    `json:"caseType"`
+	CaseTypeID        *uuid.UUID `json:"caseTypeId,omitempty"`
 	Status            *string    `json:"status"`
 	Placename         *string    `json:"placename"`
 	Address1          *string    `json:"address1"`
@@ -347,17 +355,8 @@ func (r *UpdateCaseRequest) Valid(ctx context.Context) error {
 		} else {
 			caseStatus := Status(strings.ToLower(status))
 			if !caseStatus.IsValid() {
-				errs.Set("status", "status must be one of: draft, in_progress, ready, released")
+				errs.Set("status", "status must be one of: in_progress, ready, released")
 			}
-		}
-	}
-
-	// Validate CaseType (optional but if provided, check length)
-	if r.CaseType != nil {
-		if strings.TrimSpace(*r.CaseType) == "" {
-			errs.Set("caseType", "caseType cannot be empty if provided")
-		} else if len(*r.CaseType) > 100 {
-			errs.Set("caseType", "caseType must be less than 100 characters")
 		}
 	}
 
@@ -427,7 +426,7 @@ type ListCasesRequest struct {
 	Status            *string `json:"status,omitempty"`
 	AssignedContactID *string `json:"assignedContactId,omitempty"`
 	CaseSubjectID     *string `json:"caseSubjectId,omitempty"`
-	CaseType          *string `json:"caseType,omitempty"`
+	CaseTypeID        *string `json:"caseTypeId,omitempty"`
 	City              *string `json:"city,omitempty"`
 	PostalCode        *string `json:"postalCode,omitempty"`
 	Country           *string `json:"country,omitempty"`
@@ -480,14 +479,14 @@ func (r *ListCasesRequest) Valid(ctx context.Context) error {
 	if r.Status != nil && strings.TrimSpace(*r.Status) != "" {
 		status := Status(strings.ToLower(strings.TrimSpace(*r.Status)))
 		if !status.IsValid() {
-			errs.Set("status", "status must be one of: draft, in_progress, ready, released")
+			errs.Set("status", "status must be one of: in_progress, ready, released")
 		}
 	}
 
-	// Validate CaseType (optional)
-	if r.CaseType != nil && strings.TrimSpace(*r.CaseType) != "" {
-		if len(*r.CaseType) > 100 {
-			errs.Set("caseType", "caseType must be less than 100 characters")
+	// Validate CaseTypeID (optional)
+	if r.CaseTypeID != nil && strings.TrimSpace(*r.CaseTypeID) != "" {
+		if _, err := uuid.Parse(*r.CaseTypeID); err != nil {
+			errs.Set("caseTypeId", "caseTypeId must be a valid UUID")
 		}
 	}
 
@@ -577,10 +576,13 @@ func (r *ListCasesRequest) ToFilter() (Filter, error) {
 		filter.CaseSubjectID = &subjectID
 	}
 
-	// Parse CaseType
-	if r.CaseType != nil && strings.TrimSpace(*r.CaseType) != "" {
-		caseType := strings.TrimSpace(*r.CaseType)
-		filter.CaseType = &caseType
+	// Parse CaseTypeID
+	if r.CaseTypeID != nil && strings.TrimSpace(*r.CaseTypeID) != "" {
+		caseTypeID, err := uuid.Parse(*r.CaseTypeID)
+		if err != nil {
+			return filter, fmt.Errorf("invalid caseTypeId: %w", err)
+		}
+		filter.CaseTypeID = &caseTypeID
 	}
 
 	// Parse location filters

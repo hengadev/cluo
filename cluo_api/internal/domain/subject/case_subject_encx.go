@@ -17,13 +17,9 @@ import (
 
 // SubjectEncx represents the encrypted version of Subject
 type SubjectEncx struct {
-	
+
 	ID uuid.UUID `db:"id" json:"id"`
-	
-	CaseID []uuid.UUID `db:"caseid" json:"caseid"`
-	
-	Roles []PersonRole `db:"roles" json:"roles"`
-	
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 	
 	
@@ -86,15 +82,10 @@ func ProcessCaseSubjectEncx(ctx context.Context, crypto encx.CryptoService, sour
 	}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
-	result.CaseID = source.CaseID
-	
-	result.Roles = source.Roles
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -274,15 +265,10 @@ func DecryptCaseSubjectEncx(ctx context.Context, crypto encx.CryptoService, sour
 	result := &Subject{}
 
 	// Copy plain fields (non-encx fields)
-	
+
 	result.ID = source.ID
-	
-	result.CaseID = source.CaseID
-	
-	result.Roles = source.Roles
-	
+
 	result.CreatedAt = source.CreatedAt
-	
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)

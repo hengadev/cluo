@@ -105,8 +105,8 @@ func (s *CaseService) UpdateCase(ctx context.Context, request *investigation.Upd
 		caseDecrypted.ExternalReference = request.ExternalReference
 	}
 
-	if request.CaseType != nil {
-		caseDecrypted.CaseType = *request.CaseType
+	if request.CaseTypeID != nil {
+		caseDecrypted.CaseTypeID = request.CaseTypeID
 	}
 
 	if request.Status != nil {
@@ -115,7 +115,7 @@ func (s *CaseService) UpdateCase(ctx context.Context, request *investigation.Upd
 		if status.IsValid() {
 			caseDecrypted.Status = status
 		} else {
-			caseDecrypted.Status = investigation.StatusDraft
+			caseDecrypted.Status = investigation.StatusInProgress
 		}
 	}
 
