@@ -5,6 +5,8 @@ import (
 	"fmt"
 
 	authService "github.com/hengadev/cluo_api/internal/application/auth"
+	caseSubjectService "github.com/hengadev/cluo_api/internal/application/case_subject"
+	caseTypeService "github.com/hengadev/cluo_api/internal/application/case_type"
 	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
 	clientService "github.com/hengadev/cluo_api/internal/application/client"
 	mediaService "github.com/hengadev/cluo_api/internal/application/media"
@@ -29,7 +31,7 @@ func (c *Container) initServices(ctx context.Context) error {
 	}
 
 	// Initialize case service
-	c.caseService = investigationService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.crypto)
+	c.caseService = investigationService.New(c.caseRepo, c.clientRepo, c.caseSubjectRepo, c.rapportRepo, c.crypto)
 	c.logger.InfoContext(ctx, "Case service initialized")
 
 	// Initialize client service
@@ -77,6 +79,18 @@ func (c *Container) initServices(ctx context.Context) error {
 	if c.tokenRepo != nil && c.mediaRepo != nil {
 		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.crypto)
 		c.logger.InfoContext(ctx, "Token service initialized")
+	}
+
+	// Initialize case type service
+	if c.caseTypeRepo != nil {
+		c.caseTypeService = caseTypeService.New(c.caseTypeRepo)
+		c.logger.InfoContext(ctx, "CaseType service initialized")
+	}
+
+	// Initialize case subject service
+	if c.caseSubjectRepo != nil {
+		c.caseSubjectService = caseSubjectService.New(c.caseSubjectRepo, c.crypto)
+		c.logger.InfoContext(ctx, "CaseSubject service initialized")
 	}
 
 	return nil

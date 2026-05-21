@@ -30,6 +30,7 @@ type Container struct {
 	// Repositories
 	caseRepo            ports.CaseRepository
 	caseSubjectRepo     ports.CaseSubjectRepository
+	caseTypeRepo        ports.CaseTypeRepository
 	clientRepo          ports.ClientRepository
 	documentRepo        ports.DocumentRepository
 	documentVersionRepo ports.DocumentVersionRepository
@@ -40,15 +41,17 @@ type Container struct {
 	tokenRepo           ports.TokenRepository
 
 	// Services
-	caseService     ports.CaseService
-	clientService   ports.ClientService
-	documentService ports.DocumentService
-	mediaService    ports.MediaService
-	pieceService    ports.PieceService
-	storage         ports.StorageService
-	authService     ports.AuthService
-	rapportService  ports.RapportService
-	tokenService    ports.TokenService
+	caseService        ports.CaseService
+	caseSubjectService ports.CaseSubjectService
+	caseTypeService    ports.CaseTypeService
+	clientService      ports.ClientService
+	documentService    ports.DocumentService
+	mediaService       ports.MediaService
+	pieceService       ports.PieceService
+	storage            ports.StorageService
+	authService        ports.AuthService
+	rapportService     ports.RapportService
+	tokenService       ports.TokenService
 
 	// AI Services
 	textTransformationService ports.TextTransformationService
@@ -227,6 +230,21 @@ func (c *Container) RapportRepository() ports.RapportRepository {
 // TokenService returns the token service.
 func (c *Container) TokenService() ports.TokenService {
 	return c.tokenService
+}
+
+// CaseTypeService returns the case type service.
+func (c *Container) CaseTypeService() ports.CaseTypeService {
+	return c.caseTypeService
+}
+
+// CaseSubjectService returns the case subject service.
+func (c *Container) CaseSubjectService() ports.CaseSubjectService {
+	return c.caseSubjectService
+}
+
+// TypedDocumentRepository returns the document repository with its correct type.
+func (c *Container) TypedDocumentRepository() ports.DocumentRepository {
+	return c.documentRepo
 }
 
 // StartBackgroundWorkers starts all background workers.

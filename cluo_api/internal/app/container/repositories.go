@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	caseTypeRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/case_type"
 	investigationRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/investigation"
 	subjectRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/subject"
 	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
@@ -60,6 +61,10 @@ func (c *Container) initRepositories(ctx context.Context) error {
 	// Initialize token repository
 	c.tokenRepo = tokenRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Token repository initialized")
+
+	// Initialize case type repository
+	c.caseTypeRepo = caseTypeRepository.New(ctx, c.dbPool)
+	c.logger.InfoContext(ctx, "CaseType repository initialized")
 
 	return nil
 }

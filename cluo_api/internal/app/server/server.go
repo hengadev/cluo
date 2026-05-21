@@ -15,6 +15,8 @@ import (
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
 	aiTextTransformationHandler "github.com/hengadev/cluo_api/internal/interface/ai_text_transformation"
 	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
+	caseSubjectHandler "github.com/hengadev/cluo_api/internal/interface/case_subject"
+	caseTypeHandler "github.com/hengadev/cluo_api/internal/interface/case_type"
 	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
 	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
@@ -145,6 +147,16 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 		s.registerTokenRoutes(mux)
 	}
 
+	// Register case type routes
+	if s.container.CaseTypeService() != nil {
+		s.registerCaseTypeRoutes(mux)
+	}
+
+	// Register subject routes
+	if s.container.CaseSubjectService() != nil {
+		s.registerSubjectRoutes(mux)
+	}
+
 	// Register AI routes
 	s.registerAIRoutes(mux)
 }
@@ -180,9 +192,21 @@ func (s *Server) registerRapportRoutes(mux *http.ServeMux) {
 }
 
 func (s *Server) registerTokenRoutes(mux *http.ServeMux) {
-	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.AuthMiddleware())
+	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.TypedDocumentRepository(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Token routes registered")
+}
+
+func (s *Server) registerCaseTypeRoutes(mux *http.ServeMux) {
+	handler := caseTypeHandler.New(s.container.CaseTypeService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("CaseType routes registered")
+}
+
+func (s *Server) registerSubjectRoutes(mux *http.ServeMux) {
+	handler := caseSubjectHandler.New(s.container.CaseSubjectService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Subject routes registered")
 }
 
 func (s *Server) registerAIRoutes(mux *http.ServeMux) {
