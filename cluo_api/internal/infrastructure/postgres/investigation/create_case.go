@@ -15,7 +15,7 @@ func (r *Repository) CreateCase(ctx context.Context, caseEncx *investigation.Inv
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s.cases (
-			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			id, client_id, assigned_contact_id, case_subject_id, case_type_id, created_at,
 			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
 			placename_encrypted, placename_hash,
 			address1_encrypted, address1_hash,
@@ -36,7 +36,7 @@ func (r *Repository) CreateCase(ctx context.Context, caseEncx *investigation.Inv
 		caseEncx.ClientID,
 		caseEncx.AssignedContactID,
 		caseEncx.CaseSubjectID,
-		caseEncx.CaseType,
+		caseEncx.CaseTypeID,
 		caseEncx.CreatedAt,
 		caseEncx.TitleEncrypted,
 		caseEncx.DescriptionEncrypted,

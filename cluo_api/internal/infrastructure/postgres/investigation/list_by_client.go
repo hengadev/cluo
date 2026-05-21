@@ -37,7 +37,7 @@ func (r *Repository) ListByClient(ctx context.Context, clientID uuid.UUID, p inv
 	// Get paginated results for this client
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			id, client_id, assigned_contact_id, case_subject_id, case_type_id, created_at,
 			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
 			placename_encrypted, placename_hash,
 			address1_encrypted, address1_hash,
@@ -66,7 +66,7 @@ func (r *Repository) ListByClient(ctx context.Context, clientID uuid.UUID, p inv
 	for rows.Next() {
 		caseEncx := &investigation.InvestigationEncx{}
 		err := rows.Scan(
-			&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+			&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseTypeID, &caseEncx.CreatedAt,
 			&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.ExternalReferenceHash, &caseEncx.StatusEncrypted,
 			&caseEncx.PlacenameEncrypted, &caseEncx.PlacenameHash,
 			&caseEncx.Address1Encrypted, &caseEncx.Address1Hash,

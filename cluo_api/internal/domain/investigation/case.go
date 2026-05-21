@@ -15,7 +15,7 @@ type Investigation struct {
 	AssignedContactID *uuid.UUID `db:"assigned_contact_id"`
 	CaseSubjectID     *uuid.UUID `db:"case_subject_id"`
 	ExternalReference *string    `encx:"encrypt,hash_basic" db:"external_reference_encrypted"`
-	CaseType          string     `db:"case_type"`
+	CaseTypeID        *uuid.UUID `db:"case_type_id"`
 	Status            Status `encx:"encrypt" db:"status_encrypted"`
 	Placename         string     `encx:"encrypt,hash_basic" db:"placename_encrypted"`
 	Address1          string     `encx:"encrypt,hash_basic" db:"address1_encrypted"`
@@ -41,7 +41,7 @@ type Filter struct {
 	Status            *Status `json:"status,omitempty"`
 	AssignedContactID *uuid.UUID  `json:"assigned_contact_id,omitempty"`
 	CaseSubjectID     *uuid.UUID  `json:"case_subject_id,omitempty"`
-	CaseType          *string     `json:"case_type,omitempty"`
+	CaseTypeID        *uuid.UUID  `json:"case_type_id,omitempty"`
 	City              *string     `json:"city,omitempty"`
 	PostalCode        *string     `json:"postal_code,omitempty"`
 	Country           *string     `json:"country,omitempty"`

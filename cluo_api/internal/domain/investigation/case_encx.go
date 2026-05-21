@@ -26,7 +26,7 @@ type InvestigationEncx struct {
 	
 	CaseSubjectID *uuid.UUID `db:"casesubjectid" json:"casesubjectid"`
 	
-	CaseType string `db:"casetype" json:"casetype"`
+	CaseTypeID *uuid.UUID `db:"casetypeid" json:"casetypeid"`
 	
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 	
@@ -115,10 +115,10 @@ func ProcessInvestigationEncx(ctx context.Context, crypto encx.CryptoService, so
 	
 	result.CaseSubjectID = source.CaseSubjectID
 	
-	result.CaseType = source.CaseType
-	
+	result.CaseTypeID = source.CaseTypeID
+
 	result.CreatedAt = source.CreatedAt
-	
+
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -386,10 +386,10 @@ func DecryptInvestigationEncx(ctx context.Context, crypto encx.CryptoService, so
 	
 	result.CaseSubjectID = source.CaseSubjectID
 	
-	result.CaseType = source.CaseType
-	
+	result.CaseTypeID = source.CaseTypeID
+
 	result.CreatedAt = source.CreatedAt
-	
+
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)

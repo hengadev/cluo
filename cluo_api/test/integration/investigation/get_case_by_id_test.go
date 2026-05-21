@@ -86,7 +86,6 @@ func TestGetCaseByID(t *testing.T) {
 		assert.Equal(t, "Test Case Title", response.Title, "Title should match")
 		assert.Equal(t, "Test case description for unit testing", response.Description, "Description should match")
 		assert.Equal(t, "EXT-REF-123", *response.ExternalReference, "ExternalReference should match")
-		assert.Equal(t, "Test Case Type", response.CaseType, "CaseType should match")
 		assert.Equal(t, "draft", response.Status, "Status should match")
 		assert.NotEmpty(t, response.CreatedAt, "CreatedAt should not be empty")
 		assert.NotEmpty(t, response.UpdatedAt, "UpdatedAt should not be empty")

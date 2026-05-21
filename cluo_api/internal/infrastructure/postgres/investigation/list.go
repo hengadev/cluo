@@ -48,9 +48,9 @@ func (r *Repository) List(ctx context.Context, f investigation.Filter, p investi
 		}
 	}
 
-	if f.CaseType != nil {
-		whereClauses = append(whereClauses, fmt.Sprintf("case_type = $%d", argIndex))
-		args = append(args, *f.CaseType)
+	if f.CaseTypeID != nil {
+		whereClauses = append(whereClauses, fmt.Sprintf("case_type_id = $%d", argIndex))
+		args = append(args, *f.CaseTypeID)
 		argIndex++
 	}
 
@@ -105,7 +105,7 @@ func (r *Repository) List(ctx context.Context, f investigation.Filter, p investi
 	// Get paginated results
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			id, client_id, assigned_contact_id, case_subject_id, case_type_id, created_at,
 			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
 			placename_encrypted, placename_hash,
 			address1_encrypted, address1_hash,
@@ -136,7 +136,7 @@ func (r *Repository) List(ctx context.Context, f investigation.Filter, p investi
 	for rows.Next() {
 		caseEncx := &investigation.InvestigationEncx{}
 		err := rows.Scan(
-			&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+			&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseTypeID, &caseEncx.CreatedAt,
 			&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.ExternalReferenceHash, &caseEncx.StatusEncrypted,
 			&caseEncx.PlacenameEncrypted, &caseEncx.PlacenameHash,
 			&caseEncx.Address1Encrypted, &caseEncx.Address1Hash,

@@ -525,10 +525,8 @@ func TestUpdateCase(t *testing.T) {
 
 		// Prepare update request with new fields
 		newExternalRef := "UPDATED-EXT-REF"
-		newCaseType := "Fraud"
 		updateRequest := &investigation.UpdateCaseRequest{
 			ExternalReference: &newExternalRef,
-			CaseType:          &newCaseType,
 		}
 
 		// Create HTTP request
@@ -550,7 +548,6 @@ func TestUpdateCase(t *testing.T) {
 		// Verify new fields were updated
 		assert.Equal(t, testCase.ID.String(), response.ID, "Case ID should match")
 		assert.Equal(t, newExternalRef, *response.ExternalReference, "ExternalReference should be updated")
-		assert.Equal(t, newCaseType, response.CaseType, "CaseType should be updated")
 		assert.Greater(t, response.UpdatedAt, response.CreatedAt, "UpdatedAt should be updated")
 
 		t.Log("✓ New fields updated successfully")

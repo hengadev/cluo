@@ -27,7 +27,7 @@ func InsertCaseEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseE
 
 	query := fmt.Sprintf(`
 		INSERT INTO %s.cases (
-			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			id, client_id, assigned_contact_id, case_subject_id, case_type_id, created_at,
 			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
 			placename_encrypted, placename_hash,
 			address1_encrypted, address1_hash,
@@ -48,7 +48,7 @@ func InsertCaseEncx(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseE
 		caseEncx.ClientID,
 		caseEncx.AssignedContactID,
 		caseEncx.CaseSubjectID,
-		caseEncx.CaseType,
+		caseEncx.CaseTypeID,
 		caseEncx.CreatedAt,
 		caseEncx.TitleEncrypted,
 		caseEncx.DescriptionEncrypted,
@@ -90,7 +90,7 @@ func GetCaseEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, case
 
 	query := fmt.Sprintf(`
 		SELECT
-			id, client_id, assigned_contact_id, case_subject_id, case_type, created_at,
+			id, client_id, assigned_contact_id, case_subject_id, case_type_id, created_at,
 			title_encrypted, description_encrypted, external_reference_encrypted, external_reference_hash, status_encrypted,
 			placename_encrypted, placename_hash,
 			address1_encrypted, address1_hash,
@@ -109,7 +109,7 @@ func GetCaseEncxByID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, case
 	caseEncx := &investigation.InvestigationEncx{}
 
 	err := pool.QueryRow(ctx, query, caseID).Scan(
-		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseType, &caseEncx.CreatedAt,
+		&caseEncx.ID, &caseEncx.ClientID, &caseEncx.AssignedContactID, &caseEncx.CaseSubjectID, &caseEncx.CaseTypeID, &caseEncx.CreatedAt,
 		&caseEncx.TitleEncrypted, &caseEncx.DescriptionEncrypted, &caseEncx.ExternalReferenceEncrypted, &caseEncx.ExternalReferenceHash, &caseEncx.StatusEncrypted,
 		&caseEncx.PlacenameEncrypted, &caseEncx.PlacenameHash,
 		&caseEncx.Address1Encrypted, &caseEncx.Address1Hash,
@@ -149,7 +149,7 @@ func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool
 		ClientID:                   clientID,
 		AssignedContactID:          &contactID,
 		CaseSubjectID:              &caseSubjectID,
-		CaseType:                   "Initial Case Type",
+		CaseTypeID:                 nil,
 		TitleEncrypted:             []byte("initial_title_encrypted"),
 		DescriptionEncrypted:       []byte("initial_description_encrypted"),
 		ExternalReferenceEncrypted: []byte("initial_external_ref_encrypted"),

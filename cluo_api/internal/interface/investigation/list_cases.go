@@ -100,8 +100,8 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		}
 		request.Search = &search
 	}
-	if caseType := query.Get("caseType"); caseType != "" {
-		request.CaseType = &caseType
+	if caseTypeID := query.Get("caseTypeId"); caseTypeID != "" {
+		request.CaseTypeID = &caseTypeID
 	}
 	if caseSubjectID := query.Get("caseSubjectId"); caseSubjectID != "" {
 		request.CaseSubjectID = &caseSubjectID
@@ -125,7 +125,7 @@ func (h *handler) ListCases(w http.ResponseWriter, r *http.Request) {
 		"page_size", pageSize,
 		"has_client_filter", request.ClientID != nil,
 		"has_status_filter", request.Status != nil,
-		"has_case_type_filter", request.CaseType != nil,
+		"has_case_type_filter", request.CaseTypeID != nil,
 		"has_case_subject_filter", request.CaseSubjectID != nil,
 		"has_city_filter", request.City != nil,
 		"has_postal_code_filter", request.PostalCode != nil,

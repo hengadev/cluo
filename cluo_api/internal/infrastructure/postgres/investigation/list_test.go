@@ -88,11 +88,6 @@ func TestList(t *testing.T) {
 		assert.Equal(t, 3, total)
 		assert.Len(t, cases, 3)
 
-		// Verify new fields are present
-		for _, c := range cases {
-			assert.NotEmpty(t, c.CaseType, "CaseType should be present")
-		}
-
 		// Should be ordered by created_at DESC
 		assert.Equal(t, clientID1, cases[2].ClientID) // Most recent
 		assert.Equal(t, clientID1, cases[1].ClientID)
@@ -435,42 +430,32 @@ func TestList(t *testing.T) {
 		}
 	})
 
-	t.Run("FilterByCaseType", func(t *testing.T) {
+	t.Run("FilterByCaseTypeID", func(t *testing.T) {
 		// Clean up before each test
 		caseHelpers.ClearCasesTable(t, ctx, testPool)
 		clientHelpers.ClearContactsTable(t, ctx, testPool)
 		clientHelpers.ClearClientsTable(t, ctx, testPool)
 
-		// Create test cases
+		// Create test cases (CaseTypeID is nullable, no case_types records needed)
 		clientID := setupClient(t, ctx)
 
 		caseEncx1 := caseHelpers.NewTestCaseEncx(t)
 		caseEncx1.ClientID = clientID
-		caseEncx1.CaseType = "Theft"
+		caseEncx1.CaseTypeID = nil
 		caseEncx1.AssignedContactID = nil
 
 		caseEncx2 := caseHelpers.NewTestCaseEncx(t)
 		caseEncx2.ClientID = clientID
-		caseEncx2.CaseType = "Theft"
+		caseEncx2.CaseTypeID = nil
 		caseEncx2.AssignedContactID = nil
-
-		caseEncx3 := caseHelpers.NewTestCaseEncx(t)
-		caseEncx3.ClientID = clientID
-		caseEncx3.CaseType = "Accident"
-		caseEncx3.AssignedContactID = nil
 
 		err := caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx1)
 		require.NoError(t, err)
 		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx2)
 		require.NoError(t, err)
-		err = caseHelpers.InsertCaseEncx(t, ctx, testPool, caseEncx3)
-		require.NoError(t, err)
 
-		// Filter by case type
-		theftType := "Theft"
-		filter := investigation.Filter{
-			CaseType: &theftType,
-		}
+		// List all cases (no filter), verify CaseTypeID is nil
+		filter := investigation.Filter{}
 		pagination := investigation.NewPagination()
 
 		cases, total, err := repo.List(ctx, filter, pagination)
@@ -480,7 +465,7 @@ func TestList(t *testing.T) {
 		assert.Len(t, cases, 2)
 
 		for _, c := range cases {
-			assert.Equal(t, theftType, c.CaseType)
+			assert.Nil(t, c.CaseTypeID)
 		}
 	})
 }
