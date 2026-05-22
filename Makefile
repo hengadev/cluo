@@ -5,11 +5,16 @@
         push-staging  push-staging-api  push-staging-web  push-staging-mobile \
         push-prod     push-prod-api     push-prod-web     push-prod-mobile \
         release-staging release \
+        release-desktop \
         restart-staging restart-staging-api restart-staging-web restart-staging-mobile \
         restart-prod    restart-prod-api    restart-prod-web    restart-prod-mobile \
         deploy-staging deploy-staging-api deploy-staging-web deploy-staging-mobile \
         deploy-prod    deploy-prod-api    deploy-prod-web    deploy-prod-mobile \
         _check-vps
+
+DESKTOP_MANIFEST_URL := https://cluo-assets-production.s3.eu-central-1.amazonaws.com/desktop/manifest.json
+DESKTOP_S3_BUCKET    := cluo-assets-production
+RELEASE_NOTES        ?=
 
 REGISTRY     := henga
 API_IMAGE    := $(REGISTRY)/cluo-api
@@ -25,6 +30,37 @@ VPS_SSH    := ssh -i $(SSH_KEY) $(SSH_USER)@$(VPS_IP)
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
+
+# =============================================================================
+# Desktop release (Windows binary → S3 → manifest.json)
+# Prerequisites: mingw-w64 (sudo apt install mingw-w64), wails CLI, AWS CLI
+# Usage: make release-desktop VERSION=1.2.0
+#        make release-desktop VERSION=1.2.0 RELEASE_NOTES="Fix X, add Y"
+# =============================================================================
+
+release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z required
+	@test -n "$(VERSION)" || (echo "ERROR: VERSION is required. Usage: make release-desktop VERSION=1.0.0"; exit 1)
+	@echo "==> Building cluo_desktop v$(VERSION) for Windows (mingw cross-compile)..."
+	cd cluo_desktop && CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64 \
+		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL)"
+	@set -e; \
+	BINARY=cluo_desktop/build/bin/cluo_desktop.exe; \
+	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
+	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/desktop/v$(VERSION)/cluo_desktop_windows_amd64.exe; \
+	echo "==> Checksum: $$CHECKSUM"; \
+	echo "==> Uploading binary to S3..."; \
+	aws s3 cp $$BINARY \
+		s3://$(DESKTOP_S3_BUCKET)/desktop/v$(VERSION)/cluo_desktop_windows_amd64.exe \
+		--content-type application/octet-stream; \
+	echo "==> Updating manifest.json..."; \
+	printf '{\n  "version": "%s",\n  "release_notes": "%s",\n  "downloads": {\n    "windows_amd64": "%s"\n  },\n  "checksums": {\n    "windows_amd64": "%s"\n  }\n}\n' \
+		"$(VERSION)" "$(RELEASE_NOTES)" "$$DOWNLOAD_URL" "$$CHECKSUM" \
+		> /tmp/cluo_desktop_manifest.json; \
+	aws s3 cp /tmp/cluo_desktop_manifest.json \
+		s3://$(DESKTOP_S3_BUCKET)/desktop/manifest.json \
+		--content-type application/json \
+		--cache-control "no-cache,no-store,must-revalidate"; \
+	echo "==> Released v$(VERSION). Manifest: $(DESKTOP_MANIFEST_URL)"
 
 # =============================================================================
 # Local development
