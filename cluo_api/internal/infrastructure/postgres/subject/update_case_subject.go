@@ -1,4 +1,4 @@
-package subject
+package subjectRepository
 
 import (
 	"context"
@@ -9,6 +9,10 @@ import (
 )
 
 func (r *Repository) UpdateCaseSubject(ctx context.Context, s *domainsubject.SubjectEncx) error {
+	if s == nil {
+		return fmt.Errorf("update case subject: nil subject")
+	}
+
 	query := fmt.Sprintf(`
 		UPDATE %s.case_subjects SET
 			lastname_encrypted=$1,  lastname_hash=$2,

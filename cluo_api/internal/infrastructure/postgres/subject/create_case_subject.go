@@ -1,4 +1,4 @@
-package subject
+package subjectRepository
 
 import (
 	"context"
@@ -9,6 +9,10 @@ import (
 )
 
 func (r *Repository) CreateCaseSubject(ctx context.Context, s *domainsubject.SubjectEncx) error {
+	if s == nil {
+		return fmt.Errorf("create case subject: nil subject")
+	}
+
 	query := fmt.Sprintf(`
 		INSERT INTO %s.case_subjects (
 			id, created_at,
