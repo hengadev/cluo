@@ -21,4 +21,7 @@ type AuthService interface {
 
 	// RefreshSession refreshes an access token using a refresh token
 	RefreshSession(ctx context.Context, sessionID uuid.UUID) (*user.RefreshSessionResponse, error)
+
+	// GetCurrentUser returns the current authenticated user
+	GetCurrentUser(ctx context.Context, userID uuid.UUID) (*user.CurrentUserResponse, error)
 }

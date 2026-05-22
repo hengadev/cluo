@@ -63,3 +63,10 @@ type CreateSessionResponse struct {
 
 // RefreshSessionResponse represents a successful token refresh response
 type RefreshSessionResponse = CreateSessionResponse
+
+// CurrentUserResponse represents the current authenticated user
+type CurrentUserResponse struct {
+	ID    string `json:"id"`
+	Email string `json:"email"`
+	Role  string `json:"role"`
+}
