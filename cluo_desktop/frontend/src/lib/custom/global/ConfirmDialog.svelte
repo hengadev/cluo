@@ -2,8 +2,19 @@
     import { Dialog } from "bits-ui";
     import { X } from "@lucide/svelte";
 
-    type Props = { children: import("svelte").Snippet };
-    let { children }: Props = $props();
+    type Props = {
+        children: import("svelte").Snippet;
+        onConfirm?: () => void | Promise<void>;
+        title?: string;
+        description?: string;
+    };
+    let { children, onConfirm, title, description }: Props = $props();
+
+    async function handleConfirm() {
+        if (onConfirm) {
+            await onConfirm();
+        }
+    }
 </script>
 
 <Dialog.Root>
@@ -20,11 +31,10 @@
             <Dialog.Title
                 class="flex w-full text-lg font-semibold tracking-tight"
             >
-                Êtes-vous sûr ?
+                {title || 'Êtes-vous sûr ?'}
             </Dialog.Title>
             <Dialog.Description class="text-foreground-alt !mt-2 text-sm"
-                >Prenez un moment pour examiner les détails fournis afin de vous
-                assurer que vous comprenez les implications.</Dialog.Description
+                >{description || 'Prenez un moment pour examiner les détails fournis afin de vous assurer que vous comprenez les implications.'}</Dialog
             >
             <div class="flex justify-end gap-2 !mt-6">
                 <Dialog.Close
@@ -33,6 +43,7 @@
                     Cancel
                 </Dialog.Close>
                 <Dialog.Close
+                    onclick={handleConfirm}
                     class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
                 >
                     Okay

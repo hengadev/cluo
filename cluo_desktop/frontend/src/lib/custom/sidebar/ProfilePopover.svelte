@@ -3,6 +3,7 @@
     import { User, LogOut, BadgeCheck, Bell, CreditCard, RefreshCw } from "@lucide/svelte";
     import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
     import UpdateDialog from "$lib/custom/global/UpdateDialog.svelte";
+    import { auth } from "$lib/stores/auth";
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
@@ -19,6 +20,10 @@
     ];
 
     let updateDialogOpen = $state(false);
+
+    async function handleLogout() {
+        await auth.logout();
+    }
 </script>
 
 <Popover.Root>
@@ -39,8 +44,8 @@
                     <User size={24} />
                 </div>
                 <div>
-                    <p class="font-semibold text-base">John</p>
-                    <p class="text-sm">johndoe@example.com</p>
+                    <p class="font-semibold text-base">{$auth.user?.email ?? 'Admin'}</p>
+                    <p class="text-sm capitalize">{$auth.user?.role ?? 'admin'}</p>
                 </div>
             </div>
             {@render separator()}
@@ -60,7 +65,11 @@
                 </div>
             </Button.Root>
             {@render separator()}
-            <ConfirmDialog>
+            <ConfirmDialog
+                onConfirm={handleLogout}
+                title="Se déconnecter"
+                description="Êtes-vous sûr de vouloir vous déconnecter ?"
+            >
                 {@render button({ icon: LogOut, title: "Se deconnecter" })}
             </ConfirmDialog>
         </Popover.Content>
