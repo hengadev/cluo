@@ -12,9 +12,6 @@ export type { DocumentStatus };
 
 // UUIDs for estimates
 export const ESTIMATE_IDS = {
-  // For draft case (estimate created but not sent yet)
-  draft1_est1: 'a50e8400-e29b-41d4-a716-446655440001',
-
   // For in progress cases
   inProgress1_est1: 'a50e8400-e29b-41d4-a716-446655440101',
   inProgress2_est1: 'a50e8400-e29b-41d4-a716-446655440102',
@@ -63,28 +60,6 @@ export interface Estimate {
 }
 
 export const estimates: Estimate[] = [
-  // === DRAFT CASE ===
-  {
-    id: ESTIMATE_IDS.draft1_est1,
-    caseId: CASE_IDS.draft1,
-    clientId: CLIENT_IDS.person1,
-    estimateNumber: 'DEV-2024-089',
-    issueDate: DATES.oct2024_25,
-    validUntil: DATES.nov2025_01,
-    lineItems: [
-      { description: SERVICE_LINE_ITEMS[0].description, quantity: 1, unitPrice: SERVICE_LINE_ITEMS[0].unitPrice, total: 450 },
-      { description: SERVICE_LINE_ITEMS[1].description, quantity: 2, unitPrice: SERVICE_LINE_ITEMS[1].unitPrice, total: 760 },
-    ],
-    estimatedTotal: 1210,
-    notes: 'Devis préliminaire, sujet à modification selon l\'avancée de l\'enquête.',
-    accepted: false,
-    acceptedAt: null,
-    acceptedBy: null,
-    status: 'draft',
-    createdAt: DATES.oct2024_25,
-    updatedAt: DATES.oct2024_25,
-  },
-
   // === IN PROGRESS CASES ===
   {
     id: ESTIMATE_IDS.inProgress1_est1,

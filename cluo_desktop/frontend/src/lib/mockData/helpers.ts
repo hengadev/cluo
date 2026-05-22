@@ -105,7 +105,7 @@ export const CASE_TYPES = [
   'Harcèlement au travail', 'Infraction au code de la route'
 ];
 
-export const CASE_STATUS_VALUES = ['draft', 'in_progress', 'ready', 'released'] as const;
+export const CASE_STATUS_VALUES = ['in_progress', 'ready', 'released'] as const;
 export type CaseStatus = typeof CASE_STATUS_VALUES[number];
 
 export const DOCUMENT_STATUSES = ['draft', 'sent', 'signed', 'active', 'archived', 'cancelled', 'rejected', 'expired'] as const;

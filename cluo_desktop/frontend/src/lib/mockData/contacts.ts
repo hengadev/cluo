@@ -59,7 +59,7 @@ export const CONTACT_IDS = {
 
 export interface Contact {
   id: string;
-  clientId: string;
+  clientID: string;
   lastname: string;
   firstname: string;
   email: string;
@@ -72,7 +72,7 @@ export const contacts: Contact[] = [
   // === Jean Dupont (person) - 2 contacts ===
   {
     id: CONTACT_IDS.person1_contact1,
-    clientId: CLIENT_IDS.person1,
+    clientID: CLIENT_IDS.person1,
     lastname: 'Dupont',
     firstname: 'Jean',
     email: 'jean.dupont@email.fr',
@@ -82,7 +82,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.person1_contact2,
-    clientId: CLIENT_IDS.person1,
+    clientID: CLIENT_IDS.person1,
     lastname: 'Dupont',
     firstname: 'Françoise',
     email: 'f.dupont@email.fr',
@@ -94,7 +94,7 @@ export const contacts: Contact[] = [
   // === Marie Leroy (person) - 3 contacts ===
   {
     id: CONTACT_IDS.person2_contact1,
-    clientId: CLIENT_IDS.person2,
+    clientID: CLIENT_IDS.person2,
     lastname: 'Leroy',
     firstname: 'Marie',
     email: 'marie.leroy@orange.fr',
@@ -104,7 +104,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.person2_contact2,
-    clientId: CLIENT_IDS.person2,
+    clientID: CLIENT_IDS.person2,
     lastname: 'Leroy',
     firstname: 'Philippe',
     email: 'p.leroy@societe.fr',
@@ -114,7 +114,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.person2_contact3,
-    clientId: CLIENT_IDS.person2,
+    clientID: CLIENT_IDS.person2,
     lastname: 'Martinez',
     firstname: 'Carlos',
     email: 'carlos.m@avocat.fr',
@@ -126,7 +126,7 @@ export const contacts: Contact[] = [
   // === Pierre Moreau (person) - 2 contacts ===
   {
     id: CONTACT_IDS.person3_contact1,
-    clientId: CLIENT_IDS.person3,
+    clientID: CLIENT_IDS.person3,
     lastname: 'Moreau',
     firstname: 'Pierre',
     email: 'pierre.moreau@gmail.com',
@@ -136,7 +136,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.person3_contact2,
-    clientId: CLIENT_IDS.person3,
+    clientID: CLIENT_IDS.person3,
     lastname: 'Moreau',
     firstname: 'Claire',
     email: 'claire.moreau@gmail.com',
@@ -148,7 +148,7 @@ export const contacts: Contact[] = [
   // === AXA France (insurance) - 4 contacts ===
   {
     id: CONTACT_IDS.insurance1_contact1,
-    clientId: CLIENT_IDS.insurance1,
+    clientID: CLIENT_IDS.insurance1,
     lastname: 'Fontaine',
     firstname: 'Nathalie',
     email: 'nathalie.fontaine@axa.fr',
@@ -158,7 +158,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.insurance1_contact2,
-    clientId: CLIENT_IDS.insurance1,
+    clientID: CLIENT_IDS.insurance1,
     lastname: 'Roux',
     firstname: 'Vincent',
     email: 'vincent.roux@axa.fr',
@@ -168,7 +168,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.insurance1_contact3,
-    clientId: CLIENT_IDS.insurance1,
+    clientID: CLIENT_IDS.insurance1,
     lastname: 'Lefebvre',
     firstname: 'Sophie',
     email: 'sophie.lefebvre@axa.fr',
@@ -178,7 +178,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.insurance1_contact4,
-    clientId: CLIENT_IDS.insurance1,
+    clientID: CLIENT_IDS.insurance1,
     lastname: 'Garcia',
     firstname: 'David',
     email: 'david.garcia@axa.fr',
@@ -190,7 +190,7 @@ export const contacts: Contact[] = [
   // === Groupama (insurance) - 3 contacts ===
   {
     id: CONTACT_IDS.insurance2_contact1,
-    clientId: CLIENT_IDS.insurance2,
+    clientID: CLIENT_IDS.insurance2,
     lastname: 'Bertrand',
     firstname: 'Christophe',
     email: 'c.bertrand@groupama.fr',
@@ -200,7 +200,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.insurance2_contact2,
-    clientId: CLIENT_IDS.insurance2,
+    clientID: CLIENT_IDS.insurance2,
     lastname: 'Petit',
     firstname: 'Valérie',
     email: 'valerie.petit@groupama.fr',
@@ -210,7 +210,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.insurance2_contact3,
-    clientId: CLIENT_IDS.insurance2,
+    clientID: CLIENT_IDS.insurance2,
     lastname: 'Morel',
     firstname: 'Stéphane',
     email: 'stephane.morel@groupama.fr',
@@ -222,7 +222,7 @@ export const contacts: Contact[] = [
   // === Cabinet Aubry & Associés (lawyer) - 2 contacts ===
   {
     id: CONTACT_IDS.lawyer1_contact1,
-    clientId: CLIENT_IDS.lawyer1,
+    clientID: CLIENT_IDS.lawyer1,
     lastname: 'Aubry',
     firstname: 'Jean-Pierre',
     email: 'jp.aubry@aubry-associes.fr',
@@ -232,7 +232,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.lawyer1_contact2,
-    clientId: CLIENT_IDS.lawyer1,
+    clientID: CLIENT_IDS.lawyer1,
     lastname: 'Dubois',
     firstname: 'Céline',
     email: 'celine.dubois@aubry-associes.fr',
@@ -244,7 +244,7 @@ export const contacts: Contact[] = [
   // === Maître Isabelle Fournier (lawyer) - 3 contacts ===
   {
     id: CONTACT_IDS.lawyer2_contact1,
-    clientId: CLIENT_IDS.lawyer2,
+    clientID: CLIENT_IDS.lawyer2,
     lastname: 'Fournier',
     firstname: 'Isabelle',
     email: 'i.fournier@avocat.fr',
@@ -254,7 +254,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.lawyer2_contact2,
-    clientId: CLIENT_IDS.lawyer2,
+    clientID: CLIENT_IDS.lawyer2,
     lastname: 'Marty',
     firstname: 'Patrick',
     email: 'patrick.marty@fournier.fr',
@@ -264,7 +264,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.lawyer2_contact3,
-    clientId: CLIENT_IDS.lawyer2,
+    clientID: CLIENT_IDS.lawyer2,
     lastname: 'Lambert',
     firstname: 'Delphine',
     email: 'delphine.lambert@fournier.fr',
@@ -276,7 +276,7 @@ export const contacts: Contact[] = [
   // === Tech Solutions SAS (company) - 3 contacts ===
   {
     id: CONTACT_IDS.company1_contact1,
-    clientId: CLIENT_IDS.company1,
+    clientID: CLIENT_IDS.company1,
     lastname: 'Richard',
     firstname: 'Nicolas',
     email: 'n.richard@techsolutions.fr',
@@ -286,7 +286,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.company1_contact2,
-    clientId: CLIENT_IDS.company1,
+    clientID: CLIENT_IDS.company1,
     lastname: 'André',
     firstname: 'Sandrine',
     email: 's.andre@techsolutions.fr',
@@ -296,7 +296,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.company1_contact3,
-    clientId: CLIENT_IDS.company1,
+    clientID: CLIENT_IDS.company1,
     lastname: 'Simon',
     firstname: 'Laurent',
     email: 'l.simon@techsolutions.fr',
@@ -308,7 +308,7 @@ export const contacts: Contact[] = [
   // === Logistics Express SA (company) - 2 contacts ===
   {
     id: CONTACT_IDS.company2_contact1,
-    clientId: CLIENT_IDS.company2,
+    clientID: CLIENT_IDS.company2,
     lastname: 'Michel',
     firstname: 'Olivier',
     email: 'o.michel@logistics-express.com',
@@ -318,7 +318,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.company2_contact2,
-    clientId: CLIENT_IDS.company2,
+    clientID: CLIENT_IDS.company2,
     lastname: 'Girard',
     firstname: 'Charlotte',
     email: 'charlotte.girard@logistics-express.com',
@@ -330,7 +330,7 @@ export const contacts: Contact[] = [
   // === Mairie de Paris (government) - 4 contacts ===
   {
     id: CONTACT_IDS.government1_contact1,
-    clientId: CLIENT_IDS.government1,
+    clientID: CLIENT_IDS.government1,
     lastname: 'Blanc',
     firstname: 'Alain',
     email: 'alain.blanc@paris.fr',
@@ -340,7 +340,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.government1_contact2,
-    clientId: CLIENT_IDS.government1,
+    clientID: CLIENT_IDS.government1,
     lastname: 'Rousseau',
     firstname: 'Martine',
     email: 'martine.rousseau@paris.fr',
@@ -350,7 +350,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.government1_contact3,
-    clientId: CLIENT_IDS.government1,
+    clientID: CLIENT_IDS.government1,
     lastname: 'Vincent',
     firstname: 'Catherine',
     email: 'catherine.vincent@paris.fr',
@@ -360,7 +360,7 @@ export const contacts: Contact[] = [
   },
   {
     id: CONTACT_IDS.government1_contact4,
-    clientId: CLIENT_IDS.government1,
+    clientID: CLIENT_IDS.government1,
     lastname: 'Fournier',
     firstname: 'Thierry',
     email: 'thierry.fournier@paris.fr',
@@ -379,6 +379,6 @@ export function getContactById(id: string): Contact | undefined {
   return contacts.find(c => c.id === id);
 }
 
-export function getContactsByClientId(clientId: string): Contact[] {
-  return contacts.filter(c => c.clientId === clientId);
+export function getContactsByClientId(clientID: string): Contact[] {
+  return contacts.filter(c => c.clientID === clientID);
 }

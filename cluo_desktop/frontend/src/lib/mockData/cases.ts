@@ -6,16 +6,14 @@
 import { CASE_TYPES, CITIES, STREET_NAMES, COUNTRY, CASE_DESCRIPTIONS, LOCATION_NOTES, DATES, type CaseStatus, type LocationType, type SubjectRole } from './helpers';
 import { CLIENT_IDS } from './clients';
 import { CONTACT_IDS } from './contacts';
-import { SUBJECT_IDS, caseSubjects, type CaseSubject } from './caseSubjects';
+import { SUBJECT_IDS, caseSubjects } from './caseSubjects';
+import type { CaseSubject } from '../types/entities';
 
 // Re-export types from helpers for convenience
 export type { CaseStatus, LocationType, SubjectRole };
 
 // UUIDs for cases
 export const CASE_IDS = {
-  // Draft cases (early stage, no documents)
-  draft1: '950e8400-e29b-41d4-a716-446655440001',
-
   // In progress cases
   inProgress1: '950e8400-e29b-41d4-a716-446655440101',
   inProgress2: '950e8400-e29b-41d4-a716-446655440102',
@@ -36,111 +34,42 @@ export const CASE_IDS = {
   released5: '950e8400-e29b-41d4-a716-446655440305',
 } as const;
 
-export interface CaseSubjectAssignment {
-  caseId: string;
-  subjectId: string;
-  role: SubjectRole;
-}
-
 export interface Case {
   id: string;
   title: string;
   description: string;
   clientId: string;
-  assignedContactId: string | null;
-  caseSubjectIds: string[];
+  assignedContactID: string | null;
+  caseSubjectId: string | null;
   externalReference: string | null;
-  caseType: string;
+  caseTypeId: string | null;
   status: CaseStatus;
   // Location fields
-  placename: string;
-  address1: string;
+  placename: string | null;
+  address1: string | null;
   address2: string | null;
-  city: string;
-  postalCode: string;
-  country: string;
-  latitude: number;
-  longitude: number;
-  locationType: LocationType;
+  city: string | null;
+  postalCode: string | null;
+  country: string | null;
+  latitude: string | null;
+  longitude: string | null;
+  locationType: LocationType | null;
   locationNotes: string | null;
   createdAt: string;
   updatedAt: string;
 }
 
-// Junction table for case-subject relationships with roles
-export const caseSubjectAssignments: CaseSubjectAssignment[] = [
-  { caseId: CASE_IDS.inProgress1, subjectId: SUBJECT_IDS.subject1, role: 'suspect' },
-  { caseId: CASE_IDS.inProgress1, subjectId: SUBJECT_IDS.subject2, role: 'witness' },
-
-  { caseId: CASE_IDS.inProgress2, subjectId: SUBJECT_IDS.subject3, role: 'suspect' },
-  { caseId: CASE_IDS.inProgress2, subjectId: SUBJECT_IDS.subject4, role: 'victim' },
-
-  { caseId: CASE_IDS.inProgress3, subjectId: SUBJECT_IDS.subject5, role: 'claimant' },
-  { caseId: CASE_IDS.inProgress3, subjectId: SUBJECT_IDS.subject6, role: 'suspect' },
-
-  { caseId: CASE_IDS.inProgress4, subjectId: SUBJECT_IDS.subject7, role: 'representative' },
-  { caseId: CASE_IDS.inProgress4, subjectId: SUBJECT_IDS.subject8, role: 'witness' },
-
-  { caseId: CASE_IDS.inProgress5, subjectId: SUBJECT_IDS.subject9, role: 'victim' },
-
-  { caseId: CASE_IDS.ready1, subjectId: SUBJECT_IDS.subject10, role: 'suspect' },
-  { caseId: CASE_IDS.ready1, subjectId: SUBJECT_IDS.subject11, role: 'witness' },
-  { caseId: CASE_IDS.ready1, subjectId: SUBJECT_IDS.subject12, role: 'victim' },
-
-  { caseId: CASE_IDS.ready2, subjectId: SUBJECT_IDS.subject13, role: 'claimant' },
-
-  { caseId: CASE_IDS.ready3, subjectId: SUBJECT_IDS.subject14, role: 'suspect' },
-  { caseId: CASE_IDS.ready3, subjectId: SUBJECT_IDS.subject15, role: 'witness' },
-
-  { caseId: CASE_IDS.released1, subjectId: SUBJECT_IDS.subject16, role: 'victim' },
-
-  { caseId: CASE_IDS.released2, subjectId: SUBJECT_IDS.subject17, role: 'suspect' },
-  { caseId: CASE_IDS.released2, subjectId: SUBJECT_IDS.subject18, role: 'witness' },
-
-  { caseId: CASE_IDS.released3, subjectId: SUBJECT_IDS.subject19, role: 'claimant' },
-
-  { caseId: CASE_IDS.released4, subjectId: SUBJECT_IDS.subject20, role: 'suspect' },
-
-  { caseId: CASE_IDS.released5, subjectId: SUBJECT_IDS.subject1, role: 'victim' },
-  { caseId: CASE_IDS.released5, subjectId: SUBJECT_IDS.subject3, role: 'suspect' },
-];
-
 export const cases: Case[] = [
-  // === DRAFT CASES ===
-  {
-    id: CASE_IDS.draft1,
-    title: 'Affaire Mousquet',
-    description: 'Nouvelle demande - informations à compléter',
-    clientId: CLIENT_IDS.person1,
-    assignedContactId: null,
-    caseSubjectIds: [],
-    externalReference: null,
-    caseType: 'Enquête préliminaire',
-    status: 'draft',
-    placename: 'Résidence Dupont',
-    address1: '15 Rue de la Paix',
-    address2: 'Appt 4B',
-    city: 'Paris',
-    postalCode: '75002',
-    country: COUNTRY,
-    latitude: 48.8698,
-    longitude: 2.3432,
-    locationType: 'home',
-    locationNotes: 'Zone résidentielle calme, facile d\'accès',
-    createdAt: DATES.oct2024_25,
-    updatedAt: DATES.oct2024_25,
-  },
-
   // === IN PROGRESS CASES ===
   {
     id: CASE_IDS.inProgress1,
     title: 'Affaire Dupont',
     description: CASE_DESCRIPTIONS[0],
     clientId: CLIENT_IDS.person1,
-    assignedContactId: CONTACT_IDS.person1_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject1, SUBJECT_IDS.subject2],
+    assignedContactID: CONTACT_IDS.person1_contact1,
+    caseSubjectId: SUBJECT_IDS.subject1,
     externalReference: 'REF-2024-001',
-    caseType: CASE_TYPES[0],
+    caseTypeId: CASE_TYPES[0],
     status: 'in_progress',
     placename: 'Domicile François Mercier',
     address1: '42 Rue de la République',
@@ -148,8 +77,8 @@ export const cases: Case[] = [
     city: 'Lyon',
     postalCode: '69001',
     country: COUNTRY,
-    latitude: 45.7640,
-    longitude: 4.8357,
+    latitude: '45.7640',
+    longitude: '4.8357',
     locationType: 'home',
     locationNotes: LOCATION_NOTES[0],
     createdAt: DATES.jan2024_10,
@@ -160,10 +89,10 @@ export const cases: Case[] = [
     title: 'Surveillance Conflent-Sainte-Honorine',
     description: CASE_DESCRIPTIONS[1],
     clientId: CLIENT_IDS.insurance1,
-    assignedContactId: CONTACT_IDS.insurance1_contact2,
-    caseSubjectIds: [SUBJECT_IDS.subject3, SUBJECT_IDS.subject4],
+    assignedContactID: CONTACT_IDS.insurance1_contact2,
+    caseSubjectId: SUBJECT_IDS.subject3,
     externalReference: 'REF-2024-012',
-    caseType: CASE_TYPES[1],
+    caseTypeId: CASE_TYPES[1],
     status: 'in_progress',
     placename: 'Bureau Guillaume',
     address1: '8 Boulevard Haussmann',
@@ -171,8 +100,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75009',
     country: COUNTRY,
-    latitude: 48.8756,
-    longitude: 2.3274,
+    latitude: '48.8756',
+    longitude: '2.3274',
     locationType: 'business',
     locationNotes: LOCATION_NOTES[3],
     createdAt: DATES.mar2024_22,
@@ -183,10 +112,10 @@ export const cases: Case[] = [
     title: 'Recherche Personne Disparue - Lyon',
     description: CASE_DESCRIPTIONS[2],
     clientId: CLIENT_IDS.lawyer1,
-    assignedContactId: CONTACT_IDS.lawyer1_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject5, SUBJECT_IDS.subject6],
+    assignedContactID: CONTACT_IDS.lawyer1_contact1,
+    caseSubjectId: SUBJECT_IDS.subject5,
     externalReference: 'REF-2024-025',
-    caseType: CASE_TYPES[2],
+    caseTypeId: CASE_TYPES[2],
     status: 'in_progress',
     placename: 'Dernière localisation connue',
     address1: '56 Avenue de France',
@@ -194,8 +123,8 @@ export const cases: Case[] = [
     city: 'Marseille',
     postalCode: '13002',
     country: COUNTRY,
-    latitude: 43.2965,
-    longitude: 5.3698,
+    latitude: '43.2965',
+    longitude: '5.3698',
     locationType: 'public',
     locationNotes: 'Zone à haute fréquentation',
     createdAt: DATES.may2024_15,
@@ -206,10 +135,10 @@ export const cases: Case[] = [
     title: 'Fraude Assurance Auto - Dossier Martin',
     description: CASE_DESCRIPTIONS[3],
     clientId: CLIENT_IDS.insurance2,
-    assignedContactId: CONTACT_IDS.insurance2_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject7, SUBJECT_IDS.subject8],
+    assignedContactID: CONTACT_IDS.insurance2_contact1,
+    caseSubjectId: SUBJECT_IDS.subject7,
     externalReference: 'REF-2024-038',
-    caseType: CASE_TYPES[3],
+    caseTypeId: CASE_TYPES[3],
     status: 'in_progress',
     placename: 'Parking Résidence Gaillard',
     address1: '78 Boulevard de Sébastopol',
@@ -217,8 +146,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75004',
     country: COUNTRY,
-    latitude: 48.8566,
-    longitude: 2.3522,
+    latitude: '48.8566',
+    longitude: '2.3522',
     locationType: 'vehicle',
     locationNotes: 'Accès limité - badge nécessaire',
     createdAt: DATES.jul2024_10,
@@ -229,10 +158,10 @@ export const cases: Case[] = [
     title: 'Vérification CV - Candidature Directeur',
     description: CASE_DESCRIPTIONS[4],
     clientId: CLIENT_IDS.company1,
-    assignedContactId: CONTACT_IDS.company1_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject9],
+    assignedContactID: CONTACT_IDS.company1_contact1,
+    caseSubjectId: SUBJECT_IDS.subject9,
     externalReference: 'REF-2024-052',
-    caseType: CASE_TYPES[4],
+    caseTypeId: CASE_TYPES[4],
     status: 'in_progress',
     placename: 'Siège Social Tech Solutions',
     address1: '19 Avenue de la Grande-Armée',
@@ -240,8 +169,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75017',
     country: COUNTRY,
-    latitude: 48.8758,
-    longitude: 2.2984,
+    latitude: '48.8758',
+    longitude: '2.2984',
     locationType: 'business',
     locationNotes: 'Zone professionnelle, sécurité renforcée',
     createdAt: DATES.sep2024_12,
@@ -254,10 +183,10 @@ export const cases: Case[] = [
     title: 'Conflit Conjugal - Affaire Roussel',
     description: CASE_DESCRIPTIONS[5],
     clientId: CLIENT_IDS.person2,
-    assignedContactId: CONTACT_IDS.person2_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject10, SUBJECT_IDS.subject11, SUBJECT_IDS.subject12],
+    assignedContactID: CONTACT_IDS.person2_contact1,
+    caseSubjectId: SUBJECT_IDS.subject10,
     externalReference: 'REF-2024-018',
-    caseType: CASE_TYPES[5],
+    caseTypeId: CASE_TYPES[5],
     status: 'ready',
     placename: 'Domicile conjugal',
     address1: '12 Rue de la Paix',
@@ -265,8 +194,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75002',
     country: COUNTRY,
-    latitude: 48.8698,
-    longitude: 2.3432,
+    latitude: '48.8698',
+    longitude: '2.3432',
     locationType: 'home',
     locationNotes: 'Discrétion absolue requise',
     createdAt: DATES.feb2024_14,
@@ -277,10 +206,10 @@ export const cases: Case[] = [
     title: 'Accusation Abusive - Harcèlement',
     description: CASE_DESCRIPTIONS[6],
     clientId: CLIENT_IDS.company2,
-    assignedContactId: CONTACT_IDS.company2_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject13],
+    assignedContactID: CONTACT_IDS.company2_contact1,
+    caseSubjectId: SUBJECT_IDS.subject13,
     externalReference: 'REF-2024-043',
-    caseType: CASE_TYPES[6],
+    caseTypeId: CASE_TYPES[6],
     status: 'ready',
     placename: 'Bureaux Logistics Express',
     address1: '23 Boulevard de Magenta',
@@ -288,8 +217,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75010',
     country: COUNTRY,
-    latitude: 48.8765,
-    longitude: 2.3541,
+    latitude: '48.8765',
+    longitude: '2.3541',
     locationType: 'business',
     locationNotes: 'Environnement professionnel sensible',
     createdAt: DATES.apr2024_08,
@@ -300,10 +229,10 @@ export const cases: Case[] = [
     title: 'Vol Propriété Intellectuelle',
     description: CASE_DESCRIPTIONS[7],
     clientId: CLIENT_IDS.lawyer2,
-    assignedContactId: CONTACT_IDS.lawyer2_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject14, SUBJECT_IDS.subject15],
+    assignedContactID: CONTACT_IDS.lawyer2_contact1,
+    caseSubjectId: SUBJECT_IDS.subject14,
     externalReference: 'REF-2024-061',
-    caseType: CASE_TYPES[7],
+    caseTypeId: CASE_TYPES[7],
     status: 'ready',
     placename: 'Anciens bureaux',
     address1: '16 Rue de la Tour',
@@ -311,8 +240,8 @@ export const cases: Case[] = [
     city: 'Nice',
     postalCode: '06000',
     country: COUNTRY,
-    latitude: 43.7102,
-    longitude: 7.2620,
+    latitude: '43.7102',
+    longitude: '7.2620',
     locationType: 'business',
     locationNotes: 'Zone industrielle - sécurité accrue',
     createdAt: DATES.jun2024_20,
@@ -325,10 +254,10 @@ export const cases: Case[] = [
     title: 'Harcèlement Travail - Dossier RH',
     description: CASE_DESCRIPTIONS[8],
     clientId: CLIENT_IDS.government1,
-    assignedContactId: CONTACT_IDS.government1_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject16],
+    assignedContactID: CONTACT_IDS.government1_contact1,
+    caseSubjectId: SUBJECT_IDS.subject16,
     externalReference: 'REF-2023-089',
-    caseType: CASE_TYPES[8],
+    caseTypeId: CASE_TYPES[8],
     status: 'released',
     placename: 'Mairie - Bureau DGS',
     address1: '5 Rue Lobau',
@@ -336,8 +265,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75004',
     country: COUNTRY,
-    latitude: 48.8564,
-    longitude: 2.3570,
+    latitude: '48.8564',
+    longitude: '2.3570',
     locationType: 'business',
     locationNotes: 'Administration publique - protocole strict',
     createdAt: DATES.jan2024_25,
@@ -348,10 +277,10 @@ export const cases: Case[] = [
     title: 'Infraction Code de la Route',
     description: CASE_DESCRIPTIONS[9],
     clientId: CLIENT_IDS.person3,
-    assignedContactId: CONTACT_IDS.person3_contact1,
-    caseSubjectIds: [SUBJECT_IDS.subject17, SUBJECT_IDS.subject18],
+    assignedContactID: CONTACT_IDS.person3_contact1,
+    caseSubjectId: SUBJECT_IDS.subject17,
     externalReference: 'REF-2023-112',
-    caseType: CASE_TYPES[9],
+    caseTypeId: CASE_TYPES[9],
     status: 'released',
     placename: 'Lieu de l\'accident',
     address1: '72 Boulevard de Charonne',
@@ -359,8 +288,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75011',
     country: COUNTRY,
-    latitude: 48.8546,
-    longitude: 2.3987,
+    latitude: '48.8546',
+    longitude: '2.3987',
     locationType: 'public',
     locationNotes: 'Lieu public - circulation dense',
     createdAt: DATES.feb2024_28,
@@ -371,10 +300,10 @@ export const cases: Case[] = [
     title: 'Enquête Filiation - Famille Aubert',
     description: CASE_DESCRIPTIONS[0],
     clientId: CLIENT_IDS.insurance1,
-    assignedContactId: CONTACT_IDS.insurance1_contact3,
-    caseSubjectIds: [SUBJECT_IDS.subject19],
+    assignedContactID: CONTACT_IDS.insurance1_contact3,
+    caseSubjectId: SUBJECT_IDS.subject19,
     externalReference: 'REF-2023-156',
-    caseType: CASE_TYPES[0],
+    caseTypeId: CASE_TYPES[0],
     status: 'released',
     placename: 'Domicile Aubert',
     address1: '24 Avenue de la République',
@@ -382,8 +311,8 @@ export const cases: Case[] = [
     city: 'Lyon',
     postalCode: '69006',
     country: COUNTRY,
-    latitude: 45.7625,
-    longitude: 4.8462,
+    latitude: '45.7625',
+    longitude: '4.8462',
     locationType: 'home',
     locationNotes: 'Quartier résidentiel familial',
     createdAt: DATES.mar2024_05,
@@ -394,10 +323,10 @@ export const cases: Case[] = [
     title: 'Surveillance Employee - Suspicion Fraude',
     description: CASE_DESCRIPTIONS[1],
     clientId: CLIENT_IDS.company1,
-    assignedContactId: CONTACT_IDS.company1_contact2,
-    caseSubjectIds: [SUBJECT_IDS.subject20],
+    assignedContactID: CONTACT_IDS.company1_contact2,
+    caseSubjectId: SUBJECT_IDS.subject20,
     externalReference: 'REF-2023-201',
-    caseType: CASE_TYPES[1],
+    caseTypeId: CASE_TYPES[1],
     status: 'released',
     placename: 'Tech Solutions - Siège',
     address1: '19 Avenue de la Grande-Armée',
@@ -405,8 +334,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75017',
     country: COUNTRY,
-    latitude: 48.8758,
-    longitude: 2.2984,
+    latitude: '48.8758',
+    longitude: '2.2984',
     locationType: 'business',
     locationNotes: 'Zone professionnelle - surveillance discrète',
     createdAt: DATES.apr2024_18,
@@ -417,10 +346,10 @@ export const cases: Case[] = [
     title: 'Conflit Succession - Famille Dupont-Mercier',
     description: 'Litige successoral complexe avec plusieurs parties prenantes. Enquête sur les testaments et les relations familiales.',
     clientId: CLIENT_IDS.lawyer1,
-    assignedContactId: CONTACT_IDS.lawyer1_contact2,
-    caseSubjectIds: [SUBJECT_IDS.subject1, SUBJECT_IDS.subject3],
+    assignedContactID: CONTACT_IDS.lawyer1_contact2,
+    caseSubjectId: SUBJECT_IDS.subject1,
     externalReference: 'REF-2023-245',
-    caseType: 'Enquête successorale',
+    caseTypeId: 'Enquête successorale',
     status: 'released',
     placename: 'Étude Notariale',
     address1: '15 Rue de la Paix',
@@ -428,8 +357,8 @@ export const cases: Case[] = [
     city: 'Paris',
     postalCode: '75002',
     country: COUNTRY,
-    latitude: 48.8698,
-    longitude: 2.3432,
+    latitude: '48.8698',
+    longitude: '2.3432',
     locationType: 'business',
     locationNotes: 'Étude notariale - confidentialité requise',
     createdAt: DATES.may2024_02,
@@ -454,23 +383,8 @@ export function getCasesByClientId(clientId: string): Case[] {
   return cases.filter(c => c.clientId === clientId);
 }
 
-export function getSubjectIdsForCase(caseId: string): string[] {
-  return caseSubjectAssignments
-    .filter(a => a.caseId === caseId)
-    .map(a => a.subjectId);
-}
-
-export function getSubjectRole(caseId: string, subjectId: string): SubjectRole | undefined {
-  const assignment = caseSubjectAssignments.find(
-    a => a.caseId === caseId && a.subjectId === subjectId
-  );
-  return assignment?.role;
-}
-
-export function getCaseSubjectsWithRoles(caseId: string): Array<{ subject: CaseSubject, role: SubjectRole }> {
-  const assignments = caseSubjectAssignments.filter(a => a.caseId === caseId);
-  return assignments.map(a => ({
-    subject: caseSubjects.find((s: CaseSubject) => s.id === a.subjectId)!,
-    role: a.role
-  }));
+export function getCaseSubject(caseId: string): CaseSubject | null {
+  const caseData = cases.find(c => c.id === caseId);
+  if (!caseData?.caseSubjectId) return null;
+  return caseSubjects.find(s => s.id === caseData.caseSubjectId) || null;
 }
