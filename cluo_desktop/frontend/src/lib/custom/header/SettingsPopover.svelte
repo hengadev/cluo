@@ -6,7 +6,9 @@
         ChevronsDown,
         ChevronsUp,
         ChevronsUpDown,
+        RefreshCw,
     } from "@lucide/svelte";
+    import { updateDialogOpen } from '$lib/stores/update';
 
     const languages = [
         { value: "english", label: "English", disabled: false },
@@ -53,6 +55,16 @@
                 {@render switchComponent("Mode sombre")}
                 {@render switchComponent("Notifications")}
                 {@render switchComponent("Compact view")}
+                <Separator.Root
+                    class="w-full bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
+                />
+                <button
+                    onclick={() => updateDialogOpen.set(true)}
+                    class="flex items-center gap-2 w-full text-sm font-medium text-dark hover:text-foreground transition-colors py-1"
+                >
+                    <RefreshCw class="size-4" />
+                    Rechercher des mises à jour
+                </button>
                 <Separator.Root
                     class="w-full bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
                 />
