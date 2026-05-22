@@ -35,9 +35,7 @@ CREATE TABLE IF NOT EXISTS ai.transcription_jobs (
     CONSTRAINT chk_jobs_status
         CHECK (status IN ('pending', 'processing', 'completed', 'failed', 'cancelled')),
     CONSTRAINT chk_jobs_progress_range
-        CHECK (progress >= 0 AND progress <= 100),
-    CONSTRAINT chk_jobs_key_version_positive
-        CHECK (key_version >= 0)
+        CHECK (progress >= 0 AND progress <= 100)
 );
 
 -- ============================================================================
