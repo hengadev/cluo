@@ -4,6 +4,7 @@
         build-prod    build-prod-api    build-prod-web    build-prod-mobile \
         push-staging  push-staging-api  push-staging-web  push-staging-mobile \
         push-prod     push-prod-api     push-prod-web     push-prod-mobile \
+        release-staging release \
         restart-staging restart-staging-api restart-staging-web restart-staging-mobile \
         restart-prod    restart-prod-api    restart-prod-web    restart-prod-mobile \
         deploy-staging deploy-staging-api deploy-staging-web deploy-staging-mobile \
@@ -101,6 +102,14 @@ push-prod-web: ## Push cluo-web :latest to Docker Hub
 
 push-prod-mobile: ## Push cluo-mobile :latest to Docker Hub
 	docker push $(MOBILE_IMAGE):latest
+
+# =============================================================================
+# Release (build + push to Docker Hub)
+# =============================================================================
+
+release-staging: build-staging push-staging ## Build and push all :staging images to Docker Hub
+
+release: build-prod push-prod ## Build and push all :latest images to Docker Hub
 
 # =============================================================================
 # Restart containers on VPS
