@@ -7,12 +7,11 @@
 
 import { isMockEnabled, API_BASE_URL } from '../config';
 import type {
-	User,
+	AuthUser,
 	Client,
 	Contact,
 	Case,
 	CaseSubject,
-	CaseSubjectAssignment,
 	Estimate,
 	Mandate,
 	Contract,
@@ -40,7 +39,7 @@ async function mockDelay(ms: number = 100): Promise<void> {
 /**
  * Fetch all users
  */
-export async function fetchAllUsers(): Promise<User[]> {
+export async function fetchAllUsers(): Promise<AuthUser[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
 		return mockData.getAllUsers();
@@ -52,7 +51,7 @@ export async function fetchAllUsers(): Promise<User[]> {
 /**
  * Fetch a user by ID
  */
-export async function fetchUser(id: string): Promise<User | null> {
+export async function fetchUser(id: string): Promise<AuthUser | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
 		return mockData.getUserById(id) || null;
@@ -188,7 +187,7 @@ export async function fetchAllCaseSubjects(): Promise<CaseSubject[]> {
 /**
  * Fetch a case subject by ID
  */
-export async function fetchCaseSubject(id: string): Promise<CaseSubject | null> {
+export async function fetchCaseSubjectById(id: string): Promise<CaseSubject | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
 		return mockData.getCaseSubjectById(id) || null;
@@ -198,24 +197,12 @@ export async function fetchCaseSubject(id: string): Promise<CaseSubject | null> 
 }
 
 /**
- * Fetch subjects for a specific case with their roles
+ * Fetch subject for a specific case
  */
-export async function fetchCaseSubjects(caseId: string): Promise<Array<{ subject: CaseSubject; role: string }>> {
+export async function fetchCaseSubject(caseId: string): Promise<CaseSubject | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getCaseSubjectsWithRoles(caseId);
-	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
-}
-
-/**
- * Fetch subject assignments (junction table)
- */
-export async function fetchCaseSubjectAssignments(): Promise<CaseSubjectAssignment[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.caseSubjectAssignments;
+		return mockData.getCaseSubject(caseId);
 	}
 	// TODO: Implement actual API call
 	throw new Error('API not implemented');

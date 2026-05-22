@@ -1,9 +1,9 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { fetchAllUsers } from "$lib/services/api";
-	import type { User } from "$lib/types/entities";
+	import type { AuthUser } from "$lib/types/entities";
 
-	let users: User[] = [];
+	let users: AuthUser[] = [];
 	let loading = true;
 	let error: string | null = null;
 
@@ -28,14 +28,6 @@
 			loading = false;
 		}
 	});
-
-	function formatDate(dateStr: string): string {
-		return new Date(dateStr).toLocaleDateString("fr-FR", {
-			day: "2-digit",
-			month: "2-digit",
-			year: "numeric"
-		});
-	}
 </script>
 
 <div class="p-8 grid gap-8">
@@ -48,41 +40,30 @@
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
-	{:else if error}
+		{:else if error}
 		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
 			{error}
 		</div>
-	{:else if users.length === 0}
+		{:else if users.length === 0}
 		<div class="text-center py-12">
 			<p class="text-muted-foreground">Aucun utilisateur trouvé</p>
 		</div>
-	{:else}
+		{:else}
 		<div class="border border-border-card rounded-lg overflow-hidden">
 			<table class="w-full">
 				<thead class="bg-muted">
 					<tr>
-						<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-							Nom
-						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 							Email
 						</th>
 						<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
 							Rôle
 						</th>
-						<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
-							Date de création
-						</th>
 					</tr>
 				</thead>
 				<tbody class="bg-background divide-y divide-border">
 					{#each users as user}
 						<tr class="hover:bg-muted/50 transition-colors">
-							<td class="px-6 py-4 whitespace-nowrap">
-								<div class="text-sm font-medium text-foreground">
-									{user.firstName} {user.lastName}
-								</div>
-							</td>
 							<td class="px-6 py-4 whitespace-nowrap">
 								<div class="text-sm text-muted-foreground">{user.email}</div>
 							</td>
@@ -91,14 +72,11 @@
 									{ROLE_LABELS[user.role] || user.role}
 								</span>
 							</td>
-							<td class="px-6 py-4 whitespace-nowrap">
-								<div class="text-sm text-muted-foreground">{formatDate(user.createdAt)}</div>
-							</td>
 						</tr>
 					{/each}
 				</tbody>
 			</table>
 		</div>
-	{/if}
+		{/if}
 	</div>
 </div>

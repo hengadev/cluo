@@ -6,29 +6,20 @@
 		fetchCase,
 		fetchClient,
 		fetchContact,
-		fetchCaseSubjects
+		fetchCaseSubject
 	} from "$lib/services/api";
-	import type { Case, Client, Contact, CaseSubject, CaseStatus, SubjectRole } from "$lib/types/entities";
+	import type { Case, Client, Contact, CaseSubject, CaseStatus } from "$lib/types/entities";
 
 	const STATUS_LABELS: Record<CaseStatus, string> = {
-		draft: "Brouillon",
 		in_progress: "En cours",
 		ready: "Prêt",
 		released: "Clôturé"
 	};
 
-	const SUBJECT_ROLE_LABELS: Record<SubjectRole, string> = {
-		victim: "Victime",
-		suspect: "Suspect",
-		witness: "Témoin",
-		claimant: "Demandeur",
-		representative: "Représentant"
-	};
-
 	let caseData: Case | null = null;
 	let client: Client | null = null;
 	let contact: Contact | null = null;
-	let subjects: Array<{ subject: CaseSubject; role: string }> = [];
+	let subject: CaseSubject | null = null;
 	let loading = true;
 	let error: string | null = null;
 
@@ -58,15 +49,15 @@
 			}
 
 			// Fetch related data in parallel
-			const [clientData, contactData, subjectsData] = await Promise.all([
+			const [clientData, contactData, subjectData] = await Promise.all([
 				fetchClient(caseData.clientId),
-				caseData.assignedContactId ? fetchContact(caseData.assignedContactId) : Promise.resolve(null),
-				fetchCaseSubjects(caseId)
+				caseData.assignedContactID ? fetchContact(caseData.assignedContactID) : Promise.resolve(null),
+				fetchCaseSubject(caseId)
 			]);
 
 			client = clientData;
 			contact = contactData;
-			subjects = subjectsData;
+			subject = subjectData;
 		} catch (e) {
 			error = e instanceof Error ? e.message : "Erreur lors du chargement des données";
 		} finally {
@@ -89,13 +80,13 @@
 
 <div class="p-8">
 	{#if loading}
-		<div class="flex items-center justify-center py-12">
-			<p class="text-muted-foreground">Chargement...</p>
-		</div>
+	<div class="flex items-center justify-center py-12">
+		<p class="text-muted-foreground">Chargement...</p>
+	</div>
 	{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-			{error}
-		</div>
+	<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		{error}
+	</div>
 	{:else if caseData}
 		<div class="flex gap-8">
 			<!-- Case Header -->
@@ -163,14 +154,18 @@
 					{#if caseData.placename}
 						<p class="font-semibold text-foreground">{caseData.placename}</p>
 					{/if}
-					<p class="text-sm text-foreground">
-						{caseData.address1}
-						{#if caseData.address2}<br />{caseData.address2}{/if}
-					</p>
-					<p class="text-sm text-foreground">
-						{caseData.postalCode} {caseData.city}
-					</p>
-					<p class="text-sm text-muted-foreground">{caseData.country}</p>
+					{#if caseData.address1}
+						<p class="text-sm text-foreground">
+							{caseData.address1}
+							{#if caseData.address2}<br />{caseData.address2}{/if}
+						</p>
+						<p class="text-sm text-foreground">
+							{caseData.postalCode} {caseData.city}
+						</p>
+						{#if caseData.country}
+							<p class="text-sm text-muted-foreground">{caseData.country}</p>
+						{/if}
+					{/if}
 					{#if caseData.locationNotes}
 						<p class="text-sm text-muted-foreground mt-2 italic">{caseData.locationNotes}</p>
 					{/if}
@@ -178,35 +173,28 @@
 			</div>
 		</div>
 
-		<!-- Case Subjects -->
-		{#if subjects.length > 0}
+		<!-- Case Subject -->
+		{#if subject}
 			<div class="mt-8 border border-border-card rounded-card p-6 animate-fade-in" style="animation-delay: 400ms;">
-				<h3 class="text-lg font-semibold text-foreground mb-4">Personnes impliquées</h3>
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-					{#each subjects as { subject, role }}
-						<div class="border border-border rounded-lg p-4 bg-muted/30">
-							<div class="flex items-center justify-between mb-2">
-								<span class="text-sm font-medium text-foreground">
-									{subject.firstName} {subject.lastName}
-								</span>
-								<span class="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800">
-									{SUBJECT_ROLE_LABELS[role as SubjectRole] || role}
-								</span>
-							</div>
-							{#if subject.occupation}
-								<p class="text-sm text-muted-foreground">{subject.occupation}</p>
-							{/if}
-							{#if subject.email}
-								<p class="text-sm text-muted-foreground">{subject.email}</p>
-							{/if}
-							{#if subject.phone}
-								<p class="text-sm text-muted-foreground">{subject.phone}</p>
-							{/if}
-							{#if subject.address}
-								<p class="text-sm text-muted-foreground">{subject.address}</p>
-							{/if}
-						</div>
-					{/each}
+				<h3 class="text-lg font-semibold text-foreground mb-4">Personne impliquée</h3>
+				<div class="border border-border rounded-lg p-4 bg-muted/30 max-w-md">
+					<div class="mb-2">
+						<span class="text-sm font-medium text-foreground">
+							{subject.firstname} {subject.lastname}
+						</span>
+					</div>
+					{#if subject.occupation}
+						<p class="text-sm text-muted-foreground">{subject.occupation}</p>
+					{/if}
+					{#if subject.email}
+						<p class="text-sm text-muted-foreground">{subject.email}</p>
+					{/if}
+					{#if subject.phone}
+						<p class="text-sm text-muted-foreground">{subject.phone}</p>
+					{/if}
+					{#if subject.address1}
+						<p class="text-sm text-muted-foreground">{subject.address1}{subject.address2 ? ' ' + subject.address2 : ''}</p>
+					{/if}
 				</div>
 			</div>
 		{/if}
