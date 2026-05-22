@@ -9,13 +9,10 @@
 
 export type UserRole = 'admin' | 'investigator' | 'viewer';
 
-export interface User {
+export interface AuthUser {
 	id: string;
 	email: string;
-	firstName: string;
-	lastName: string;
 	role: UserRole;
-	createdAt: string;
 }
 
 // =============================================================================
@@ -28,7 +25,6 @@ export interface Client {
 	id: string;
 	name: string;
 	type: ClientType;
-	createdAt: string;
 }
 
 // =============================================================================
@@ -37,7 +33,7 @@ export interface Client {
 
 export interface Contact {
 	id: string;
-	clientId: string;
+	clientID: string;
 	lastname: string;
 	firstname: string;
 	email: string;
@@ -54,31 +50,24 @@ export type SubjectRole = 'victim' | 'suspect' | 'witness' | 'claimant' | 'repre
 
 export interface CaseSubject {
 	id: string;
-	firstName: string;
-	lastName: string;
-	email: string | null;
-	phone: string | null;
-	address: string | null;
-	city: string | null;
-	postalCode: string | null;
-	country: string;
-	occupation: string | null;
-	notes: string | null;
+	firstname: string;
+	lastname: string;
+	email: string;
+	phone: string;
+	address1: string;
+	address2: string;
+	city: string;
+	postalCode: string;
+	occupation: string;
+	notes: string;
 	createdAt: string;
-	updatedAt: string;
-}
-
-export interface CaseSubjectAssignment {
-	caseId: string;
-	subjectId: string;
-	role: SubjectRole;
 }
 
 // =============================================================================
 // CASE TYPES
 // =============================================================================
 
-export type CaseStatus = 'draft' | 'in_progress' | 'ready' | 'released';
+export type CaseStatus = 'in_progress' | 'ready' | 'released';
 export type LocationType = 'home' | 'business' | 'public' | 'vehicle' | 'other';
 
 export interface Case {
@@ -86,21 +75,21 @@ export interface Case {
 	title: string;
 	description: string;
 	clientId: string;
-	assignedContactId: string | null;
-	caseSubjectIds: string[];
+	assignedContactID: string | null;
+	caseSubjectId: string | null;
 	externalReference: string | null;
-	caseType: string;
+	caseTypeId: string | null;
 	status: CaseStatus;
 	// Location fields
-	placename: string;
-	address1: string;
+	placename: string | null;
+	address1: string | null;
 	address2: string | null;
-	city: string;
-	postalCode: string;
-	country: string;
-	latitude: number;
-	longitude: number;
-	locationType: LocationType;
+	city: string | null;
+	postalCode: string | null;
+	country: string | null;
+	latitude: string | null;
+	longitude: string | null;
+	locationType: LocationType | null;
 	locationNotes: string | null;
 	createdAt: string;
 	updatedAt: string;
