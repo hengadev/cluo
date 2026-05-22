@@ -15,4 +15,5 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("POST /auth/register", mw.EnableCORS(h.Register))
 	router.HandleFunc("POST /auth/logout", RequireClient(mw.EnableCORS(h.SignOut)))
 	router.HandleFunc("POST /auth/refresh", RequireRefreshToken(mw.EnableCORS(h.RefreshSession)))
+	router.HandleFunc("GET /auth/me", RequireClient(mw.EnableCORS(h.GetCurrentUser)))
 }
