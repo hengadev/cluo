@@ -6,6 +6,7 @@
  */
 
 import { isMockEnabled, API_BASE_URL } from '../config';
+import { apiFetch } from './apiFetch';
 import type {
 	AuthUser,
 	Client,
@@ -517,9 +518,8 @@ export async function requestAITextOperation(
 	const timeoutId = setTimeout(() => controller.abort(), timeout);
 
 	try {
-		const response = await fetch(`${baseURL}/api/ai/text`, {
+		const response = await apiFetch(`${baseURL}/api/ai/text`, {
 			method: "POST",
-			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify(request),
 			signal: controller.signal,
 		});
@@ -564,10 +564,8 @@ export async function sendChatMessage(
 	const url = new URL(`${baseURL}/api/ai/chat/message`);
 	url.searchParams.set('case_id', caseId);
 
-	const response = await fetch(url.toString(), {
+	const response = await apiFetch(url.toString(), {
 		method: 'POST',
-		headers: { 'Content-Type': 'application/json' },
-		credentials: 'include',
 		body: JSON.stringify(request),
 	});
 
@@ -586,9 +584,7 @@ export async function getChatConversation(
 	conversationId: string,
 ): Promise<GetConversationResponse> {
 	const baseURL = API_BASE_URL;
-	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
-		credentials: 'include',
-	});
+	const response = await apiFetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`);
 
 	if (!response.ok) {
 		throw new Error(`Failed to get conversation: ${response.status}`);
@@ -607,9 +603,7 @@ export async function listChatConversations(
 	const url = new URL(`${baseURL}/api/ai/chat/conversations`);
 	url.searchParams.set('case_id', caseId);
 
-	const response = await fetch(url.toString(), {
-		credentials: 'include',
-	});
+	const response = await apiFetch(url.toString());
 
 	if (!response.ok) {
 		throw new Error(`Failed to list conversations: ${response.status}`);
@@ -623,9 +617,8 @@ export async function listChatConversations(
  */
 export async function deleteChatConversation(conversationId: string): Promise<void> {
 	const baseURL = API_BASE_URL;
-	const response = await fetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
+	const response = await apiFetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
 		method: 'DELETE',
-		credentials: 'include',
 	});
 
 	if (!response.ok) {
