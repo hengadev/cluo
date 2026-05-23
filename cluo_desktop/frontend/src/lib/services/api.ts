@@ -17,6 +17,9 @@ import type {
 	Mandate,
 	Contract,
 	Invoice,
+	ListCasesResponse,
+	CreateCaseRequest,
+	ReleaseResponse,
 } from '../types/entities';
 
 // Import mock data
@@ -121,53 +124,226 @@ export async function fetchContact(id: string): Promise<Contact | null> {
 // CASES
 // =============================================================================
 
-/**
- * Fetch all cases
- */
-export async function fetchAllCases(): Promise<Case[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllCases();
-	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+interface FetchCasesParams {
+	page?: number;
+	pageSize?: number;
+	status?: string;
 }
 
 /**
- * Fetch a case by ID with full details
+ * Fetch all cases with optional pagination and filters
  */
-export async function fetchCase(id: string): Promise<Case | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getCaseById(id) || null;
-	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
-}
+export async function fetchAllCases(params?: FetchCasesParams): Promise<ListCasesResponse> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			return {
+				cases: mockData.getAllCases(),
+				pagination: { page: 1, pageSize: 50, totalItems: mockData.getAllCases().length, totalPages: 1 }
+			};
+		}
 
-/**
- * Fetch cases by status
- */
-export async function fetchCasesByStatus(status: string): Promise<Case[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getCasesByStatus(status as any);
-	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
-}
+		const baseURL = API_BASE_URL;
+		const url = new URL(`${baseURL}/api/cases`);
 
-/**
- * Fetch cases by client ID
- */
-export async function fetchCasesByClient(clientId: string): Promise<Case[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getCasesByClientId(clientId);
+		if (params?.page) url.searchParams.set('page', params.page.toString());
+		if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
+		if (params?.status) url.searchParams.set('status', params.status);
+
+		const response = await apiFetch(url.toString());
+		if (!response.ok) {
+			throw new Error(`Failed to fetch cases: ${response.status}`);
+		}
+
+		return response.json();
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
-}
+
+	/**
+	 * Fetch a case by ID with full details
+	 */
+	export async function fetchCase(id: string): Promise<Case> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			const caseData = mockData.getCaseById(id);
+			if (!caseData) throw new Error(`Case ${id} not found`);
+			return caseData;
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases/${id}`);
+		if (!response.ok) {
+			throw new Error(`Failed to fetch case: ${response.status}`);
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Fetch cases by status
+	 */
+	export async function fetchCasesByStatus(status: string): Promise<ListCasesResponse> {
+		return fetchAllCases({ status });
+	}
+
+	/**
+	 * Fetch cases by client ID
+	 */
+	export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCasesParams, 'status'>): Promise<ListCasesResponse> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			return {
+				cases: mockData.getCasesByClientId(clientId),
+				pagination: { page: 1, pageSize: 50, totalItems: mockData.getCasesByClientId(clientId).length, totalPages: 1 }
+			};
+		}
+
+		const baseURL = API_BASE_URL;
+		const url = new URL(`${baseURL}/api/clients/${clientId}/cases`);
+
+		if (params?.page) url.searchParams.set('page', params.page.toString());
+		if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
+
+		const response = await apiFetch(url.toString());
+		if (!response.ok) {
+			throw new Error(`Failed to fetch cases for client: ${response.status}`);
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Create a new case
+	 */
+	export async function createCase(request: CreateCaseRequest): Promise<Case> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			const newCase: Case = {
+				id: `mock-${Date.now()}`,
+				title: request.title,
+				description: request.description,
+				clientId: request.clientId,
+				assignedContactID: request.assignedContactID ?? null,
+				caseSubjectId: request.caseSubjectId ?? null,
+				externalReference: request.externalReference ?? null,
+				caseTypeId: request.caseTypeId ?? null,
+				status: request.status,
+				placename: request.placename ?? null,
+				address1: request.address1 ?? null,
+				address2: request.address2 ?? null,
+				city: request.city ?? null,
+				postalCode: request.postalCode ?? null,
+				country: request.country ?? null,
+				latitude: request.latitude ?? null,
+				longitude: request.longitude ?? null,
+				locationType: request.locationType ?? null,
+				locationNotes: request.locationNotes ?? null,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+			return newCase;
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases`, {
+			method: 'POST',
+			body: JSON.stringify(request),
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to create case: ${response.status}`);
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Update an existing case
+	 */
+	export async function updateCase(id: string, request: Partial<CreateCaseRequest>): Promise<Case> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			const existing = mockData.getCaseById(id);
+			if (!existing) throw new Error(`Case ${id} not found`);
+			const updated = { ...existing, ...request, updatedAt: new Date().toISOString() };
+			return updated;
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases/${id}`, {
+			method: 'PATCH',
+			body: JSON.stringify(request),
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to update case: ${response.status}`);
+		}
+
+		return response.json();
+	}
+
+	/**
+	 * Delete a case
+	 */
+	export async function deleteCase(id: string): Promise<void> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			return;
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases/${id}`, {
+			method: 'DELETE',
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to delete case: ${response.status}`);
+		}
+	}
+
+	/**
+	 * Mark a case as ready
+	 */
+	export async function markCaseReady(id: string): Promise<void> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			return;
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases/${id}/mark-ready`, {
+			method: 'POST',
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to mark case as ready: ${response.status}`);
+		}
+	}
+
+	/**
+	 * Release a case and generate portal access token
+	 */
+	export async function releaseCase(id: string): Promise<ReleaseResponse> {
+		if (isMockEnabled()) {
+			await mockDelay();
+			return {
+				caseId: id,
+				tokenId: `mock-token-${Date.now()}`,
+				rawToken: 'mock-raw-token',
+				portalUrl: 'https://portal.example.com',
+				expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+			};
+		}
+
+		const baseURL = API_BASE_URL;
+		const response = await apiFetch(`${baseURL}/api/cases/${id}/release`, {
+			method: 'POST',
+		});
+
+		if (!response.ok) {
+			throw new Error(`Failed to release case: ${response.status}`);
+		}
+
+		return response.json();
+	}
 
 // =============================================================================
 // CASE SUBJECTS

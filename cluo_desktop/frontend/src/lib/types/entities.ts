@@ -95,6 +95,47 @@ export interface Case {
 	updatedAt: string;
 }
 
+export interface PaginationInfo {
+	page: number;
+	pageSize: number;
+	totalItems: number;
+	totalPages: number;
+}
+
+export interface ListCasesResponse {
+	cases: Case[];
+	pagination: PaginationInfo;
+}
+
+export interface CreateCaseRequest {
+	title: string;
+	description: string;
+	clientId: string;
+	status: CaseStatus;
+	assignedContactID?: string;
+	caseSubjectId?: string;
+	caseTypeId?: string;
+	externalReference?: string;
+	placename?: string;
+	address1?: string;
+	address2?: string;
+	city?: string;
+	postalCode?: string;
+	country?: string;
+	latitude?: string;
+	longitude?: string;
+	locationType?: LocationType;
+	locationNotes?: string;
+}
+
+export interface ReleaseResponse {
+	caseId: string;
+	tokenId: string;
+	rawToken: string;
+	portalUrl: string;
+	expiresAt: string;
+}
+
 // =============================================================================
 // DOCUMENT TYPES (Common)
 // =============================================================================
