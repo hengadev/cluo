@@ -8,6 +8,7 @@ export * from './users';
 export * from './clients';
 export * from './contacts';
 export * from './caseSubjects';
+export * from './caseTypes';
 export * from './cases';
 export * from './estimates';
 export * from './mandates';

@@ -68,6 +68,13 @@ export interface CaseSubject {
 // =============================================================================
 
 export type CaseStatus = 'in_progress' | 'ready' | 'released';
+
+export interface CaseType {
+	id: string;
+	name: string;
+	createdAt: string;
+	updatedAt: string;
+}
 export type LocationType = 'home' | 'business' | 'public' | 'vehicle' | 'other';
 
 export interface Case {
