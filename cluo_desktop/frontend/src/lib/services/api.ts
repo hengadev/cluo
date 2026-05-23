@@ -20,6 +20,17 @@ import type {
 	ListCasesResponse,
 	CreateCaseRequest,
 	ReleaseResponse,
+	DocumentSummary,
+	DocumentListResponse,
+	DocumentAPIResponse,
+	CreateDocumentRequest,
+	UpdateDocumentRequest,
+	SendDocumentRequest,
+	SignDocumentRequest,
+	DocumentHistoryResponse,
+	DocumentWorkflowResponse,
+	OverdueInvoicesResponse,
+	PaymentRequest,
 } from '../types/entities';
 
 // Import mock data
@@ -395,10 +406,10 @@ export async function fetchCaseSubject(caseId: string): Promise<CaseSubject | nu
 export async function fetchAllEstimates(): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllEstimates();
+		return mockData.getAllEstimates() as unknown as Estimate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'estimate' });
+	return result.data as unknown as Estimate[];
 }
 
 /**
@@ -407,10 +418,10 @@ export async function fetchAllEstimates(): Promise<Estimate[]> {
 export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimatesByCaseId(caseId);
+		return mockData.getEstimatesByCaseId(caseId) as unknown as Estimate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'estimate', case_id: caseId });
+	return result.data as unknown as Estimate[];
 }
 
 /**
@@ -419,10 +430,10 @@ export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
 export async function fetchEstimate(id: string): Promise<Estimate | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimateById(id) || null;
+		return mockData.getEstimateById(id) as unknown as Estimate || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocument(id, 'estimate');
+	return result.data as Estimate || null;
 }
 
 /**
@@ -431,10 +442,75 @@ export async function fetchEstimate(id: string): Promise<Estimate | null> {
 export async function fetchClientEstimates(clientId: string): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimatesByClientId(clientId);
+		return mockData.getEstimatesByClientId(clientId) as unknown as Estimate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	// Use the generic fetchDocuments with client filter
+	const result = await fetchDocuments({ type: 'estimate' });
+	// Filter by client_id in the response
+	return (result.data as unknown as Estimate[]).filter(est => (est as Estimate).client_id === clientId);
+}
+
+/**
+ * Create a new estimate
+ */
+export async function createEstimate(estimate: Estimate): Promise<DocumentAPIResponse<Estimate>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: estimate };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/estimates`, {
+		method: 'POST',
+		body: JSON.stringify(estimate),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create estimate: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Update an estimate (line items)
+ */
+export async function updateEstimate(id: string, lineItems: any[]): Promise<DocumentAPIResponse<Estimate>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id, line_items: lineItems } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/estimates/${id}`, {
+		method: 'PATCH',
+		body: JSON.stringify({ line_items: lineItems }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to update estimate: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Accept an estimate
+ */
+export async function acceptEstimate(id: string, acceptedBy: string): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { message: 'Estimate accepted successfully' } };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/estimates/${id}/accept`, {
+		method: 'POST',
+		body: JSON.stringify({ accepted_by: acceptedBy }),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to accept estimate: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 // =============================================================================
@@ -447,10 +523,10 @@ export async function fetchClientEstimates(clientId: string): Promise<Estimate[]
 export async function fetchAllMandates(): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllMandates();
+		return mockData.getAllMandates() as unknown as Mandate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'mandate' });
+	return result.data as unknown as Mandate[];
 }
 
 /**
@@ -459,10 +535,10 @@ export async function fetchAllMandates(): Promise<Mandate[]> {
 export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandatesByCaseId(caseId);
+		return mockData.getMandatesByCaseId(caseId) as unknown as Mandate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'mandate', case_id: caseId });
+	return result.data as unknown as Mandate[];
 }
 
 /**
@@ -471,10 +547,10 @@ export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
 export async function fetchMandate(id: string): Promise<Mandate | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandateById(id) || null;
+		return mockData.getMandateById(id) as unknown as Mandate || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocument(id, 'mandate');
+	return result.data as Mandate || null;
 }
 
 /**
@@ -483,10 +559,93 @@ export async function fetchMandate(id: string): Promise<Mandate | null> {
 export async function fetchClientMandates(clientId: string): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandatesByClientId(clientId);
+		return mockData.getMandatesByClientId(clientId) as unknown as Mandate[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'mandate' });
+	return (result.data as unknown as Mandate[]).filter(mand => (mand as Mandate).client_id === clientId);
+}
+
+/**
+ * Create a new mandate
+ */
+export async function createMandate(mandate: Mandate): Promise<DocumentAPIResponse<Mandate>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: mandate };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/mandates`, {
+		method: 'POST',
+		body: JSON.stringify(mandate),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create mandate: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Sign a mandate
+ */
+export async function signMandate(id: string, request: SignDocumentRequest): Promise<DocumentAPIResponse<Mandate>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/mandates/${id}/sign`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to sign mandate: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Activate a mandate
+ */
+export async function activateMandate(id: string): Promise<DocumentAPIResponse<Mandate>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/mandates/${id}/activate`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to activate mandate: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Create a contract from a mandate
+ */
+export async function createContractFromMandate(mandateId: string, contract: Contract): Promise<DocumentAPIResponse<Contract>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: contract };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/mandates/${mandateId}/create-contract`, {
+		method: 'POST',
+		body: JSON.stringify(contract),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create contract from mandate: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 // =============================================================================
@@ -499,10 +658,10 @@ export async function fetchClientMandates(clientId: string): Promise<Mandate[]> 
 export async function fetchAllContracts(): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllContracts();
+		return mockData.getAllContracts() as unknown as Contract[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'contract' });
+	return result.data as unknown as Contract[];
 }
 
 /**
@@ -511,10 +670,10 @@ export async function fetchAllContracts(): Promise<Contract[]> {
 export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractsByCaseId(caseId);
+		return mockData.getContractsByCaseId(caseId) as unknown as Contract[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'contract', case_id: caseId });
+	return result.data as unknown as Contract[];
 }
 
 /**
@@ -523,10 +682,10 @@ export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
 export async function fetchContract(id: string): Promise<Contract | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractById(id) || null;
+		return mockData.getContractById(id) as unknown as Contract || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocument(id, 'contract');
+	return result.data as Contract || null;
 }
 
 /**
@@ -535,10 +694,93 @@ export async function fetchContract(id: string): Promise<Contract | null> {
 export async function fetchClientContracts(clientId: string): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractsByClientId(clientId);
+		return mockData.getContractsByClientId(clientId) as unknown as Contract[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'contract' });
+	return (result.data as unknown as Contract[]).filter(cont => (cont as Contract).client_id === clientId);
+}
+
+/**
+ * Create a new contract
+ */
+export async function createContract(contract: Contract): Promise<DocumentAPIResponse<Contract>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: contract };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contracts`, {
+		method: 'POST',
+		body: JSON.stringify(contract),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create contract: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Sign a contract
+ */
+export async function signContract(id: string, request: SignDocumentRequest): Promise<DocumentAPIResponse<Contract>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contracts/${id}/sign`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to sign contract: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Activate a contract
+ */
+export async function activateContract(id: string): Promise<DocumentAPIResponse<Contract>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contracts/${id}/activate`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to activate contract: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Create an invoice from a contract
+ */
+export async function createInvoiceFromContract(contractId: string, invoice: Invoice): Promise<DocumentAPIResponse<Invoice>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: invoice };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contracts/${contractId}/create-invoice`, {
+		method: 'POST',
+		body: JSON.stringify(invoice),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create invoice from contract: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 // =============================================================================
@@ -551,10 +793,10 @@ export async function fetchClientContracts(clientId: string): Promise<Contract[]
 export async function fetchAllInvoices(): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllInvoices();
+		return mockData.getAllInvoices() as unknown as Invoice[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'invoice' });
+	return result.data as unknown as Invoice[];
 }
 
 /**
@@ -563,10 +805,10 @@ export async function fetchAllInvoices(): Promise<Invoice[]> {
 export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByCaseId(caseId);
+		return mockData.getInvoicesByCaseId(caseId) as unknown as Invoice[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'invoice', case_id: caseId });
+	return result.data as unknown as Invoice[];
 }
 
 /**
@@ -575,10 +817,10 @@ export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
 export async function fetchInvoice(id: string): Promise<Invoice | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoiceById(id) || null;
+		return mockData.getInvoiceById(id) as unknown as Invoice || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocument(id, 'invoice');
+	return result.data as Invoice || null;
 }
 
 /**
@@ -587,10 +829,10 @@ export async function fetchInvoice(id: string): Promise<Invoice | null> {
 export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByClientId(clientId);
+		return mockData.getInvoicesByClientId(clientId) as unknown as Invoice[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'invoice' });
+	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).client_id === clientId);
 }
 
 /**
@@ -599,10 +841,99 @@ export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> 
 export async function fetchInvoicesByPaymentStatus(paymentStatus: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByPaymentStatus(paymentStatus as any);
+		return mockData.getInvoicesByPaymentStatus(paymentStatus as any) as unknown as Invoice[];
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const result = await fetchDocuments({ type: 'invoice' });
+	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).payment_status === paymentStatus);
+}
+
+/**
+ * Create a new invoice
+ */
+export async function createInvoice(invoice: Invoice): Promise<DocumentAPIResponse<Invoice>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: invoice };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/invoices`, {
+		method: 'POST',
+		body: JSON.stringify(invoice),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create invoice: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Fetch overdue invoices
+ */
+export async function fetchOverdueInvoices(page: number = 1, perPage: number = 20): Promise<OverdueInvoicesResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return {
+			success: true,
+			data: [],
+			total: 0,
+			page,
+			per_page: perPage
+		};
+	}
+	const baseURL = API_BASE_URL;
+	const url = new URL(`${baseURL}/api/invoices/overdue`);
+	url.searchParams.set('page', page.toString());
+	url.searchParams.set('per_page', perPage.toString());
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch overdue invoices: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Process a payment on an invoice
+ */
+export async function processPayment(id: string, request: PaymentRequest): Promise<DocumentAPIResponse<Invoice>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/invoices/${id}/pay`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to process payment: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Void an invoice
+ */
+export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoice>> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id } as any };
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/invoices/${id}/void`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to void invoice: ${response.status}`);
+	}
+
+	return response.json();
 }
 
 // =============================================================================
@@ -800,5 +1131,244 @@ export async function deleteChatConversation(conversationId: string): Promise<vo
 	if (!response.ok) {
 		throw new Error(`Failed to delete conversation: ${response.status}`);
 	}
+}
+
+// =============================================================================
+// DOCUMENTS (Generic)
+// =============================================================================
+
+interface FetchDocumentsParams {
+	case_id?: string;
+	type?: string;
+	status?: string;
+	page?: number;
+	per_page?: number;
+}
+
+/**
+ * Fetch documents with optional filters and pagination
+ */
+export async function fetchDocuments(params?: FetchDocumentsParams): Promise<DocumentListResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		// Return mock data for now
+		return {
+			success: true,
+			data: [],
+			total: 0,
+			page: 1,
+			per_page: 20
+		};
+	}
+
+	const baseURL = API_BASE_URL;
+	const url = new URL(`${baseURL}/api/documents`);
+
+	if (params?.case_id) url.searchParams.set('case_id', params.case_id);
+	if (params?.type) url.searchParams.set('type', params.type);
+	if (params?.status) url.searchParams.set('status', params.status);
+	if (params?.page) url.searchParams.set('page', params.page.toString());
+	if (params?.per_page) url.searchParams.set('per_page', params.per_page.toString());
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch documents: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Create a new document
+ */
+export async function createDocument(request: CreateDocumentRequest): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id: `mock-${Date.now()}` } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to create document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Fetch a single document by ID and type
+ */
+export async function fetchDocument(id: string, type: string): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id, type } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Update an existing document
+ */
+export async function updateDocument(id: string, type: string, request: UpdateDocumentRequest): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id, type } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`, {
+		method: 'PATCH',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to update document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Delete a document
+ */
+export async function deleteDocument(id: string, type: string): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { message: 'Document deleted successfully' } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`, {
+		method: 'DELETE',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to delete document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Send a document to recipients
+ */
+export async function sendDocument(id: string, type: string, request: SendDocumentRequest): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { message: 'Document sent successfully' } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/send`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to send document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Sign a document
+ */
+export async function signDocument(id: string, type: string, request: SignDocumentRequest): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { id, type } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/sign`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to sign document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Archive a document
+ */
+export async function archiveDocument(id: string, type: string): Promise<DocumentAPIResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: { message: 'Document archived successfully' } };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/archive`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to archive document: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Fetch document history (versions)
+ */
+export async function fetchDocumentHistory(id: string, type: string, page: number = 1, perPage: number = 20): Promise<DocumentHistoryResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return {
+			success: true,
+			data: [],
+			total: 0,
+			page,
+			per_page: perPage
+		};
+	}
+
+	const baseURL = API_BASE_URL;
+	const url = new URL(`${baseURL}/api/documents/${id}/${type}/history`);
+	url.searchParams.set('page', page.toString());
+	url.searchParams.set('per_page', perPage.toString());
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch document history: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Fetch document workflow for a case (full document chain)
+ */
+export async function fetchDocumentWorkflow(caseId: string): Promise<DocumentWorkflowResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return { success: true, data: [] };
+	}
+
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/documents/workflow/${caseId}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch document workflow: ${response.status}`);
+	}
+
+	return response.json();
 }
 
