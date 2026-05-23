@@ -3,7 +3,6 @@ package document
 import (
 	"context"
 	"fmt"
-	"time"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -27,47 +26,8 @@ func (s *Service) UpdateDocument(ctx context.Context, id string, req *document.U
 		return nil, errs.NewInvalidValueErr(fmt.Sprintf("cannot modify document in final status: %s", doc.GetStatus()))
 	}
 
-	// Apply updates
-	switch d := doc.(type) {
-	case *document.Estimate:
-		if req.Title != nil {
-			d.Title = *req.Title
-		}
-		if req.Description != nil {
-			d.Description = *req.Description
-		}
-		// Apply other field updates...
-
-	case *document.Mandate:
-		if req.Title != nil {
-			d.Title = *req.Title
-		}
-		if req.Description != nil {
-			d.Description = *req.Description
-		}
-		// Apply other field updates...
-
-	case *document.Contract:
-		if req.Title != nil {
-			d.Title = *req.Title
-		}
-		if req.Description != nil {
-			d.Description = *req.Description
-		}
-		// Apply other field updates...
-
-	case *document.Invoice:
-		if req.Title != nil {
-			d.Title = *req.Title
-		}
-		if req.Description != nil {
-			d.Description = *req.Description
-		}
-		// Apply other field updates...
-	}
-
-	// Update metadata
-	doc.SetUpdatedAt(time.Now())
+	// Update timestamp
+	doc.UpdateTimestamp()
 
 	// Validate updated document
 	if err := doc.Validate(); err != nil {

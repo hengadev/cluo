@@ -3,6 +3,8 @@ package document
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
@@ -27,7 +29,11 @@ func (s *Service) CreateInvoiceFromContract(ctx context.Context, contractID stri
 	}
 
 	// Link invoice to contract
-	invoice.LinkedContractID = &contractID
+	parsedContractID, err := uuid.Parse(contractID)
+	if err != nil {
+		return nil, errs.NewInvalidValueErr("invalid contract ID format")
+	}
+	invoice.LinkedContractID = &parsedContractID
 	invoice.CaseID = contract.CaseID
 	invoice.ClientID = contract.ClientID
 

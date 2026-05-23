@@ -35,7 +35,6 @@ func (s *Service) createDocumentVersion(ctx context.Context, doc document.Docume
 
 	// Create version record
 	version := &document.DocumentVersion{
-		ID:        uuid.New(),
 		DocumentID: doc.GetID(),
 		DocType:   doc.GetType(),
 		Version:   nextVersion,

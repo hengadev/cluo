@@ -2,6 +2,9 @@ package document
 
 import (
 	"context"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -27,16 +30,20 @@ func (s *Service) SignContract(ctx context.Context, contractID string, req *docu
 	}
 
 	// Create signature
-	signature := &document.Signature{
+	signature := document.Signature{
+		ID:        uuid.New(),
 		Name:      req.SignerName,
 		Role:      req.SignerRole,
 		Method:    req.Method,
 		IPAddress: req.IPAddress,
 		UserAgent: req.UserAgent,
+		SignedAt:  time.Now(),
 	}
 
 	// Add signature
-	contract.AddSignature(signature)
+	if err := contract.AddSignature(signature); err != nil {
+		return nil, errs.NewInvalidValueErr(err.Error())
+	}
 
 	// Encrypt updated contract
 	updatedContractEncx, err := document.ProcessContractEncx(ctx, s.crypto, contract)

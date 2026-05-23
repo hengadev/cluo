@@ -30,7 +30,7 @@ func (s *Service) ProcessPayment(ctx context.Context, invoiceID string, req *doc
 
 	// Check if payment can be processed
 	if invoice.PaymentStatus == document.PaymentStatusPaid {
-		return nil, errs.NewConflictErr("invoice already fully paid")
+		return nil, errs.NewConflictErr(fmt.Errorf("invoice already fully paid"))
 	}
 
 	if invoice.PaymentStatus == document.PaymentStatusVoid {
@@ -38,7 +38,7 @@ func (s *Service) ProcessPayment(ctx context.Context, invoiceID string, req *doc
 	}
 
 	// Process payment
-	invoice.AddPayment(req.Amount, req.Method)
+	invoice.AddPayment(req.Amount, req.PaymentMethod)
 	invoice.UpdatedAt = time.Now()
 
 	// Encrypt updated invoice
@@ -54,7 +54,7 @@ func (s *Service) ProcessPayment(ctx context.Context, invoiceID string, req *doc
 
 	// Create version record
 	authorID := s.getUserIDFromContext(ctx)
-	if err := s.createDocumentVersion(ctx, invoice, &authorID, stringPtr(fmt.Sprintf("Payment processed: %.2f %s", req.Amount, req.Method))); err != nil {
+	if err := s.createDocumentVersion(ctx, invoice, &authorID, stringPtr(fmt.Sprintf("Payment processed: %.2f %s", req.Amount, req.PaymentMethod))); err != nil {
 		// Log error but don't fail the operation
 		// TODO: Add proper logging
 	}

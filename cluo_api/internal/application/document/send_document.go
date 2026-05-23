@@ -2,7 +2,6 @@ package document
 
 import (
 	"context"
-	"time"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -34,7 +33,7 @@ func (s *Service) SendDocument(ctx context.Context, id string, docType document.
 
 	// Update document status to Sent
 	doc.SetStatus(document.DocumentStatusSent)
-	doc.SetUpdatedAt(time.Now())
+	doc.UpdateTimestamp()
 
 	if err := s.repo.Update(ctx, doc); err != nil {
 		return errs.NewNotUpdatedErr(err, "document")

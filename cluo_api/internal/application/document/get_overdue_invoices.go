@@ -15,7 +15,7 @@ func (s *Service) GetOverdueInvoices(ctx context.Context, pagination document.Pa
 
 	// TODO: Implement overdue invoice filtering in repository
 	// For now, we'll get all invoices and filter in service
-	invoicesEncx, total, err := s.repo.ListInvoicesByCase(ctx, "", pagination)
+	invoicesEncx, _, err := s.repo.ListInvoicesByCase(ctx, "", pagination)
 	if err != nil {
 		return nil, 0, fmt.Errorf("failed to list invoices: %w", err)
 	}

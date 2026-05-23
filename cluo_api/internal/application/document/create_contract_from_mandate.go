@@ -3,6 +3,8 @@ package document
 import (
 	"context"
 
+	"github.com/google/uuid"
+
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
@@ -27,7 +29,11 @@ func (s *Service) CreateContractFromMandate(ctx context.Context, mandateID strin
 	}
 
 	// Link contract to mandate
-	contract.LinkedMandateID = &mandateID
+	parsedMandateID, err := uuid.Parse(mandateID)
+	if err != nil {
+		return nil, errs.NewInvalidValueErr("invalid mandate ID format")
+	}
+	contract.LinkedMandateID = &parsedMandateID
 	contract.CaseID = mandate.CaseID
 	contract.ClientID = mandate.ClientID
 

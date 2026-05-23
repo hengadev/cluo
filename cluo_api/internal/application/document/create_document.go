@@ -80,9 +80,42 @@ func (s *Service) CreateDocument(ctx context.Context, req *document.CreateDocume
 		return nil, errs.NewInvalidValueErr(fmt.Sprintf("document validation failed: %s", err.Error()))
 	}
 
-	// Encrypt and save document
-	if err := s.repo.Create(ctx, doc); err != nil {
-		return nil, errs.NewNotCreatedErr(err, "document")
+	// Encrypt and persist document by concrete type
+	switch d := doc.(type) {
+	case *document.Estimate:
+		encxDoc, err := document.ProcessEstimateEncx(ctx, s.crypto, d)
+		if err != nil {
+			return nil, errs.NewInvalidValueErr("failed to encrypt estimate")
+		}
+		if err := s.repo.CreateEstimate(ctx, encxDoc); err != nil {
+			return nil, errs.NewNotCreatedErr(err, "document")
+		}
+	case *document.Mandate:
+		encxDoc, err := document.ProcessMandateEncx(ctx, s.crypto, d)
+		if err != nil {
+			return nil, errs.NewInvalidValueErr("failed to encrypt mandate")
+		}
+		if err := s.repo.CreateMandate(ctx, encxDoc); err != nil {
+			return nil, errs.NewNotCreatedErr(err, "document")
+		}
+	case *document.Contract:
+		encxDoc, err := document.ProcessContractEncx(ctx, s.crypto, d)
+		if err != nil {
+			return nil, errs.NewInvalidValueErr("failed to encrypt contract")
+		}
+		if err := s.repo.CreateContract(ctx, encxDoc); err != nil {
+			return nil, errs.NewNotCreatedErr(err, "document")
+		}
+	case *document.Invoice:
+		encxDoc, err := document.ProcessInvoiceEncx(ctx, s.crypto, d)
+		if err != nil {
+			return nil, errs.NewInvalidValueErr("failed to encrypt invoice")
+		}
+		if err := s.repo.CreateInvoice(ctx, encxDoc); err != nil {
+			return nil, errs.NewNotCreatedErr(err, "document")
+		}
+	default:
+		return nil, errs.NewInvalidValueErr(fmt.Sprintf("unsupported document type: %T", doc))
 	}
 
 	// Create initial version

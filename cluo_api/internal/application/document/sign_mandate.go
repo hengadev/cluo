@@ -2,6 +2,10 @@ package document
 
 import (
 	"context"
+	"fmt"
+	"time"
+
+	"github.com/google/uuid"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -27,25 +31,31 @@ func (s *Service) SignMandate(ctx context.Context, mandateID string, req *docume
 	}
 
 	// Create signature
-	signature := &document.Signature{
+	signature := document.Signature{
+		ID:        uuid.New(),
 		Name:      req.SignerName,
 		Role:      req.SignerRole,
 		Method:    req.Method,
 		IPAddress: req.IPAddress,
 		UserAgent: req.UserAgent,
+		SignedAt:  time.Now(),
 	}
 
 	// Apply signature
 	if req.SignerRole == "client" {
 		if mandate.ClientSignature != nil {
-			return nil, errs.NewConflictErr("client signature already exists")
+			return nil, errs.NewConflictErr(fmt.Errorf("client signature already exists"))
 		}
-		mandate.AddClientSignature(signature)
+		if err := mandate.AddClientSignature(signature); err != nil {
+			return nil, errs.NewInvalidValueErr(err.Error())
+		}
 	} else if req.SignerRole == "investigator" {
 		if mandate.InvestigatorSignature != nil {
-			return nil, errs.NewConflictErr("investigator signature already exists")
+			return nil, errs.NewConflictErr(fmt.Errorf("investigator signature already exists"))
 		}
-		mandate.AddInvestigatorSignature(signature)
+		if err := mandate.AddInvestigatorSignature(signature); err != nil {
+			return nil, errs.NewInvalidValueErr(err.Error())
+		}
 	} else {
 		return nil, errs.NewInvalidValueErr("invalid signer role for mandate")
 	}

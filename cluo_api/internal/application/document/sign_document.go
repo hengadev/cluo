@@ -24,7 +24,7 @@ func (s *Service) SignDocument(ctx context.Context, id string, docType document.
 	}
 
 	// Create signature
-	signature := &document.Signature{
+	signature := document.Signature{
 		ID:        uuid.New(),
 		Name:      req.SignerName,
 		Role:      req.SignerRole,
@@ -39,15 +39,21 @@ func (s *Service) SignDocument(ctx context.Context, id string, docType document.
 	switch d := doc.(type) {
 	case *document.Mandate:
 		if req.SignerRole == "client" && d.ClientSignature == nil {
-			d.AddClientSignature(signature)
+			if err := d.AddClientSignature(signature); err != nil {
+				return errs.NewInvalidValueErr(err.Error())
+			}
 			updated = true
 		} else if req.SignerRole == "investigator" && d.InvestigatorSignature == nil {
-			d.AddInvestigatorSignature(signature)
+			if err := d.AddInvestigatorSignature(signature); err != nil {
+				return errs.NewInvalidValueErr(err.Error())
+			}
 			updated = true
 		}
 
 	case *document.Contract:
-		d.AddSignature(signature)
+		if err := d.AddSignature(signature); err != nil {
+			return errs.NewInvalidValueErr(err.Error())
+		}
 		updated = true
 
 	default:
@@ -63,7 +69,7 @@ func (s *Service) SignDocument(ctx context.Context, id string, docType document.
 		doc.SetStatus(document.DocumentStatusSigned)
 	}
 
-	doc.SetUpdatedAt(time.Now())
+	doc.UpdateTimestamp()
 
 	// Save updates
 	if err := s.repo.Update(ctx, doc); err != nil {
