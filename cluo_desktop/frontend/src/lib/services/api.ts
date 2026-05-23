@@ -88,8 +88,12 @@ export async function fetchAllClients(): Promise<Client[]> {
 		await mockDelay();
 		return mockData.getAllClients();
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch clients: ${response.status}`);
+	}
+	return response.json();
 }
 
 /**
@@ -100,8 +104,86 @@ export async function fetchClient(id: string): Promise<Client | null> {
 		await mockDelay();
 		return mockData.getClientById(id) || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients/${id}`);
+	if (!response.ok) {
+		if (response.status === 404) return null;
+		throw new Error(`Failed to fetch client: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Create a new client
+ */
+export async function createClient(request: {
+	name: string;
+	type?: string;
+}): Promise<Client> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const newClient: Client = {
+			id: `mock-${Date.now()}`,
+			name: request.name,
+			type: (request.type || 'company') as any,
+		};
+		return newClient;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to create client: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Update an existing client
+ */
+export async function updateClient(id: string, request: {
+	name?: string;
+	type?: string;
+}): Promise<Client> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const existing = mockData.getClientById(id);
+		if (!existing) throw new Error(`Client ${id} not found`);
+		const updated: Client = {
+			id: existing.id,
+			name: request.name ?? existing.name,
+			type: (request.type ?? existing.type) as any,
+		};
+		return updated;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients/${id}`, {
+		method: 'PATCH',
+		body: JSON.stringify(request),
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to update client: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Delete a client
+ */
+export async function deleteClient(id: string): Promise<void> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients/${id}`, {
+		method: 'DELETE',
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to delete client: ${response.status}`);
+	}
 }
 
 /**
@@ -112,8 +194,12 @@ export async function fetchClientContacts(clientId: string): Promise<Contact[]> 
 		await mockDelay();
 		return mockData.getContactsByClientId(clientId);
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/clients/${clientId}/contacts`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch client contacts: ${response.status}`);
+	}
+	return response.json();
 }
 
 // =============================================================================
@@ -128,8 +214,94 @@ export async function fetchContact(id: string): Promise<Contact | null> {
 		await mockDelay();
 		return mockData.getContactById(id) || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contacts/${id}`);
+	if (!response.ok) {
+		if (response.status === 404) return null;
+		throw new Error(`Failed to fetch contact: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Create a new contact
+ */
+export async function createContact(request: {
+	clientID: string;
+	lastname: string;
+	firstname: string;
+	email?: string;
+	phone?: string;
+	position?: string;
+}): Promise<Contact> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const newContact: Contact = {
+			id: `mock-${Date.now()}`,
+			clientID: request.clientID,
+			lastname: request.lastname,
+			firstname: request.firstname,
+			email: request.email ?? '',
+			phone: request.phone ?? '',
+			position: request.position ?? '',
+			createdAt: new Date().toISOString(),
+		};
+		return newContact;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contacts`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to create contact: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Update an existing contact
+ */
+export async function updateContact(id: string, request: {
+	lastname?: string;
+	firstname?: string;
+	email?: string;
+	phone?: string;
+	position?: string;
+}): Promise<Contact> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const existing = mockData.getContactById(id);
+		if (!existing) throw new Error(`Contact ${id} not found`);
+		const updated = { ...existing, ...request };
+		return updated;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contacts/${id}`, {
+		method: 'PATCH',
+		body: JSON.stringify(request),
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to update contact: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Delete a contact
+ */
+export async function deleteContact(id: string): Promise<void> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return;
+	}
+	const baseURL = API_BASE_URL;
+	const response = await apiFetch(`${baseURL}/api/contacts/${id}`, {
+		method: 'DELETE',
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to delete contact: ${response.status}`);
+	}
 }
 
 // =============================================================================
