@@ -2,7 +2,6 @@ package documentRepository
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/domain/document"
