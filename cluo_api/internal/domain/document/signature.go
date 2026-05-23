@@ -13,6 +13,8 @@ type Signature struct {
 	Role             string    `json:"role"`
 	SignatureFileURL string    `json:"signature_file_url,omitempty"`
 	Method           string    `json:"method,omitempty"`
+	IPAddress        *string   `json:"ip_address,omitempty"`
+	UserAgent        *string   `json:"user_agent,omitempty"`
 	SignedAt         time.Time `json:"signed_at"`
 }
 

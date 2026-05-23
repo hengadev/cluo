@@ -42,6 +42,18 @@ func (d *DocumentBase) UpdateTimestamp() {
 	d.UpdatedAt = time.Now()
 }
 
+// SetCaseID sets the document's associated case ID.
+func (d *DocumentBase) SetCaseID(id uuid.UUID) {
+	d.CaseID = id
+	d.UpdatedAt = time.Now()
+}
+
+// SetClientID sets the document's associated client ID.
+func (d *DocumentBase) SetClientID(id uuid.UUID) {
+	d.ClientID = id
+	d.UpdatedAt = time.Now()
+}
+
 // NewDocumentBase creates a new DocumentBase with default values.
 func NewDocumentBase(caseID, clientID uuid.UUID) DocumentBase {
 	now := time.Now()

@@ -1,6 +1,7 @@
 package document
 
 import (
+	"context"
 	"fmt"
 	"time"
 
@@ -14,6 +15,10 @@ type Documentable interface {
 	GetCaseID() uuid.UUID
 	Validate() error
 	GetStatus() DocumentStatus
+	SetStatus(status DocumentStatus)
+	UpdateTimestamp()
+	SetCaseID(id uuid.UUID)
+	SetClientID(id uuid.UUID)
 }
 
 // Document represents any document in the system.
@@ -53,16 +58,44 @@ type DocumentSummary struct {
 
 // CreateDocumentRequest represents a request to create a new document.
 type CreateDocumentRequest struct {
-	Type     DocumentType `json:"type" validate:"required"`
-	CaseID   uuid.UUID    `json:"case_id" validate:"required"`
-	ClientID uuid.UUID    `json:"client_id" validate:"required"`
-	Data     interface{}  `json:"data" validate:"required"`
+	Type     DocumentType    `json:"type" validate:"required"`
+	CaseID   uuid.UUID       `json:"case_id" validate:"required"`
+	ClientID uuid.UUID       `json:"client_id" validate:"required"`
+	Data     interface{}     `json:"data" validate:"required"`
+	Status   *DocumentStatus `json:"status,omitempty"`
+}
+
+func (r *CreateDocumentRequest) Valid(_ context.Context) error {
+	if r.Type == "" {
+		return fmt.Errorf("document type is required")
+	}
+	if r.CaseID == uuid.Nil {
+		return fmt.Errorf("case ID is required")
+	}
+	if r.ClientID == uuid.Nil {
+		return fmt.Errorf("client ID is required")
+	}
+	if r.Data == nil {
+		return fmt.Errorf("document data is required")
+	}
+	return nil
 }
 
 // UpdateDocumentRequest represents a request to update a document.
 type UpdateDocumentRequest struct {
-	Data   interface{} `json:"data" validate:"required"`
-	Reason *string     `json:"reason,omitempty"`
+	Type   DocumentType `json:"type" validate:"required"`
+	Data   interface{}  `json:"data" validate:"required"`
+	Reason *string      `json:"reason,omitempty"`
+}
+
+func (r *UpdateDocumentRequest) Valid(_ context.Context) error {
+	if r.Type == "" {
+		return fmt.Errorf("document type is required")
+	}
+	if r.Data == nil {
+		return fmt.Errorf("document data is required")
+	}
+	return nil
 }
 
 // SendDocumentRequest represents a request to send a document.
@@ -72,6 +105,13 @@ type SendDocumentRequest struct {
 	Message    *string  `json:"message,omitempty"`
 	SendEmail  bool     `json:"send_email"`
 	SendSMS    bool     `json:"send_sms"`
+}
+
+func (r *SendDocumentRequest) Valid(_ context.Context) error {
+	if len(r.Recipients) == 0 {
+		return fmt.Errorf("at least one recipient is required")
+	}
+	return nil
 }
 
 // SignDocumentRequest represents a request to sign a document.
@@ -84,12 +124,35 @@ type SignDocumentRequest struct {
 	UserAgent        *string `json:"user_agent,omitempty"`
 }
 
+func (r *SignDocumentRequest) Valid(_ context.Context) error {
+	if r.SignerName == "" {
+		return fmt.Errorf("signer name is required")
+	}
+	if r.SignerRole == "" {
+		return fmt.Errorf("signer role is required")
+	}
+	if r.Method == "" {
+		return fmt.Errorf("signature method is required")
+	}
+	return nil
+}
+
 // PaymentRequest represents a request to make a payment on an invoice.
 type PaymentRequest struct {
 	Amount        float64 `json:"amount" validate:"required,gt=0"`
 	PaymentMethod string  `json:"payment_method" validate:"required"`
 	TransactionID *string `json:"transaction_id,omitempty"`
 	Notes         *string `json:"notes,omitempty"`
+}
+
+func (r *PaymentRequest) Valid(_ context.Context) error {
+	if r.Amount <= 0 {
+		return fmt.Errorf("payment amount must be greater than 0")
+	}
+	if r.PaymentMethod == "" {
+		return fmt.Errorf("payment method is required")
+	}
+	return nil
 }
 
 // DocumentFilter represents filtering options for document queries.

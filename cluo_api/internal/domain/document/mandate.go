@@ -98,6 +98,11 @@ func (m *Mandate) IsExpired() bool {
 	return time.Now().After(*m.ValidUntil)
 }
 
+// IsActive checks if the mandate is currently active and valid.
+func (m *Mandate) IsActive() bool {
+	return m.IsValid()
+}
+
 // IsValid checks if the mandate is currently valid and active.
 func (m *Mandate) IsValid() bool {
 	return m.Status == DocumentStatusActive &&
@@ -195,6 +200,17 @@ func NewMandate(caseID, clientID uuid.UUID, mandateNumber, scopeOfWork, termsCon
 	}
 
 	return mandate
+}
+
+// NewMandateFromEstimate creates a new mandate derived from an accepted estimate.
+func NewMandateFromEstimate(estimate *Estimate) *Mandate {
+	return &Mandate{
+		DocumentBase:     NewDocumentBase(estimate.CaseID, estimate.ClientID),
+		MandateNumber:    fmt.Sprintf("MND-%s", estimate.EstimateNumber),
+		IssueDate:        time.Now(),
+		ValidFrom:        time.Now(),
+		LinkedEstimateID: &estimate.ID,
+	}
 }
 
 // SetValidityPeriod sets the validity period for the mandate.
