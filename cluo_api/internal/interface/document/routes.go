@@ -1,100 +1,47 @@
 package document
 
 import (
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
+	"net/http"
 
-	"github.com/hengadev/cluo_api/internal/ports"
+	"github.com/hengadev/cluo_api/internal/common/contracts/identity"
+	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 )
 
-func RegisterRoutes(r chi.Router, service ports.DocumentService) {
-	handler := New(service)
+func (h *handler) RegisterRoutes(router *http.ServeMux) {
+	RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
 
-	// Apply middleware
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.AllowContentType("application/json"))
-
-	// Base routes for documents
-	r.Route("/documents", func(r chi.Router) {
-		// Generic document operations
-		r.Get("/", handler.ListDocuments)
-		r.Post("/", handler.CreateDocument)
-
-		// Document workflow routes
-		r.Route("/{id}/{type}", func(r chi.Router) {
-			r.Get("/", handler.GetDocument)
-			r.Patch("/", handler.UpdateDocument)
-			r.Delete("/", handler.DeleteDocument)
-			r.Post("/send", handler.SendDocument)
-			r.Post("/sign", handler.SignDocument)
-			r.Post("/archive", handler.ArchiveDocument)
-			r.Get("/history", handler.GetDocumentHistory)
-		})
-
-		// Case-specific document workflow
-		r.Get("/workflow/{caseId}", handler.GetDocumentWorkflow)
-	})
+	// Generic document routes
+	router.HandleFunc("GET /documents", RequireAdministrator(mw.EnableCORS(h.ListDocuments)))
+	router.HandleFunc("POST /documents", RequireAdministrator(mw.EnableCORS(h.CreateDocument)))
+	router.HandleFunc("GET /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.GetDocument)))
+	router.HandleFunc("PATCH /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.UpdateDocument)))
+	router.HandleFunc("DELETE /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.DeleteDocument)))
+	router.HandleFunc("POST /documents/{id}/{type}/send", RequireAdministrator(mw.EnableCORS(h.SendDocument)))
+	router.HandleFunc("POST /documents/{id}/{type}/sign", RequireAdministrator(mw.EnableCORS(h.SignDocument)))
+	router.HandleFunc("POST /documents/{id}/{type}/archive", RequireAdministrator(mw.EnableCORS(h.ArchiveDocument)))
+	router.HandleFunc("GET /documents/{id}/{type}/history", RequireAdministrator(mw.EnableCORS(h.GetDocumentHistory)))
+	router.HandleFunc("GET /documents/workflow/{caseId}", RequireAdministrator(mw.EnableCORS(h.GetDocumentWorkflow)))
 
 	// Estimate-specific routes
-	r.Route("/estimates", func(r chi.Router) {
-		r.Post("/", handler.CreateEstimate)
-
-		r.Route("/{id}", func(r chi.Router) {
-			r.Patch("/", handler.UpdateEstimate)
-			r.Post("/accept", handler.AcceptEstimate)
-		})
-	})
+	router.HandleFunc("POST /estimates", RequireAdministrator(mw.EnableCORS(h.CreateEstimate)))
+	router.HandleFunc("PATCH /estimates/{id}", RequireAdministrator(mw.EnableCORS(h.UpdateEstimate)))
+	router.HandleFunc("POST /estimates/{id}/accept", RequireAdministrator(mw.EnableCORS(h.AcceptEstimate)))
 
 	// Mandate-specific routes
-	r.Route("/mandates", func(r chi.Router) {
-		r.Post("/", handler.CreateMandate)
-
-		r.Route("/{id}", func(r chi.Router) {
-			r.Post("/sign", handler.SignMandate)
-			r.Post("/activate", handler.ActivateMandate)
-			r.Post("/create-contract", handler.CreateContractFromMandate)
-		})
-	})
+	router.HandleFunc("POST /mandates", RequireAdministrator(mw.EnableCORS(h.CreateMandate)))
+	router.HandleFunc("POST /mandates/{id}/sign", RequireAdministrator(mw.EnableCORS(h.SignMandate)))
+	router.HandleFunc("POST /mandates/{id}/activate", RequireAdministrator(mw.EnableCORS(h.ActivateMandate)))
+	router.HandleFunc("POST /mandates/{id}/create-contract", RequireAdministrator(mw.EnableCORS(h.CreateContractFromMandate)))
 
 	// Contract-specific routes
-	r.Route("/contracts", func(r chi.Router) {
-		r.Post("/", handler.CreateContract)
-
-		r.Route("/{id}", func(r chi.Router) {
-			r.Post("/sign", handler.SignContract)
-			r.Post("/activate", handler.ActivateContract)
-			r.Post("/create-invoice", handler.CreateInvoiceFromContract)
-		})
-	})
+	router.HandleFunc("POST /contracts", RequireAdministrator(mw.EnableCORS(h.CreateContract)))
+	router.HandleFunc("POST /contracts/{id}/sign", RequireAdministrator(mw.EnableCORS(h.SignContract)))
+	router.HandleFunc("POST /contracts/{id}/activate", RequireAdministrator(mw.EnableCORS(h.ActivateContract)))
+	router.HandleFunc("POST /contracts/{id}/create-invoice", RequireAdministrator(mw.EnableCORS(h.CreateInvoiceFromContract)))
 
 	// Invoice-specific routes
-	r.Route("/invoices", func(r chi.Router) {
-		r.Post("/", handler.CreateInvoice)
-		r.Get("/overdue", handler.GetOverdueInvoices)
-
-		r.Route("/{id}", func(r chi.Router) {
-			r.Post("/pay", handler.ProcessPayment)
-			r.Post("/void", handler.VoidInvoice)
-		})
-	})
-
-	// Legacy routes for backward compatibility (typed routes that redirect to generic)
-	r.Route("/api/v1", func(r chi.Router) {
-		r.Route("/documents", func(r chi.Router) {
-			r.Get("/", handler.ListDocuments)
-			r.Post("/", handler.CreateDocument)
-
-			r.Route("/{id}/{type}", func(r chi.Router) {
-				r.Get("/", handler.GetDocument)
-				r.Patch("/", handler.UpdateDocument)
-				r.Delete("/", handler.DeleteDocument)
-				r.Post("/send", handler.SendDocument)
-				r.Post("/sign", handler.SignDocument)
-				r.Post("/archive", handler.ArchiveDocument)
-				r.Get("/history", handler.GetDocumentHistory)
-			})
-		})
-	})
+	router.HandleFunc("POST /invoices", RequireAdministrator(mw.EnableCORS(h.CreateInvoice)))
+	router.HandleFunc("GET /invoices/overdue", RequireAdministrator(mw.EnableCORS(h.GetOverdueInvoices)))
+	router.HandleFunc("POST /invoices/{id}/pay", RequireAdministrator(mw.EnableCORS(h.ProcessPayment)))
+	router.HandleFunc("POST /invoices/{id}/void", RequireAdministrator(mw.EnableCORS(h.VoidInvoice)))
 }
-

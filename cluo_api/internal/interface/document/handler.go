@@ -5,31 +5,36 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/google/uuid"
 
-	"github.com/hengadev/cluo_api/internal/domain"
+	"github.com/hengadev/cluo_api/internal/common/middleware/auth"
+	"github.com/hengadev/cluo_api/internal/domain/document"
 	"github.com/hengadev/cluo_api/internal/ports"
 )
 
-type Handler struct {
-	service ports.DocumentService
+type Handler interface {
+	RegisterRoutes(router *http.ServeMux)
 }
 
-func New(service ports.DocumentService) *Handler {
-	return &Handler{service: service}
+type handler struct {
+	service ports.DocumentService
+	authmw  auth.AuthMiddleware
+}
+
+func New(service ports.DocumentService, authmw auth.AuthMiddleware) Handler {
+	return &handler{service: service, authmw: authmw}
 }
 
 // Response types
 type DocumentResponse struct {
 	Success bool        `json:"success"`
-	Data    interface{} `json:"data,omitempty"`
+	Data    any `json:"data,omitempty"`
 	Error   string      `json:"error,omitempty"`
 }
 
 type DocumentListResponse struct {
 	Success bool                   `json:"success"`
-	Data    []domain.DocumentSummary `json:"data"`
+	Data    []document.DocumentSummary `json:"data"`
 	Total   int                    `json:"total"`
 	Page    int                    `json:"page"`
 	PerPage int                    `json:"per_page"`
@@ -37,27 +42,27 @@ type DocumentListResponse struct {
 
 // Helper functions
 
-func (h *Handler) writeJSON(w http.ResponseWriter, status int, data interface{}) {
+func (h *handler) writeJSON(w http.ResponseWriter, status int, data any) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	json.NewEncoder(w).Encode(data)
 }
 
-func (h *Handler) writeError(w http.ResponseWriter, status int, message string) {
+func (h *handler) writeError(w http.ResponseWriter, status int, message string) {
 	h.writeJSON(w, status, DocumentResponse{
 		Success: false,
 		Error:   message,
 	})
 }
 
-func (h *Handler) writeSuccess(w http.ResponseWriter, data interface{}) {
+func (h *handler) writeSuccess(w http.ResponseWriter, data any) {
 	h.writeJSON(w, http.StatusOK, DocumentResponse{
 		Success: true,
 		Data:    data,
 	})
 }
 
-func (h *Handler) getPaginationFromRequest(r *http.Request) (domain.Pagination, error) {
+func (h *handler) getPaginationFromRequest(r *http.Request) (document.Pagination, error) {
 	pageStr := r.URL.Query().Get("page")
 	perPageStr := r.URL.Query().Get("per_page")
 
@@ -67,7 +72,7 @@ func (h *Handler) getPaginationFromRequest(r *http.Request) (domain.Pagination, 
 	if pageStr != "" {
 		p, err := strconv.Atoi(pageStr)
 		if err != nil || p < 1 {
-			return domain.Pagination{}, &ValidationError{Message: "invalid page parameter"}
+			return document.Pagination{}, &ValidationError{Message: "invalid page parameter"}
 		}
 		page = p
 	}
@@ -75,28 +80,28 @@ func (h *Handler) getPaginationFromRequest(r *http.Request) (domain.Pagination, 
 	if perPageStr != "" {
 		pp, err := strconv.Atoi(perPageStr)
 		if err != nil || pp < 1 || pp > 100 {
-			return domain.Pagination{}, &ValidationError{Message: "invalid per_page parameter (must be 1-100)"}
+			return document.Pagination{}, &ValidationError{Message: "invalid per_page parameter (must be 1-100)"}
 		}
 		perPage = pp
 	}
 
-	return domain.Pagination{
+	return document.Pagination{
 		Page:     page,
 		PageSize: perPage,
 	}, nil
 }
 
-func (h *Handler) getDocumentFilterFromRequest(r *http.Request) domain.DocumentFilter {
-	filter := domain.DocumentFilter{}
+func (h *handler) getDocumentFilterFromRequest(r *http.Request) document.DocumentFilter {
+	filter := document.DocumentFilter{}
 
 	// Parse query parameters
 	if docType := r.URL.Query().Get("type"); docType != "" {
-		dt := domain.DocumentType(docType)
+		dt := document.DocumentType(docType)
 		filter.Type = &dt
 	}
 
 	if status := r.URL.Query().Get("status"); status != "" {
-		ds := domain.DocumentStatus(status)
+		ds := document.DocumentStatus(status)
 		filter.Status = &ds
 	}
 
@@ -125,8 +130,8 @@ func (h *Handler) getDocumentFilterFromRequest(r *http.Request) domain.DocumentF
 
 // Generic document handlers
 
-func (h *Handler) CreateDocument(w http.ResponseWriter, r *http.Request) {
-	var req domain.CreateDocumentRequest
+func (h *handler) CreateDocument(w http.ResponseWriter, r *http.Request) {
+	var req document.CreateDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -148,16 +153,16 @@ func (h *Handler) CreateDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) GetDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) GetDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	doc, err := h.service.GetDocument(r.Context(), documentID, domain.DocumentType(docType))
+	doc, err := h.service.GetDocument(r.Context(), documentID, document.DocumentType(docType))
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -170,16 +175,16 @@ func (h *Handler) GetDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) UpdateDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) UpdateDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	var req domain.UpdateDocumentRequest
+	var req document.UpdateDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -205,16 +210,16 @@ func (h *Handler) UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) DeleteDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) DeleteDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	err := h.service.DeleteDocument(r.Context(), documentID, domain.DocumentType(docType))
+	err := h.service.DeleteDocument(r.Context(), documentID, document.DocumentType(docType))
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -227,7 +232,7 @@ func (h *Handler) DeleteDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, map[string]string{"message": "Document deleted successfully"})
 }
 
-func (h *Handler) ListDocuments(w http.ResponseWriter, r *http.Request) {
+func (h *handler) ListDocuments(w http.ResponseWriter, r *http.Request) {
 	pagination, err := h.getPaginationFromRequest(r)
 	if err != nil {
 		h.writeError(w, http.StatusBadRequest, err.Error())
@@ -251,16 +256,16 @@ func (h *Handler) ListDocuments(w http.ResponseWriter, r *http.Request) {
 	})
 }
 
-func (h *Handler) SendDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) SendDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	var req domain.SendDocumentRequest
+	var req document.SendDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -269,7 +274,7 @@ func (h *Handler) SendDocument(w http.ResponseWriter, r *http.Request) {
 	// TODO: Validate request
 	// TODO: Get user ID from context
 
-	err := h.service.SendDocument(r.Context(), documentID, domain.DocumentType(docType), &req)
+	err := h.service.SendDocument(r.Context(), documentID, document.DocumentType(docType), &req)
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -282,16 +287,16 @@ func (h *Handler) SendDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, map[string]string{"message": "Document sent successfully"})
 }
 
-func (h *Handler) SignDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) SignDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	var req domain.SignDocumentRequest
+	var req document.SignDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -300,7 +305,7 @@ func (h *Handler) SignDocument(w http.ResponseWriter, r *http.Request) {
 	// TODO: Validate request
 	// TODO: Get user ID from context
 
-	doc, err := h.service.SignDocument(r.Context(), documentID, domain.DocumentType(docType), &req)
+	err := h.service.SignDocument(r.Context(), documentID, document.DocumentType(docType), &req)
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -314,19 +319,19 @@ func (h *Handler) SignDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	h.writeSuccess(w, doc)
+	h.writeSuccess(w, map[string]string{"message": "Document signed successfully"})
 }
 
-func (h *Handler) ArchiveDocument(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) ArchiveDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
 		return
 	}
 
-	err := h.service.ArchiveDocument(r.Context(), documentID, domain.DocumentType(docType))
+	err := h.service.ArchiveDocument(r.Context(), documentID, document.DocumentType(docType))
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -339,9 +344,9 @@ func (h *Handler) ArchiveDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, map[string]string{"message": "Document archived successfully"})
 }
 
-func (h *Handler) GetDocumentHistory(w http.ResponseWriter, r *http.Request) {
-	documentID := chi.URLParam(r, "id")
-	docType := chi.URLParam(r, "type")
+func (h *handler) GetDocumentHistory(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
 
 	if documentID == "" || docType == "" {
 		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
@@ -354,7 +359,7 @@ func (h *Handler) GetDocumentHistory(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	versions, total, err := h.service.GetDocumentHistory(r.Context(), documentID, domain.DocumentType(docType), pagination)
+	versions, total, err := h.service.GetDocumentHistory(r.Context(), documentID, document.DocumentType(docType), pagination)
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
@@ -366,7 +371,7 @@ func (h *Handler) GetDocumentHistory(w http.ResponseWriter, r *http.Request) {
 
 	response := struct {
 		Success   bool                      `json:"success"`
-		Data      []*domain.DocumentVersion  `json:"data"`
+		Data      []*document.DocumentVersion  `json:"data"`
 		Total     int                       `json:"total"`
 		Page      int                       `json:"page"`
 		PerPage   int                       `json:"per_page"`
@@ -381,8 +386,8 @@ func (h *Handler) GetDocumentHistory(w http.ResponseWriter, r *http.Request) {
 	h.writeJSON(w, http.StatusOK, response)
 }
 
-func (h *Handler) GetDocumentWorkflow(w http.ResponseWriter, r *http.Request) {
-	caseID := chi.URLParam(r, "caseId")
+func (h *handler) GetDocumentWorkflow(w http.ResponseWriter, r *http.Request) {
+	caseID := r.PathValue("caseId")
 	if caseID == "" {
 		h.writeError(w, http.StatusBadRequest, "Case ID is required")
 		return

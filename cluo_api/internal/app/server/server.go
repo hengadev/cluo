@@ -17,6 +17,7 @@ import (
 	aiTranscriptAnalysisHandler "github.com/hengadev/cluo_api/internal/interface/ai_transcript_analysis"
 	caseSubjectHandler "github.com/hengadev/cluo_api/internal/interface/case_subject"
 	caseTypeHandler "github.com/hengadev/cluo_api/internal/interface/case_type"
+	documentHandler "github.com/hengadev/cluo_api/internal/interface/document"
 	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
 	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
@@ -157,6 +158,11 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 		s.registerSubjectRoutes(mux)
 	}
 
+	// Register document routes
+	if s.container.DocumentService() != nil {
+		s.registerDocumentRoutes(mux)
+	}
+
 	// Register AI routes
 	s.registerAIRoutes(mux)
 }
@@ -249,4 +255,10 @@ func (s *Server) registerAuthRoutes(mux *http.ServeMux) {
 	handler := authHandler.New(s.container.AuthService(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Auth routes registered")
+}
+
+func (s *Server) registerDocumentRoutes(mux *http.ServeMux) {
+	handler := documentHandler.New(s.container.DocumentService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Document routes registered")
 }

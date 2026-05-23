@@ -4,16 +4,13 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/go-chi/chi/v5"
-
-	"github.com/hengadev/cluo_api/internal/domain"
-	"github.com/hengadev/cluo_api/internal/ports"
+	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
 // Estimate handlers
 
-func (h *Handler) CreateEstimate(w http.ResponseWriter, r *http.Request) {
-	var estimate domain.Estimate
+func (h *handler) CreateEstimate(w http.ResponseWriter, r *http.Request) {
+	var estimate document.Estimate
 	if err := json.NewDecoder(r.Body).Decode(&estimate); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -35,8 +32,8 @@ func (h *Handler) CreateEstimate(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) AcceptEstimate(w http.ResponseWriter, r *http.Request) {
-	estimateID := chi.URLParam(r, "id")
+func (h *handler) AcceptEstimate(w http.ResponseWriter, r *http.Request) {
+	estimateID := r.PathValue("id")
 	if estimateID == "" {
 		h.writeError(w, http.StatusBadRequest, "Estimate ID is required")
 		return
@@ -75,15 +72,15 @@ func (h *Handler) AcceptEstimate(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, mandate)
 }
 
-func (h *Handler) UpdateEstimate(w http.ResponseWriter, r *http.Request) {
-	estimateID := chi.URLParam(r, "id")
+func (h *handler) UpdateEstimate(w http.ResponseWriter, r *http.Request) {
+	estimateID := r.PathValue("id")
 	if estimateID == "" {
 		h.writeError(w, http.StatusBadRequest, "Estimate ID is required")
 		return
 	}
 
 	var req struct {
-		LineItems []domain.EstimateItem `json:"line_items"`
+		LineItems []document.EstimateItem `json:"line_items"`
 	}
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
@@ -117,8 +114,8 @@ func (h *Handler) UpdateEstimate(w http.ResponseWriter, r *http.Request) {
 
 // Mandate handlers
 
-func (h *Handler) CreateMandate(w http.ResponseWriter, r *http.Request) {
-	var mandate domain.Mandate
+func (h *handler) CreateMandate(w http.ResponseWriter, r *http.Request) {
+	var mandate document.Mandate
 	if err := json.NewDecoder(r.Body).Decode(&mandate); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -140,14 +137,14 @@ func (h *Handler) CreateMandate(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) SignMandate(w http.ResponseWriter, r *http.Request) {
-	mandateID := chi.URLParam(r, "id")
+func (h *handler) SignMandate(w http.ResponseWriter, r *http.Request) {
+	mandateID := r.PathValue("id")
 	if mandateID == "" {
 		h.writeError(w, http.StatusBadRequest, "Mandate ID is required")
 		return
 	}
 
-	var req domain.SignDocumentRequest
+	var req document.SignDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -173,8 +170,8 @@ func (h *Handler) SignMandate(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, mandate)
 }
 
-func (h *Handler) ActivateMandate(w http.ResponseWriter, r *http.Request) {
-	mandateID := chi.URLParam(r, "id")
+func (h *handler) ActivateMandate(w http.ResponseWriter, r *http.Request) {
+	mandateID := r.PathValue("id")
 	if mandateID == "" {
 		h.writeError(w, http.StatusBadRequest, "Mandate ID is required")
 		return
@@ -199,14 +196,14 @@ func (h *Handler) ActivateMandate(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, mandate)
 }
 
-func (h *Handler) CreateContractFromMandate(w http.ResponseWriter, r *http.Request) {
-	mandateID := chi.URLParam(r, "id")
+func (h *handler) CreateContractFromMandate(w http.ResponseWriter, r *http.Request) {
+	mandateID := r.PathValue("id")
 	if mandateID == "" {
 		h.writeError(w, http.StatusBadRequest, "Mandate ID is required")
 		return
 	}
 
-	var contract domain.Contract
+	var contract document.Contract
 	if err := json.NewDecoder(r.Body).Decode(&contract); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -234,8 +231,8 @@ func (h *Handler) CreateContractFromMandate(w http.ResponseWriter, r *http.Reque
 
 // Contract handlers
 
-func (h *Handler) CreateContract(w http.ResponseWriter, r *http.Request) {
-	var contract domain.Contract
+func (h *handler) CreateContract(w http.ResponseWriter, r *http.Request) {
+	var contract document.Contract
 	if err := json.NewDecoder(r.Body).Decode(&contract); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -257,14 +254,14 @@ func (h *Handler) CreateContract(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) SignContract(w http.ResponseWriter, r *http.Request) {
-	contractID := chi.URLParam(r, "id")
+func (h *handler) SignContract(w http.ResponseWriter, r *http.Request) {
+	contractID := r.PathValue("id")
 	if contractID == "" {
 		h.writeError(w, http.StatusBadRequest, "Contract ID is required")
 		return
 	}
 
-	var req domain.SignDocumentRequest
+	var req document.SignDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -290,8 +287,8 @@ func (h *Handler) SignContract(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, contract)
 }
 
-func (h *Handler) ActivateContract(w http.ResponseWriter, r *http.Request) {
-	contractID := chi.URLParam(r, "id")
+func (h *handler) ActivateContract(w http.ResponseWriter, r *http.Request) {
+	contractID := r.PathValue("id")
 	if contractID == "" {
 		h.writeError(w, http.StatusBadRequest, "Contract ID is required")
 		return
@@ -316,14 +313,14 @@ func (h *Handler) ActivateContract(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, contract)
 }
 
-func (h *Handler) CreateInvoiceFromContract(w http.ResponseWriter, r *http.Request) {
-	contractID := chi.URLParam(r, "id")
+func (h *handler) CreateInvoiceFromContract(w http.ResponseWriter, r *http.Request) {
+	contractID := r.PathValue("id")
 	if contractID == "" {
 		h.writeError(w, http.StatusBadRequest, "Contract ID is required")
 		return
 	}
 
-	var invoice domain.Invoice
+	var invoice document.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -351,8 +348,8 @@ func (h *Handler) CreateInvoiceFromContract(w http.ResponseWriter, r *http.Reque
 
 // Invoice handlers
 
-func (h *Handler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
-	var invoice domain.Invoice
+func (h *handler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
+	var invoice document.Invoice
 	if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -374,14 +371,14 @@ func (h *Handler) CreateInvoice(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
-func (h *Handler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
-	invoiceID := chi.URLParam(r, "id")
+func (h *handler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
+	invoiceID := r.PathValue("id")
 	if invoiceID == "" {
 		h.writeError(w, http.StatusBadRequest, "Invoice ID is required")
 		return
 	}
 
-	var req domain.PaymentRequest
+	var req document.PaymentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -407,8 +404,8 @@ func (h *Handler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, invoice)
 }
 
-func (h *Handler) VoidInvoice(w http.ResponseWriter, r *http.Request) {
-	invoiceID := chi.URLParam(r, "id")
+func (h *handler) VoidInvoice(w http.ResponseWriter, r *http.Request) {
+	invoiceID := r.PathValue("id")
 	if invoiceID == "" {
 		h.writeError(w, http.StatusBadRequest, "Invoice ID is required")
 		return
@@ -433,7 +430,7 @@ func (h *Handler) VoidInvoice(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, invoice)
 }
 
-func (h *Handler) GetOverdueInvoices(w http.ResponseWriter, r *http.Request) {
+func (h *handler) GetOverdueInvoices(w http.ResponseWriter, r *http.Request) {
 	pagination, err := h.getPaginationFromRequest(r)
 	if err != nil {
 		h.writeError(w, http.StatusBadRequest, err.Error())
@@ -448,7 +445,7 @@ func (h *Handler) GetOverdueInvoices(w http.ResponseWriter, r *http.Request) {
 
 	response := struct {
 		Success bool              `json:"success"`
-		Data    []*domain.Invoice `json:"data"`
+		Data    []*document.Invoice `json:"data"`
 		Total   int               `json:"total"`
 		Page    int               `json:"page"`
 		PerPage int               `json:"per_page"`
