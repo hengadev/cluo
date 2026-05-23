@@ -142,94 +142,115 @@ export interface ReleaseResponse {
 
 export type DocumentStatus = 'draft' | 'sent' | 'signed' | 'active' | 'archived' | 'cancelled' | 'rejected' | 'expired';
 
-export interface DocumentLineItem {
-	description: string;
-	quantity: number;
-	unitPrice: number;
+export interface Signature {
+	id: string;
+	name: string;
+	role: string;
+	signature_file_url?: string;
+	method?: string;
+	signed_at: string;
+}
+
+// =============================================================================
+// DOCUMENT LIST RESPONSE
+// =============================================================================
+
+export interface DocumentSummary {
+	id: string;
+	case_id: string;
+	client_id: string;
+	type: string;
+	status: DocumentStatus;
+	document_ref: string;
+	created_at: string;
+	updated_at: string;
+}
+
+export interface DocumentListResponse {
+	success: boolean;
+	data: DocumentSummary[];
 	total: number;
+	page: number;
+	per_page: number;
 }
 
 // =============================================================================
 // ESTIMATE TYPES
 // =============================================================================
 
+export interface EstimateItem {
+	description: string;
+	quantity: number;
+	unit_price: number;
+	subtotal: number;
+}
+
 export interface Estimate {
 	id: string;
-	caseId: string;
-	clientId: string;
-	estimateNumber: string;
-	issueDate: string;
-	validUntil: string;
-	lineItems: DocumentLineItem[];
-	estimatedTotal: number;
-	notes: string;
+	case_id: string;
+	client_id: string;
+	estimate_number: string;
+	issue_date: string;
+	valid_until?: string;
+	line_items: EstimateItem[];
+	estimated_total: number;
+	notes?: string;
 	accepted: boolean;
-	acceptedAt: string | null;
-	acceptedBy: string | null;
+	accepted_at?: string;
+	accepted_by?: string;
 	status: DocumentStatus;
-	createdAt: string;
-	updatedAt: string;
+	created_at: string;
+	updated_at: string;
 }
 
 // =============================================================================
 // MANDATE TYPES
 // =============================================================================
 
-export interface MandateSignature {
-	name: string;
-	date: string;
-}
-
 export interface Mandate {
 	id: string;
-	caseId: string;
-	clientId: string;
-	mandateNumber: string;
-	issueDate: string;
-	scopeOfWork: string;
-	validFrom: string;
-	validUntil: string;
-	termsConditions: string;
-	clientSignature: MandateSignature | null;
-	investigatorSignature: MandateSignature | null;
-	linkedEstimateId: string | null;
-	specialInstructions: string | null;
-	jurisdiction: string;
+	case_id: string;
+	client_id: string;
+	mandate_number: string;
+	issue_date: string;
+	scope_of_work: string;
+	valid_from: string;
+	valid_until?: string;
+	terms_conditions: string;
+	client_signature?: Signature;
+	investigator_signature?: Signature;
+	linked_estimate_id?: string;
+	special_instructions?: string;
+	jurisdiction?: string;
 	status: DocumentStatus;
-	createdAt: string;
-	updatedAt: string;
+	created_at: string;
+	updated_at: string;
 }
 
 // =============================================================================
 // CONTRACT TYPES
 // =============================================================================
 
-export interface ContractSignature {
-	name: string;
-	date: string;
-	role: string;
-}
-
 export interface Contract {
 	id: string;
-	caseId: string;
-	clientId: string;
-	contractNumber: string;
-	startDate: string;
-	endDate: string;
-	scopeOfServices: string;
-	paymentTerms: string;
+	case_id: string;
+	client_id: string;
+	contract_number: string;
+	start_date: string;
+	end_date?: string;
+	scope_of_services: string;
+	payment_terms: string;
 	confidentiality: string;
-	terminationClause: string;
-	signatures: ContractSignature[];
-	linkedMandateId: string | null;
-	contractValue: number;
-	currency: string;
-	renewalTerms: string;
-	governingLaw: string;
+	termination_clause: string;
+	signatures: Signature[];
+	linked_mandate_id?: string;
+	contract_value?: number;
+	currency?: string;
+	renewal_terms?: string;
+	governing_law?: string;
 	status: DocumentStatus;
-	createdAt: string;
-	updatedAt: string;
+	created_at: string;
+	updated_at: string;
 }
 
 // =============================================================================
@@ -238,29 +259,37 @@ export interface Contract {
 
 export type PaymentStatus = 'unpaid' | 'paid' | 'partially_paid' | 'overdue' | 'refunded' | 'void';
 
+export interface InvoiceItem {
+	description: string;
+	quantity: number;
+	unit_price: number;
+	subtotal: number;
+}
+
 export interface Invoice {
 	id: string;
-	caseId: string;
-	clientId: string;
-	invoiceNumber: string;
-	issueDate: string;
-	dueDate: string;
-	lineItems: DocumentLineItem[];
-	totalAmount: number;
-	taxRate: number;
-	taxAmount: number;
-	paymentStatus: PaymentStatus;
-	paidAt: string | null;
-	paidAmount: number | null;
-	paymentMethod: string | null;
-	linkedContractId: string | null;
-	currency: string;
-	paymentTerms: string;
-	lateFee: number | null;
-	lateFeeRate: number | null;
+	case_id: string;
+	client_id: string;
+	invoice_number: string;
+	issue_date: string;
+	due_date: string;
+	line_items: InvoiceItem[];
+	total_amount: number;
+	tax_rate: number;
+	tax_amount: number;
+	notes?: string;
+	payment_status: PaymentStatus;
+	paid_at?: string;
+	paid_amount?: number;
+	payment_method?: string;
+	linked_contract_id?: string;
+	currency?: string;
+	payment_terms?: string;
+	late_fee?: number;
+	late_fee_rate?: number;
 	status: DocumentStatus;
-	createdAt: string;
-	updatedAt: string;
+	created_at: string;
+	updated_at: string;
 }
 
 // =============================================================================
@@ -282,4 +311,82 @@ export interface ApiCase {
 export interface ApiImage {
 	id: string;
 	url: string;
+}
+
+// =============================================================================
+// DOCUMENT API REQUEST/RESPONSE TYPES
+// =============================================================================
+
+export interface CreateDocumentRequest {
+	type: string;
+	case_id: string;
+	client_id: string;
+	data: any;
+}
+
+export interface UpdateDocumentRequest {
+	data: any;
+	reason?: string;
+}
+
+export interface SendDocumentRequest {
+	recipients: string[];
+	subject?: string;
+	message?: string;
+	send_email: boolean;
+	send_sms: boolean;
+}
+
+export interface SignDocumentRequest {
+	signer_name: string;
+	signer_role: string;
+	signature_file_url?: string;
+	method: 'e-sign' | 'wet' | 'pdf-stamp' | 'third-party';
+	ip_address?: string;
+	user_agent?: string;
+}
+
+export interface PaymentRequest {
+	amount: number;
+	payment_method: string;
+	transaction_id?: string;
+	notes?: string;
+}
+
+export interface DocumentVersion {
+	id: number;
+	document_id: string;
+	doc_type: string;
+	version: number;
+	author_id?: string;
+	data: any;
+	created_at: string;
+	reason?: string;
+}
+
+export interface DocumentHistoryResponse {
+	success: boolean;
+	data: DocumentVersion[];
+	total: number;
+	page: number;
+	per_page: number;
+}
+
+export interface DocumentWorkflowResponse {
+	success: boolean;
+	data: DocumentSummary[];
+}
+
+export interface OverdueInvoicesResponse {
+	success: boolean;
+	data: Invoice[];
+	total: number;
+	page: number;
+	per_page: number;
+}
+
+export interface DocumentAPIResponse<T = any> {
+	success: boolean;
+	data?: T;
+	error?: string;
 }
