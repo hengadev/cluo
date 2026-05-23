@@ -21,7 +21,6 @@ func (h *handler) CreateRapport(w http.ResponseWriter, r *http.Request) {
 	caseID := r.PathValue("id")
 
 	var payload rapport.CreateRapportRequest
-	payload.CaseID = caseID
 
 	decoder := json.NewDecoder(r.Body)
 	decoder.DisallowUnknownFields()
@@ -34,6 +33,7 @@ func (h *handler) CreateRapport(w http.ResponseWriter, r *http.Request) {
 		httpx.RespondWithError(w, err, http.StatusBadRequest)
 		return
 	}
+	payload.CaseID = caseID
 
 	logger.InfoContext(ctx, "Handler: Processing create rapport request",
 		"operation", "create_rapport",
