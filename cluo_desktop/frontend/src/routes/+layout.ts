@@ -1,11 +1,12 @@
 import { redirect } from '@sveltejs/kit';
+import type { LayoutLoad } from './$types';
 import { apiGet } from '$lib/services/apiFetch';
 import { auth } from '$lib/stores/auth';
 
 export const prerender = false;
 export const ssr = false;
 
-export async function load({ url }) {
+export const load: LayoutLoad = async ({ url }) => {
 	// Don't guard the login page itself
 	if (url.pathname === '/login') {
 		return {};
