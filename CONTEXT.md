@@ -133,9 +133,17 @@ Tauri + SvelteKit desktop app for the **Investigator**. Used at the office (or a
 SvelteKit **PWA** for the **Investigator in the field**. Optimised for mobile use during surveillance. Primary function: capture audio recordings and upload them to the backend, linked to the active Case. Recordings are then transcribed by AI on the backend. Transcriptions feed into the Rapport writing workflow on the desktop.
 
 ### `cluo_web`
-SvelteKit web app for the **Client**. Credential-gated — no persistent account. Access is granted via a **magic link** the PI sends manually from the desktop app. The backend generates a random token, stores its SHA-256 hash in `cases.case_access_tokens`, and includes the raw token in the emailed link. Tokens expire after **30 days** (fixed); the PI can revoke them at any time. The client can:
-- View all Case documents (Estimate, Mandate, Contract, Invoice)
-- Download the Rapport PDF once the Case is `released`
+SvelteKit web app for the **Client**. Credential-gated — no persistent account. Access is granted via a **magic link** the PI sends manually from the desktop app. The backend generates a random token, stores its SHA-256 hash in `cases.case_access_tokens`, and includes the raw token in the emailed link. Tokens expire after **30 days** (fixed); the PI can revoke them at any time. The portal is only accessible when the Case is `released`. It is strictly read-only — no client input of any kind.
+
+The portal has two stages:
+1. **Landing card** — shows case reference, agency branding, and token expiry. Offers a single "Download everything" action (full case archive) and an "Open dossier" button to enter the portal.
+2. **Dossier view** — three tabs: **Documents**, **Rapport**, **Médias**. The Médias tab is hidden if the Case has no published Media.
+
+The client can:
+- View non-draft documents (status: `sent`, `signed`, `active`, or `archived`) rendered inline, and download each as a PDF
+- View the Rapport rendered inline, and download it as a PDF
+- Browse published Media (photo gallery, inline video and audio playback), download individual files, and download all media as an archive
+- Download a **complete case archive** containing all documents as PDFs, the Rapport as a PDF, and all published Media files
 
 Token table: `id`, `case_id`, `token_hash`, `expires_at`, `revoked_at` (nullable), `created_at`. Operations: create (PI), validate (portal on every request), revoke (PI), list by case (PI).
 
