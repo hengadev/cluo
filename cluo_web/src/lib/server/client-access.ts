@@ -35,6 +35,18 @@ export type CaseResponse = {
 	tokenExpiresAt: string;
 };
 
+/** Shape returned by GET /token/{token}/documents on success. */
+export type DocumentSummaryResponse = {
+	id: string;
+	case_id: string;
+	client_id: string;
+	type: 'estimate' | 'mandate' | 'contract' | 'invoice' | 'report' | 'other';
+	status: 'draft' | 'sent' | 'signed' | 'active' | 'archived' | 'cancelled' | 'rejected' | 'expired';
+	document_ref: string;
+	created_at: string;
+	updated_at: string;
+};
+
 /** Shape returned by GET /token/{token}/media on success. */
 export type MediaResponse = {
 	id: string;
@@ -74,6 +86,49 @@ const MOCK_CASE: CaseResponse = {
 	updatedAt: '2026-05-01T00:00:00Z',
 	tokenExpiresAt: '2026-06-12T00:00:00Z'
 };
+
+const MOCK_DOCUMENTS: DocumentSummaryResponse[] = [
+	{
+		id: 'mock-doc-001',
+		case_id: 'mock-case-001',
+		client_id: 'mock-client-001',
+		type: 'estimate',
+		status: 'signed',
+		document_ref: 'DEV-2026-001',
+		created_at: '2026-04-10T00:00:00Z',
+		updated_at: '2026-04-12T00:00:00Z'
+	},
+	{
+		id: 'mock-doc-002',
+		case_id: 'mock-case-001',
+		client_id: 'mock-client-001',
+		type: 'mandate',
+		status: 'active',
+		document_ref: 'MAN-2026-001',
+		created_at: '2026-04-10T00:00:00Z',
+		updated_at: '2026-04-12T00:00:00Z'
+	},
+	{
+		id: 'mock-doc-003',
+		case_id: 'mock-case-001',
+		client_id: 'mock-client-001',
+		type: 'contract',
+		status: 'active',
+		document_ref: 'CTR-2026-001',
+		created_at: '2026-04-10T00:00:00Z',
+		updated_at: '2026-04-12T00:00:00Z'
+	},
+	{
+		id: 'mock-doc-004',
+		case_id: 'mock-case-001',
+		client_id: 'mock-client-001',
+		type: 'invoice',
+		status: 'sent',
+		document_ref: 'FAC-2026-001',
+		created_at: '2026-05-01T00:00:00Z',
+		updated_at: '2026-05-01T00:00:00Z'
+	}
+];
 
 const MOCK_MEDIA: MediaResponse[] = [
 	{
@@ -133,6 +188,35 @@ export async function validateClientToken(token: string): Promise<TokenValidatio
  * Check whether a token has published media by calling GET /token/{token}/media.
  * Returns the media array, or null when the call fails (fail-open: show the tab).
  */
+export type DocumentsResult =
+	| { status: 'ok'; documents: DocumentSummaryResponse[] }
+	| { status: 'error' };
+
+/** Statuses that are visible to the client — drafts are excluded. */
+const VISIBLE_STATUSES: ReadonlySet<string> = new Set(['sent', 'signed', 'active', 'archived']);
+
+/**
+ * Fetch document summaries for a given token.
+ * Filters out draft documents on the client side.
+ * Returns the filtered list, or an error status when the call fails.
+ */
+export async function getDocumentsByToken(token: string): Promise<DocumentsResult> {
+	if (USE_MOCK_DATA) {
+		const filtered = MOCK_DOCUMENTS.filter((d) => VISIBLE_STATUSES.has(d.status));
+		return { status: 'ok', documents: filtered };
+	}
+
+	try {
+		const res = await apiFetch(`/token/${encodeURIComponent(token)}/documents`);
+		if (!res.ok) return { status: 'error' };
+		const all: DocumentSummaryResponse[] = await res.json();
+		const filtered = all.filter((d) => VISIBLE_STATUSES.has(d.status));
+		return { status: 'ok', documents: filtered };
+	} catch {
+		return { status: 'error' };
+	}
+}
+
 export async function getTokenMedia(token: string): Promise<MediaResponse[] | null> {
 	if (USE_MOCK_DATA) {
 		// Simulate "no media" with the token value "no-media"
