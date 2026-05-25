@@ -16,4 +16,5 @@ type TokenService interface {
 	RevokeToken(ctx context.Context, tokenID uuid.UUID) error
 	GetCaseSummaryByToken(ctx context.Context, rawToken string) (*investigation.PortalCaseResponse, error)
 	GetPublishedMediaByToken(ctx context.Context, rawToken string) ([]*domainMedia.MediaResponse, error)
+	GetPublishedMediaByIDAndToken(ctx context.Context, rawToken string, mediaID uuid.UUID) (*domainMedia.MediaResponse, error)
 }

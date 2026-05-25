@@ -18,6 +18,7 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	// Portal routes (public, token in URL path)
 	mux.HandleFunc("GET /token/{token}", h.ValidateToken)
 	mux.HandleFunc("GET /token/{token}/media", h.GetAllMediaByToken)
+	mux.HandleFunc("GET /token/{token}/media/{mediaId}", h.GetMediaByIDByToken)
 	mux.HandleFunc("GET /token/{token}/report", h.GetReportByToken)
 	mux.HandleFunc("GET /token/{token}/report/html", h.GetReportHTMLByToken)
 	mux.HandleFunc("GET /token/{token}/documents", h.GetDocumentsByToken)
