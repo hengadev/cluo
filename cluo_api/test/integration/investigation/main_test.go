@@ -175,7 +175,7 @@ func TestMain(m *testing.M) {
 	clientRepo = clientRepository.New(ctx, testPool)
 	caseSubjectRepo := subject.New(ctx, testPool)
 	caseRepo = investigationRepository.New(ctx, testPool)
-	caseSvc = investigationService.New(caseRepo, clientRepo, caseSubjectRepo, crypto)
+	caseSvc = investigationService.New(caseRepo, clientRepo, caseSubjectRepo, nil, nil, crypto)
 
 	// sessionRepo = sessionRepository.New(redisClient)
 
