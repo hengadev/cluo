@@ -11,9 +11,6 @@ import (
 // For 5xx errors, a generic message is returned to avoid leaking internal details.
 func RespondWithError(w http.ResponseWriter, err error, status int) {
 	message := err.Error()
-	if status >= 500 {
-		message = "Internal server error"
-	}
 
 	errorResponse := map[string]string{"error": message}
 
@@ -21,7 +18,7 @@ func RespondWithError(w http.ResponseWriter, err error, status int) {
 	encoder := json.NewEncoder(&buf)
 	if encodeErr := encoder.Encode(errorResponse); encodeErr != nil {
 		slog.Error("Failed to encode error response", "error", encodeErr)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		http.Error(w, `{"error":"an internal server error occurred"}`, http.StatusInternalServerError)
 		return
 	}
 
