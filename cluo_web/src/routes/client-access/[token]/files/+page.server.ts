@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { validateClientToken, getTokenMedia } from '$lib/server/client-access';
+import { validateClientToken, getTokenMedia, getReportHtml } from '$lib/server/client-access';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -14,9 +14,13 @@ export const load: PageServerLoad = async ({ params }) => {
 	const mediaResult = await getTokenMedia(params.token);
 	const hasMedia = mediaResult === null ? true : mediaResult.length > 0;
 
+	const reportResult = await getReportHtml(params.token);
+
 	return {
 		caseData: validation.caseData,
 		token: params.token,
-		hasMedia
+		hasMedia,
+		rapportHtml: reportResult.status === 'ok' ? reportResult.html : null,
+		rapportError: reportResult.status === 'error',
 	};
 };
