@@ -10,6 +10,8 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
+	"github.com/hengadev/cluo_api/internal/common/archive"
+	"github.com/hengadev/cluo_api/internal/ports"
 	authHandler "github.com/hengadev/cluo_api/internal/interface/auth"
 	aiChatHandler "github.com/hengadev/cluo_api/internal/interface/ai_chat"
 	aiSpeechToTextHandler "github.com/hengadev/cluo_api/internal/interface/ai_speech_to_text"
@@ -198,7 +200,37 @@ func (s *Server) registerRapportRoutes(mux *http.ServeMux) {
 }
 
 func (s *Server) registerTokenRoutes(mux *http.ServeMux) {
-	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.TypedDocumentRepository(), s.container.Crypto(), s.container.AuthMiddleware())
+	var handler tokenHandler.Handler
+
+	// If storage is available, create the archive adapter for download support.
+	if s.container.StorageService() != nil {
+		archiveDeps := archive.NewAdapter(
+			s.container.TypedDocumentRepository(),
+			s.container.RapportService(),
+			s.container.MediaRepository().(ports.MediaRepository),
+			s.container.StorageService(),
+			s.container.Crypto(),
+		)
+		handler = tokenHandler.NewWithArchive(
+			s.container.TokenService(),
+			s.container.RapportService(),
+			s.container.TypedDocumentRepository(),
+			s.container.Crypto(),
+			s.container.AuthMiddleware(),
+			archiveDeps,
+			s.container.CaseService(),
+		)
+	} else {
+		handler = tokenHandler.New(
+			s.container.TokenService(),
+			s.container.RapportService(),
+			s.container.TypedDocumentRepository(),
+			s.container.Crypto(),
+			s.container.AuthMiddleware(),
+			s.container.CaseService(),
+		)
+	}
+
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Token routes registered")
 }

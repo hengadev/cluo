@@ -24,4 +24,6 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /token/{token}/report/pdf", h.GetReportPDFByToken)
 	mux.HandleFunc("GET /token/{token}/documents", h.GetDocumentsByToken)
 	mux.HandleFunc("GET /token/{token}/documents/{type}/pdf", h.GetDocumentPDFByToken)
+	mux.HandleFunc("GET /token/{token}/archive", h.GetFullArchiveByToken)
+	mux.HandleFunc("GET /token/{token}/media/archive", h.GetMediaArchiveByToken)
 }

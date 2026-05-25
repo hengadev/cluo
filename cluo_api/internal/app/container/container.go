@@ -247,6 +247,11 @@ func (c *Container) TypedDocumentRepository() ports.DocumentRepository {
 	return c.documentRepo
 }
 
+// StorageService returns the storage service.
+func (c *Container) StorageService() ports.StorageService {
+	return c.storage
+}
+
 // StartBackgroundWorkers starts all background workers.
 func (c *Container) StartBackgroundWorkers(ctx context.Context) {
 	if c.transcriptionWorker != nil {
