@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import sanitizeHtml from 'sanitize-html';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -145,6 +146,54 @@ export async function getTokenMedia(token: string): Promise<MediaResponse[] | nu
 		return await res.json();
 	} catch {
 		return null; // fail open
+	}
+}
+
+export type ReportHtmlResult =
+	| { status: 'ok'; html: string }
+	| { status: 'not_found' }
+	| { status: 'error' };
+
+const ALLOWED_REPORT_TAGS = [
+	'h1', 'h2', 'h3',
+	'p', 'strong', 'em', 'u',
+	'ul', 'ol', 'li',
+	'blockquote',
+];
+
+function sanitizeReportHtml(raw: string): string {
+	return sanitizeHtml(raw, {
+		allowedTags: ALLOWED_REPORT_TAGS,
+		allowedAttributes: {},
+	});
+}
+
+/**
+ * Fetch the Rapport rendered as HTML for a given token.
+ * Sanitizes the HTML before returning it.
+ * Distinguishes "no rapport" (not_found) from server errors (error).
+ */
+export async function getReportHtml(token: string): Promise<ReportHtmlResult> {
+	if (USE_MOCK_DATA) {
+		if (token === 'no-rapport') return { status: 'not_found' };
+		const raw = `<h1>Rapport d'investigation</h1>
+<p>Le <strong>suspect</strong> a été observé à plusieurs reprises dans le quartier de la Gare du Nord.</p>
+<h2>Observations</h2>
+<blockquote><p>Note importante : toutes les observations ont été réalisées dans le respect de la légalité.</p></blockquote>
+<ul><li><p>Point de surveillance A</p></li><li><p>Point de surveillance B</p></li></ul>
+<h2>Conclusion</h2>
+<p><em>Fin du rapport de surveillance.</em></p>`;
+		return { status: 'ok', html: sanitizeReportHtml(raw) };
+	}
+
+	try {
+		const res = await apiFetch(`/token/${encodeURIComponent(token)}/report/html`);
+		if (res.status === 404) return { status: 'not_found' };
+		if (!res.ok) return { status: 'error' };
+		const raw = await res.text();
+		return { status: 'ok', html: sanitizeReportHtml(raw) };
+	} catch {
+		return { status: 'error' };
 	}
 }
 
