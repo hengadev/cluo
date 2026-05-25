@@ -65,9 +65,9 @@ func TestServiceVaultPaths(t *testing.T) {
 	paths := ServiceVaultPaths(AuthUser)
 
 	expected := map[string]string{
-		"pepper":  "secret/data/settings/pepper",
-		"kek":     "transit/keys/settings-kek",
-		"api_key": "secret/data/services/settings/api-key",
+		"pepper":  "secret/data/authuser/pepper",
+		"kek":     "transit/keys/authuser-kek",
+		"api_key": "secret/data/services/authuser/api-key",
 	}
 
 	for key, expectedPath := range expected {
