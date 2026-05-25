@@ -21,5 +21,6 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /token/{token}/media/{mediaId}", h.GetMediaByIDByToken)
 	mux.HandleFunc("GET /token/{token}/report", h.GetReportByToken)
 	mux.HandleFunc("GET /token/{token}/report/html", h.GetReportHTMLByToken)
+	mux.HandleFunc("GET /token/{token}/report/pdf", h.GetReportPDFByToken)
 	mux.HandleFunc("GET /token/{token}/documents", h.GetDocumentsByToken)
 }
