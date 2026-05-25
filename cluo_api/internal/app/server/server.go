@@ -198,7 +198,7 @@ func (s *Server) registerRapportRoutes(mux *http.ServeMux) {
 }
 
 func (s *Server) registerTokenRoutes(mux *http.ServeMux) {
-	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.TypedDocumentRepository(), s.container.AuthMiddleware())
+	handler := tokenHandler.New(s.container.TokenService(), s.container.RapportService(), s.container.TypedDocumentRepository(), s.container.Crypto(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Token routes registered")
 }
