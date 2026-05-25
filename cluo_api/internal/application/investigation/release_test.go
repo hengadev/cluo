@@ -73,16 +73,23 @@ func (m *mockTokenService) ListTokensByCaseID(ctx context.Context, caseID uuid.U
 func (m *mockTokenService) RevokeToken(ctx context.Context, tokenID uuid.UUID) error {
 	return m.Called(ctx, tokenID).Error(0)
 }
-func (m *mockTokenService) GetCaseSummaryByToken(ctx context.Context, rawToken string) (*investigation.CaseResponse, error) {
+func (m *mockTokenService) GetCaseSummaryByToken(ctx context.Context, rawToken string) (*investigation.PortalCaseResponse, error) {
 	args := m.Called(ctx, rawToken)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}
-	return args.Get(0).(*investigation.CaseResponse), args.Error(1)
+	return args.Get(0).(*investigation.PortalCaseResponse), args.Error(1)
 }
 func (m *mockTokenService) GetPublishedMediaByToken(ctx context.Context, rawToken string) ([]*domainMedia.MediaResponse, error) {
 	args := m.Called(ctx, rawToken)
 	return args.Get(0).([]*domainMedia.MediaResponse), args.Error(1)
+}
+func (m *mockTokenService) GetPublishedMediaByIDAndToken(ctx context.Context, rawToken string, mediaID uuid.UUID) (*domainMedia.MediaResponse, error) {
+	args := m.Called(ctx, rawToken, mediaID)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*domainMedia.MediaResponse), args.Error(1)
 }
 
 // verify that our mocks satisfy the interfaces
