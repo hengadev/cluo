@@ -432,3 +432,129 @@ func CreateDocumentWorkflowInDB(t *testing.T, ctx context.Context, pool *pgxpool
 	t.Skip("DEPRECATED: Use repository methods with proper encryption. See CreateTestEstimateInDB for details.")
 	return nil, nil, nil, nil
 }
+
+// ---------------------------------------------------------------------------
+// Portal helpers — insert with plain case_id populated for case_id-based queries
+// ---------------------------------------------------------------------------
+
+// InsertEstimateWithCaseID inserts an EstimateEncx record with the plain case_id column populated.
+func InsertEstimateWithCaseID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseID, clientID uuid.UUID, estimate *documentDomain.EstimateEncx) error {
+	t.Helper()
+
+	query := `
+		INSERT INTO estimates (
+			id, status, created_at, updated_at,
+			case_id, client_id,
+			caseid_encrypted, clientid_encrypted,
+			estimatenumber_encrypted, lineitems_encrypted, estimatedtotal_encrypted, notes_encrypted,
+			issue_date, valid_until, accepted, accepted_at, accepted_by,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
+	`
+
+	_, err := pool.Exec(ctx, query,
+		estimate.ID, estimate.Status, estimate.CreatedAt, estimate.UpdatedAt,
+		caseID, clientID,
+		estimate.CaseIDEncrypted, estimate.ClientIDEncrypted,
+		estimate.EstimateNumberEncrypted, estimate.LineItemsEncrypted,
+		estimate.EstimatedTotalEncrypted, estimate.NotesEncrypted,
+		estimate.IssueDate, estimate.ValidUntil, estimate.Accepted,
+		estimate.AcceptedAt, estimate.AcceptedBy,
+		estimate.DEKEncrypted, estimate.KeyVersion, estimate.Metadata,
+	)
+
+	return err
+}
+
+// InsertMandateWithCaseID inserts a MandateEncx record with the plain case_id column populated.
+func InsertMandateWithCaseID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseID, clientID uuid.UUID, mandate *documentDomain.MandateEncx) error {
+	t.Helper()
+
+	query := `
+		INSERT INTO mandates (
+			id, status, created_at, updated_at,
+			case_id, client_id,
+			caseid_encrypted, clientid_encrypted, mandatenumber_encrypted,
+			scopeofwork_encrypted, termsconditions_encrypted,
+			clientsignature_encrypted, investigatorsignature_encrypted, specialinstructions_encrypted,
+			issue_date, valid_from, valid_until, linked_estimate_id, jurisdiction,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22)
+	`
+
+	_, err := pool.Exec(ctx, query,
+		mandate.ID, mandate.Status, mandate.CreatedAt, mandate.UpdatedAt,
+		caseID, clientID,
+		mandate.CaseIDEncrypted, mandate.ClientIDEncrypted, mandate.MandateNumberEncrypted,
+		mandate.ScopeOfWorkEncrypted, mandate.TermsConditionsEncrypted,
+		mandate.ClientSignatureEncrypted, mandate.InvestigatorSignatureEncrypted, mandate.SpecialInstructionsEncrypted,
+		mandate.IssueDate, mandate.ValidFrom, mandate.ValidUntil, mandate.LinkedEstimateID, mandate.Jurisdiction,
+		mandate.DEKEncrypted, mandate.KeyVersion, mandate.Metadata,
+	)
+
+	return err
+}
+
+// InsertContractWithCaseID inserts a ContractEncx record with the plain case_id column populated.
+func InsertContractWithCaseID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseID, clientID uuid.UUID, contract *documentDomain.ContractEncx) error {
+	t.Helper()
+
+	query := `
+		INSERT INTO contracts (
+			id, status, created_at, updated_at,
+			case_id, client_id,
+			caseid_encrypted, clientid_encrypted, contractnumber_encrypted,
+			scopeofservices_encrypted, paymentterms_encrypted,
+			confidentiality_encrypted, terminationclause_encrypted,
+			signatures_encrypted, contractvalue_encrypted, renewalterms_encrypted,
+			start_date, end_date, linked_mandate_id, currency, governing_law,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24)
+	`
+
+	_, err := pool.Exec(ctx, query,
+		contract.ID, contract.Status, contract.CreatedAt, contract.UpdatedAt,
+		caseID, clientID,
+		contract.CaseIDEncrypted, contract.ClientIDEncrypted, contract.ContractNumberEncrypted,
+		contract.ScopeOfServicesEncrypted, contract.PaymentTermsEncrypted,
+		contract.ConfidentialityEncrypted, contract.TerminationClauseEncrypted,
+		contract.SignaturesEncrypted, contract.ContractValueEncrypted, contract.RenewalTermsEncrypted,
+		contract.StartDate, contract.EndDate, contract.LinkedMandateID, contract.Currency, contract.GoverningLaw,
+		contract.DEKEncrypted, contract.KeyVersion, contract.Metadata,
+	)
+
+	return err
+}
+
+// InsertInvoiceWithCaseID inserts an InvoiceEncx record with the plain case_id column populated.
+func InsertInvoiceWithCaseID(t *testing.T, ctx context.Context, pool *pgxpool.Pool, caseID, clientID uuid.UUID, invoice *documentDomain.InvoiceEncx) error {
+	t.Helper()
+
+	query := `
+		INSERT INTO invoices (
+			id, status, created_at, updated_at,
+			case_id, client_id,
+			caseid_encrypted, clientid_encrypted, invoicenumber_encrypted,
+			lineitems_encrypted, totalamount_encrypted, taxamount_encrypted,
+			notes_encrypted, paidamount_encrypted, paymentmethod_encrypted,
+			paymentterms_encrypted, latefee_encrypted,
+			issue_date, due_date, tax_rate, payment_status, paid_at,
+			linked_contract_id, currency, late_fee_rate,
+			dek_encrypted, key_version, metadata
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28)
+	`
+
+	_, err := pool.Exec(ctx, query,
+		invoice.ID, invoice.Status, invoice.CreatedAt, invoice.UpdatedAt,
+		caseID, clientID,
+		invoice.CaseIDEncrypted, invoice.ClientIDEncrypted, invoice.InvoiceNumberEncrypted,
+		invoice.LineItemsEncrypted, invoice.TotalAmountEncrypted, invoice.TaxAmountEncrypted,
+		invoice.NotesEncrypted, invoice.PaidAmountEncrypted, invoice.PaymentMethodEncrypted,
+		invoice.PaymentTermsEncrypted, invoice.LateFeeEncrypted,
+		invoice.IssueDate, invoice.DueDate, invoice.TaxRate, invoice.PaymentStatus, invoice.PaidAt,
+		invoice.LinkedContractID, invoice.Currency, invoice.LateFeeRate,
+		invoice.DEKEncrypted, invoice.KeyVersion, invoice.Metadata,
+	)
+
+	return err
+}

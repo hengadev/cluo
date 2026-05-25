@@ -25,6 +25,7 @@ import (
 	mediaRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/media"
 	rapportRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/rapport"
 	tokenRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/token"
+	documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
 	tokenHandler "github.com/hengadev/cluo_api/internal/interface/token"
 	migrations "github.com/hengadev/cluo_api/internal/migrations"
 	ports "github.com/hengadev/cluo_api/internal/ports"
@@ -131,6 +132,7 @@ func TestMain(m *testing.M) {
 	tokenRepo = tokenRepository.New(ctx, testPool)
 	rapportRepo = rapportRepository.New(ctx, testPool)
 	mediaRepo := mediaRepository.New(ctx, testPool)
+	documentRepo := documentRepository.New(testPool)
 
 	tokenSvc := tokenService.New(tokenRepo, caseRepo, mediaRepo, crypto)
 	rapportSvc := rapportService.New(rapportRepo, caseRepo, crypto)
@@ -138,7 +140,7 @@ func TestMain(m *testing.M) {
 	authSessionRepo = session.NewRedisSessionRepository(redisClient)
 	authmw := auth.NewSessionAuthMiddleware(authSessionRepo, crypto, nil)
 
-	handler = tokenHandler.New(tokenSvc, rapportSvc, nil, authmw)
+	handler = tokenHandler.New(tokenSvc, rapportSvc, documentRepo, crypto, authmw)
 
 	os.Setenv("CLIENT_IP_HEADER", "X-Forwarded-For")
 	os.Setenv("LOGGING_SALT", "test_logging_salt_12345")

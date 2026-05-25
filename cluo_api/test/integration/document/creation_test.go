@@ -50,6 +50,9 @@ func (m *mockDocumentRepo) List(_ context.Context, _ domain.DocumentFilter, _ do
 func (m *mockDocumentRepo) GetLinkedDocuments(_ context.Context, _ string, _ domain.DocumentType) ([]domain.Documentable, error) {
 	return nil, nil
 }
+func (m *mockDocumentRepo) GetFirstByCaseAndType(_ context.Context, _ string, _ domain.DocumentType) (domain.Documentable, error) {
+	return nil, fmt.Errorf("not implemented")
+}
 
 func (m *mockDocumentRepo) CreateEstimate(_ context.Context, e *domain.EstimateEncx) error {
 	m.estimates[e.ID.String()] = e
