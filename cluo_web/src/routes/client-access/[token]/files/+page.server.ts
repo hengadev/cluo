@@ -1,5 +1,5 @@
 import { redirect } from '@sveltejs/kit';
-import { validateClientToken, getTokenMedia, getReportHtml } from '$lib/server/client-access';
+import { validateClientToken, getTokenMedia, getReportHtml, getDocumentsByToken } from '$lib/server/client-access';
 import type { PageServerLoad } from './$types';
 
 export const load: PageServerLoad = async ({ params }) => {
@@ -10,11 +10,14 @@ export const load: PageServerLoad = async ({ params }) => {
 		redirect(303, `/client-access/${params.token}`);
 	}
 
-	// Check media availability (fail open: show tab on error)
-	const mediaResult = await getTokenMedia(params.token);
-	const hasMedia = mediaResult === null ? true : mediaResult.length > 0;
+	const [mediaResult, reportResult, documentsResult] = await Promise.all([
+		getTokenMedia(params.token),
+		getReportHtml(params.token),
+		getDocumentsByToken(params.token),
+	]);
 
-	const reportResult = await getReportHtml(params.token);
+	// Check media availability (fail open: show tab on error)
+	const hasMedia = mediaResult === null ? true : mediaResult.length > 0;
 
 	return {
 		caseData: validation.caseData,
@@ -22,5 +25,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		hasMedia,
 		rapportHtml: reportResult.status === 'ok' ? reportResult.html : null,
 		rapportError: reportResult.status === 'error',
+		documents: documentsResult.status === 'ok' ? documentsResult.documents : [],
+		documentsError: documentsResult.status === 'error',
 	};
 };

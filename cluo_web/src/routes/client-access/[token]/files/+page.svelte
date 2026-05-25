@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { cn } from '$lib/utils/design-system';
+	import { cn, buttonVariants } from '$lib/utils/design-system';
+	import type { DocumentSummaryResponse } from '$lib/server/client-access';
 
 	interface Props {
 		data: PageData;
@@ -11,6 +12,51 @@
 	type TabId = 'documents' | 'rapport' | 'medias';
 
 	let activeTab: TabId = $state('documents');
+
+	/** Track which document sections are expanded */
+	let expandedDocs = $state<Set<string>>(new Set());
+
+	function toggleDoc(id: string) {
+		const next = new Set(expandedDocs);
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		expandedDocs = next;
+	}
+
+	/** Canonical display order for document types */
+	const TYPE_ORDER: Record<string, number> = {
+		estimate: 0,
+		mandate: 1,
+		contract: 2,
+		invoice: 3
+	};
+
+	const TYPE_LABELS: Record<string, string> = {
+		estimate: 'Devis',
+		mandate: 'Mandat',
+		contract: 'Contrat',
+		invoice: 'Facture'
+	};
+
+	const STATUS_LABELS: Record<string, string> = {
+		sent: 'Envoyé',
+		signed: 'Signé',
+		active: 'Actif',
+		archived: 'Archivé'
+	};
+
+	/** Sort documents in canonical order, filtering out types not in the known set */
+	const sortedDocuments: DocumentSummaryResponse[] = $derived(
+		[...data.documents]
+			.filter((d) => d.type in TYPE_ORDER)
+			.sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type])
+	);
+
+	const formatDate = (iso: string) =>
+		new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
 
 	const tabs: { id: TabId; label: string }[] = $derived(
 		[
@@ -72,10 +118,76 @@
 	<!-- Tab content -->
 	<main class="max-w-4xl mx-auto px-6 py-10">
 		{#if activeTab === 'documents'}
-			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<p class="text-foreground-alt text-sm">Les documents du dossier apparaîtront ici.</p>
-				<p class="text-foreground-alt/60 text-xs mt-2">Contenu à venir.</p>
-			</div>
+			{#if data.documentsError}
+				<div class="flex flex-col items-center justify-center py-16 text-center">
+					<p class="text-foreground-alt text-sm">Les documents n'ont pas pu être chargés. Veuillez réessayer.</p>
+				</div>
+			{:else if sortedDocuments.length === 0}
+				<div class="flex flex-col items-center justify-center py-16 text-center">
+					<p class="text-foreground-alt text-sm">Aucun document n'est disponible pour ce dossier.</p>
+				</div>
+			{:else}
+				<div class="flex flex-col gap-3">
+					{#each sortedDocuments as doc (doc.id)}
+						<div class="rounded-card border border-border-card bg-background shadow-card overflow-hidden">
+							<!-- Header row -->
+							<button
+								class="w-full text-left flex items-center justify-between p-5"
+								onclick={() => toggleDoc(doc.id)}
+							>
+								<div class="flex items-center gap-3">
+									<h3 class="font-serif text-foreground text-lg">{TYPE_LABELS[doc.type]}</h3>
+									<span class="inline-flex items-center rounded-9px px-2.5 py-0.5 text-xs font-medium bg-muted text-foreground-alt">
+										{STATUS_LABELS[doc.status] ?? doc.status}
+									</span>
+								</div>
+								<svg
+									class={cn(
+										'w-4 h-4 text-foreground-alt transition-transform duration-200',
+										expandedDocs.has(doc.id) && 'rotate-180'
+									)}
+									fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"
+								>
+									<path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+								</svg>
+							</button>
+
+							<!-- Expanded detail -->
+							{#if expandedDocs.has(doc.id)}
+								<div class="border-t border-border-card px-5 py-4">
+									<div class="grid grid-cols-2 gap-4 mb-4">
+										<div>
+											<p class="text-xs tracking-widest uppercase text-foreground-alt mb-1">Référence</p>
+											<p class="text-foreground text-sm">{doc.document_ref}</p>
+										</div>
+										<div>
+											<p class="text-xs tracking-widest uppercase text-foreground-alt mb-1">Date de création</p>
+											<p class="text-foreground text-sm">{formatDate(doc.created_at)}</p>
+										</div>
+										<div>
+											<p class="text-xs tracking-widest uppercase text-foreground-alt mb-1">Dernière mise à jour</p>
+											<p class="text-foreground text-sm">{formatDate(doc.updated_at)}</p>
+										</div>
+									</div>
+									<button
+										disabled
+										class={cn(
+											buttonVariants({ variant: 'outline', size: 'sm' }),
+											'opacity-50 cursor-not-allowed'
+										)}
+										title="Téléchargement du PDF bientôt disponible"
+									>
+										<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+											<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3" />
+										</svg>
+										Télécharger le PDF
+									</button>
+								</div>
+							{/if}
+						</div>
+					{/each}
+				</div>
+			{/if}
 		{:else if activeTab === 'rapport'}
 			{#if data.rapportHtml}
 				<div class="rapport-content">
