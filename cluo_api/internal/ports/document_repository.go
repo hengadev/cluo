@@ -45,6 +45,9 @@ type DocumentRepository interface {
 
 	// Document linking operations
 	GetLinkedDocuments(ctx context.Context, documentID string, docType document.DocumentType) ([]document.Documentable, error)
+
+	// Portal operations (query by plain case_id column)
+	GetFirstByCaseAndType(ctx context.Context, caseID string, docType document.DocumentType) (document.Documentable, error)
 }
 
 // DocumentVersionRepository handles versioning and audit trail for documents.
