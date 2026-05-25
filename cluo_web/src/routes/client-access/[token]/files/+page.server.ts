@@ -1,15 +1,22 @@
 import { redirect } from '@sveltejs/kit';
-import { getClientCaseSummary } from '$lib/server/client-access';
+import { validateClientToken, getTokenMedia } from '$lib/server/client-access';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params, cookies }) => {
-	const caseId = cookies.get('ca_session');
+export const load: PageServerLoad = async ({ params }) => {
+	const validation = await validateClientToken(params.token);
 
-	if (!caseId) {
+	if (!validation.valid) {
+		// Token invalid/expired — send back to landing which shows the right error card
 		redirect(303, `/client-access/${params.token}`);
 	}
 
-	const summary = await getClientCaseSummary(caseId);
+	// Check media availability (fail open: show tab on error)
+	const mediaResult = await getTokenMedia(params.token);
+	const hasMedia = mediaResult === null ? true : mediaResult.length > 0;
 
-	return { summary, token: params.token };
+	return {
+		caseData: validation.caseData,
+		token: params.token,
+		hasMedia
+	};
 };

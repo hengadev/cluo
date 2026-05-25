@@ -1,6 +1,6 @@
 <script lang="ts">
 	import type { PageData } from './$types';
-	import { buttonVariants, cardVariants, cn } from '$lib/utils/design-system';
+	import { cn } from '$lib/utils/design-system';
 
 	interface Props {
 		data: PageData;
@@ -8,69 +8,84 @@
 
 	let { data }: Props = $props();
 
-	const formatDate = (date: Date) =>
-		new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(date);
+	type TabId = 'documents' | 'rapport' | 'medias';
+
+	let activeTab: TabId = $state('documents');
+
+	const tabs: { id: TabId; label: string }[] = $derived(
+		[
+			{ id: 'documents' as const, label: 'Documents' },
+			{ id: 'rapport' as const, label: 'Rapport' },
+			...(data.hasMedia ? [{ id: 'medias' as const, label: 'Médias' }] : [])
+		]
+	);
+
 </script>
 
 <svelte:head>
-	<title>Dossier client</title>
+	<title>{data.caseData.title} — Dossier client</title>
 </svelte:head>
 
-<div class="min-h-screen flex items-center justify-center bg-background px-4 py-16">
-	<div class="w-full max-w-md">
-
-		<div class="flex flex-col items-center gap-4 mb-16">
-			<div class="w-12 h-12 border border-dark-300 flex items-center justify-center">
-				<span class="font-mono text-xxs tracking-widest text-foreground">A·I·R</span>
+<div class="min-h-screen bg-background">
+	<!-- Header -->
+	<header class="border-b border-border-card px-6 py-4">
+		<div class="max-w-4xl mx-auto flex items-center justify-between">
+			<div class="flex items-center gap-4">
+				<div class="w-8 h-8 border border-dark-300 flex items-center justify-center">
+					<span class="font-mono text-xxs tracking-widest text-foreground">A·I·R</span>
+				</div>
+				<div>
+					<h1 class="font-serif text-foreground text-lg leading-tight">{data.caseData.title}</h1>
+					{#if data.caseData.externalReference}
+						<p class="text-foreground-alt text-xs">{data.caseData.externalReference}</p>
+					{/if}
+				</div>
 			</div>
-			<div class="text-center">
-				<p class="font-display font-bold text-foreground text-4xl leading-tight">Agence d'Investigations</p>
-				<p class="font-display font-bold text-foreground text-4xl leading-tight">et de Recherches</p>
-			</div>
+			<a
+				href="/client-access/{data.token}"
+				class="text-foreground-alt text-sm hover:text-foreground transition-colors"
+			>
+				← Retour
+			</a>
 		</div>
+	</header>
 
-		<div class="{cardVariants({ size: 'lg' })} w-full">
-
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-4">Dossier client</p>
-
-		<h1 class="font-serif text-foreground text-2xl mb-2">
-			{data.summary.title}
-		</h1>
-
-		{#if data.summary.message}
-			<p class="text-foreground-alt text-sm mb-6">
-				{data.summary.message}
-			</p>
-		{/if}
-
-		<hr class="border-border-card my-6">
-
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-3">Contenu</p>
-
-		<ul class="space-y-2 mb-6">
-			{#each data.summary.filesSummary as file}
-				<li class="text-foreground text-sm">
-					<span class="text-foreground-alt mr-2">—</span>{file}
-				</li>
+	<!-- Tab navigation -->
+	<div class="border-b border-border-card">
+		<nav class="max-w-4xl mx-auto px-6 flex gap-0">
+			{#each tabs as tab (tab.id)}
+				<button
+					class={cn(
+						'px-5 py-3 text-sm font-medium transition-colors border-b-2 -mb-px',
+						activeTab === tab.id
+							? 'border-foreground text-foreground'
+							: 'border-transparent text-foreground-alt hover:text-foreground hover:border-dark-200'
+					)}
+					onclick={() => (activeTab = tab.id)}
+				>
+					{tab.label}
+				</button>
 			{/each}
-		</ul>
-
-		<hr class="border-border-card my-6">
-
-		<p class="text-xs tracking-widest uppercase text-foreground-alt mb-2">Disponible jusqu'au</p>
-		<p class="text-foreground-alt text-sm mb-6">
-			{formatDate(data.summary.expiresAt)}
-		</p>
-
-		<a
-			href="/client-access/{data.token}/download"
-			class={cn(
-				buttonVariants({ variant: 'default', size: 'lg' }),
-				'w-full text-white'
-			)}
-		>
-			Télécharger les fichiers
-		</a>
-		</div>
+		</nav>
 	</div>
+
+	<!-- Tab content -->
+	<main class="max-w-4xl mx-auto px-6 py-10">
+		{#if activeTab === 'documents'}
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<p class="text-foreground-alt text-sm">Les documents du dossier apparaîtront ici.</p>
+				<p class="text-foreground-alt/60 text-xs mt-2">Contenu à venir.</p>
+			</div>
+		{:else if activeTab === 'rapport'}
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<p class="text-foreground-alt text-sm">Le rapport d'investigation apparaîtra ici.</p>
+				<p class="text-foreground-alt/60 text-xs mt-2">Contenu à venir.</p>
+			</div>
+		{:else if activeTab === 'medias'}
+			<div class="flex flex-col items-center justify-center py-16 text-center">
+				<p class="text-foreground-alt text-sm">Les médias du dossier apparaîtront ici.</p>
+				<p class="text-foreground-alt/60 text-xs mt-2">Contenu à venir.</p>
+			</div>
+		{/if}
+	</main>
 </div>
