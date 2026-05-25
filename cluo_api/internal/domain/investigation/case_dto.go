@@ -18,6 +18,11 @@ type ReleaseResponse struct {
 	ExpiresAt time.Time `json:"expiresAt"`
 }
 
+type PortalCaseResponse struct {
+	*CaseResponse
+	TokenExpiresAt time.Time `json:"tokenExpiresAt"`
+}
+
 func (c *Investigation) ToResponse() *CaseResponse {
 	var assignedContactIDStr *string
 	if c.AssignedContactID != nil {

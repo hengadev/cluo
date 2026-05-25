@@ -14,6 +14,6 @@ type TokenService interface {
 	ValidateToken(ctx context.Context, rawToken string) (uuid.UUID, error) // returns caseID or error
 	ListTokensByCaseID(ctx context.Context, caseID uuid.UUID) ([]*token.TokenResponse, error)
 	RevokeToken(ctx context.Context, tokenID uuid.UUID) error
-	GetCaseSummaryByToken(ctx context.Context, rawToken string) (*investigation.CaseResponse, error)
+	GetCaseSummaryByToken(ctx context.Context, rawToken string) (*investigation.PortalCaseResponse, error)
 	GetPublishedMediaByToken(ctx context.Context, rawToken string) ([]*domainMedia.MediaResponse, error)
 }
