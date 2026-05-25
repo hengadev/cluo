@@ -12,6 +12,7 @@ import (
 	"testing"
 	"time"
 
+	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
 	rapportService "github.com/hengadev/cluo_api/internal/application/rapport"
 	tokenService "github.com/hengadev/cluo_api/internal/application/token"
 	session "github.com/hengadev/cluo_api/internal/common/auth/session"
@@ -136,11 +137,15 @@ func TestMain(m *testing.M) {
 
 	tokenSvc := tokenService.New(tokenRepo, caseRepo, mediaRepo, crypto)
 	rapportSvc := rapportService.New(rapportRepo, caseRepo, crypto)
+	caseSvc := investigationService.New(caseRepo, nil, nil, rapportRepo, tokenSvc, crypto)
 
 	authSessionRepo = session.NewRedisSessionRepository(redisClient)
 	authmw := auth.NewSessionAuthMiddleware(authSessionRepo, crypto, nil)
 
-	handler = tokenHandler.New(tokenSvc, rapportSvc, documentRepo, crypto, authmw)
+	// Create a test archive adapter (real repos, fake S3 storage)
+	testArchiveAdapter := newTestArchiveAdapter(documentRepo, rapportSvc, mediaRepo, crypto)
+
+	handler = tokenHandler.NewWithArchive(tokenSvc, rapportSvc, documentRepo, crypto, authmw, testArchiveAdapter, caseSvc)
 
 	os.Setenv("CLIENT_IP_HEADER", "X-Forwarded-For")
 	os.Setenv("LOGGING_SALT", "test_logging_salt_12345")
