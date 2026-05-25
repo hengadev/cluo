@@ -142,13 +142,12 @@ func CreateTestCaseWithClientID(t *testing.T, ctx context.Context, pool *pgxpool
 	t.Helper()
 
 	contactID := uuid.New()
-	caseSubjectID := uuid.New()
 	initialCase := &investigation.InvestigationEncx{
 		ID:                         uuid.New(),
 		CreatedAt:                  time.Now(),
 		ClientID:                   clientID,
 		AssignedContactID:          &contactID,
-		CaseSubjectID:              &caseSubjectID,
+		CaseSubjectID:              nil,
 		CaseTypeID:                 nil,
 		TitleEncrypted:             []byte("initial_title_encrypted"),
 		DescriptionEncrypted:       []byte("initial_description_encrypted"),

@@ -15,7 +15,6 @@ func NewTestCase(t *testing.T) *investigation.Investigation {
 	t.Helper()
 
 	contactID := uuid.New()
-	caseSubjectID := uuid.New()
 	externalRef := "EXT-REF-123"
 	latitude := "48.8566"
 	longitude := "2.3522"
@@ -25,7 +24,7 @@ func NewTestCase(t *testing.T) *investigation.Investigation {
 		Description:       "Test case description for unit testing",
 		ClientID:          uuid.New(),
 		AssignedContactID: &contactID,
-		CaseSubjectID:     &caseSubjectID,
+		CaseSubjectID:     nil,
 		ExternalReference: &externalRef,
 		CaseTypeID:        nil,
 		Status:            investigation.StatusInProgress,
@@ -48,12 +47,11 @@ func NewTestCase(t *testing.T) *investigation.Investigation {
 func NewTestCaseEncx(t *testing.T) *investigation.InvestigationEncx {
 	t.Helper()
 	contactID := uuid.New()
-	caseSubjectID := uuid.New()
 	return &investigation.InvestigationEncx{
 		ID:                         uuid.New(),
 		ClientID:                   uuid.New(),
 		AssignedContactID:          &contactID,
-		CaseSubjectID:              &caseSubjectID,
+		CaseSubjectID:              nil,
 		CaseTypeID:                 nil,
 		CreatedAt:                  time.Now(),
 		TitleEncrypted:             []byte("title_encrypted"),
@@ -143,12 +141,11 @@ func NewTestCaseEncxWithTimestamp(t *testing.T, clientID uuid.UUID, timestampOff
 	t.Helper()
 	baseTime := time.Date(2023, 1, 1, 0, 0, 0, 0, time.UTC)
 	contactID := uuid.New()
-	caseSubjectID := uuid.New()
 	return &investigation.InvestigationEncx{
 		ID:                         uuid.New(),
 		ClientID:                   clientID,
 		AssignedContactID:          &contactID,
-		CaseSubjectID:              &caseSubjectID,
+		CaseSubjectID:              nil,
 		CaseTypeID:                 nil,
 		CreatedAt:                  baseTime.Add(time.Duration(timestampOffset) * time.Hour),
 		TitleEncrypted:             []byte("title_encrypted"),
