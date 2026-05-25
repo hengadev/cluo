@@ -2,7 +2,7 @@ import { redirect } from '@sveltejs/kit';
 import { validateClientToken, getTokenMedia, getReportHtml, getDocumentsByToken } from '$lib/server/client-access';
 import type { PageServerLoad } from './$types';
 
-export const load: PageServerLoad = async ({ params }) => {
+export const load: PageServerLoad = async ({ params, url }) => {
 	const validation = await validateClientToken(params.token);
 
 	if (!validation.valid) {
@@ -29,5 +29,7 @@ export const load: PageServerLoad = async ({ params }) => {
 		rapportError: reportResult.status === 'error',
 		documents: documentsResult.status === 'ok' ? documentsResult.documents : [],
 		documentsError: documentsResult.status === 'error',
+		pdfError: url.searchParams.get('pdf_error') as 'auth' | 'not_found' | 'server' | null,
+		activeTab: url.searchParams.get('tab') as 'documents' | 'rapport' | 'medias' | null,
 	};
 };

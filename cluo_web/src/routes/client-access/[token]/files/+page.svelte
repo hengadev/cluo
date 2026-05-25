@@ -11,7 +11,7 @@
 
 	type TabId = 'documents' | 'rapport' | 'medias';
 
-	let activeTab: TabId = $state('documents');
+	let activeTab: TabId = $state((data.activeTab as TabId) ?? 'documents');
 
 	/** Track which document sections are expanded */
 	let expandedDocs = $state<Set<string>>(new Set());
@@ -230,6 +230,24 @@
 			{/if}
 		{:else if activeTab === 'rapport'}
 			{#if data.rapportHtml}
+				<div class="mb-6 flex flex-col gap-2">
+					<a
+						href="/client-access/{data.token}/rapport-pdf"
+						class={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+					>
+						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3M3 17v3a2 2 0 002 2h14a2 2 0 002-2v-3" />
+						</svg>
+						Télécharger le rapport (PDF)
+					</a>
+					{#if data.pdfError}
+						<p class="text-sm text-red-600">
+							{data.pdfError === 'not_found'
+								? 'Aucun rapport disponible pour ce dossier.'
+								: 'Le téléchargement du PDF a échoué. Veuillez réessayer.'}
+						</p>
+					{/if}
+				</div>
 				<div class="rapport-content">
 					{@html data.rapportHtml}
 				</div>

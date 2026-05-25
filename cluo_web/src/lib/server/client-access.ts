@@ -68,6 +68,12 @@ export type MediaResponse = {
 const USE_MOCK_DATA = env.USE_MOCK_DATA === 'true';
 const API_BASE = env.API_BASE_URL ?? 'http://localhost:8080';
 
+// getApiBaseUrl returns the configured API base URL.
+// Exported for use in server routes that need to proxy to the Go API.
+export function getApiBaseUrl(): string {
+	return API_BASE;
+}
+
 async function apiFetch(path: string): Promise<Response> {
 	return fetch(`${API_BASE}${path}`);
 }
