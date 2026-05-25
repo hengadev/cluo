@@ -1,4 +1,5 @@
 import { env } from '$env/dynamic/private';
+import { error } from '@sveltejs/kit';
 import sanitizeHtml from 'sanitize-html';
 
 // ---------------------------------------------------------------------------
@@ -366,21 +367,26 @@ export async function streamMediaFile(
 	}
 }
 
-export async function streamCaseArchive(token: string): Promise<ReadableStream> {
+export async function streamCaseArchive(token: string): Promise<{ stream: ReadableStream; disposition: string }> {
 	if (USE_MOCK_DATA) {
 		const content = `Mock archive — token: ${token}\nDevelopment mode only.`;
 		const bytes = new TextEncoder().encode(content);
-		return new ReadableStream({
+		const stream = new ReadableStream({
 			start(controller) {
 				controller.enqueue(bytes);
 				controller.close();
 			}
 		});
+		return { stream, disposition: 'attachment; filename="case-files.zip"' };
 	}
 
 	const res = await apiFetch(`/token/${encodeURIComponent(token)}/archive`);
 	if (!res.ok || !res.body) {
+		if (res.status === 401) {
+			error(401, { message: 'Token expiré ou révoqué' });
+		}
 		throw new Error(`Failed to download archive: ${res.status}`);
 	}
-	return res.body;
+	const disposition = res.headers.get('Content-Disposition') || 'attachment; filename="case-files.zip"';
+	return { stream: res.body, disposition };
 }
