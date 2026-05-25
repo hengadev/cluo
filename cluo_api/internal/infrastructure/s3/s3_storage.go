@@ -187,3 +187,22 @@ func sanitizeFileName(fileName string) string {
 
 	return fileName
 }
+
+// DownloadFile downloads a file from S3 by its URL and returns an io.ReadCloser.
+// The caller is responsible for closing the reader.
+func (s *S3Storage) DownloadFile(ctx context.Context, fileURL string) (io.ReadCloser, error) {
+	key, err := s.extractKeyFromURL(fileURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to extract key from URL: %w", err)
+	}
+
+	resp, err := s.client.GetObject(ctx, &s3.GetObjectInput{
+		Bucket: aws.String(s.bucketName),
+		Key:    aws.String(key),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to download file from S3: %w", err)
+	}
+
+	return resp.Body, nil
+}

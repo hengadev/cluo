@@ -16,4 +16,8 @@ type StorageService interface {
 	// GetFileURL generates a signed URL for accessing a file (for private buckets)
 	// Returns the URL as-is if the bucket is public
 	GetFileURL(ctx context.Context, fileURL string) (string, error)
+
+	// DownloadFile downloads a file from storage by its URL and returns an io.ReadCloser
+	// The caller is responsible for closing the reader.
+	DownloadFile(ctx context.Context, fileURL string) (io.ReadCloser, error)
 }
