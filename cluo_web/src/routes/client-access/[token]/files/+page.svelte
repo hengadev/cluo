@@ -1,7 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { cn, buttonVariants } from '$lib/utils/design-system';
-	import type { DocumentSummaryResponse } from '$lib/server/client-access';
+	import type { DocumentSummaryResponse, MediaResponse } from '$lib/server/client-access';
 
 	interface Props {
 		data: PageData;
@@ -55,6 +55,38 @@
 			.sort((a, b) => TYPE_ORDER[a.type] - TYPE_ORDER[b.type])
 	);
 
+	// ---- Media helpers ----
+
+	const images: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'image'));
+	const videos: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'video'));
+	const audioTracks: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'audio'));
+
+	let lightboxOpen = $state(false);
+	let lightboxIndex = $state(0);
+
+	function openLightbox(index: number) {
+		lightboxIndex = index;
+		lightboxOpen = true;
+	}
+
+	function closeLightbox() {
+		lightboxOpen = false;
+	}
+
+	function prevImage() {
+		lightboxIndex = (lightboxIndex - 1 + images.length) % images.length;
+	}
+
+	function nextImage() {
+		lightboxIndex = (lightboxIndex + 1) % images.length;
+	}
+
+	function formatFileSize(bytes: number): string {
+		if (bytes < 1024) return `${bytes} o`;
+		if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} Ko`;
+		return `${(bytes / (1024 * 1024)).toFixed(1)} Mo`;
+	}
+
 	const formatDate = (iso: string) =>
 		new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(iso));
 
@@ -66,7 +98,15 @@
 		]
 	);
 
+	function handleKeydown(e: KeyboardEvent) {
+		if (!lightboxOpen) return;
+		if (e.key === 'Escape') closeLightbox();
+		if (e.key === 'ArrowLeft') prevImage();
+		if (e.key === 'ArrowRight') nextImage();
+	}
 </script>
+
+<svelte:window onkeydown={handleKeydown} />
 
 <svelte:head>
 	<title>{data.caseData.title} — Dossier client</title>
@@ -203,15 +243,232 @@
 				</div>
 			{/if}
 		{:else if activeTab === 'medias'}
-			<div class="flex flex-col items-center justify-center py-16 text-center">
-				<p class="text-foreground-alt text-sm">Les médias du dossier apparaîtront ici.</p>
-				<p class="text-foreground-alt/60 text-xs mt-2">Contenu à venir.</p>
-			</div>
+			{#if data.media.length === 0}
+				<div class="flex flex-col items-center justify-center py-16 text-center">
+					<p class="text-foreground-alt text-sm">Aucun média n'est disponible pour ce dossier.</p>
+				</div>
+			{:else}
+				<!-- "Télécharger tous les médias" placeholder (issue 007) -->
+				<div class="mb-8">
+					<button
+						disabled
+						class={cn(
+							buttonVariants({ variant: 'outline', size: 'sm' }),
+							'opacity-50 cursor-not-allowed'
+						)}
+						title="Téléchargement groupé bientôt disponible"
+					>
+						<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+							<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+						</svg>
+						Télécharger tous les médias
+					</button>
+				</div>
+
+				<!-- Photos -->
+				{#if images.length > 0}
+					<section class="mb-10">
+						<h2 class="font-serif text-foreground text-lg mb-4">Photos</h2>
+						<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+							{#each images as img, i (img.id)}
+								<div class="group relative rounded-card overflow-hidden border border-border-card bg-muted aspect-square">
+									<button
+										class="w-full h-full cursor-pointer"
+										onclick={() => openLightbox(i)}
+									>
+										<img
+											src={img.url}
+											alt={img.caption || img.fileName}
+											class="w-full h-full object-cover transition-transform duration-200 group-hover:scale-105"
+											loading="lazy"
+										/>
+									</button>
+									<!-- Overlay with download -->
+									<div class="absolute bottom-0 inset-x-0 bg-gradient-to-t from-black/60 to-transparent p-2 opacity-0 group-hover:opacity-100 transition-opacity">
+										<a
+											href="/client-access/{data.token}/media/{img.id}/download"
+											download
+											class={cn(
+												buttonVariants({ variant: 'ghost', size: 'sm' }),
+												'text-white hover:bg-white/20 h-7 px-2 text-xs'
+											)}
+										>
+											<svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+											</svg>
+											{formatFileSize(img.fileSize)}
+										</a>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</section>
+				{/if}
+
+				<!-- Videos -->
+				{#if videos.length > 0}
+					<section class="mb-10">
+						<h2 class="font-serif text-foreground text-lg mb-4">Vidéos</h2>
+						<div class="flex flex-col gap-4">
+							{#each videos as vid (vid.id)}
+								<div class="rounded-card border border-border-card bg-background overflow-hidden">
+									<div class="aspect-video bg-black">
+										<video
+											controls
+											preload="metadata"
+											class="w-full h-full"
+										>
+											<source src={vid.url} type={vid.mimeType} />
+											Votre navigateur ne supporte pas la lecture vidéo.
+										</video>
+									</div>
+									<div class="px-4 py-3 flex items-center justify-between">
+										<div class="min-w-0">
+											{#if vid.caption}
+												<p class="text-foreground text-sm truncate">{vid.caption}</p>
+											{/if}
+											<p class="text-foreground-alt text-xs">{vid.fileName} · {formatFileSize(vid.fileSize)}</p>
+										</div>
+										<a
+											href="/client-access/{data.token}/media/{vid.id}/download"
+											download
+											class={cn(buttonVariants({ variant: 'outline', size: 'sm' }), 'shrink-0')}
+										>
+											<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+											</svg>
+											Télécharger
+										</a>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</section>
+				{/if}
+
+				<!-- Audio -->
+				{#if audioTracks.length > 0}
+					<section class="mb-10">
+						<h2 class="font-serif text-foreground text-lg mb-4">Audio</h2>
+						<div class="flex flex-col gap-3">
+							{#each audioTracks as aud (aud.id)}
+								<div class="rounded-card border border-border-card bg-background p-4">
+									<div class="flex items-center gap-3 mb-3">
+										<div class="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
+											<svg class="w-4 h-4 text-foreground-alt" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4-8a3 3 0 016 0v4a3 3 0 01-6 0V8z" />
+											</svg>
+										</div>
+										<div class="min-w-0 flex-1">
+											{#if aud.caption}
+												<p class="text-foreground text-sm truncate">{aud.caption}</p>
+											{/if}
+											<p class="text-foreground-alt text-xs">{aud.fileName} · {formatFileSize(aud.fileSize)}</p>
+										</div>
+									</div>
+									<audio controls preload="metadata" class="w-full">
+										<source src={aud.url} type={aud.mimeType} />
+										Votre navigateur ne supporte pas la lecture audio.
+									</audio>
+									<div class="mt-3 flex justify-end">
+										<a
+											href="/client-access/{data.token}/media/{aud.id}/download"
+											download
+											class={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
+										>
+											<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+												<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
+											</svg>
+											Télécharger
+										</a>
+									</div>
+								</div>
+							{/each}
+						</div>
+					</section>
+				{/if}
+			{/if}
 		{/if}
 	</main>
+
+	<!-- Lightbox overlay -->
+	{#if lightboxOpen && images.length > 0}
+		{@const current = images[lightboxIndex]}
+		<div
+			class="fixed inset-0 z-50 bg-black/90 flex items-center justify-center"
+			role="dialog"
+			aria-modal="true"
+			aria-label="Visualiseur de photos"
+			onclick={closeLightbox}
+		>
+			<!-- Close -->
+			<button
+				class="absolute top-4 right-4 text-white/80 hover:text-white transition-colors z-10"
+				onclick={closeLightbox}
+				aria-label="Fermer"
+			>
+				<svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+					<path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+				</svg>
+			</button>
+
+			<!-- Prev -->
+			{#if images.length > 1}
+				<button
+					class="absolute left-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors z-10"
+					onclick={prevImage}
+					aria-label="Précédent"
+				>
+					<svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M15 19l-7-7 7-7" />
+					</svg>
+				</button>
+
+				<!-- Next -->
+				<button
+					class="absolute right-4 top-1/2 -translate-y-1/2 text-white/80 hover:text-white transition-colors z-10"
+					onclick={nextImage}
+					aria-label="Suivant"
+				>
+					<svg class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+						<path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" />
+					</svg>
+				</button>
+			{/if}
+
+			<!-- Image -->
+			<!-- svelte-ignore a11y_click_events_have_key_events a11y_no_static_element_interactions -->
+			<div class="max-w-[90vw] max-h-[85vh] flex flex-col items-center" onclick={(e) => e.stopPropagation()}>
+				<img
+					src={current.url}
+					alt={current.caption || current.fileName}
+					class="max-w-full max-h-[75vh] object-contain select-none"
+				/>
+				<!-- Caption + download -->
+				<div class="mt-3 flex items-center gap-4">
+					{#if current.caption}
+						<p class="text-white/80 text-sm">{current.caption}</p>
+					{/if}
+					<a
+						href="/client-access/{data.token}/media/{current.id}/download"
+						download
+						class="text-white/80 hover:text-white text-sm underline-offset-2 hover:underline transition-colors"
+					>
+						Télécharger ({formatFileSize(current.fileSize)})
+					</a>
+				</div>
+				<!-- Counter -->
+				{#if images.length > 1}
+					<p class="text-white/50 text-xs mt-2">{lightboxIndex + 1} / {images.length}</p>
+				{/if}
+			</div>
+		</div>
+	{/if}
 </div>
 
 <style>
+	@reference;
+
 	.rapport-content {
 		@apply text-foreground leading-relaxed;
 	}

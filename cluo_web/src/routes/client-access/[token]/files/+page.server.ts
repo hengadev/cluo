@@ -18,11 +18,13 @@ export const load: PageServerLoad = async ({ params }) => {
 
 	// Check media availability (fail open: show tab on error)
 	const hasMedia = mediaResult === null ? true : mediaResult.length > 0;
+	const media = mediaResult ?? [];
 
 	return {
 		caseData: validation.caseData,
 		token: params.token,
 		hasMedia,
+		media,
 		rapportHtml: reportResult.status === 'ok' ? reportResult.html : null,
 		rapportError: reportResult.status === 'error',
 		documents: documentsResult.status === 'ok' ? documentsResult.documents : [],

@@ -134,14 +134,62 @@ const MOCK_MEDIA: MediaResponse[] = [
 	{
 		id: 'mock-media-001',
 		caseId: 'mock-case-001',
-		url: '/mock/photo1.jpg',
+		url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1200',
 		type: 'image',
 		mimeType: 'image/jpeg',
-		fileName: 'photo1.jpg',
+		fileName: 'surveillance-001.jpg',
 		fileSize: 2_400_000,
-		caption: 'Photo de surveillance',
+		caption: 'Photo de surveillance — entrée principale',
 		isPublished: true,
 		createdAt: '2026-04-15T00:00:00Z'
+	},
+	{
+		id: 'mock-media-002',
+		caseId: 'mock-case-001',
+		url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1200',
+		type: 'image',
+		mimeType: 'image/jpeg',
+		fileName: 'surveillance-002.jpg',
+		fileSize: 3_100_000,
+		caption: 'Photo de surveillance — vue générale',
+		isPublished: true,
+		createdAt: '2026-04-15T01:00:00Z'
+	},
+	{
+		id: 'mock-media-003',
+		caseId: 'mock-case-001',
+		url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1200',
+		type: 'image',
+		mimeType: 'image/jpeg',
+		fileName: 'surveillance-003.jpg',
+		fileSize: 1_800_000,
+		caption: 'Photo de surveillance — zone arrière',
+		isPublished: true,
+		createdAt: '2026-04-16T00:00:00Z'
+	},
+	{
+		id: 'mock-media-004',
+		caseId: 'mock-case-001',
+		url: 'https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4',
+		type: 'video',
+		mimeType: 'video/mp4',
+		fileName: 'video-surveillance.mp4',
+		fileSize: 15_000_000,
+		caption: 'Vidéo de surveillance — entrée',
+		isPublished: true,
+		createdAt: '2026-04-17T00:00:00Z'
+	},
+	{
+		id: 'mock-media-005',
+		caseId: 'mock-case-001',
+		url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
+		type: 'audio',
+		mimeType: 'audio/mpeg',
+		fileName: 'enregistrement-audio.mp3',
+		fileSize: 5_200_000,
+		caption: 'Enregistrement audio — témoin A',
+		isPublished: true,
+		createdAt: '2026-04-18T00:00:00Z'
 	}
 ];
 
@@ -281,10 +329,37 @@ export async function getReportHtml(token: string): Promise<ReportHtmlResult> {
 	}
 }
 
-/**
- * Stream the case archive (zip) for download.
- * The token is used directly — no cookie session.
- */
+export async function streamMediaFile(
+	token: string,
+	mediaId: string
+): Promise<{ stream: ReadableStream; fileName: string; mimeType: string; fileSize: number } | null> {
+	if (USE_MOCK_DATA) {
+		const media = MOCK_MEDIA.find((m) => m.id === mediaId);
+		if (!media) return null;
+		const res = await fetch(media.url);
+		if (!res.ok || !res.body) return null;
+		return { stream: res.body, fileName: media.fileName, mimeType: media.mimeType, fileSize: media.fileSize };
+	}
+
+	try {
+		const metaRes = await apiFetch(`/token/${encodeURIComponent(token)}/media/${encodeURIComponent(mediaId)}`);
+		if (!metaRes.ok) return null;
+		const media: MediaResponse = await metaRes.json();
+
+		const fileRes = await fetch(media.url);
+		if (!fileRes.ok || !fileRes.body) return null;
+
+		return {
+			stream: fileRes.body,
+			fileName: media.fileName,
+			mimeType: media.mimeType,
+			fileSize: media.fileSize
+		};
+	} catch {
+		return null;
+	}
+}
+
 export async function streamCaseArchive(token: string): Promise<ReadableStream> {
 	if (USE_MOCK_DATA) {
 		const content = `Mock archive — token: ${token}\nDevelopment mode only.`;
