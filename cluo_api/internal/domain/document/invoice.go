@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/hengadev/cluo_api/internal/common/validation"
 )
 
 // Invoice represents a billing document for services rendered.
@@ -148,6 +150,13 @@ func (i *Invoice) Validate() error {
 	// Validate payment fields consistency
 	if (i.PaidAt != nil) != (i.PaidAmount != nil) {
 		return fmt.Errorf("paid at and paid amount must be set together")
+	}
+
+	// Validate currency code
+	if i.Currency != nil && *i.Currency != "" {
+		if err := validation.ValidateCurrency(*i.Currency); err != nil {
+			return err
+		}
 	}
 
 	return nil

@@ -5,6 +5,8 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+
+	"github.com/hengadev/cluo_api/internal/common/validation"
 )
 
 // Contract represents a formal agreement between parties for investigative services.
@@ -89,6 +91,13 @@ func (c *Contract) Validate() error {
 	// Validate contract value
 	if c.ContractValue != nil && *c.ContractValue <= 0 {
 		return fmt.Errorf("contract value must be positive")
+	}
+
+	// Validate currency code
+	if c.Currency != nil && *c.Currency != "" {
+		if err := validation.ValidateCurrency(*c.Currency); err != nil {
+			return err
+		}
 	}
 
 	// Validate signatures
