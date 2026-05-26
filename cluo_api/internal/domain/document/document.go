@@ -43,6 +43,15 @@ type DocumentVersion struct {
 	Reason     *string      `json:"reason,omitempty" db:"reason"`
 }
 
+// DocumentWorkflowResponse represents the full financial document chain for a case.
+// Each document type is present as a typed pointer; missing documents are nil.
+type DocumentWorkflowResponse struct {
+	Estimate *Estimate `json:"estimate"`
+	Mandate  *Mandate  `json:"mandate"`
+	Contract *Contract `json:"contract"`
+	Invoice  *Invoice  `json:"invoice"`
+}
+
 // DocumentSummary represents a summary view of a document for listings.
 type DocumentSummary struct {
 	ID          uuid.UUID      `json:"id"`

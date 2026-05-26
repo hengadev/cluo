@@ -43,6 +43,9 @@ type DocumentRepository interface {
 	DeleteInvoice(ctx context.Context, id string) error
 	ListInvoicesByCase(ctx context.Context, caseID string, pagination document.Pagination) ([]*document.InvoiceEncx, int, error)
 
+	// Overdue invoice operations
+	ListOverdueInvoices(ctx context.Context, pagination document.Pagination) ([]*document.InvoiceEncx, int, error)
+
 	// Document linking operations
 	GetLinkedDocuments(ctx context.Context, documentID string, docType document.DocumentType) ([]document.Documentable, error)
 

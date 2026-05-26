@@ -43,6 +43,6 @@ type DocumentService interface {
 	GetOverdueInvoices(ctx context.Context, pagination document.Pagination) ([]*document.Invoice, int, error)
 
 	// Document linking and workflow
-	GetDocumentWorkflow(ctx context.Context, caseID string) ([]document.DocumentSummary, error)
+	GetDocumentWorkflow(ctx context.Context, caseID string) (*document.DocumentWorkflowResponse, error)
 	ValidateDocumentTransitions(ctx context.Context, id string, docType document.DocumentType, newStatus document.DocumentStatus) error
 }
