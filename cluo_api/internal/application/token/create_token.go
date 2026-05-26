@@ -38,6 +38,45 @@ func (s *Service) CreateToken(ctx context.Context, caseID uuid.UUID) (*token.Cre
 		return nil, errs.NewNotCreatedErr(err, "token")
 	}
 
+	// Dispatch portal access email asynchronously.
+	portalPublicURL := s.portalPublicURL
+	go func() {
+		bgCtx := context.Background()
+		email, err := s.resolveClientEmail(bgCtx, caseID)
+		if err != nil {
+			s.logger.ErrorContext(bgCtx, "Failed to resolve client email for token notification",
+				"error", err,
+				"case_id", caseID,
+			)
+			return
+		}
+		if email == "" {
+			s.logger.WarnContext(bgCtx, "No client email found; skipping token notification",
+				"case_id", caseID,
+			)
+			return
+		}
+
+		subject := "Accès au portail client"
+		portalURL := portalPublicURL + "/token/" + rawToken
+		bodyHTML := fmt.Sprintf(`
+			<html><body>
+			<p>Bonjour,</p>
+			<p>Un accès au portail client a été créé pour votre dossier.</p>
+			<p><a href="%s">Accéder au portail</a></p>
+			<p>Ce lien expirera le %s.</p>
+			</body></html>
+		`, portalURL, t.ExpiresAt.Format("02/01/2006"))
+
+		if err := s.emailService.Send(bgCtx, email, subject, bodyHTML); err != nil {
+			s.logger.ErrorContext(bgCtx, "Failed to send portal token email",
+				"error", err,
+				"to", email,
+				"case_id", caseID,
+			)
+		}
+	}()
+
 	return &token.CreateTokenResponse{
 		ID:        t.ID.String(),
 		CaseID:    t.CaseID.String(),
