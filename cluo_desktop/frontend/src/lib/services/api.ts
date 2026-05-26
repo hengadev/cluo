@@ -37,6 +37,8 @@ import type {
 // Import mock data
 import * as mockData from '../mockData';
 
+const BASE_URL = API_BASE_URL;
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
@@ -53,27 +55,39 @@ async function mockDelay(ms: number = 100): Promise<void> {
 // =============================================================================
 
 /**
- * Fetch all users
+ * Fetch all users.
+ * The API is single-PI so there is no "list users" endpoint.
+ * We call GET /auth/me and return a one-element array.
  */
 export async function fetchAllUsers(): Promise<AuthUser[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
 		return mockData.getAllUsers();
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const response = await apiFetch(`${BASE_URL}/auth/me`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch current user: ${response.status}`);
+	}
+	const user: AuthUser = await response.json();
+	return [user];
 }
 
 /**
- * Fetch a user by ID
+ * Fetch a user by ID.
+ * The API is single-PI so we call GET /auth/me and return null if the
+ * requested ID does not match the authenticated user.
  */
 export async function fetchUser(id: string): Promise<AuthUser | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
 		return mockData.getUserById(id) || null;
 	}
-	// TODO: Implement actual API call
-	throw new Error('API not implemented');
+	const response = await apiFetch(`${BASE_URL}/auth/me`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch current user: ${response.status}`);
+	}
+	const user: AuthUser = await response.json();
+	return user.id === id ? user : null;
 }
 
 // =============================================================================
@@ -88,8 +102,7 @@ export async function fetchAllClients(): Promise<Client[]> {
 		await mockDelay();
 		return mockData.getAllClients();
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients`);
+	const response = await apiFetch(`${BASE_URL}/client`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch clients: ${response.status}`);
 	}
@@ -104,8 +117,7 @@ export async function fetchClient(id: string): Promise<Client | null> {
 		await mockDelay();
 		return mockData.getClientById(id) || null;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients/${id}`);
+	const response = await apiFetch(`${BASE_URL}/client/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
 		throw new Error(`Failed to fetch client: ${response.status}`);
@@ -129,8 +141,7 @@ export async function createClient(request: {
 		};
 		return newClient;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients`, {
+	const response = await apiFetch(`${BASE_URL}/client`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -158,8 +169,7 @@ export async function updateClient(id: string, request: {
 		};
 		return updated;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/client/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
 	});
@@ -177,8 +187,7 @@ export async function deleteClient(id: string): Promise<void> {
 		await mockDelay();
 		return;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/client/${id}`, {
 		method: 'DELETE',
 	});
 	if (!response.ok) {
@@ -194,8 +203,7 @@ export async function fetchClientContacts(clientId: string): Promise<Contact[]> 
 		await mockDelay();
 		return mockData.getContactsByClientId(clientId);
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/clients/${clientId}/contacts`);
+	const response = await apiFetch(`${BASE_URL}/client/${clientId}/contact`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch client contacts: ${response.status}`);
 	}
@@ -214,8 +222,7 @@ export async function fetchContact(id: string): Promise<Contact | null> {
 		await mockDelay();
 		return mockData.getContactById(id) || null;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contacts/${id}`);
+	const response = await apiFetch(`${BASE_URL}/contact/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
 		throw new Error(`Failed to fetch contact: ${response.status}`);
@@ -248,8 +255,7 @@ export async function createContact(request: {
 		};
 		return newContact;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contacts`, {
+	const response = await apiFetch(`${BASE_URL}/client/${request.clientID}/contact`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -276,8 +282,7 @@ export async function updateContact(id: string, request: {
 		const updated = { ...existing, ...request };
 		return updated;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contacts/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/contact/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
 	});
@@ -295,8 +300,7 @@ export async function deleteContact(id: string): Promise<void> {
 		await mockDelay();
 		return;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contacts/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/contact/${id}`, {
 		method: 'DELETE',
 	});
 	if (!response.ok) {
@@ -318,216 +322,208 @@ interface FetchCasesParams {
  * Fetch all cases with optional pagination and filters
  */
 export async function fetchAllCases(params?: FetchCasesParams): Promise<ListCasesResponse> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			return {
-				cases: mockData.getAllCases(),
-				pagination: { page: 1, pageSize: 50, totalItems: mockData.getAllCases().length, totalPages: 1 }
-			};
-		}
-
-		const baseURL = API_BASE_URL;
-		const url = new URL(`${baseURL}/api/cases`);
-
-		if (params?.page) url.searchParams.set('page', params.page.toString());
-		if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
-		if (params?.status) url.searchParams.set('status', params.status);
-
-		const response = await apiFetch(url.toString());
-		if (!response.ok) {
-			throw new Error(`Failed to fetch cases: ${response.status}`);
-		}
-
-		return response.json();
+	if (isMockEnabled()) {
+		await mockDelay();
+		return {
+			cases: mockData.getAllCases(),
+			pagination: { page: 1, pageSize: 50, totalItems: mockData.getAllCases().length, totalPages: 1 }
+		};
 	}
 
-	/**
-	 * Fetch a case by ID with full details
-	 */
-	export async function fetchCase(id: string): Promise<Case> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			const caseData = mockData.getCaseById(id);
-			if (!caseData) throw new Error(`Case ${id} not found`);
-			return caseData;
-		}
+	const url = new URL(`${BASE_URL}/cases`);
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases/${id}`);
-		if (!response.ok) {
-			throw new Error(`Failed to fetch case: ${response.status}`);
-		}
+	if (params?.page) url.searchParams.set('page', params.page.toString());
+	if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
+	if (params?.status) url.searchParams.set('status', params.status);
 
-		return response.json();
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch cases: ${response.status}`);
 	}
 
-	/**
-	 * Fetch cases by status
-	 */
-	export async function fetchCasesByStatus(status: string): Promise<ListCasesResponse> {
-		return fetchAllCases({ status });
+	return response.json();
+}
+
+/**
+ * Fetch a case by ID with full details
+ */
+export async function fetchCase(id: string): Promise<Case> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const caseData = mockData.getCaseById(id);
+		if (!caseData) throw new Error(`Case ${id} not found`);
+		return caseData;
 	}
 
-	/**
-	 * Fetch cases by client ID
-	 */
-	export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCasesParams, 'status'>): Promise<ListCasesResponse> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			return {
-				cases: mockData.getCasesByClientId(clientId),
-				pagination: { page: 1, pageSize: 50, totalItems: mockData.getCasesByClientId(clientId).length, totalPages: 1 }
-			};
-		}
-
-		const baseURL = API_BASE_URL;
-		const url = new URL(`${baseURL}/api/clients/${clientId}/cases`);
-
-		if (params?.page) url.searchParams.set('page', params.page.toString());
-		if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
-
-		const response = await apiFetch(url.toString());
-		if (!response.ok) {
-			throw new Error(`Failed to fetch cases for client: ${response.status}`);
-		}
-
-		return response.json();
+	const response = await apiFetch(`${BASE_URL}/cases/${id}`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch case: ${response.status}`);
 	}
 
-	/**
-	 * Create a new case
-	 */
-	export async function createCase(request: CreateCaseRequest): Promise<Case> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			const newCase: Case = {
-				id: `mock-${Date.now()}`,
-				title: request.title,
-				description: request.description,
-				clientId: request.clientId,
-				assignedContactID: request.assignedContactID ?? null,
-				caseSubjectId: request.caseSubjectId ?? null,
-				externalReference: request.externalReference ?? null,
-				caseTypeId: request.caseTypeId ?? null,
-				status: request.status,
-				placename: request.placename ?? null,
-				address1: request.address1 ?? null,
-				address2: request.address2 ?? null,
-				city: request.city ?? null,
-				postalCode: request.postalCode ?? null,
-				country: request.country ?? null,
-				latitude: request.latitude ?? null,
-				longitude: request.longitude ?? null,
-				locationType: request.locationType ?? null,
-				locationNotes: request.locationNotes ?? null,
-				createdAt: new Date().toISOString(),
-				updatedAt: new Date().toISOString(),
-			};
-			return newCase;
-		}
+	return response.json();
+}
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases`, {
-			method: 'POST',
-			body: JSON.stringify(request),
-		});
+/**
+ * Fetch cases by status
+ */
+export async function fetchCasesByStatus(status: string): Promise<ListCasesResponse> {
+	return fetchAllCases({ status });
+}
 
-		if (!response.ok) {
-			throw new Error(`Failed to create case: ${response.status}`);
-		}
-
-		return response.json();
+/**
+ * Fetch cases by client ID
+ */
+export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCasesParams, 'status'>): Promise<ListCasesResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return {
+			cases: mockData.getCasesByClientId(clientId),
+			pagination: { page: 1, pageSize: 50, totalItems: mockData.getCasesByClientId(clientId).length, totalPages: 1 }
+		};
 	}
 
-	/**
-	 * Update an existing case
-	 */
-	export async function updateCase(id: string, request: Partial<CreateCaseRequest>): Promise<Case> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			const existing = mockData.getCaseById(id);
-			if (!existing) throw new Error(`Case ${id} not found`);
-			const updated = { ...existing, ...request, updatedAt: new Date().toISOString() };
-			return updated;
-		}
+	const url = new URL(`${BASE_URL}/clients/${clientId}/cases`);
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases/${id}`, {
-			method: 'PATCH',
-			body: JSON.stringify(request),
-		});
+	if (params?.page) url.searchParams.set('page', params.page.toString());
+	if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
 
-		if (!response.ok) {
-			throw new Error(`Failed to update case: ${response.status}`);
-		}
-
-		return response.json();
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch cases for client: ${response.status}`);
 	}
 
-	/**
-	 * Delete a case
-	 */
-	export async function deleteCase(id: string): Promise<void> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			return;
-		}
+	return response.json();
+}
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases/${id}`, {
-			method: 'DELETE',
-		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to delete case: ${response.status}`);
-		}
+/**
+ * Create a new case
+ */
+export async function createCase(request: CreateCaseRequest): Promise<Case> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const newCase: Case = {
+			id: `mock-${Date.now()}`,
+			title: request.title,
+			description: request.description,
+			clientId: request.clientId,
+			assignedContactID: request.assignedContactID ?? null,
+			caseSubjectId: request.caseSubjectId ?? null,
+			externalReference: request.externalReference ?? null,
+			caseTypeId: request.caseTypeId ?? null,
+			status: request.status,
+			placename: request.placename ?? null,
+			address1: request.address1 ?? null,
+			address2: request.address2 ?? null,
+			city: request.city ?? null,
+			postalCode: request.postalCode ?? null,
+			country: request.country ?? null,
+			latitude: request.latitude ?? null,
+			longitude: request.longitude ?? null,
+			locationType: request.locationType ?? null,
+			locationNotes: request.locationNotes ?? null,
+			createdAt: new Date().toISOString(),
+			updatedAt: new Date().toISOString(),
+		};
+		return newCase;
 	}
 
-	/**
-	 * Mark a case as ready
-	 */
-	export async function markCaseReady(id: string): Promise<void> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			return;
-		}
+	const response = await apiFetch(`${BASE_URL}/cases`, {
+		method: 'POST',
+		body: JSON.stringify(request),
+	});
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases/${id}/mark-ready`, {
-			method: 'POST',
-		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to mark case as ready: ${response.status}`);
-		}
+	if (!response.ok) {
+		throw new Error(`Failed to create case: ${response.status}`);
 	}
 
-	/**
-	 * Release a case and generate portal access token
-	 */
-	export async function releaseCase(id: string): Promise<ReleaseResponse> {
-		if (isMockEnabled()) {
-			await mockDelay();
-			return {
-				caseId: id,
-				tokenId: `mock-token-${Date.now()}`,
-				rawToken: 'mock-raw-token',
-				portalUrl: 'https://portal.example.com',
-				expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-			};
-		}
+	return response.json();
+}
 
-		const baseURL = API_BASE_URL;
-		const response = await apiFetch(`${baseURL}/api/cases/${id}/release`, {
-			method: 'POST',
-		});
-
-		if (!response.ok) {
-			throw new Error(`Failed to release case: ${response.status}`);
-		}
-
-		return response.json();
+/**
+ * Update an existing case
+ */
+export async function updateCase(id: string, request: Partial<CreateCaseRequest>): Promise<Case> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		const existing = mockData.getCaseById(id);
+		if (!existing) throw new Error(`Case ${id} not found`);
+		const updated = { ...existing, ...request, updatedAt: new Date().toISOString() };
+		return updated;
 	}
+
+	const response = await apiFetch(`${BASE_URL}/cases/${id}`, {
+		method: 'PATCH',
+		body: JSON.stringify(request),
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to update case: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Delete a case
+ */
+export async function deleteCase(id: string): Promise<void> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return;
+	}
+
+	const response = await apiFetch(`${BASE_URL}/cases/${id}`, {
+		method: 'DELETE',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to delete case: ${response.status}`);
+	}
+}
+
+/**
+ * Mark a case as ready
+ */
+export async function markCaseReady(id: string): Promise<void> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return;
+	}
+
+	const response = await apiFetch(`${BASE_URL}/cases/${id}/mark-ready`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to mark case as ready: ${response.status}`);
+	}
+}
+
+/**
+ * Release a case and generate portal access token
+ */
+export async function releaseCase(id: string): Promise<ReleaseResponse> {
+	if (isMockEnabled()) {
+		await mockDelay();
+		return {
+			caseId: id,
+			tokenId: `mock-token-${Date.now()}`,
+			rawToken: 'mock-raw-token',
+			portalUrl: 'https://portal.example.com',
+			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+		};
+	}
+
+	const response = await apiFetch(`${BASE_URL}/cases/${id}/release`, {
+		method: 'POST',
+	});
+
+	if (!response.ok) {
+		throw new Error(`Failed to release case: ${response.status}`);
+	}
+
+	return response.json();
+}
 
 // =============================================================================
 // CASE SUBJECTS
@@ -541,8 +537,7 @@ export async function fetchAllCaseSubjects(): Promise<CaseSubject[]> {
 		await mockDelay();
 		return mockData.getAllCaseSubjects();
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/subjects`);
+	const response = await apiFetch(`${BASE_URL}/subjects`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch case subjects: ${response.status}`);
 	}
@@ -557,8 +552,7 @@ export async function fetchCaseSubject(id: string): Promise<CaseSubject | null> 
 		await mockDelay();
 		return mockData.getCaseSubjectById(id) || null;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/subjects/${id}`);
+	const response = await apiFetch(`${BASE_URL}/subjects/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
 		throw new Error(`Failed to fetch case subject: ${response.status}`);
@@ -599,8 +593,7 @@ export async function createCaseSubject(request: {
 		};
 		return newSubject;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/subjects`, {
+	const response = await apiFetch(`${BASE_URL}/subjects`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -632,8 +625,7 @@ export async function updateCaseSubject(id: string, request: {
 		const updated = { ...existing, ...request };
 		return updated;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/subjects/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/subjects/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
 	});
@@ -651,8 +643,7 @@ export async function deleteCaseSubject(id: string): Promise<void> {
 		await mockDelay();
 		return;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/subjects/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/subjects/${id}`, {
 		method: 'DELETE',
 	});
 	if (!response.ok) {
@@ -672,8 +663,7 @@ export async function fetchAllCaseTypes(): Promise<CaseType[]> {
 		await mockDelay();
 		return mockData.getAllCaseTypes() as unknown as CaseType[];
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/case-types`);
+	const response = await apiFetch(`${BASE_URL}/case-types`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch case types: ${response.status}`);
 	}
@@ -688,8 +678,7 @@ export async function fetchCaseType(id: string): Promise<CaseType | null> {
 		await mockDelay();
 		return mockData.getCaseTypeById(id) as unknown as CaseType || null;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/case-types/${id}`);
+	const response = await apiFetch(`${BASE_URL}/case-types/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
 		throw new Error(`Failed to fetch case type: ${response.status}`);
@@ -711,8 +700,7 @@ export async function createCaseType(request: { name: string }): Promise<CaseTyp
 		};
 		return newType;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/case-types`, {
+	const response = await apiFetch(`${BASE_URL}/case-types`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -733,8 +721,7 @@ export async function updateCaseType(id: string, request: { name: string }): Pro
 		const updated = { ...existing, name: request.name, updatedAt: new Date().toISOString() };
 		return updated;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/case-types/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/case-types/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
 	});
@@ -752,8 +739,7 @@ export async function deleteCaseType(id: string): Promise<void> {
 		await mockDelay();
 		return;
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/case-types/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/case-types/${id}`, {
 		method: 'DELETE',
 	});
 	if (!response.ok) {
@@ -823,8 +809,7 @@ export async function createEstimate(estimate: Estimate): Promise<DocumentAPIRes
 		await mockDelay();
 		return { success: true, data: estimate };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/estimates`, {
+	const response = await apiFetch(`${BASE_URL}/estimates`, {
 		method: 'POST',
 		body: JSON.stringify(estimate),
 	});
@@ -844,8 +829,7 @@ export async function updateEstimate(id: string, lineItems: any[]): Promise<Docu
 		await mockDelay();
 		return { success: true, data: { id, line_items: lineItems } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/estimates/${id}`, {
+	const response = await apiFetch(`${BASE_URL}/estimates/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify({ line_items: lineItems }),
 	});
@@ -865,8 +849,7 @@ export async function acceptEstimate(id: string, acceptedBy: string): Promise<Do
 		await mockDelay();
 		return { success: true, data: { message: 'Estimate accepted successfully' } };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/estimates/${id}/accept`, {
+	const response = await apiFetch(`${BASE_URL}/estimates/${id}/accept`, {
 		method: 'POST',
 		body: JSON.stringify({ accepted_by: acceptedBy }),
 	});
@@ -938,8 +921,7 @@ export async function createMandate(mandate: Mandate): Promise<DocumentAPIRespon
 		await mockDelay();
 		return { success: true, data: mandate };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/mandates`, {
+	const response = await apiFetch(`${BASE_URL}/mandates`, {
 		method: 'POST',
 		body: JSON.stringify(mandate),
 	});
@@ -959,8 +941,7 @@ export async function signMandate(id: string, request: SignDocumentRequest): Pro
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/mandates/${id}/sign`, {
+	const response = await apiFetch(`${BASE_URL}/mandates/${id}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -980,8 +961,7 @@ export async function activateMandate(id: string): Promise<DocumentAPIResponse<M
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/mandates/${id}/activate`, {
+	const response = await apiFetch(`${BASE_URL}/mandates/${id}/activate`, {
 		method: 'POST',
 	});
 
@@ -1000,8 +980,7 @@ export async function createContractFromMandate(mandateId: string, contract: Con
 		await mockDelay();
 		return { success: true, data: contract };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/mandates/${mandateId}/create-contract`, {
+	const response = await apiFetch(`${BASE_URL}/mandates/${mandateId}/create-contract`, {
 		method: 'POST',
 		body: JSON.stringify(contract),
 	});
@@ -1073,8 +1052,7 @@ export async function createContract(contract: Contract): Promise<DocumentAPIRes
 		await mockDelay();
 		return { success: true, data: contract };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contracts`, {
+	const response = await apiFetch(`${BASE_URL}/contracts`, {
 		method: 'POST',
 		body: JSON.stringify(contract),
 	});
@@ -1094,8 +1072,7 @@ export async function signContract(id: string, request: SignDocumentRequest): Pr
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contracts/${id}/sign`, {
+	const response = await apiFetch(`${BASE_URL}/contracts/${id}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -1115,8 +1092,7 @@ export async function activateContract(id: string): Promise<DocumentAPIResponse<
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contracts/${id}/activate`, {
+	const response = await apiFetch(`${BASE_URL}/contracts/${id}/activate`, {
 		method: 'POST',
 	});
 
@@ -1135,8 +1111,7 @@ export async function createInvoiceFromContract(contractId: string, invoice: Inv
 		await mockDelay();
 		return { success: true, data: invoice };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/contracts/${contractId}/create-invoice`, {
+	const response = await apiFetch(`${BASE_URL}/contracts/${contractId}/create-invoice`, {
 		method: 'POST',
 		body: JSON.stringify(invoice),
 	});
@@ -1220,8 +1195,7 @@ export async function createInvoice(invoice: Invoice): Promise<DocumentAPIRespon
 		await mockDelay();
 		return { success: true, data: invoice };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/invoices`, {
+	const response = await apiFetch(`${BASE_URL}/invoices`, {
 		method: 'POST',
 		body: JSON.stringify(invoice),
 	});
@@ -1247,8 +1221,7 @@ export async function fetchOverdueInvoices(page: number = 1, perPage: number = 2
 			per_page: perPage
 		};
 	}
-	const baseURL = API_BASE_URL;
-	const url = new URL(`${baseURL}/api/invoices/overdue`);
+	const url = new URL(`${BASE_URL}/invoices/overdue`);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
 
@@ -1268,8 +1241,7 @@ export async function processPayment(id: string, request: PaymentRequest): Promi
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/invoices/${id}/pay`, {
+	const response = await apiFetch(`${BASE_URL}/invoices/${id}/pay`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -1289,8 +1261,7 @@ export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoi
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/invoices/${id}/void`, {
+	const response = await apiFetch(`${BASE_URL}/invoices/${id}/void`, {
 		method: 'POST',
 	});
 
@@ -1312,8 +1283,8 @@ export interface ApiImage {
 }
 
 /**
- * Fetch images for a specific case
- * TODO: Implement actual API call
+ * Fetch images for a specific case.
+ * Calls GET /case/{caseId}/media?type=image and maps the response to ApiImage.
  */
 export async function fetchCaseImages(caseId: string): Promise<ApiImage[]> {
 	if (isMockEnabled()) {
@@ -1322,8 +1293,21 @@ export async function fetchCaseImages(caseId: string): Promise<ApiImage[]> {
 		// This is handled by the photos/mockData.ts file in routes
 		return [];
 	}
-	// TODO: Implement actual API call
-	return [];
+	const url = new URL(`${BASE_URL}/case/${caseId}/media`);
+	url.searchParams.set('type', 'image');
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch case images: ${response.status}`);
+	}
+
+	const data = await response.json();
+	const mediaItems = data.media ?? data;
+
+	return mediaItems.map((item: any) => ({
+		id: item.id,
+		url: item.url,
+	}));
 }
 
 // =============================================================================
@@ -1383,14 +1367,13 @@ export const AI_OPERATION_LABELS: Record<AITextOperation, { label: string; descr
 export async function requestAITextOperation(
 	request: AITextOperationRequest
 ): Promise<AITextOperationResponse> {
-	const baseURL = API_BASE_URL;
 	const timeout = AI_CONFIG.DEFAULT_TIMEOUT;
 
 	const controller = new AbortController();
 	const timeoutId = setTimeout(() => controller.abort(), timeout);
 
 	try {
-		const response = await apiFetch(`${baseURL}/api/ai/text`, {
+		const response = await apiFetch(`${BASE_URL}/ai/text/transform`, {
 			method: "POST",
 			body: JSON.stringify(request),
 			signal: controller.signal,
@@ -1432,8 +1415,7 @@ export async function sendChatMessage(
 	caseId: string,
 	request: SendMessageRequest,
 ): Promise<SendMessageResponse> {
-	const baseURL = API_BASE_URL;
-	const url = new URL(`${baseURL}/api/ai/chat/message`);
+	const url = new URL(`${BASE_URL}/api/ai/chat/message`);
 	url.searchParams.set('case_id', caseId);
 
 	const response = await apiFetch(url.toString(), {
@@ -1455,8 +1437,7 @@ export async function sendChatMessage(
 export async function getChatConversation(
 	conversationId: string,
 ): Promise<GetConversationResponse> {
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`);
+	const response = await apiFetch(`${BASE_URL}/api/ai/chat/conversations/${conversationId}`);
 
 	if (!response.ok) {
 		throw new Error(`Failed to get conversation: ${response.status}`);
@@ -1471,8 +1452,7 @@ export async function getChatConversation(
 export async function listChatConversations(
 	caseId: string,
 ): Promise<ListConversationsResponse> {
-	const baseURL = API_BASE_URL;
-	const url = new URL(`${baseURL}/api/ai/chat/conversations`);
+	const url = new URL(`${BASE_URL}/api/ai/chat/conversations`);
 	url.searchParams.set('case_id', caseId);
 
 	const response = await apiFetch(url.toString());
@@ -1488,8 +1468,7 @@ export async function listChatConversations(
  * Delete a conversation
  */
 export async function deleteChatConversation(conversationId: string): Promise<void> {
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/ai/chat/conversations/${conversationId}`, {
+	const response = await apiFetch(`${BASE_URL}/api/ai/chat/conversations/${conversationId}`, {
 		method: 'DELETE',
 	});
 
@@ -1526,8 +1505,7 @@ export async function fetchDocuments(params?: FetchDocumentsParams): Promise<Doc
 		};
 	}
 
-	const baseURL = API_BASE_URL;
-	const url = new URL(`${baseURL}/api/documents`);
+	const url = new URL(`${BASE_URL}/documents`);
 
 	if (params?.case_id) url.searchParams.set('case_id', params.case_id);
 	if (params?.type) url.searchParams.set('type', params.type);
@@ -1552,8 +1530,7 @@ export async function createDocument(request: CreateDocumentRequest): Promise<Do
 		return { success: true, data: { id: `mock-${Date.now()}` } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents`, {
+	const response = await apiFetch(`${BASE_URL}/documents`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -1574,8 +1551,7 @@ export async function fetchDocument(id: string, type: string): Promise<DocumentA
 		return { success: true, data: { id, type } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`);
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch document: ${response.status}`);
 	}
@@ -1592,8 +1568,7 @@ export async function updateDocument(id: string, type: string, request: UpdateDo
 		return { success: true, data: { id, type } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
 	});
@@ -1614,8 +1589,7 @@ export async function deleteDocument(id: string, type: string): Promise<Document
 		return { success: true, data: { message: 'Document deleted successfully' } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`, {
 		method: 'DELETE',
 	});
 
@@ -1635,8 +1609,7 @@ export async function sendDocument(id: string, type: string, request: SendDocume
 		return { success: true, data: { message: 'Document sent successfully' } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/send`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/send`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -1657,8 +1630,7 @@ export async function signDocument(id: string, type: string, request: SignDocume
 		return { success: true, data: { id, type } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/sign`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
@@ -1679,8 +1651,7 @@ export async function archiveDocument(id: string, type: string): Promise<Documen
 		return { success: true, data: { message: 'Document archived successfully' } };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/${id}/${type}/archive`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/archive`, {
 		method: 'POST',
 	});
 
@@ -1706,8 +1677,7 @@ export async function fetchDocumentHistory(id: string, type: string, page: numbe
 		};
 	}
 
-	const baseURL = API_BASE_URL;
-	const url = new URL(`${baseURL}/api/documents/${id}/${type}/history`);
+	const url = new URL(`${BASE_URL}/documents/${id}/${type}/history`);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
 
@@ -1728,8 +1698,7 @@ export async function fetchDocumentWorkflow(caseId: string): Promise<DocumentWor
 		return { success: true, data: [] };
 	}
 
-	const baseURL = API_BASE_URL;
-	const response = await apiFetch(`${baseURL}/api/documents/workflow/${caseId}`);
+	const response = await apiFetch(`${BASE_URL}/cases/${caseId}/document-workflow`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch document workflow: ${response.status}`);
 	}
