@@ -448,13 +448,17 @@ func (h *handler) GetDocumentWorkflow(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	documents, err := h.service.GetDocumentWorkflow(r.Context(), caseID)
+	workflow, err := h.service.GetDocumentWorkflow(r.Context(), caseID)
 	if err != nil {
+		if err.Error() == "case not found" {
+			h.writeError(w, http.StatusNotFound, "Case not found")
+			return
+		}
 		h.writeError(w, http.StatusInternalServerError, "Failed to get document workflow")
 		return
 	}
 
-	h.writeSuccess(w, documents)
+	h.writeSuccess(w, workflow)
 }
 
 // Custom error type for validation errors

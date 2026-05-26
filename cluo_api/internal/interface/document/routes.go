@@ -20,7 +20,7 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("POST /documents/{id}/{type}/sign", RequireAdministrator(mw.EnableCORS(h.SignDocument)))
 	router.HandleFunc("POST /documents/{id}/{type}/archive", RequireAdministrator(mw.EnableCORS(h.ArchiveDocument)))
 	router.HandleFunc("GET /documents/{id}/{type}/history", RequireAdministrator(mw.EnableCORS(h.GetDocumentHistory)))
-	router.HandleFunc("GET /documents/workflow/{caseId}", RequireAdministrator(mw.EnableCORS(h.GetDocumentWorkflow)))
+	router.HandleFunc("GET /cases/{caseId}/document-workflow", RequireAdministrator(mw.EnableCORS(h.GetDocumentWorkflow)))
 
 	// Generic document lifecycle action routes (type inferred from stored document)
 	router.HandleFunc("POST /documents/{id}/accept", RequireAdministrator(mw.EnableCORS(h.AcceptDocument)))
