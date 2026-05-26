@@ -62,6 +62,13 @@ func (h *handler) writeSuccess(w http.ResponseWriter, data any) {
 	})
 }
 
+func (h *handler) writeCreated(w http.ResponseWriter, data any) {
+	h.writeJSON(w, http.StatusCreated, DocumentResponse{
+		Success: true,
+		Data:    data,
+	})
+}
+
 func (h *handler) getPaginationFromRequest(r *http.Request) (document.Pagination, error) {
 	pageStr := r.URL.Query().Get("page")
 	perPageStr := r.URL.Query().Get("per_page")
@@ -131,14 +138,21 @@ func (h *handler) getDocumentFilterFromRequest(r *http.Request) document.Documen
 // Generic document handlers
 
 func (h *handler) CreateDocument(w http.ResponseWriter, r *http.Request) {
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
 	var req document.CreateDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// TODO: Validate request
-	// TODO: Get user ID from context
+	if err := req.Valid(r.Context()); err != nil {
+		h.writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
 
 	doc, err := h.service.CreateDocument(r.Context(), &req)
 	if err != nil {
@@ -184,14 +198,21 @@ func (h *handler) UpdateDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
 	var req document.UpdateDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// TODO: Validate request
-	// TODO: Get user ID from context
+	if err := req.Valid(r.Context()); err != nil {
+		h.writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
 
 	doc, err := h.service.UpdateDocument(r.Context(), documentID, &req)
 	if err != nil {
@@ -265,14 +286,21 @@ func (h *handler) SendDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
 	var req document.SendDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// TODO: Validate request
-	// TODO: Get user ID from context
+	if err := req.Valid(r.Context()); err != nil {
+		h.writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
 
 	err := h.service.SendDocument(r.Context(), documentID, document.DocumentType(docType), &req)
 	if err != nil {
@@ -296,14 +324,21 @@ func (h *handler) SignDocument(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
 	var req document.SignDocumentRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		h.writeError(w, http.StatusBadRequest, "Invalid request body")
 		return
 	}
 
-	// TODO: Validate request
-	// TODO: Get user ID from context
+	if err := req.Valid(r.Context()); err != nil {
+		h.writeError(w, http.StatusUnprocessableEntity, err.Error())
+		return
+	}
 
 	err := h.service.SignDocument(r.Context(), documentID, document.DocumentType(docType), &req)
 	if err != nil {
@@ -390,6 +425,11 @@ func (h *handler) GetDocumentWorkflow(w http.ResponseWriter, r *http.Request) {
 	caseID := r.PathValue("caseId")
 	if caseID == "" {
 		h.writeError(w, http.StatusBadRequest, "Case ID is required")
+		return
+	}
+
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
 		return
 	}
 
