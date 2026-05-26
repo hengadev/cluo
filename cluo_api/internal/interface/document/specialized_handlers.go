@@ -139,6 +139,10 @@ func (h *handler) AcceptEstimate(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Estimate not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		if _, ok := err.(*ValidationError); ok {
 			h.writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -329,6 +333,10 @@ func (h *handler) ActivateMandate(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Mandate not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		if _, ok := err.(*ValidationError); ok {
 			h.writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -517,6 +525,10 @@ func (h *handler) ActivateContract(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Contract not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		if _, ok := err.(*ValidationError); ok {
 			h.writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -667,6 +679,10 @@ func (h *handler) ProcessPayment(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Invoice not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		if _, ok := err.(*ValidationError); ok {
 			h.writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -694,6 +710,10 @@ func (h *handler) VoidInvoice(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err.Error() == "invoice not found" {
 			h.writeError(w, http.StatusNotFound, "Invoice not found")
+			return
+		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
 			return
 		}
 		if _, ok := err.(*ValidationError); ok {

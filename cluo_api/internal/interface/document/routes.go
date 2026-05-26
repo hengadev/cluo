@@ -22,6 +22,12 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /documents/{id}/{type}/history", RequireAdministrator(mw.EnableCORS(h.GetDocumentHistory)))
 	router.HandleFunc("GET /documents/workflow/{caseId}", RequireAdministrator(mw.EnableCORS(h.GetDocumentWorkflow)))
 
+	// Generic document lifecycle action routes (type inferred from stored document)
+	router.HandleFunc("POST /documents/{id}/accept", RequireAdministrator(mw.EnableCORS(h.AcceptDocument)))
+	router.HandleFunc("POST /documents/{id}/activate", RequireAdministrator(mw.EnableCORS(h.ActivateDocument)))
+	router.HandleFunc("POST /documents/{id}/pay", RequireAdministrator(mw.EnableCORS(h.PayDocument)))
+	router.HandleFunc("POST /documents/{id}/void", RequireAdministrator(mw.EnableCORS(h.VoidDocument)))
+
 	// Estimate-specific routes
 	router.HandleFunc("POST /estimates", RequireAdministrator(mw.EnableCORS(h.CreateEstimate)))
 	router.HandleFunc("PATCH /estimates/{id}", RequireAdministrator(mw.EnableCORS(h.UpdateEstimate)))

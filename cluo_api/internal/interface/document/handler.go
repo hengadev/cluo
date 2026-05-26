@@ -2,11 +2,14 @@ package document
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
 
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/common/middleware/auth"
 	"github.com/hengadev/cluo_api/internal/domain/document"
 	"github.com/hengadev/cluo_api/internal/ports"
@@ -308,6 +311,10 @@ func (h *handler) SendDocument(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Document not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		h.writeError(w, http.StatusInternalServerError, "Failed to send document")
 		return
 	}
@@ -346,6 +353,10 @@ func (h *handler) SignDocument(w http.ResponseWriter, r *http.Request) {
 			h.writeError(w, http.StatusNotFound, "Document not found")
 			return
 		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
 		if _, ok := err.(*ValidationError); ok {
 			h.writeError(w, http.StatusBadRequest, err.Error())
 			return
@@ -370,6 +381,10 @@ func (h *handler) ArchiveDocument(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		if err.Error() == "document not found" {
 			h.writeError(w, http.StatusNotFound, "Document not found")
+			return
+		}
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
 			return
 		}
 		h.writeError(w, http.StatusInternalServerError, "Failed to archive document")
@@ -449,4 +464,216 @@ type ValidationError struct {
 
 func (e *ValidationError) Error() string {
 	return e.Message
+}
+
+// isConflictError returns true if the error wraps errs.ErrConflict.
+func isConflictError(err error) bool {
+	return errors.Is(err, errs.ErrConflict)
+}
+
+// ---------------------------------------------------------------------------
+// Generic lifecycle action handlers (type inferred from stored document)
+// ---------------------------------------------------------------------------
+
+// acceptRequest is the body for POST /documents/{id}/accept (empty for now).
+type acceptRequest struct{}
+
+func (h *handler) AcceptDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	if documentID == "" {
+		h.writeError(w, http.StatusBadRequest, "Document ID is required")
+		return
+	}
+
+	userID, err := h.getUserID(r)
+	if err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	// Resolve document to determine its type
+	result, err := h.resolveDocument(r, documentID)
+	if err != nil {
+		h.writeError(w, http.StatusNotFound, "Document not found")
+		return
+	}
+
+	switch result.docType {
+	case document.DocumentTypeEstimate:
+		mandate, err := h.service.AcceptEstimate(r.Context(), documentID, userID.String())
+		if err != nil {
+			if isConflictError(err) {
+				h.writeError(w, http.StatusConflict, err.Error())
+				return
+			}
+			h.writeError(w, http.StatusInternalServerError, "Failed to accept estimate")
+			return
+		}
+		h.writeSuccess(w, mandate)
+	default:
+		h.writeError(w, http.StatusBadRequest, fmt.Sprintf("accept is not supported for document type %s", result.docType))
+	}
+}
+
+func (h *handler) ActivateDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	if documentID == "" {
+		h.writeError(w, http.StatusBadRequest, "Document ID is required")
+		return
+	}
+
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	result, err := h.resolveDocument(r, documentID)
+	if err != nil {
+		h.writeError(w, http.StatusNotFound, "Document not found")
+		return
+	}
+
+	switch result.docType {
+	case document.DocumentTypeMandate:
+		mandate, err := h.service.ActivateMandate(r.Context(), documentID)
+		if err != nil {
+			if isConflictError(err) {
+				h.writeError(w, http.StatusConflict, err.Error())
+				return
+			}
+			h.writeError(w, http.StatusInternalServerError, "Failed to activate mandate")
+			return
+		}
+		h.writeSuccess(w, mandate)
+	case document.DocumentTypeContract:
+		contract, err := h.service.ActivateContract(r.Context(), documentID)
+		if err != nil {
+			if isConflictError(err) {
+				h.writeError(w, http.StatusConflict, err.Error())
+				return
+			}
+			h.writeError(w, http.StatusInternalServerError, "Failed to activate contract")
+			return
+		}
+		h.writeSuccess(w, contract)
+	default:
+		h.writeError(w, http.StatusBadRequest, fmt.Sprintf("activate is not supported for document type %s", result.docType))
+	}
+}
+
+type payRequest struct {
+	Amount float64 `json:"amount"`
+	Method string  `json:"method"`
+}
+
+func (h *handler) PayDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	if documentID == "" {
+		h.writeError(w, http.StatusBadRequest, "Document ID is required")
+		return
+	}
+
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	var req payRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		h.writeError(w, http.StatusBadRequest, "Invalid request body")
+		return
+	}
+	if req.Amount <= 0 {
+		h.writeError(w, http.StatusBadRequest, "amount must be greater than 0")
+		return
+	}
+	if req.Method == "" {
+		h.writeError(w, http.StatusBadRequest, "method is required")
+		return
+	}
+
+	result, err := h.resolveDocument(r, documentID)
+	if err != nil {
+		h.writeError(w, http.StatusNotFound, "Document not found")
+		return
+	}
+
+	if result.docType != document.DocumentTypeInvoice {
+		h.writeError(w, http.StatusBadRequest, fmt.Sprintf("pay is not supported for document type %s", result.docType))
+		return
+	}
+
+	paymentReq := &document.PaymentRequest{
+		Amount:        req.Amount,
+		PaymentMethod: req.Method,
+	}
+
+	invoice, err := h.service.ProcessPayment(r.Context(), documentID, paymentReq)
+	if err != nil {
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
+		h.writeError(w, http.StatusInternalServerError, "Failed to process payment")
+		return
+	}
+
+	h.writeSuccess(w, invoice)
+}
+
+func (h *handler) VoidDocument(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	if documentID == "" {
+		h.writeError(w, http.StatusBadRequest, "Document ID is required")
+		return
+	}
+
+	if _, err := h.getUserID(r); err != nil {
+		h.writeError(w, http.StatusUnauthorized, "Authentication required")
+		return
+	}
+
+	result, err := h.resolveDocument(r, documentID)
+	if err != nil {
+		h.writeError(w, http.StatusNotFound, "Document not found")
+		return
+	}
+
+	if result.docType != document.DocumentTypeInvoice {
+		h.writeError(w, http.StatusBadRequest, fmt.Sprintf("void is not supported for document type %s", result.docType))
+		return
+	}
+
+	invoice, err := h.service.VoidInvoice(r.Context(), documentID)
+	if err != nil {
+		if isConflictError(err) {
+			h.writeError(w, http.StatusConflict, err.Error())
+			return
+		}
+		h.writeError(w, http.StatusInternalServerError, "Failed to void invoice")
+		return
+	}
+
+	h.writeSuccess(w, invoice)
+}
+
+// resolvedDoc holds a document lookup result with its type.
+type resolvedDoc struct {
+	docType document.DocumentType
+}
+
+// resolveDocument attempts to find a document by trying all known types.
+func (h *handler) resolveDocument(r *http.Request, id string) (*resolvedDoc, error) {
+	for _, dt := range []document.DocumentType{
+		document.DocumentTypeEstimate,
+		document.DocumentTypeMandate,
+		document.DocumentTypeContract,
+		document.DocumentTypeInvoice,
+	} {
+		_, err := h.service.GetDocument(r.Context(), id, dt)
+		if err == nil {
+			return &resolvedDoc{docType: dt}, nil
+		}
+	}
+	return nil, fmt.Errorf("document %s not found", id)
 }
