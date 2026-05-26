@@ -16,6 +16,7 @@ type Config struct {
 	Redis         RedisConfig
 	Vault         VaultConfig
 	S3            S3Config
+	SMTP          SMTPConfig
 	Observability ObservabilityConfig
 	AI            AIConfig
 }
@@ -61,6 +62,8 @@ func Load() (*Config, error) {
 	if err != nil {
 		return nil, fmt.Errorf("s3 config: %w", err)
 	}
+
+	cfg.SMTP = loadSMTPConfig()
 
 	cfg.Observability, err = loadObservabilityConfig(cfg.Environment)
 	if err != nil {
