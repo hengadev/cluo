@@ -3,6 +3,7 @@ package document
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"testing"
 	"time"
 
@@ -218,6 +219,11 @@ func (m *mockClientRepo) GetAllClients(_ context.Context) ([]*client.ClientEncx,
 
 func stringPtr(s string) *string { return &s }
 
+// noOpEmailSvc is a test double for ports.EmailService.
+type noOpEmailSvc struct{}
+
+func (noOpEmailSvc) Send(_ context.Context, _, _, _ string) error { return nil }
+
 // ---------------------------------------------------------------------------
 // Tests
 // TODO: These tests need a test crypto service (encx.NewTestCrypto) wired in
@@ -229,7 +235,7 @@ func TestEstimateCreationAndAcceptance(t *testing.T) {
 
 	ctx := context.Background()
 	repo := newMockDocumentRepo()
-	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil)
+	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil, noOpEmailSvc{}, slog.Default())
 
 	caseID := uuid.New()
 	clientID := uuid.New()
@@ -268,7 +274,7 @@ func TestMandateSigningFlow(t *testing.T) {
 
 	ctx := context.Background()
 	repo := newMockDocumentRepo()
-	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil)
+	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil, noOpEmailSvc{}, slog.Default())
 
 	caseID := uuid.New()
 	clientID := uuid.New()
@@ -313,7 +319,7 @@ func TestContractCreationFromMandate(t *testing.T) {
 
 	ctx := context.Background()
 	repo := newMockDocumentRepo()
-	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil)
+	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil, noOpEmailSvc{}, slog.Default())
 
 	caseID := uuid.New()
 	clientID := uuid.New()
@@ -356,7 +362,7 @@ func TestInvoiceCreationFromContract(t *testing.T) {
 
 	ctx := context.Background()
 	repo := newMockDocumentRepo()
-	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil)
+	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil, noOpEmailSvc{}, slog.Default())
 
 	caseID := uuid.New()
 	clientID := uuid.New()
@@ -397,7 +403,7 @@ func TestCompleteDocumentWorkflow(t *testing.T) {
 
 	ctx := context.Background()
 	repo := newMockDocumentRepo()
-	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil)
+	svc := document.New(repo, &mockVersionRepo{}, &mockCaseRepo{}, &mockClientRepo{}, nil, noOpEmailSvc{}, slog.Default())
 
 	caseID := uuid.New()
 	clientID := uuid.New()

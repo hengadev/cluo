@@ -28,6 +28,7 @@ import (
 	tokenRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/token"
 	documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
 	tokenHandler "github.com/hengadev/cluo_api/internal/interface/token"
+	clientRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/client"
 	migrations "github.com/hengadev/cluo_api/internal/migrations"
 	ports "github.com/hengadev/cluo_api/internal/ports"
 
@@ -134,8 +135,10 @@ func TestMain(m *testing.M) {
 	rapportRepo = rapportRepository.New(ctx, testPool)
 	mediaRepo := mediaRepository.New(ctx, testPool)
 	documentRepo := documentRepository.New(testPool)
+	clientRepo := clientRepository.New(ctx, testPool)
 
-	tokenSvc := tokenService.New(tokenRepo, caseRepo, mediaRepo, crypto)
+	noOpEmail := &noOpEmailSvc{}
+	tokenSvc := tokenService.New(tokenRepo, caseRepo, mediaRepo, clientRepo, crypto, noOpEmail, "", slog.Default())
 	rapportSvc := rapportService.New(rapportRepo, caseRepo, crypto)
 	caseSvc := investigationService.New(caseRepo, nil, nil, rapportRepo, tokenSvc, crypto)
 
@@ -179,3 +182,8 @@ func TestMain(m *testing.M) {
 
 	os.Exit(code)
 }
+
+// noOpEmailSvc is a test double for ports.EmailService.
+type noOpEmailSvc struct{}
+
+func (noOpEmailSvc) Send(_ context.Context, _, _, _ string) error { return nil }
