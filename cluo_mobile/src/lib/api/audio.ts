@@ -12,6 +12,8 @@ import type {
 } from "../schemas/recording";
 import type {
 	ConfirmTranscriptRequest,
+	ProcessingStep,
+	RecordingStatusResponse as RecordingStatusInterface,
 } from "../types/recording";
 
 /**
@@ -83,14 +85,29 @@ export async function uploadRecording(
 
 /**
  * Get the current processing status of a recording.
+ * Fetches GET /media/{id} from the Go API and maps the media state to processing steps.
  *
  * @param id - The recording ID
  * @returns Recording status with processing steps
  */
 export async function getRecordingStatus(
 	id: string,
-): Promise<RecordingStatusResponse> {
-	return apiFetch<RecordingStatusResponse>(`/api/recordings/${id}/status`);
+): Promise<RecordingStatusInterface> {
+	const media = await apiFetch<{ url: string; isPublished: boolean }>(`/media/${id}`);
+	const isComplete = !!(media.isPublished && media.url);
+
+	const steps: ProcessingStep[] = [
+		{ title: "Téléchargement audio", status: "completed" },
+		{ title: "Traitement de la transcription", status: isComplete ? "completed" : "processing" },
+		{ title: "Génération du résumé", status: isComplete ? "completed" : "processing" },
+		{ title: "Terminé", status: isComplete ? "completed" : "processing" },
+	];
+
+	return {
+		id,
+		status: isComplete ? "completed" : "transcribing",
+		processingSteps: steps,
+	};
 }
 
 /**
