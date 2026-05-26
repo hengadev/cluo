@@ -177,9 +177,12 @@ func (m *mockDocumentService) GetOverdueInvoices(ctx context.Context, p document
 	args := m.Called(ctx, p)
 	return args.Get(0).([]*document.Invoice), args.Int(1), args.Error(2)
 }
-func (m *mockDocumentService) GetDocumentWorkflow(ctx context.Context, caseID string) ([]document.DocumentSummary, error) {
+func (m *mockDocumentService) GetDocumentWorkflow(ctx context.Context, caseID string) (*document.DocumentWorkflowResponse, error) {
 	args := m.Called(ctx, caseID)
-	return args.Get(0).([]document.DocumentSummary), args.Error(1)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).(*document.DocumentWorkflowResponse), args.Error(1)
 }
 func (m *mockDocumentService) ValidateDocumentTransitions(ctx context.Context, id string, dt document.DocumentType, s document.DocumentStatus) error {
 	args := m.Called(ctx, id, dt, s)

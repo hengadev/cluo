@@ -145,6 +145,9 @@ func (m *mockDocumentRepo) DeleteInvoice(_ context.Context, id string) error {
 func (m *mockDocumentRepo) ListInvoicesByCase(_ context.Context, _ string, _ domain.Pagination) ([]*domain.InvoiceEncx, int, error) {
 	return nil, 0, nil
 }
+func (m *mockDocumentRepo) ListOverdueInvoices(_ context.Context, _ domain.Pagination) ([]*domain.InvoiceEncx, int, error) {
+	return nil, 0, nil
+}
 
 type mockVersionRepo struct{}
 
@@ -469,8 +472,13 @@ func TestCompleteDocumentWorkflow(t *testing.T) {
 
 	workflow, err := svc.GetDocumentWorkflow(ctx, caseID.String())
 	require.NoError(t, err)
-	assert.Len(t, workflow, 4)
-	t.Logf("✅ Step 9: Retrieved workflow summary - %d documents", len(workflow))
+	require.NotNil(t, workflow)
+	assert.NotNil(t, workflow.Estimate)
+	assert.NotNil(t, workflow.Mandate)
+	assert.NotNil(t, workflow.Contract)
+	assert.NotNil(t, workflow.Invoice)
+	t.Logf("✅ Step 9: Retrieved workflow summary - estimate=%v mandate=%v contract=%v invoice=%v",
+		workflow.Estimate != nil, workflow.Mandate != nil, workflow.Contract != nil, workflow.Invoice != nil)
 
 	t.Log("🎉 Complete document workflow test passed successfully!")
 }
