@@ -65,6 +65,9 @@ type Container struct {
 	// Auth
 	sessionRepo    *session.RedisSessionRepository
 	authMiddleware auth.AuthMiddleware
+
+	// Email
+	emailService ports.EmailService
 }
 
 // New creates a new dependency injection container.
@@ -250,6 +253,11 @@ func (c *Container) TypedDocumentRepository() ports.DocumentRepository {
 // StorageService returns the storage service.
 func (c *Container) StorageService() ports.StorageService {
 	return c.storage
+}
+
+// EmailService returns the email service.
+func (c *Container) EmailService() ports.EmailService {
+	return c.emailService
 }
 
 // StartBackgroundWorkers starts all background workers.

@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/vault/api"
 	"github.com/hengadev/cluo_api/internal/common/envmode"
+	emailAdapter "github.com/hengadev/cluo_api/internal/infrastructure/email"
 	s3Storage "github.com/hengadev/cluo_api/internal/infrastructure/s3"
 	"github.com/hengadev/encx"
 	hashicorpkeys "github.com/hengadev/encx/providers/keys/hashicorp"
@@ -54,6 +55,9 @@ func (c *Container) initInfrastructure(ctx context.Context) error {
 		}
 		c.logger.WarnContext(ctx, "S3 storage initialization skipped in development mode", "error", err)
 	}
+
+	// Initialize email service
+	c.initEmail(ctx)
 
 	return nil
 }
@@ -279,4 +283,17 @@ func (c *Container) initStorage(ctx context.Context) error {
 	)
 
 	return nil
+}
+
+func (c *Container) initEmail(ctx context.Context) {
+	if c.config.SMTP.IsConfigured() {
+		c.emailService = emailAdapter.NewSMTPAdapter(c.config.SMTP, c.logger)
+		c.logger.InfoContext(ctx, "SMTP email service initialized",
+			"host", c.config.SMTP.Host,
+			"from", c.config.SMTP.From,
+		)
+	} else {
+		c.emailService = emailAdapter.NewNoOpAdapter(c.logger)
+		c.logger.WarnContext(ctx, "SMTP not configured; email notifications are disabled. Set SMTP_HOST and SMTP_FROM to enable.")
+	}
 }

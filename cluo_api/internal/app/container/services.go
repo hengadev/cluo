@@ -13,8 +13,7 @@ import (
 	pieceService "github.com/hengadev/cluo_api/internal/application/piece"
 	rapportService "github.com/hengadev/cluo_api/internal/application/rapport"
 	tokenService "github.com/hengadev/cluo_api/internal/application/token"
-	// NOTE: documentService is excluded due to existing compilation errors in the domain layer
-	// documentService "github.com/hengadev/cluo_api/internal/application/document"
+	documentService "github.com/hengadev/cluo_api/internal/application/document"
 )
 
 func (c *Container) initServices(ctx context.Context) error {
@@ -32,7 +31,7 @@ func (c *Container) initServices(ctx context.Context) error {
 
 	// Initialize token service early so caseService can depend on it.
 	if c.tokenRepo != nil && c.mediaRepo != nil {
-		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.crypto)
+		c.tokenService = tokenService.New(c.tokenRepo, c.caseRepo, c.mediaRepo, c.clientRepo, c.crypto, c.emailService, c.config.SMTP.PortalPublicURL, c.logger)
 		c.logger.InfoContext(ctx, "Token service initialized")
 	}
 
@@ -50,18 +49,18 @@ func (c *Container) initServices(ctx context.Context) error {
 		c.logger.InfoContext(ctx, "Auth service initialized")
 	}
 
-	// NOTE: Document service initialization is commented out due to existing compilation errors
-	// in the domain layer. Uncomment when the document domain is fixed.
-	// if c.documentRepo != nil && c.documentVersionRepo != nil {
-	// 	c.documentService = documentService.New(
-	// 		c.documentRepo,
-	// 		c.documentVersionRepo,
-	// 		c.caseRepo,
-	// 		c.clientRepo,
-	// 		c.crypto,
-	// 	)
-	// 	c.logger.InfoContext(ctx, "Document service initialized")
-	// }
+	if c.documentRepo != nil && c.documentVersionRepo != nil {
+		c.documentService = documentService.New(
+			c.documentRepo,
+			c.documentVersionRepo,
+			c.caseRepo,
+			c.clientRepo,
+			c.crypto,
+			c.emailService,
+			c.logger,
+		)
+		c.logger.InfoContext(ctx, "Document service initialized")
+	}
 
 	// Initialize media service (if storage is available)
 	if c.mediaRepo != nil && c.storage != nil {
