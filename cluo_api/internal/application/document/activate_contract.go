@@ -2,6 +2,7 @@ package document
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -21,17 +22,23 @@ func (s *Service) ActivateContract(ctx context.Context, contractID string) (*doc
 		return nil, errs.NewNotDecryptedErr("contract", err)
 	}
 
-	// Check if contract can be activated
+	// State machine: only signed contracts can be activated
+	if err := s.validateDocumentTransition(contract, document.DocumentStatusActive); err != nil {
+		return nil, err
+	}
+
 	if len(contract.Signatures) == 0 {
-		return nil, errs.NewInvalidValueErr("contract must have at least one signature to be activated")
+		return nil, errs.NewConflictErr(fmt.Errorf("contract must have at least one signature to be activated"))
 	}
 
 	if contract.IsExpired() {
-		return nil, errs.NewInvalidValueErr("cannot activate expired contract")
+		return nil, errs.NewConflictErr(fmt.Errorf("cannot activate expired contract"))
 	}
 
 	// Activate contract
-	contract.Activate()
+	if err := contract.Activate(); err != nil {
+		return nil, errs.NewConflictErr(err)
+	}
 
 	// Encrypt updated contract
 	updatedContractEncx, err := document.ProcessContractEncx(ctx, s.crypto, contract)

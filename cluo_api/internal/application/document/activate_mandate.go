@@ -2,6 +2,7 @@ package document
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -21,17 +22,23 @@ func (s *Service) ActivateMandate(ctx context.Context, mandateID string) (*docum
 		return nil, errs.NewNotDecryptedErr("mandate", err)
 	}
 
-	// Check if mandate can be activated
+	// State machine: only signed mandates can be activated
+	if err := s.validateDocumentTransition(mandate, document.DocumentStatusActive); err != nil {
+		return nil, err
+	}
+
 	if mandate.ClientSignature == nil {
-		return nil, errs.NewInvalidValueErr("mandate must have client signature to be activated")
+		return nil, errs.NewConflictErr(fmt.Errorf("mandate must have client signature to be activated"))
 	}
 
 	if mandate.IsExpired() {
-		return nil, errs.NewInvalidValueErr("cannot activate expired mandate")
+		return nil, errs.NewConflictErr(fmt.Errorf("cannot activate expired mandate"))
 	}
 
 	// Activate mandate
-	mandate.Activate()
+	if err := mandate.Activate(); err != nil {
+		return nil, errs.NewConflictErr(err)
+	}
 
 	// Encrypt updated mandate
 	updatedMandateEncx, err := document.ProcessMandateEncx(ctx, s.crypto, mandate)

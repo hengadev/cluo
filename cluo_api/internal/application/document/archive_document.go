@@ -2,6 +2,7 @@ package document
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -17,12 +18,12 @@ func (s *Service) ArchiveDocument(ctx context.Context, id string, docType docume
 
 	// Check if document can be archived
 	if doc.GetStatus() == document.DocumentStatusArchived {
-		return errs.NewInvalidValueErr("document is already archived")
+		return errs.NewConflictErr(fmt.Errorf("document is already archived"))
 	}
 
 	// Validate transition to archived
 	if err := s.validateDocumentTransition(doc, document.DocumentStatusArchived); err != nil {
-		return errs.NewInvalidValueErr(err.Error())
+		return err
 	}
 
 	// Update status

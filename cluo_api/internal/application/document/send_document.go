@@ -20,9 +20,9 @@ func (s *Service) SendDocument(ctx context.Context, id string, docType document.
 		return errs.NewNotFoundErr(err, "document")
 	}
 
-	// Check if document can be sent
-	if doc.GetStatus() != document.DocumentStatusDraft {
-		return errs.NewInvalidValueErr("only draft documents can be sent")
+	// State machine enforcement: only draft documents can be sent
+	if err := s.validateDocumentTransition(doc, document.DocumentStatusSent); err != nil {
+		return err
 	}
 
 	// TODO: Implement actual sending logic:

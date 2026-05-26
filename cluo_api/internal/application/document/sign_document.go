@@ -2,6 +2,7 @@ package document
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -23,7 +24,11 @@ func (s *Service) SignDocument(ctx context.Context, id string, docType document.
 		return errs.NewNotFoundErr(err, "document")
 	}
 
-	// Create signature
+	// State machine enforcement: document must be in a state that allows signing
+	currentStatus := doc.GetStatus()
+	if currentStatus == document.DocumentStatusArchived || currentStatus == document.DocumentStatusCancelled {
+		return errs.NewConflictErr(fmt.Errorf("cannot sign document in %s status", currentStatus))
+	}
 	signature := document.Signature{
 		ID:        uuid.New(),
 		Name:      req.SignerName,

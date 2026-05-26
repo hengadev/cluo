@@ -8,6 +8,8 @@ import (
 
 	"github.com/google/uuid"
 
+	"github.com/hengadev/cluo_api/internal/common/auth/session"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
@@ -52,7 +54,7 @@ func (s *Service) validateDocumentTransition(doc document.Documentable, newStatu
 	currentStatus := doc.GetStatus()
 
 	if !currentStatus.CanTransitionTo(newStatus) {
-		return fmt.Errorf("cannot transition from %s to %s", currentStatus, newStatus)
+		return errs.NewConflictErr(fmt.Errorf("cannot transition document from %s to %s", currentStatus, newStatus))
 	}
 
 	// Document-specific validation
@@ -60,9 +62,6 @@ func (s *Service) validateDocumentTransition(doc document.Documentable, newStatu
 	case *document.Estimate:
 		if newStatus == document.DocumentStatusActive && !d.Accepted {
 			return fmt.Errorf("estimate must be accepted before becoming active")
-		}
-		if newStatus == document.DocumentStatusSigned && !d.Accepted {
-			return fmt.Errorf("estimate must be accepted before being signed")
 		}
 
 	case *document.Mandate:
@@ -95,11 +94,11 @@ func stringPtr(s string) *string {
 	return &s
 }
 
-// getUserIDFromContext extracts user ID from context.
-// TODO: Implement proper context-based user extraction
+// getUserIDFromContext extracts the authenticated user's UUID from the session stored in context.
 func (s *Service) getUserIDFromContext(ctx context.Context) uuid.UUID {
-	// This is a placeholder implementation
-	// In a real application, you would extract the user ID from the context
-	// that was set by authentication middleware
-	return uuid.New()
+	info, ok := session.SessionInfoFromContext(ctx)
+	if !ok || info == nil {
+		return uuid.Nil
+	}
+	return info.UserID
 }

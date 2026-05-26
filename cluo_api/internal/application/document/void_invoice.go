@@ -2,7 +2,7 @@ package document
 
 import (
 	"context"
-	"time"
+	"fmt"
 
 	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/document"
@@ -22,18 +22,27 @@ func (s *Service) VoidInvoice(ctx context.Context, invoiceID string) (*document.
 		return nil, errs.NewNotDecryptedErr("invoice", err)
 	}
 
-	// Check if invoice can be voided
+	// State machine enforcement: must be able to transition to cancelled
+	if err := s.validateDocumentTransition(invoice, document.DocumentStatusCancelled); err != nil {
+		return nil, err
+	}
+
 	if invoice.PaymentStatus == document.PaymentStatusPaid {
-		return nil, errs.NewInvalidValueErr("cannot void paid invoice")
+		return nil, errs.NewConflictErr(fmt.Errorf("cannot void paid invoice"))
+	}
+
+	if invoice.PaymentStatus == document.PaymentStatusRefunded {
+		return nil, errs.NewConflictErr(fmt.Errorf("cannot void refunded invoice"))
 	}
 
 	if invoice.PaymentStatus == document.PaymentStatusVoid {
-		return nil, errs.NewInvalidValueErr("invoice already voided")
+		return nil, errs.NewConflictErr(fmt.Errorf("invoice already voided"))
 	}
 
 	// Void invoice
-	invoice.Void()
-	invoice.UpdatedAt = time.Now()
+	if err := invoice.Void(); err != nil {
+		return nil, errs.NewConflictErr(err)
+	}
 
 	// Encrypt updated invoice
 	updatedInvoiceEncx, err := document.ProcessInvoiceEncx(ctx, s.crypto, invoice)

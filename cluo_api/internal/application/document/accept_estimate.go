@@ -24,13 +24,17 @@ func (s *Service) AcceptEstimate(ctx context.Context, estimateID string, accepte
 		return nil, errs.NewNotDecryptedErr("estimate", err)
 	}
 
-	// Check if estimate can be accepted
+	// State machine: only estimates in 'sent' status can be accepted
+	if err := s.validateDocumentTransition(estimate, document.DocumentStatusSigned); err != nil {
+		return nil, err
+	}
+
 	if estimate.Accepted {
 		return nil, errs.NewConflictErr(fmt.Errorf("estimate already accepted"))
 	}
 
 	if estimate.IsExpired() {
-		return nil, errs.NewInvalidValueErr("cannot accept expired estimate")
+		return nil, errs.NewConflictErr(fmt.Errorf("cannot accept expired estimate"))
 	}
 
 	acceptedBy, err := uuid.Parse(acceptedByStr)
