@@ -43,9 +43,12 @@ func DownloadFile(ctx context.Context, url, destPath, expectedChecksum string, p
 	if err != nil {
 		return fmt.Errorf("failed to create temp file: %w", err)
 	}
+	var succeeded bool
 	defer func() {
 		file.Close()
-		os.Remove(tempPath) // Clean up on error
+		if !succeeded {
+			os.Remove(tempPath)
+		}
 	}()
 
 	total := resp.ContentLength
@@ -103,7 +106,8 @@ func DownloadFile(ctx context.Context, url, destPath, expectedChecksum string, p
 		}
 	}
 
-	// Close file before rename
+	// Close before rename — required on Windows where open files cannot be renamed.
+	// The deferred close is a harmless no-op after this.
 	file.Close()
 
 	// Move temp file to final destination
@@ -111,5 +115,6 @@ func DownloadFile(ctx context.Context, url, destPath, expectedChecksum string, p
 		return fmt.Errorf("failed to move download to destination: %w", err)
 	}
 
+	succeeded = true
 	return nil
 }
