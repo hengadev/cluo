@@ -1888,7 +1888,69 @@ export async function fetchDocumentHistory(id: string, type: string, page: numbe
 export async function fetchDocumentWorkflow(caseId: string): Promise<DocumentWorkflowResponse> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return { success: true, data: [] };
+		const summaries: DocumentSummary[] = [];
+
+		const ests = mockData.getEstimatesByCaseId(caseId);
+		if (ests.length > 0) {
+			const latest = ests[ests.length - 1];
+			summaries.push({
+				id: latest.id,
+				case_id: latest.caseId,
+				client_id: latest.clientId,
+				type: 'estimate',
+				status: latest.status as DocumentStatus,
+				document_ref: latest.estimateNumber,
+				created_at: latest.createdAt,
+				updated_at: latest.updatedAt,
+			});
+		}
+
+		const mands = mockData.getMandatesByCaseId(caseId);
+		if (mands.length > 0) {
+			const latest = mands[mands.length - 1];
+			summaries.push({
+				id: latest.id,
+				case_id: latest.caseId,
+				client_id: latest.clientId,
+				type: 'mandate',
+				status: latest.status as DocumentStatus,
+				document_ref: latest.mandateNumber,
+				created_at: latest.createdAt,
+				updated_at: latest.updatedAt,
+			});
+		}
+
+		const conts = mockData.getContractsByCaseId(caseId);
+		if (conts.length > 0) {
+			const latest = conts[conts.length - 1];
+			summaries.push({
+				id: latest.id,
+				case_id: latest.caseId,
+				client_id: latest.clientId,
+				type: 'contract',
+				status: latest.status as DocumentStatus,
+				document_ref: latest.contractNumber,
+				created_at: latest.createdAt,
+				updated_at: latest.updatedAt,
+			});
+		}
+
+		const invs = mockData.getInvoicesByCaseId(caseId);
+		if (invs.length > 0) {
+			const latest = invs[invs.length - 1];
+			summaries.push({
+				id: latest.id,
+				case_id: latest.caseId,
+				client_id: latest.clientId,
+				type: 'invoice',
+				status: latest.status as DocumentStatus,
+				document_ref: latest.invoiceNumber,
+				created_at: latest.createdAt,
+				updated_at: latest.updatedAt,
+			});
+		}
+
+		return { success: true, data: summaries };
 	}
 
 	const response = await apiFetch(`${BASE_URL}/cases/${caseId}/document-workflow`);
