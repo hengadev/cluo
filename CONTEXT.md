@@ -147,6 +147,8 @@ The client can:
 
 Token table: `id`, `case_id`, `token_hash`, `expires_at`, `revoked_at` (nullable), `created_at`. Operations: create (PI), validate (portal on every request), revoke (PI), list by case (PI).
 
+The magic link is delivered by email from the PI's own custom-domain address (e.g. `contact@agence-xxx.fr`) via SMTP. No third-party transactional email service is used — the PI operates under professional secrecy obligations that make routing client metadata through an external SaaS unacceptable. SMTP credentials are configured as env vars on the VPS.
+
 Signing of Mandate and Contract is handled out-of-band; by the time the case is `in_progress` both documents are already signed.
 
 ### `infrastructure`

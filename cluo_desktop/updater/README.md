@@ -22,7 +22,7 @@ The auto-updater works by:
 After modifying Go code, regenerate the frontend bindings:
 
 ```bash
-cd /home/henga/Documents/projects/papa/cluo_desktop
+cd cluo_desktop
 wails generate module
 ```
 
