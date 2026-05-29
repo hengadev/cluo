@@ -1,11 +1,11 @@
 .PHONY: help \
         dev dev-down dev-logs \
+        generate-signing-key \
         build-staging build-staging-api build-staging-web build-staging-mobile \
         build-prod    build-prod-api    build-prod-web    build-prod-mobile \
         push-staging  push-staging-api  push-staging-web  push-staging-mobile \
         push-prod     push-prod-api     push-prod-web     push-prod-mobile \
-        release-staging release \
-        release-desktop \
+        release-staging release release-desktop \
         restart-staging restart-staging-api restart-staging-web restart-staging-mobile \
         restart-prod    restart-prod-api    restart-prod-web    restart-prod-mobile \
         deploy-staging deploy-staging-api deploy-staging-web deploy-staging-mobile \
@@ -15,6 +15,14 @@
 DESKTOP_MANIFEST_URL := https://cluo-assets-production.s3.eu-central-1.amazonaws.com/desktop/manifest.json
 DESKTOP_S3_BUCKET    := cluo-assets-production
 RELEASE_NOTES        ?=
+
+# Signing keys for manifest verification
+# Private key file (hex-encoded Ed25519). Generate with: make generate-signing-key
+SIGNING_KEY_FILE     := $(HOME)/.config/cluo/signing-private.key
+PUBLIC_KEY_FILE      := $(HOME)/.config/cluo/signing-public.key
+# Public key is read from file for ldflags injection
+PUBLIC_KEY           := $(shell cat $(PUBLIC_KEY_FILE) 2>/dev/null || echo "")
+SIGN_MANIFEST        := cd cluo_desktop && go run ./cmd/sign-manifest
 
 REGISTRY     := henga
 API_IMAGE    := $(REGISTRY)/cluo-api
@@ -32,17 +40,29 @@ help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
 
 # =============================================================================
-# Desktop release (Windows binary → S3 → manifest.json)
-# Prerequisites: mingw-w64 (sudo apt install mingw-w64), wails CLI, AWS CLI
+# Signing key management
+# =============================================================================
+
+generate-signing-key: ## Generate Ed25519 key pair for manifest signing
+	@mkdir -p $(dir $(SIGNING_KEY_FILE))
+	$(SIGN_MANIFEST) genkey $(SIGNING_KEY_FILE) $(PUBLIC_KEY_FILE)
+	@echo ""
+	@echo "==> Add this to your build ldflags:"
+	@echo "    -X cluo_desktop/updater.PublicKey=$$(cat $(PUBLIC_KEY_FILE))"
+
+# =============================================================================
+# Desktop release (Windows binary → S3 → signed manifest.json)
+# Prerequisites: mingw-w64, wails CLI, AWS CLI, signing key
 # Usage: make release-desktop VERSION=1.2.0
 #        make release-desktop VERSION=1.2.0 RELEASE_NOTES="Fix X, add Y"
 # =============================================================================
 
 release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z required
 	@test -n "$(VERSION)" || (echo "ERROR: VERSION is required. Usage: make release-desktop VERSION=1.0.0"; exit 1)
+	@test -f $(SIGNING_KEY_FILE) || (echo "ERROR: Signing key not found. Run 'make generate-signing-key' first."; exit 1)
 	@echo "==> Building cluo_desktop v$(VERSION) for Windows (mingw cross-compile)..."
 	cd cluo_desktop && CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64 \
-		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL)"
+		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
 	@set -e; \
 	BINARY=cluo_desktop/build/bin/cluo_desktop.exe; \
 	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
@@ -52,10 +72,12 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 	aws s3 cp $$BINARY \
 		s3://$(DESKTOP_S3_BUCKET)/desktop/v$(VERSION)/cluo_desktop_windows_amd64.exe \
 		--content-type application/octet-stream; \
-	echo "==> Updating manifest.json..."; \
+	echo "==> Creating and signing manifest..."; \
 	printf '{\n  "version": "%s",\n  "release_notes": "%s",\n  "downloads": {\n    "windows_amd64": "%s"\n  },\n  "checksums": {\n    "windows_amd64": "%s"\n  }\n}\n' \
 		"$(VERSION)" "$(RELEASE_NOTES)" "$$DOWNLOAD_URL" "$$CHECKSUM" \
 		> /tmp/cluo_desktop_manifest.json; \
+	$(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE); \
+	echo "==> Uploading signed manifest to S3..."; \
 	aws s3 cp /tmp/cluo_desktop_manifest.json \
 		s3://$(DESKTOP_S3_BUCKET)/desktop/manifest.json \
 		--content-type application/json \
@@ -145,7 +167,22 @@ push-prod-mobile: ## Push cluo-mobile :latest to Docker Hub
 
 release-staging: build-staging push-staging ## Build and push all :staging images to Docker Hub
 
-release: build-prod push-prod ## Build and push all :latest images to Docker Hub
+release: ## Build, sign, and publish everything — VERSION=x.y.z required
+	@test -n "$(VERSION)" || (echo "ERROR: VERSION is required. Usage: make release VERSION=1.0.0"; exit 1)
+	@echo "==> Atomic release for v$(VERSION)"
+	@echo "==> Step 1/4: Building Docker images..."
+	$(MAKE) build-prod
+	@echo "==> Step 2/4: Pushing Docker images..."
+	$(MAKE) push-prod
+	@echo "==> Step 3/4: Building desktop binary and publishing manifest..."
+	$(MAKE) release-desktop VERSION=$(VERSION) RELEASE_NOTES="$(RELEASE_NOTES)"
+	@echo "==> Step 4/4: Complete!"
+	@echo ""
+	@echo "==> Release v$(VERSION) published:"
+	@echo "    Docker images: $(API_IMAGE):latest, $(WEB_IMAGE):latest, $(MOBILE_IMAGE):latest"
+	@echo "    Desktop manifest: $(DESKTOP_MANIFEST_URL)"
+	@echo ""
+	@echo "==> Don't forget: make deploy-prod to restart server containers"
 
 # =============================================================================
 # Restart containers on VPS
