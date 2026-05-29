@@ -7,8 +7,10 @@
         onConfirm?: () => void | Promise<void>;
         title?: string;
         description?: string;
+        confirmLabel?: string;
+        cancelLabel?: string;
     };
-    let { children, onConfirm, title, description }: Props = $props();
+    let { children, onConfirm, title, description, confirmLabel = "Confirmer", cancelLabel = "Annuler" }: Props = $props();
 
     async function handleConfirm() {
         if (onConfirm) {
@@ -34,19 +36,19 @@
                 {title || 'Êtes-vous sûr ?'}
             </Dialog.Title>
             <Dialog.Description class="text-foreground-alt !mt-2 text-sm"
-                >{description || 'Prenez un moment pour examiner les détails fournis afin de vous assurer que vous comprenez les implications.'}</Dialog
+                >{description || 'Prenez un moment pour examiner les détails fournis afin de vous assurer que vous comprenez les implications.'}</Dialog.Description
             >
             <div class="flex justify-end gap-2 !mt-6">
                 <Dialog.Close
                     class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
                 >
-                    Cancel
+                    {cancelLabel}
                 </Dialog.Close>
                 <Dialog.Close
                     onclick={handleConfirm}
                     class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
                 >
-                    Okay
+                    {confirmLabel}
                 </Dialog.Close>
             </div>
             <Dialog.Close
