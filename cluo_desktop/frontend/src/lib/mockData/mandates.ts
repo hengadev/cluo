@@ -16,7 +16,7 @@ export const MANDATE_IDS = {
   inProgress2_mand1: 'b50e8400-e29b-41d4-a716-446655440102',
   inProgress3_mand1: 'b50e8400-e29b-41d4-a716-446655440103',
   inProgress4_mand1: 'b50e8400-e29b-41d4-a716-446655440104',
-  // inProgress5 - no mandate yet (estimate only)
+  inProgress5_mand1: 'b50e8400-e29b-41d4-a716-446655440105',
 
   // Ready cases (all have mandates)
   ready1_mand1: 'b50e8400-e29b-41d4-a716-446655440201',
@@ -133,6 +133,26 @@ export const mandates: Mandate[] = [
     status: 'active',
     createdAt: DATES.jul2024_15,
     updatedAt: DATES.nov2024_22,
+  },
+
+  {
+    id: MANDATE_IDS.inProgress5_mand1,
+    caseId: CASE_IDS.inProgress5,
+    clientId: CLIENT_IDS.company1,
+    mandateNumber: 'MAN-2025-001',
+    issueDate: DATES.apr2025_01,
+    scopeOfWork: MANDATE_SCOPES[2],
+    validFrom: DATES.apr2025_01,
+    validUntil: DATES.dec2025_01,
+    termsConditions: 'Mandat issu du devis accepté. Conditions standards de la profession.',
+    clientSignature: null,
+    investigatorSignature: null,
+    linkedEstimateId: ESTIMATE_IDS.inProgress5_est1,
+    specialInstructions: null,
+    jurisdiction: JURISDICTIONS[0],
+    status: 'draft',
+    createdAt: DATES.apr2025_01,
+    updatedAt: DATES.apr2025_01,
   },
 
   // === READY CASES ===
