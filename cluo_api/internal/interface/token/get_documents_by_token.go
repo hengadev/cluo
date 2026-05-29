@@ -8,7 +8,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/domain/document"
 )
 
-func (h *handler) GetDocumentsByToken(w http.ResponseWriter, r *http.Request) {
+func (h *TokenHandler) GetDocumentsByToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	logger, err := ctxutil.GetLoggerFromContext(ctx)

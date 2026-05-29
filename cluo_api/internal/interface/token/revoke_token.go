@@ -8,7 +8,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 )
 
-func (h *handler) RevokeToken(w http.ResponseWriter, r *http.Request) {
+func (h *TokenHandler) RevokeToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	logger, err := ctxutil.GetLoggerFromContext(ctx)

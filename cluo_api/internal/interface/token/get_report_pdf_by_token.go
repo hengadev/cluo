@@ -10,7 +10,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/common/tiptap"
 )
 
-func (h *handler) GetReportPDFByToken(w http.ResponseWriter, r *http.Request) {
+func (h *TokenHandler) GetReportPDFByToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	logger, err := ctxutil.GetLoggerFromContext(ctx)

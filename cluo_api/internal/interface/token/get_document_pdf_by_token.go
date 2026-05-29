@@ -18,7 +18,7 @@ var validDocTypes = map[string]document.DocumentType{
 	"invoice":  document.DocumentTypeInvoice,
 }
 
-func (h *handler) GetDocumentPDFByToken(w http.ResponseWriter, r *http.Request) {
+func (h *TokenHandler) GetDocumentPDFByToken(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	logger, err := ctxutil.GetLoggerFromContext(ctx)

@@ -7,7 +7,7 @@ import (
 	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 )
 
-func (h *handler) RegisterRoutes(mux *http.ServeMux) {
+func (h *TokenHandler) RegisterRoutes(mux *http.ServeMux) {
 	RequireAdministrator := h.authmw.RequireMinimumRole(identity.Administrator)
 
 	// PI routes (authenticated)
@@ -15,8 +15,19 @@ func (h *handler) RegisterRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("GET /cases/{id}/tokens", RequireAdministrator(mw.EnableCORS(h.ListTokens)))
 	mux.HandleFunc("DELETE /cases/{id}/tokens/{tokenId}", RequireAdministrator(mw.EnableCORS(h.RevokeToken)))
 
-	// Portal routes (public, token in URL path)
-	mux.HandleFunc("GET /token/{token}", h.ValidateToken)
+	// Portal routes (public, token in URL path or query param)
+	// Apply rate limiter to both public token routes.
+	validateHandler := h.ValidateToken
+	validateQueryHandler := mw.Handler(h.ValidateTokenQuery)
+	if h.tokenRateLimiter != nil {
+		validateHandler = handlerToFunc(h.tokenRateLimiter(funcToHandler(h.ValidateToken)))
+		validateQueryHandler = handlerToFunc(h.tokenRateLimiter(funcToHandler(h.ValidateTokenQuery)))
+	}
+
+	mux.HandleFunc("GET /tokens/validate", validateQueryHandler)
+	mux.HandleFunc("GET /token/{token}", validateHandler)
+
+	// Other portal routes – not rate limited per issue spec
 	mux.HandleFunc("GET /token/{token}/media", h.GetAllMediaByToken)
 	mux.HandleFunc("GET /token/{token}/media/{mediaId}", h.GetMediaByIDByToken)
 	mux.HandleFunc("GET /token/{token}/report", h.GetReportByToken)
