@@ -1274,13 +1274,46 @@ export async function createInvoiceFromContract(contractId: string, invoice: Inv
 // INVOICES
 // =============================================================================
 
+function mapMockInvoice(mock: any): Invoice {
+	return {
+		id: mock.id,
+		case_id: mock.caseId,
+		client_id: mock.clientId,
+		invoice_number: mock.invoiceNumber,
+		issue_date: mock.issueDate,
+		due_date: mock.dueDate,
+		line_items: (mock.lineItems || []).map((li: any) => ({
+			description: li.description,
+			quantity: li.quantity,
+			unit_price: li.unitPrice,
+			subtotal: li.total,
+		})),
+		total_amount: mock.totalAmount,
+		tax_rate: mock.taxRate,
+		tax_amount: mock.taxAmount,
+		notes: mock.notes,
+		payment_status: mock.paymentStatus,
+		paid_at: mock.paidAt ?? undefined,
+		paid_amount: mock.paidAmount ?? undefined,
+		payment_method: mock.paymentMethod ?? undefined,
+		linked_contract_id: mock.linkedContractId ?? undefined,
+		currency: mock.currency,
+		payment_terms: mock.paymentTerms,
+		late_fee: mock.lateFee ?? undefined,
+		late_fee_rate: mock.lateFeeRate ?? undefined,
+		status: mock.status,
+		created_at: mock.createdAt,
+		updated_at: mock.updatedAt,
+	};
+}
+
 /**
  * Fetch all invoices (global list for sidebar)
  */
 export async function fetchAllInvoices(): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllInvoices() as unknown as Invoice[];
+		return mockData.getAllInvoices().map(mapMockInvoice);
 	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return result.data as unknown as Invoice[];
@@ -1292,7 +1325,7 @@ export async function fetchAllInvoices(): Promise<Invoice[]> {
 export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByCaseId(caseId) as unknown as Invoice[];
+		return mockData.getInvoicesByCaseId(caseId).map(mapMockInvoice);
 	}
 	const result = await fetchDocuments({ type: 'invoice', case_id: caseId });
 	return result.data as unknown as Invoice[];
@@ -1304,7 +1337,8 @@ export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
 export async function fetchInvoice(id: string): Promise<Invoice | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoiceById(id) as unknown as Invoice || null;
+		const mock = mockData.getInvoiceById(id);
+		return mock ? mapMockInvoice(mock) : null;
 	}
 	const result = await fetchDocument(id, 'invoice');
 	return result.data as Invoice || null;
@@ -1316,7 +1350,7 @@ export async function fetchInvoice(id: string): Promise<Invoice | null> {
 export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByClientId(clientId) as unknown as Invoice[];
+		return mockData.getInvoicesByClientId(clientId).map(mapMockInvoice);
 	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).client_id === clientId);
@@ -1328,7 +1362,7 @@ export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> 
 export async function fetchInvoicesByPaymentStatus(paymentStatus: string): Promise<Invoice[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getInvoicesByPaymentStatus(paymentStatus as any) as unknown as Invoice[];
+		return mockData.getInvoicesByPaymentStatus(paymentStatus as any).map(mapMockInvoice);
 	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).payment_status === paymentStatus);
@@ -1388,13 +1422,17 @@ export async function processPayment(id: string, request: PaymentRequest): Promi
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const response = await apiFetch(`${BASE_URL}/invoices/${id}/pay`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/pay`, {
 		method: 'POST',
 		body: JSON.stringify(request),
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to process payment: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Impossible d\'enregistrer un paiement sur cette facture dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to process payment: ${response.status}`);
 	}
 
 	return response.json();
@@ -1408,12 +1446,16 @@ export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoi
 		await mockDelay();
 		return { success: true, data: { id } as any };
 	}
-	const response = await apiFetch(`${BASE_URL}/invoices/${id}/void`, {
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/void`, {
 		method: 'POST',
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to void invoice: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Impossible d\'annuler cette facture dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to void invoice: ${response.status}`);
 	}
 
 	return response.json();
