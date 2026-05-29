@@ -5,15 +5,22 @@ This guide explains how to configure and deploy the auto-updater for cluo_deskto
 ## Overview
 
 The auto-updater works by:
-1. Fetching a JSON manifest from a URL you control
-2. Comparing the manifest version with the current app version
-3. Downloading the new binary if an update is available
-4. Replacing the current binary and prompting for restart
+1. Fetching a signed JSON manifest from a URL you control
+2. Verifying the manifest's Ed25519 signature against an embedded public key
+3. Comparing the manifest version with the current app version
+4. Downloading the new binary if an update is available
+5. Verifying the binary's SHA256 checksum
+6. Replacing the current binary and prompting for restart
+
+The manifest **must** be signed. If the app is built with a public key (via ldflags), it
+will reject unsigned or tampered manifests. In dev mode (no public key), verification is
+skipped for convenience.
 
 ## Prerequisites
 
 - A static file hosting service (any web server, S3, GitHub Releases, etc.)
 - Ability to build the app with custom ldflags
+- An Ed25519 signing key pair (generate with `make generate-signing-key`)
 
 ---
 
@@ -27,6 +34,23 @@ wails generate module
 ```
 
 This creates `frontend/src/lib/wailsjs/go/updater/Updater.js` and `.d.ts` files.
+
+---
+
+## Step 1.5: Set Up Signing Keys
+
+Before your first release, generate an Ed25519 key pair:
+
+```bash
+make generate-signing-key
+```
+
+This creates two files in `~/.config/cluo/`:
+- `signing-private.key` — **keep secret**, used during release to sign manifests
+- `signing-public.key` — embedded in the app binary to verify manifests
+
+The private key never leaves your build machine. The public key is injected into the
+binary at build time via ldflags.
 
 ---
 
@@ -51,7 +75,8 @@ Create a `manifest.json` file with this structure:
     "darwin_amd64": "sha256:789ghi...",
     "darwin_arm64": "sha256:jkl012...",
     "windows_amd64": "sha256:mno345..."
-  }
+  },
+  "signature": "<hex-encoded Ed25519 signature, added automatically by sign-manifest>"
 }
 ```
 
@@ -63,6 +88,7 @@ Create a `manifest.json` file with this structure:
 | `release_notes` | No | Text shown to users (supports newlines with `\n`) |
 | `downloads` | Yes | Map of platform to download URL |
 | `checksums` | No | Map of platform to SHA256 checksum (recommended) |
+| `signature` | Auto | Ed25519 signature of the manifest (added by `sign-manifest`, verified by the app) |
 
 ### Platform Identifiers
 
@@ -84,12 +110,13 @@ Build the application with version and manifest URL injected:
 # Set your variables
 VERSION="1.0.0"
 MANIFEST_URL="https://your-server.com/releases/manifest.json"
+PUBLIC_KEY="$(cat ~/.config/cluo/signing-public.key)"
 
 # Build for current platform
-wails build -ldflags "-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL"
+wails build -ldflags "-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL -X cluo_desktop/updater.PublicKey=$PUBLIC_KEY"
 
 # Build for specific platform (cross-compile)
-wails build -platform linux/amd64 -ldflags "-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL"
+wails build -platform windows/amd64 -ldflags "-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL -X cluo_desktop/updater.PublicKey=$PUBLIC_KEY"
 ```
 
 ### Build Script Example
@@ -102,7 +129,7 @@ set -e
 
 VERSION="${1:?Usage: $0 <version>}"
 MANIFEST_URL="https://your-server.com/releases/manifest.json"
-LDFLAGS="-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL"
+LDFLAGS="-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=$MANIFEST_URL -X cluo_desktop/updater.PublicKey=$PUBLIC_KEY"
 
 PLATFORMS=(
     "linux/amd64"
