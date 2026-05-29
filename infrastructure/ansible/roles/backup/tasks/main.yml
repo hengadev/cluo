@@ -122,6 +122,11 @@
 
       log "Backup process completed successfully"
 
+      # Write sentinel file for backup-alert check
+      SENTINEL_FILE="$BACKUP_DIR/.last_success"
+      date -u +'%Y-%m-%dT%H:%M:%SZ' > "$SENTINEL_FILE"
+      log "Sentinel file updated: $SENTINEL_FILE"
+
       # Send summary
       TOTAL_SIZE=$(du -sh "$BACKUP_DIR" | cut -f1)
       log "Total backup directory size: $TOTAL_SIZE"
@@ -207,6 +212,129 @@
     owner: "{{ app_user | default('cluo') }}"
     group: "{{ app_group | default(app_user | default('cluo')) }}"
     mode: "0750"
+  tags: backup
+
+- name: Install msmtp for alert emails
+  ansible.builtin.apt:
+    name: msmtp
+    state: present
+  tags: backup
+
+- name: Configure msmtp for alert emails
+  ansible.builtin.copy:
+    content: |
+      account default
+      host {{ smtp_host | default('smtp.gmail.com') }}
+      port {{ smtp_port | default(587) }}
+      from {{ smtp_from | default('noreply@' + domain) }}
+      auth on
+      user {{ smtp_user | default('') }}
+      password {{ smtp_password | default('') }}
+      tls on
+      tls_starttls on
+      syslog LOG_MAIL
+    dest: /etc/msmtprc
+    owner: root
+    group: root
+    mode: "0600"
+  when:
+    - smtp_host is defined
+    - smtp_user is defined
+    - smtp_password is defined
+  tags: backup
+
+- name: Create backup alert check script
+  ansible.builtin.copy:
+    content: |
+      #!/bin/bash
+      set -euo pipefail
+
+      # Backup alert check — runs daily, 1 hour after the backup cron.
+      # If the sentinel file is missing or stale, sends an alert email.
+
+      BACKUP_DIR="{{ app_dir | default('/opt/cluo') }}/backups"
+      SENTINEL_FILE="$BACKUP_DIR/.last_success"
+      MAX_AGE_SECONDS=$((25 * 3600))  # 25 hours
+      ALERT_EMAIL="{{ admin_email | default('root@localhost') }}"
+      HOSTNAME_STR="$(hostname -f 2>/dev/null || hostname)"
+
+      send_alert() {
+        local subject="$1"
+        local body="$2"
+        printf "To: %s\nSubject: %s\n\n%s\n" "$ALERT_EMAIL" "$subject" "$body" | msmtp "$ALERT_EMAIL"
+        echo "ALERT: $subject"
+      }
+
+      if [ ! -f "$SENTINEL_FILE" ]; then
+        SUBJECT="[CLUO ALERT] Backup sentinel missing on $HOSTNAME_STR"
+        BODY="The backup sentinel file was not found at $SENTINEL_FILE on host $HOSTNAME_STR.
+
+This means either:
+  - No backup has ever completed successfully, or
+  - The sentinel file was deleted.
+
+Please investigate immediately.
+
+Timestamp (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        send_alert "$SUBJECT" "$BODY"
+        exit 1
+      fi
+
+      SENTINEL_TS=$(cat "$SENTINEL_FILE")
+      SENTINEL_EPOCH=$(date -d "$SENTINEL_TS" +%s 2>/dev/null || echo 0)
+      NOW_EPOCH=$(date +%s)
+      AGE_SECONDS=$(( NOW_EPOCH - SENTINEL_EPOCH ))
+
+      if [ "$AGE_SECONDS" -gt "$MAX_AGE_SECONDS" ]; then
+        SUBJECT="[CLUO ALERT] Backup is stale on $HOSTNAME_STR"
+        BODY="The last successful backup on $HOSTNAME_STR is stale.
+
+Sentinel file : $SENTINEL_FILE
+Last success  : $SENTINEL_TS
+Age           : $(( AGE_SECONDS / 3600 )) hours
+Threshold     : 25 hours
+
+The backup may have failed silently. Please investigate.
+
+Timestamp (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        send_alert "$SUBJECT" "$BODY"
+        exit 1
+      fi
+
+      # Sentinel is fresh — exit silently
+      exit 0
+    dest: "{{ app_dir | default('/opt/cluo') }}/check-backup.sh"
+    owner: "{{ app_user | default('cluo') }}"
+    group: "{{ app_group | default(app_user | default('cluo')) }}"
+    mode: "0750"
+  tags: backup
+
+- name: Setup cron job for backup alert check
+  ansible.builtin.cron:
+    name: "CLUO Backup Alert Check"
+    user: "{{ app_user | default('cluo') }}"
+    minute: "0"
+    hour: "3"
+    job: "{{ app_dir | default('/opt/cluo') }}/check-backup.sh >> {{ app_dir | default('/opt/cluo') }}/logs/backup-alert.log 2>&1"
+    cron_file: cluo-backup-alert
+  tags: backup
+
+- name: Create backup alert log rotation
+  ansible.builtin.copy:
+    content: |
+      {{ app_dir | default('/opt/cluo') }}/logs/backup-alert.log {
+          weekly
+          rotate 8
+          compress
+          delaycompress
+          missingok
+          notifempty
+          create 0640 {{ app_user | default('cluo') }} {{ app_group | default(app_user | default('cluo')) }}
+      }
+    dest: /etc/logrotate.d/cluo-backup-alert
+    owner: root
+    group: root
+    mode: "0644"
   tags: backup
 
 - name: Create backup log rotation
