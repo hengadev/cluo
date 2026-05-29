@@ -15,6 +15,7 @@ export const CONTRACT_IDS = {
   inProgress2_contract1: 'c50e8400-e29b-41d4-a716-446655440102',
   inProgress3_contract1: 'c50e8400-e29b-41d4-a716-446655440103',
   inProgress4_contract1: 'c50e8400-e29b-41d4-a716-446655440104',
+  inProgress5_contract1: 'c50e8400-e29b-41d4-a716-446655440105',
 
   // Ready cases
   ready1_contract1: 'c50e8400-e29b-41d4-a716-446655440201',
@@ -152,6 +153,28 @@ export const contracts: Contract[] = [
     status: 'active',
     createdAt: DATES.jul2024_15,
     updatedAt: DATES.nov2024_22,
+  },
+
+  {
+    id: CONTRACT_IDS.inProgress5_contract1,
+    caseId: CASE_IDS.inProgress5,
+    clientId: CLIENT_IDS.company1,
+    contractNumber: 'CTR-2025-001',
+    startDate: DATES.jan2024_30,
+    endDate: '',
+    scopeOfServices: CONTRACT_SCOPES[0],
+    paymentTerms: PAYMENT_TERMS[0],
+    confidentiality: CONFIDENTIALITY_CLAUSES[0],
+    terminationClause: TERMINATION_CLAUSES[0],
+    signatures: [],
+    linkedMandateId: MANDATE_IDS.inProgress5_mand1,
+    contractValue: 1500,
+    currency: CURRENCY,
+    renewalTerms: '',
+    governingLaw: GOVERNING_LAWS[0],
+    status: 'draft',
+    createdAt: DATES.jan2024_30,
+    updatedAt: DATES.jan2024_30,
   },
 
   // === READY CASES ===
