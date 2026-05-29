@@ -23,6 +23,7 @@ import type {
 	DocumentSummary,
 	DocumentWorkflowResponse,
 	Estimate,
+	EstimateItem,
 	Invoice,
 	ListCasesResponse,
 	Mandate,
@@ -752,12 +753,40 @@ export async function deleteCaseType(id: string): Promise<void> {
 // =============================================================================
 
 /**
+ * Maps a camelCase mock estimate object to the snake_case Estimate entity type.
+ */
+function mapMockEstimate(mock: any): Estimate {
+	return {
+		id: mock.id,
+		case_id: mock.caseId,
+		client_id: mock.clientId,
+		estimate_number: mock.estimateNumber,
+		issue_date: mock.issueDate,
+		valid_until: mock.validUntil,
+		line_items: (mock.lineItems || []).map((li: any) => ({
+			description: li.description,
+			quantity: li.quantity,
+			unit_price: li.unitPrice,
+			subtotal: li.total,
+		})),
+		estimated_total: mock.estimatedTotal,
+		notes: mock.notes,
+		accepted: mock.accepted,
+		accepted_at: mock.acceptedAt,
+		accepted_by: mock.acceptedBy,
+		status: mock.status,
+		created_at: mock.createdAt,
+		updated_at: mock.updatedAt,
+	};
+}
+
+/**
  * Fetch all estimates (global list for sidebar)
  */
 export async function fetchAllEstimates(): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllEstimates() as unknown as Estimate[];
+		return mockData.getAllEstimates().map(mapMockEstimate);
 	}
 	const result = await fetchDocuments({ type: 'estimate' });
 	return result.data as unknown as Estimate[];
@@ -769,7 +798,7 @@ export async function fetchAllEstimates(): Promise<Estimate[]> {
 export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimatesByCaseId(caseId) as unknown as Estimate[];
+		return mockData.getEstimatesByCaseId(caseId).map(mapMockEstimate);
 	}
 	const result = await fetchDocuments({ type: 'estimate', case_id: caseId });
 	return result.data as unknown as Estimate[];
@@ -781,7 +810,8 @@ export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
 export async function fetchEstimate(id: string): Promise<Estimate | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimateById(id) as unknown as Estimate || null;
+		const mock = mockData.getEstimateById(id);
+		return mock ? mapMockEstimate(mock) : null;
 	}
 	const result = await fetchDocument(id, 'estimate');
 	return result.data as Estimate || null;
@@ -793,11 +823,9 @@ export async function fetchEstimate(id: string): Promise<Estimate | null> {
 export async function fetchClientEstimates(clientId: string): Promise<Estimate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getEstimatesByClientId(clientId) as unknown as Estimate[];
+		return mockData.getEstimatesByClientId(clientId).map(mapMockEstimate);
 	}
-	// Use the generic fetchDocuments with client filter
 	const result = await fetchDocuments({ type: 'estimate' });
-	// Filter by client_id in the response
 	return (result.data as unknown as Estimate[]).filter(est => (est as Estimate).client_id === clientId);
 }
 
@@ -807,7 +835,17 @@ export async function fetchClientEstimates(clientId: string): Promise<Estimate[]
 export async function createEstimate(estimate: Estimate): Promise<DocumentAPIResponse<Estimate>> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return { success: true, data: estimate };
+		return {
+			success: true,
+			data: {
+				...estimate,
+				id: `mock-${Date.now()}`,
+				status: 'draft',
+				accepted: false,
+				created_at: new Date().toISOString(),
+				updated_at: new Date().toISOString(),
+			},
+		};
 	}
 	const response = await apiFetch(`${BASE_URL}/estimates`, {
 		method: 'POST',
@@ -815,19 +853,20 @@ export async function createEstimate(estimate: Estimate): Promise<DocumentAPIRes
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to create estimate: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		throw new Error(errorBody?.error || `Failed to create estimate: ${response.status}`);
 	}
 
 	return response.json();
 }
 
 /**
- * Update an estimate (line items)
+ * Update an estimate (line items only — the backend does not support updating dates or notes)
  */
-export async function updateEstimate(id: string, lineItems: any[]): Promise<DocumentAPIResponse<Estimate>> {
+export async function updateEstimate(id: string, lineItems: EstimateItem[]): Promise<DocumentAPIResponse<Estimate>> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return { success: true, data: { id, line_items: lineItems } as any };
+		return { success: true, data: null as any };
 	}
 	const response = await apiFetch(`${BASE_URL}/estimates/${id}`, {
 		method: 'PATCH',
@@ -835,27 +874,34 @@ export async function updateEstimate(id: string, lineItems: any[]): Promise<Docu
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to update estimate: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		throw new Error(errorBody?.error || `Failed to update estimate: ${response.status}`);
 	}
 
 	return response.json();
 }
 
 /**
- * Accept an estimate
+ * Accept an estimate — the backend derives the accepting user from the session
  */
-export async function acceptEstimate(id: string, acceptedBy: string): Promise<DocumentAPIResponse> {
+export async function acceptEstimate(id: string): Promise<DocumentAPIResponse> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return { success: true, data: { message: 'Estimate accepted successfully' } };
+		return {
+			success: true,
+			data: {
+				id: `mock-mandate-${Date.now()}`,
+				mandate_number: `MAN-${new Date().getFullYear()}-001`,
+			},
+		};
 	}
 	const response = await apiFetch(`${BASE_URL}/estimates/${id}/accept`, {
 		method: 'POST',
-		body: JSON.stringify({ accepted_by: acceptedBy }),
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to accept estimate: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		throw new Error(errorBody?.error || `Failed to accept estimate: ${response.status}`);
 	}
 
 	return response.json();
@@ -1615,7 +1661,8 @@ export async function sendDocument(id: string, type: string, request: SendDocume
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to send document: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		throw new Error(errorBody?.error || `Failed to send document: ${response.status}`);
 	}
 
 	return response.json();
