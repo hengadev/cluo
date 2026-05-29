@@ -18,6 +18,7 @@
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import DocumentWorkflowSummary from "./DocumentWorkflowSummary.svelte";
 	import type {
 		Case,
 		CaseType,
@@ -899,5 +900,10 @@
 				</div>
 			{/if}
 		</div>
+
+		<!-- Document Workflow Summary -->
+		{#if caseData}
+			<DocumentWorkflowSummary caseId={caseId} />
+		{/if}
 	{/if}
 </div>
