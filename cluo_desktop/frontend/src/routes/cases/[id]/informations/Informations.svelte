@@ -1,13 +1,14 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
-	import { Briefcase, MapPin, Pencil, Check, X } from "@lucide/svelte";
+	import { Briefcase, MapPin, Pencil, Check, X, Tag } from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
 		fetchContact,
 		fetchCaseSubject,
 		fetchAllClients,
+		fetchAllCaseTypes,
 		fetchClientContacts,
 		updateCase,
 	} from "$lib/services/api";
@@ -15,6 +16,7 @@
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import type {
 		Case,
+		CaseType,
 		Client,
 		Contact,
 		CaseSubject,
@@ -33,8 +35,15 @@
 	let client: Client | null = $state(null);
 	let contact: Contact | null = $state(null);
 	let subject: CaseSubject | null = $state(null);
+	let caseTypeName: string | null = $state(null);
+	let allCaseTypes: CaseType[] = $state([]);
 	let loading = $state(true);
 	let error: string | null = $state(null);
+
+	// CaseType edit mode
+	let editingCaseType = $state(false);
+	let selectedCaseTypeId = $state("");
+	let savingCaseType = $state(false);
 
 	// Client/Contact edit mode
 	let editingClient = $state(false);
@@ -78,7 +87,7 @@
 				return;
 			}
 
-			const [clientData, contactData, subjectData] = await Promise.all([
+			const [clientData, contactData, subjectData, typesData] = await Promise.all([
 				fetchClient(caseData.clientId),
 				caseData.assignedContactID
 					? fetchContact(caseData.assignedContactID)
@@ -86,11 +95,17 @@
 				caseData.caseSubjectId
 					? fetchCaseSubject(caseData.caseSubjectId)
 					: Promise.resolve(null),
+				fetchAllCaseTypes(),
 			]);
 
 			client = clientData;
 			contact = contactData;
 			subject = subjectData;
+			allCaseTypes = typesData;
+			if (caseData?.caseTypeId) {
+				const ct = typesData.find((t: CaseType) => t.id === caseData!.caseTypeId);
+				caseTypeName = ct ? ct.name : null;
+			}
 		} catch (e) {
 			error =
 				e instanceof Error
@@ -172,6 +187,46 @@
 			);
 		} finally {
 			savingClient = false;
+		}
+	}
+
+	// CaseType edit
+	function startCaseTypeEdit() {
+		editingCaseType = true;
+		selectedCaseTypeId = caseData?.caseTypeId || "";
+	}
+
+	function cancelCaseTypeEdit() {
+		editingCaseType = false;
+	}
+
+	async function saveCaseTypeEdit() {
+		if (!caseData) return;
+		savingCaseType = true;
+		try {
+			caseData = await updateCase(caseData.id, {
+				caseTypeId: selectedCaseTypeId || null,
+			});
+			if (selectedCaseTypeId) {
+				const ct = allCaseTypes.find((t) => t.id === selectedCaseTypeId);
+				caseTypeName = ct ? ct.name : null;
+			} else {
+				caseTypeName = null;
+			}
+			editingCaseType = false;
+			toastState.add(
+				TOAST_LEVELS.Info,
+				"Dossier mis à jour",
+				"Le type d'affaire a été mis à jour.",
+			);
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de mettre à jour",
+			);
+		} finally {
+			savingCaseType = false;
 		}
 	}
 
@@ -388,6 +443,65 @@
 						<p class="text-sm text-muted-foreground mt-2 italic">
 							{caseData.locationNotes}
 						</p>
+					{/if}
+				</div>
+
+				<!-- Case Type -->
+				<div
+					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-md transition-shadow duration-300 w-80"
+					style="animation-delay: 350ms;"
+				>
+					<div class="flex justify-between items-center">
+						<p class="text-muted-foreground text-sm font-medium">TYPE D'AFFAIRE</p>
+						<div class="flex items-center gap-2">
+							{#if !editingCaseType}
+								<button
+									onclick={startCaseTypeEdit}
+									class="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+									title="Modifier le type"
+								>
+									<Pencil size={14} />
+								</button>
+							{/if}
+							<Tag class="w-5 h-5 text-muted-foreground" />
+						</div>
+					</div>
+
+					{#if editingCaseType}
+						<div class="flex flex-col gap-3">
+							<select
+								bind:value={selectedCaseTypeId}
+								class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2 cursor-pointer"
+							>
+								<option value="">-- Aucun type --</option>
+								{#each allCaseTypes as ct}
+									<option value={ct.id}>{ct.name}</option>
+								{/each}
+							</select>
+							<div class="flex justify-end gap-2">
+								<button
+									type="button"
+									onclick={cancelCaseTypeEdit}
+									class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+								>
+									<X size={14} />
+								</button>
+								<button
+									type="button"
+									onclick={saveCaseTypeEdit}
+									disabled={savingCaseType}
+									class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								>
+									<Check size={14} />
+								</button>
+							</div>
+						</div>
+					{:else}
+						{#if caseTypeName}
+							<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-card text-sm font-medium w-fit">{caseTypeName}</span>
+						{:else}
+							<p class="text-sm text-muted-foreground">Non défini</p>
+						{/if}
 					{/if}
 				</div>
 			</div>

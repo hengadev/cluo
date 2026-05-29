@@ -121,7 +121,7 @@ export interface CreateCaseRequest {
 	status: CaseStatus;
 	assignedContactID?: string;
 	caseSubjectId?: string;
-	caseTypeId?: string;
+	caseTypeId?: string | null;
 	externalReference?: string;
 	placename?: string;
 	address1?: string;
