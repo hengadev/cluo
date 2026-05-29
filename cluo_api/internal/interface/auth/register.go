@@ -9,7 +9,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/domain/user"
 )
 
-func (h *handler) Register(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) Register(w http.ResponseWriter, r *http.Request) {
 	var req user.RegisterRequest
 
 	err := json.NewDecoder(r.Body).Decode(&req)

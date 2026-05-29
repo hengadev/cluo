@@ -9,7 +9,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 )
 
-func (h *handler) SignOut(w http.ResponseWriter, r *http.Request) {
+func (h *AuthHandler) SignOut(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
 	sessionInfo, ok := session.SessionInfoFromContext(ctx)

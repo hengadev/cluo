@@ -26,7 +26,7 @@ func TestGetCurrentUser_Unauthorized(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Execute
-	h.(*handler).GetCurrentUser(w, req)
+	h.(*AuthHandler).GetCurrentUser(w, req)
 
 	// Assert
 	resp := w.Result()
@@ -73,7 +73,7 @@ func TestGetCurrentUser_Success(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Execute
-	h.(*handler).GetCurrentUser(w, req)
+	h.(*AuthHandler).GetCurrentUser(w, req)
 
 	// Assert
 	resp := w.Result()
@@ -115,7 +115,7 @@ func TestGetCurrentUser_ServiceError(t *testing.T) {
 	w := httptest.NewRecorder()
 
 	// Execute
-	h.(*handler).GetCurrentUser(w, req)
+	h.(*AuthHandler).GetCurrentUser(w, req)
 
 	// Assert
 	resp := w.Result()
