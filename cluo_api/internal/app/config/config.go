@@ -19,6 +19,7 @@ type Config struct {
 	SMTP          SMTPConfig
 	Observability ObservabilityConfig
 	AI            AIConfig
+	RateLimit     RateLimitConfig
 }
 
 // Load loads configuration from environment variables.
@@ -73,6 +74,11 @@ func Load() (*Config, error) {
 	cfg.AI, err = loadAIConfig()
 	if err != nil {
 		return nil, fmt.Errorf("ai config: %w", err)
+	}
+
+	cfg.RateLimit, err = loadRateLimitConfig()
+	if err != nil {
+		return nil, fmt.Errorf("rate limit config: %w", err)
 	}
 
 	// Validate the complete configuration

@@ -6,11 +6,13 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"time"
 
 	"github.com/hengadev/cluo_api/internal/app/config"
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
 	"github.com/hengadev/cluo_api/internal/common/archive"
+	mwRatelimit "github.com/hengadev/cluo_api/internal/common/middleware/ratelimit"
 	"github.com/hengadev/cluo_api/internal/ports"
 	authHandler "github.com/hengadev/cluo_api/internal/interface/auth"
 	aiChatHandler "github.com/hengadev/cluo_api/internal/interface/ai_chat"
@@ -30,18 +32,20 @@ import (
 
 // Server represents the HTTP server.
 type Server struct {
-	httpServer *http.Server
-	container  *container.Container
-	config     *config.Config
-	logger     *slog.Logger
+	httpServer      *http.Server
+	container       *container.Container
+	config          *config.Config
+	logger          *slog.Logger
+	rateLimitStore  *mwRatelimit.InMemoryStore
 }
 
 // New creates a new HTTP server.
 func New(c *container.Container, cfg *config.Config, logger *slog.Logger) *Server {
 	return &Server{
-		container: c,
-		config:    cfg,
-		logger:    logger,
+		container:      c,
+		config:         cfg,
+		logger:         logger,
+		rateLimitStore: mwRatelimit.NewInMemoryStore(),
 	}
 }
 
@@ -61,6 +65,9 @@ func (s *Server) Start(ctx context.Context) error {
 		WriteTimeout: s.config.Server.WriteTimeout,
 		IdleTimeout:  s.config.Server.IdleTimeout,
 	}
+
+	// Start periodic cleanup of expired rate-limit entries.
+	s.rateLimitStore.StartCleanup(ctx, time.Minute)
 
 	s.logger.InfoContext(ctx, "Starting HTTP server",
 		"addr", s.config.Server.Addr(),
@@ -231,6 +238,12 @@ func (s *Server) registerTokenRoutes(mux *http.ServeMux) {
 		)
 	}
 
+	// Apply rate limiter to the public portal token resolution route.
+	maxReqs, window := s.config.RateLimit.TokenWindow()
+	handler = handler.(*tokenHandler.TokenHandler).WithTokenRateLimiter(
+		mwRatelimit.RateLimiter(s.rateLimitStore, mwRatelimit.Config{MaxRequests: maxReqs, Window: window}),
+	)
+
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Token routes registered")
 }
@@ -285,6 +298,13 @@ func (s *Server) registerAIRoutes(mux *http.ServeMux) {
 
 func (s *Server) registerAuthRoutes(mux *http.ServeMux) {
 	handler := authHandler.New(s.container.AuthService(), s.container.AuthMiddleware())
+
+	// Apply rate limiter to login route.
+	maxReqs, window := s.config.RateLimit.LoginWindow()
+	handler = handler.(*authHandler.AuthHandler).WithLoginRateLimiter(
+		mwRatelimit.RateLimiter(s.rateLimitStore, mwRatelimit.Config{MaxRequests: maxReqs, Window: window}),
+	)
+
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Auth routes registered")
 }
