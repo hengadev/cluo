@@ -40,6 +40,17 @@ import * as mockData from '../mockData';
 
 const BASE_URL = API_BASE_URL;
 
+/**
+ * Error thrown when the API returns 409 Conflict.
+ * Used for lifecycle violations (e.g. activating an unsigned mandate).
+ */
+export class ConflictError extends Error {
+	constructor(message: string) {
+		super(message);
+		this.name = 'ConflictError';
+	}
+}
+
 // =============================================================================
 // HELPER FUNCTIONS
 // =============================================================================
@@ -912,12 +923,51 @@ export async function acceptEstimate(id: string): Promise<DocumentAPIResponse> {
 // =============================================================================
 
 /**
+ * Maps a camelCase mock mandate object to the snake_case Mandate entity type.
+ */
+function mapMockMandate(mock: any): Mandate {
+	return {
+		id: mock.id,
+		case_id: mock.caseId,
+		client_id: mock.clientId,
+		mandate_number: mock.mandateNumber,
+		issue_date: mock.issueDate,
+		scope_of_work: mock.scopeOfWork,
+		valid_from: mock.validFrom,
+		valid_until: mock.validUntil,
+		terms_conditions: mock.termsConditions,
+		client_signature: mock.clientSignature
+			? {
+				id: `sig-${mock.id}-client`,
+				name: mock.clientSignature.name,
+				role: 'client',
+				signed_at: mock.clientSignature.date,
+			}
+			: undefined,
+		investigator_signature: mock.investigatorSignature
+			? {
+				id: `sig-${mock.id}-investigator`,
+				name: mock.investigatorSignature.name,
+				role: 'investigator',
+				signed_at: mock.investigatorSignature.date,
+			}
+			: undefined,
+		linked_estimate_id: mock.linkedEstimateId,
+		special_instructions: mock.specialInstructions,
+		jurisdiction: mock.jurisdiction,
+		status: mock.status,
+		created_at: mock.createdAt,
+		updated_at: mock.updatedAt,
+	};
+}
+
+/**
  * Fetch all mandates (global list for sidebar)
  */
 export async function fetchAllMandates(): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllMandates() as unknown as Mandate[];
+		return mockData.getAllMandates().map(mapMockMandate);
 	}
 	const result = await fetchDocuments({ type: 'mandate' });
 	return result.data as unknown as Mandate[];
@@ -929,7 +979,7 @@ export async function fetchAllMandates(): Promise<Mandate[]> {
 export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandatesByCaseId(caseId) as unknown as Mandate[];
+		return mockData.getMandatesByCaseId(caseId).map(mapMockMandate);
 	}
 	const result = await fetchDocuments({ type: 'mandate', case_id: caseId });
 	return result.data as unknown as Mandate[];
@@ -941,7 +991,8 @@ export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
 export async function fetchMandate(id: string): Promise<Mandate | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandateById(id) as unknown as Mandate || null;
+		const mock = mockData.getMandateById(id);
+		return mock ? mapMockMandate(mock) : null;
 	}
 	const result = await fetchDocument(id, 'mandate');
 	return result.data as Mandate || null;
@@ -953,7 +1004,7 @@ export async function fetchMandate(id: string): Promise<Mandate | null> {
 export async function fetchClientMandates(clientId: string): Promise<Mandate[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getMandatesByClientId(clientId) as unknown as Mandate[];
+		return mockData.getMandatesByClientId(clientId).map(mapMockMandate);
 	}
 	const result = await fetchDocuments({ type: 'mandate' });
 	return (result.data as unknown as Mandate[]).filter(mand => (mand as Mandate).client_id === clientId);
@@ -993,7 +1044,11 @@ export async function signMandate(id: string, request: SignDocumentRequest): Pro
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to sign mandate: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Ce mandat ne peut pas être signé dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to sign mandate: ${response.status}`);
 	}
 
 	return response.json();
@@ -1012,7 +1067,11 @@ export async function activateMandate(id: string): Promise<DocumentAPIResponse<M
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to activate mandate: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Ce mandat ne peut pas être activé dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to activate mandate: ${response.status}`);
 	}
 
 	return response.json();
@@ -1662,6 +1721,9 @@ export async function sendDocument(id: string, type: string, request: SendDocume
 
 	if (!response.ok) {
 		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Ce document ne peut pas être envoyé dans son état actuel.');
+		}
 		throw new Error(errorBody?.error || `Failed to send document: ${response.status}`);
 	}
 
