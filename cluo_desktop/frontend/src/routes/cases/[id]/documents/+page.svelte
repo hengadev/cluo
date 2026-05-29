@@ -63,7 +63,7 @@
 			description: "Mandats du dossier"
 		},
 		{
-			type: "devis",
+			type: "estimate",
 			title: "Devis",
 			icon: FileText,
 			count: estimates.length,
