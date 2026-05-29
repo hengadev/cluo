@@ -1101,13 +1101,42 @@ export async function createContractFromMandate(mandateId: string, contract: Con
 // CONTRACTS
 // =============================================================================
 
+function mapMockContract(mock: any): Contract {
+	return {
+		id: mock.id,
+		case_id: mock.caseId,
+		client_id: mock.clientId,
+		contract_number: mock.contractNumber,
+		start_date: mock.startDate,
+		end_date: mock.endDate,
+		scope_of_services: mock.scopeOfServices,
+		payment_terms: mock.paymentTerms,
+		confidentiality: mock.confidentiality,
+		termination_clause: mock.terminationClause,
+		signatures: (mock.signatures || []).map((s: any) => ({
+			id: `sig-${mock.id}-${s.role}`,
+			name: s.name,
+			role: s.role,
+			signed_at: s.date,
+		})),
+		linked_mandate_id: mock.linkedMandateId,
+		contract_value: mock.contractValue,
+		currency: mock.currency,
+		renewal_terms: mock.renewalTerms,
+		governing_law: mock.governingLaw,
+		status: mock.status,
+		created_at: mock.createdAt,
+		updated_at: mock.updatedAt,
+	};
+}
+
 /**
  * Fetch all contracts (global list for sidebar)
  */
 export async function fetchAllContracts(): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getAllContracts() as unknown as Contract[];
+		return mockData.getAllContracts().map(mapMockContract);
 	}
 	const result = await fetchDocuments({ type: 'contract' });
 	return result.data as unknown as Contract[];
@@ -1119,7 +1148,7 @@ export async function fetchAllContracts(): Promise<Contract[]> {
 export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractsByCaseId(caseId) as unknown as Contract[];
+		return mockData.getContractsByCaseId(caseId).map(mapMockContract);
 	}
 	const result = await fetchDocuments({ type: 'contract', case_id: caseId });
 	return result.data as unknown as Contract[];
@@ -1131,7 +1160,8 @@ export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
 export async function fetchContract(id: string): Promise<Contract | null> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractById(id) as unknown as Contract || null;
+		const mock = mockData.getContractById(id);
+		return mock ? mapMockContract(mock) : null;
 	}
 	const result = await fetchDocument(id, 'contract');
 	return result.data as Contract || null;
@@ -1143,7 +1173,7 @@ export async function fetchContract(id: string): Promise<Contract | null> {
 export async function fetchClientContracts(clientId: string): Promise<Contract[]> {
 	if (isMockEnabled()) {
 		await mockDelay();
-		return mockData.getContractsByClientId(clientId) as unknown as Contract[];
+		return mockData.getContractsByClientId(clientId).map(mapMockContract);
 	}
 	const result = await fetchDocuments({ type: 'contract' });
 	return (result.data as unknown as Contract[]).filter(cont => (cont as Contract).client_id === clientId);
@@ -1183,7 +1213,11 @@ export async function signContract(id: string, request: SignDocumentRequest): Pr
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to sign contract: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Ce contrat ne peut pas être signé dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to sign contract: ${response.status}`);
 	}
 
 	return response.json();
@@ -1202,7 +1236,11 @@ export async function activateContract(id: string): Promise<DocumentAPIResponse<
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to activate contract: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Ce contrat ne peut pas être activé dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to activate contract: ${response.status}`);
 	}
 
 	return response.json();
@@ -1222,7 +1260,11 @@ export async function createInvoiceFromContract(contractId: string, invoice: Inv
 	});
 
 	if (!response.ok) {
-		throw new Error(`Failed to create invoice from contract: ${response.status}`);
+		const errorBody = await response.json().catch(() => null);
+		if (response.status === 409) {
+			throw new ConflictError(errorBody?.error || 'Impossible de créer une facture depuis ce contrat dans son état actuel.');
+		}
+		throw new Error(errorBody?.error || `Failed to create invoice from contract: ${response.status}`);
 	}
 
 	return response.json();
