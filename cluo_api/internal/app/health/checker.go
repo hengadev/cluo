@@ -20,18 +20,18 @@ const (
 
 // CheckResult represents the result of a health check.
 type CheckResult struct {
-	Status   Status        `json:"status"`
-	Message  string        `json:"message,omitempty"`
-	Duration time.Duration `json:"duration_ms"`
+	Status      Status `json:"status"`
+	Message     string `json:"message,omitempty"`
+	DurationMs  int64  `json:"duration_ms"`
 }
 
 // HealthReport represents the overall health of the system.
 type HealthReport struct {
-	Status     Status                 `json:"status"`
-	Checks     map[string]CheckResult `json:"checks"`
-	Version    string                 `json:"version,omitempty"`
-	Timestamp  time.Time              `json:"timestamp"`
-	TotalTime  time.Duration          `json:"total_duration_ms"`
+	Status        Status                 `json:"status"`
+	Checks        map[string]CheckResult `json:"checks"`
+	Version       string                 `json:"version,omitempty"`
+	Timestamp     time.Time              `json:"timestamp"`
+	TotalDurationMs int64                `json:"total_duration_ms"`
 }
 
 // Checker performs health checks on system components.
@@ -110,7 +110,7 @@ func (c *Checker) CheckReadiness(ctx context.Context) HealthReport {
 
 	// Determine overall status
 	report.Status = c.calculateOverallStatus(report.Checks)
-	report.TotalTime = time.Since(start)
+	report.TotalDurationMs = time.Since(start).Milliseconds()
 
 	return report
 }
@@ -119,13 +119,13 @@ func (c *Checker) checkDatabase(ctx context.Context) CheckResult {
 	start := time.Now()
 
 	err := c.dbPool.Ping(ctx)
-	duration := time.Since(start)
+	durationMs := time.Since(start).Milliseconds()
 
 	if err != nil {
 		return CheckResult{
-			Status:   StatusUnhealthy,
-			Message:  err.Error(),
-			Duration: duration,
+			Status:     StatusUnhealthy,
+			Message:    err.Error(),
+			DurationMs: durationMs,
 		}
 	}
 
@@ -133,15 +133,15 @@ func (c *Checker) checkDatabase(ctx context.Context) CheckResult {
 	stats := c.dbPool.Stat()
 	if stats.AcquiredConns() > int32(float64(stats.MaxConns())*0.9) {
 		return CheckResult{
-			Status:   StatusDegraded,
-			Message:  "connection pool near capacity",
-			Duration: duration,
+			Status:     StatusDegraded,
+			Message:    "connection pool near capacity",
+			DurationMs: durationMs,
 		}
 	}
 
 	return CheckResult{
-		Status:   StatusHealthy,
-		Duration: duration,
+		Status:     StatusHealthy,
+		DurationMs: durationMs,
 	}
 }
 
@@ -149,19 +149,19 @@ func (c *Checker) checkRedis(ctx context.Context) CheckResult {
 	start := time.Now()
 
 	err := c.redisClient.Ping(ctx).Err()
-	duration := time.Since(start)
+	durationMs := time.Since(start).Milliseconds()
 
 	if err != nil {
 		return CheckResult{
-			Status:   StatusUnhealthy,
-			Message:  err.Error(),
-			Duration: duration,
+			Status:     StatusUnhealthy,
+			Message:    err.Error(),
+			DurationMs: durationMs,
 		}
 	}
 
 	return CheckResult{
-		Status:   StatusHealthy,
-		Duration: duration,
+		Status:     StatusHealthy,
+		DurationMs: durationMs,
 	}
 }
 
