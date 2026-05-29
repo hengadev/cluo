@@ -14,6 +14,7 @@ type Manifest struct {
 	ReleaseNotes string            `json:"release_notes"`
 	Downloads    map[string]string `json:"downloads"`
 	Checksums    map[string]string `json:"checksums"`
+	Signature    string            `json:"signature,omitempty"` // hex-encoded Ed25519 signature
 }
 
 // FetchManifest downloads and parses the manifest from the given URL.

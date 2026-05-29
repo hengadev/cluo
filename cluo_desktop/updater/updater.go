@@ -71,6 +71,11 @@ func (u *Updater) CheckForUpdate() (UpdateInfo, error) {
 		return info, err
 	}
 
+	// Verify manifest signature (skipped in dev mode if PublicKey is empty)
+	if err := VerifyManifestSignature(manifest, PublicKey); err != nil {
+		return info, fmt.Errorf("manifest verification failed: %w", err)
+	}
+
 	u.manifest = manifest
 
 	currentVersion, err := ParseSemVer(Version)
