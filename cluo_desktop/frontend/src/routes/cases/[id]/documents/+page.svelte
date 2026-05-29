@@ -70,7 +70,7 @@
 			description: "Devis du dossier"
 		},
 		{
-			type: "contrat",
+			type: "contract",
 			title: "Contrats",
 			icon: ShieldCheck,
 			count: contracts.length,
