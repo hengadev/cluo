@@ -9,6 +9,7 @@ import {
     Users,
     Paperclip,
     Mic,
+    Briefcase,
 } from "@lucide/svelte";
 
 import { SIDEBAR_STATES, type SidebarState } from "$lib/types/sidebar";
@@ -30,4 +31,5 @@ export const items: SidebarItem[] = [
     { icon: Handshake, title: SIDEBAR_STATES.Mandat, path: "/cases/:id/documents/mandat" },
     { icon: UserPen, title: SIDEBAR_STATES.Devis, path: "/cases/:id/documents/devis" },
     { icon: Globe, title: SIDEBAR_STATES.Reseaux, path: "/cases/:id/reseaux" },
+    { icon: Briefcase, title: SIDEBAR_STATES.Clients, path: "/clients" },
 ]

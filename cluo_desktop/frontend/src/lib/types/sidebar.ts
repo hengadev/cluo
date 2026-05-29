@@ -9,6 +9,7 @@ export const SIDEBAR_STATES = {
     Utilisateurs: 'Utilisateurs',
     Pièces: 'Pièces',
     Enregistrements: 'Enregistrements',
+    Clients: 'Clients',
 } as const;
 export type SidebarState = typeof SIDEBAR_STATES[keyof typeof SIDEBAR_STATES];
 export const SIDEBAR_STATES_ARRAY = Object.values(SIDEBAR_STATES);

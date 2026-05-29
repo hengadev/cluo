@@ -17,13 +17,10 @@
 
     // Get the current route path for highlighting
     function getRouteForItem(item: SidebarItem): string {
-        // Replace :id with actual case ID if available
+        // Routes without :id are used as-is
+        if (!item.path.includes(':id')) return item.path;
         const caseId = $currentCase.id;
-        if (!caseId) {
-            // For case-specific routes without a case, return empty
-            if (item.path.includes(':id')) return '';
-            return item.path;
-        }
+        if (!caseId) return '';
         return item.path.replace(':id', caseId);
     }
 
@@ -35,9 +32,7 @@
 
     function handleItemClick(item: SidebarItem) {
         const routePath = getRouteForItem(item);
-
         if (!routePath) {
-            // No case ID selected - show toast
             toastState.add(
                 TOAST_LEVELS.Warning,
                 "Aucun dossier sélectionné",
@@ -45,7 +40,6 @@
             );
             return;
         }
-
         goto(routePath);
     }
 </script>
