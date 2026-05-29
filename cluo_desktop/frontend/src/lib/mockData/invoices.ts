@@ -12,7 +12,8 @@ import { CONTRACT_IDS } from './contracts';
 export const INVOICE_IDS = {
   // Draft case - no invoices yet
 
-  // In progress cases - no invoices yet (work in progress)
+  // In progress cases
+  inProgress1_inv1: 'd50e8400-e29b-41d4-a716-446655440101',
 
   // Ready cases - one invoice each (sent, not paid yet)
   ready1_inv1: 'd50e8400-e29b-41d4-a716-446655440201',
@@ -66,6 +67,35 @@ export interface Invoice {
 }
 
 export const invoices: Invoice[] = [
+  // === IN PROGRESS CASES (draft invoices awaiting send) ===
+  {
+    id: INVOICE_IDS.inProgress1_inv1,
+    caseId: CASE_IDS.inProgress1,
+    clientId: CLIENT_IDS.person1,
+    invoiceNumber: 'FAC-2025-001',
+    issueDate: DATES.jan2024_30,
+    dueDate: DATES.dec2025_01,
+    lineItems: [
+      { description: INVOICE_LINE_ITEMS[0].description, quantity: 1, unitPrice: 450, total: 450 },
+      { description: INVOICE_LINE_ITEMS[3].description, quantity: 2, unitPrice: 150, total: 300 },
+    ],
+    totalAmount: 750,
+    taxRate: 20,
+    taxAmount: 150,
+    paymentStatus: 'unpaid',
+    paidAt: null,
+    paidAmount: null,
+    paymentMethod: null,
+    linkedContractId: CONTRACT_IDS.inProgress1_contract1,
+    currency: CURRENCY,
+    paymentTerms: PAYMENT_TERMS[0],
+    lateFee: null,
+    lateFeeRate: null,
+    status: 'draft',
+    createdAt: DATES.jan2024_30,
+    updatedAt: DATES.jan2024_30,
+  },
+
   // === READY CASES (sent, awaiting payment) ===
   {
     id: INVOICE_IDS.ready1_inv1,
