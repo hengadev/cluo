@@ -56,7 +56,7 @@
 			description: "Factures du dossier"
 		},
 		{
-			type: "mandat",
+			type: "mandate",
 			title: "Mandats",
 			icon: Handshake,
 			count: mandates.length,

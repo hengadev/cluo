@@ -376,7 +376,7 @@
 						? `Un mandat (${mandateRef}) a été créé.`
 						: "Le devis a été accepté et un mandat a été créé.",
 				);
-				await goto(`/cases/${caseId}/documents/mandat`);
+				await goto(`/cases/${caseId}/documents/mandate`);
 			}
 		} catch (e) {
 			toastState.add(
