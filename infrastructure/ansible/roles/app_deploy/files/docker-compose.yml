@@ -12,6 +12,11 @@ services:
   postgres_staging:
     image: postgres:16-alpine
     container_name: cluo-postgres-staging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-cluo}
       POSTGRES_PASSWORD: ${STAGING_POSTGRES_PASSWORD}
@@ -31,6 +36,11 @@ services:
   redis_staging:
     image: redis:7-alpine
     container_name: cluo-redis-staging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     volumes:
       - redis_staging_data:/data
     healthcheck:
@@ -46,6 +56,11 @@ services:
   api_staging:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-api:${APP_VERSION:-latest}
     container_name: cluo-api-staging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.staging
     environment:
@@ -77,6 +92,11 @@ services:
   web_staging:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-web:${APP_VERSION:-latest}
     container_name: cluo-web-staging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.staging
     environment:
@@ -94,6 +114,11 @@ services:
   mobile_staging:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-mobile:${APP_VERSION:-latest}
     container_name: cluo-mobile-staging
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.staging
     environment:
@@ -115,6 +140,11 @@ services:
   postgres_production:
     image: postgres:16-alpine
     container_name: cluo-postgres-production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-cluo}
       POSTGRES_PASSWORD: ${PRODUCTION_POSTGRES_PASSWORD}
@@ -134,6 +164,11 @@ services:
   redis_production:
     image: redis:7-alpine
     container_name: cluo-redis-production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     volumes:
       - redis_production_data:/data
     healthcheck:
@@ -149,6 +184,11 @@ services:
   api_production:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-api:${APP_VERSION:-latest}
     container_name: cluo-api-production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.production
     environment:
@@ -180,6 +220,11 @@ services:
   web_production:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-web:${APP_VERSION:-latest}
     container_name: cluo-web-production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.production
     environment:
@@ -197,6 +242,11 @@ services:
   mobile_production:
     image: ${DOCKER_REGISTRY:+${DOCKER_REGISTRY}/}cluo-mobile:${APP_VERSION:-latest}
     container_name: cluo-mobile-production
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     env_file:
       - .env.production
     environment:

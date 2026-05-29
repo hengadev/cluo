@@ -5,6 +5,11 @@ services:
   postgres:
     image: postgres:16-alpine
     container_name: cluo-postgres
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       POSTGRES_USER: cluo
       POSTGRES_PASSWORD: cluo_dev_password
@@ -24,6 +29,11 @@ services:
   redis:
     image: redis:7-alpine
     container_name: cluo-redis
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     ports:
       - "6379:6379"
     volumes:
@@ -44,6 +54,11 @@ services:
       context: ./cluo_api
       dockerfile: Dockerfile
     container_name: cluo-api
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       CLUO_ENVIRONMENT: development
       CLUO_SERVER_HOST: 0.0.0.0
@@ -73,6 +88,11 @@ services:
       context: ./cluo_mobile
       dockerfile: Dockerfile
     container_name: cluo-mobile
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       PUBLIC_API_URL: http://api:8080
     ports:
@@ -87,6 +107,11 @@ services:
       context: ./cluo_web
       dockerfile: Dockerfile
     container_name: cluo-web
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"
     environment:
       PUBLIC_API_URL: http://api:8080
     ports:
