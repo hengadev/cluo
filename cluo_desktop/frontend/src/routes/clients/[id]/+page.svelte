@@ -22,6 +22,7 @@
 		createContact,
 		updateContact,
 		deleteContact,
+		ConflictError,
 	} from "$lib/services/api";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
@@ -147,16 +148,18 @@
 				"Les modifications ont été enregistrées.",
 			);
 		} catch (e) {
-			const msg =
-				e instanceof Error ? e.message : "Erreur lors de la mise à jour";
-			if (msg.includes("409")) {
+			if (e instanceof ConflictError) {
 				toastState.add(
 					TOAST_LEVELS.Error,
 					"Conflit",
 					"Un client avec ce nom existe déjà.",
 				);
 			} else {
-				toastState.add(TOAST_LEVELS.Error, "Erreur", msg);
+				toastState.add(
+					TOAST_LEVELS.Error,
+					"Erreur",
+					e instanceof Error ? e.message : "Erreur lors de la mise à jour",
+				);
 			}
 		} finally {
 			saving = false;

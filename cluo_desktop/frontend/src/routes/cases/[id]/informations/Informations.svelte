@@ -347,14 +347,14 @@
 			const updated = await updateCaseSubject(subject.id, {
 				firstname: subjectForm.firstname.trim(),
 				lastname: subjectForm.lastname.trim(),
-				email: subjectForm.email.trim(),
-				phone: subjectForm.phone.trim(),
-				address1: subjectForm.address1.trim(),
-				address2: subjectForm.address2.trim(),
-				city: subjectForm.city.trim(),
-				postalCode: subjectForm.postalCode.trim(),
-				occupation: subjectForm.occupation.trim(),
-				notes: subjectForm.notes.trim(),
+				email: subjectForm.email.trim() || undefined,
+				phone: subjectForm.phone.trim() || undefined,
+				address1: subjectForm.address1.trim() || undefined,
+				address2: subjectForm.address2.trim() || undefined,
+				city: subjectForm.city.trim() || undefined,
+				postalCode: subjectForm.postalCode.trim() || undefined,
+				occupation: subjectForm.occupation.trim() || undefined,
+				notes: subjectForm.notes.trim() || undefined,
 			});
 			subject = updated;
 			editingSubject = false;
