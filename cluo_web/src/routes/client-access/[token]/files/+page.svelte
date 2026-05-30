@@ -481,7 +481,7 @@
 </div>
 
 <style>
-	@reference;
+	@reference "../../../app.css";
 
 	.rapport-content {
 		@apply text-foreground leading-relaxed;
