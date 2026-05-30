@@ -5,6 +5,7 @@ export const SIDEBAR_STATES = {
     Rapport: 'Rapport',
     Mandat: 'Mandat',
     Devis: 'Devis',
+    Contrat: 'Contrat',
     Reseaux: 'Reseaux',
     Utilisateurs: 'Utilisateurs',
     Pièces: 'Pièces',
