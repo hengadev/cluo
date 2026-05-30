@@ -569,7 +569,7 @@ describe('Contract endpoint URLs', () => {
 			jsonResponse({ success: true, data: { id: 'inv-1' } }),
 		);
 
-		await api.createInvoiceFromContract('c-1', { id: 'inv-1' } as any);
+		await api.createInvoiceFromContract('c-1');
 
 		expect(mockApiFetch).toHaveBeenCalledWith(
 			`${BASE}/contracts/c-1/create-invoice`,

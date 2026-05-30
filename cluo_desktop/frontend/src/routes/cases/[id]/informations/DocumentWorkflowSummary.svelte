@@ -391,7 +391,7 @@
 			confirmDescription: "Une facture sera générée à partir du contrat actif.",
 			confirmLabel: "Créer",
 			execute: async () => {
-				const result = await createInvoiceFromContract(contract.id, {} as any);
+				const result = await createInvoiceFromContract(contract.id);
 				if (result.success) {
 					await goto(resolveRoute("/cases/:id/documents/facture"));
 				}

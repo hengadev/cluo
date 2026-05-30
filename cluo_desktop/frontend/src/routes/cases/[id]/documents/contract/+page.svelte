@@ -286,7 +286,7 @@
 		if (!selectedContract || !canCreateInvoice(selectedContract)) return;
 		creatingInvoice = true;
 		try {
-			const result = await createInvoiceFromContract(selectedContract.id, {} as any);
+			const result = await createInvoiceFromContract(selectedContract.id);
 			if (result.success) {
 				toastState.add(
 					TOAST_LEVELS.Info,

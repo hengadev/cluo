@@ -816,10 +816,9 @@ export async function activateContract(id: string): Promise<DocumentAPIResponse<
 /**
  * Create an invoice from a contract
  */
-export async function createInvoiceFromContract(contractId: string, invoice: Invoice): Promise<DocumentAPIResponse<Invoice>> {
+export async function createInvoiceFromContract(contractId: string): Promise<DocumentAPIResponse<Invoice>> {
 	const response = await apiFetch(`${BASE_URL}/contracts/${contractId}/create-invoice`, {
 		method: 'POST',
-		body: JSON.stringify(invoice),
 	});
 
 	if (!response.ok) {
