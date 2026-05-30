@@ -152,7 +152,10 @@ lint: ## Lint both Terraform and Ansible
 	@$(MAKE) -C $(ANSIBLE_DIR) lint
 	@echo "$(GREEN)✓ Lint complete$(NC)"
 
-ci: validate lint ## Run all CI checks
+audit: ## Audit for plaintext secrets in Ansible/Terraform files and git history
+	@./scripts/audit-secrets.sh
+
+ci: validate lint audit ## Run all CI checks
 
 # ============================================================================
 # INIT & CLEANUP
