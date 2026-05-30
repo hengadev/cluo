@@ -26,6 +26,11 @@ func (d DocumentBase) GetCaseID() uuid.UUID {
 	return d.CaseID
 }
 
+// GetClientID returns the document's associated client ID.
+func (d DocumentBase) GetClientID() uuid.UUID {
+	return d.ClientID
+}
+
 // GetStatus returns the current status of the document.
 func (d DocumentBase) GetStatus() DocumentStatus {
 	return d.Status

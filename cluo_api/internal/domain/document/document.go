@@ -117,9 +117,6 @@ type SendDocumentRequest struct {
 }
 
 func (r *SendDocumentRequest) Valid(_ context.Context) error {
-	if len(r.Recipients) == 0 {
-		return fmt.Errorf("at least one recipient is required")
-	}
 	return nil
 }
 
