@@ -1,9 +1,7 @@
 /**
- * Unit tests for api.ts — real-API paths only.
+ * Unit tests for api.ts — API paths only.
  *
- * Every test forces isMockEnabled() to return false so we exercise
- * the code that talks to the live backend.  apiFetch is mocked so
- * no real HTTP requests are made.
+ * apiFetch is mocked so no real HTTP requests are made.
  */
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
@@ -11,48 +9,12 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 // Mocks — must be set up before importing the module under test
 // ---------------------------------------------------------------------------
 
-// Stub the env variable so isMockEnabled() returns false
-vi.stubEnv('VITE_USE_MOCK_DATA', 'false');
 vi.stubEnv('VITE_API_BASE_URL', 'http://localhost:8080');
 
 // Mock apiFetch — every test can override globalThis.fetch
 const mockApiFetch = vi.fn();
 vi.mock('../apiFetch', () => ({
 	apiFetch: (...args: any[]) => mockApiFetch(...args),
-}));
-
-// Mock mockData — not used when mock is disabled but imported by the module
-vi.mock('../../mockData', () => ({
-	getAllUsers: vi.fn(() => []),
-	getUserById: vi.fn(() => undefined),
-	getAllClients: vi.fn(() => []),
-	getClientById: vi.fn(() => undefined),
-	getContactsByClientId: vi.fn(() => []),
-	getContactById: vi.fn(() => undefined),
-	getAllCases: vi.fn(() => []),
-	getCaseById: vi.fn(() => undefined),
-	getCasesByClientId: vi.fn(() => []),
-	getAllCaseSubjects: vi.fn(() => []),
-	getCaseSubjectById: vi.fn(() => undefined),
-	getAllCaseTypes: vi.fn(() => []),
-	getCaseTypeById: vi.fn(() => undefined),
-	getAllEstimates: vi.fn(() => []),
-	getEstimatesByCaseId: vi.fn(() => []),
-	getEstimatesByClientId: vi.fn(() => []),
-	getEstimateById: vi.fn(() => undefined),
-	getAllMandates: vi.fn(() => []),
-	getMandatesByCaseId: vi.fn(() => []),
-	getMandatesByClientId: vi.fn(() => []),
-	getMandateById: vi.fn(() => undefined),
-	getAllContracts: vi.fn(() => []),
-	getContractsByCaseId: vi.fn(() => []),
-	getContractsByClientId: vi.fn(() => []),
-	getContractById: vi.fn(() => undefined),
-	getAllInvoices: vi.fn(() => []),
-	getInvoicesByCaseId: vi.fn(() => []),
-	getInvoicesByClientId: vi.fn(() => []),
-	getInvoiceById: vi.fn(() => undefined),
-	getInvoicesByPaymentStatus: vi.fn(() => []),
 }));
 
 // Import after mocks
@@ -625,7 +587,7 @@ describe('Invoice endpoint URLs', () => {
 		mockApiFetch.mockReset();
 	});
 
-	it('processPayment calls POST /invoices/{id}/pay', async () => {
+	it('processPayment calls POST /documents/{id}/pay', async () => {
 		mockApiFetch.mockResolvedValueOnce(
 			jsonResponse({ success: true, data: {} }),
 		);
@@ -633,12 +595,12 @@ describe('Invoice endpoint URLs', () => {
 		await api.processPayment('inv-1', { amount: 100, payment_method: 'card' });
 
 		expect(mockApiFetch).toHaveBeenCalledWith(
-			`${BASE}/invoices/inv-1/pay`,
+			`${BASE}/documents/inv-1/pay`,
 			expect.objectContaining({ method: 'POST' }),
 		);
 	});
 
-	it('voidInvoice calls POST /invoices/{id}/void', async () => {
+	it('voidInvoice calls POST /documents/{id}/void', async () => {
 		mockApiFetch.mockResolvedValueOnce(
 			jsonResponse({ success: true, data: {} }),
 		);
@@ -646,7 +608,7 @@ describe('Invoice endpoint URLs', () => {
 		await api.voidInvoice('inv-1');
 
 		expect(mockApiFetch).toHaveBeenCalledWith(
-			`${BASE}/invoices/inv-1/void`,
+			`${BASE}/documents/inv-1/void`,
 			expect.objectContaining({ method: 'POST' }),
 		);
 	});

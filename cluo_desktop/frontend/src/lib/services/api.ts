@@ -1,11 +1,10 @@
 /**
  * API Service
- * 
- * When VITE_USE_MOCK_DATA is true, returns mock data for development.
- * When false, makes actual API calls to the backend.
+ *
+ * All calls go to the real backend API. No mock data is ever returned.
  */
 
-import { isMockEnabled, API_BASE_URL } from '../config';
+import { API_BASE_URL } from '../config';
 import { apiFetch } from './apiFetch';
 import type {
 	AuthUser,
@@ -35,9 +34,6 @@ import type {
 	UpdateDocumentRequest,
 } from '../types/entities';
 
-// Import mock data
-import * as mockData from '../mockData';
-
 const BASE_URL = API_BASE_URL;
 
 /**
@@ -55,13 +51,6 @@ export class ConflictError extends Error {
 // HELPER FUNCTIONS
 // =============================================================================
 
-/**
- * Simulates API delay for realistic mock behavior
- */
-async function mockDelay(ms: number = 100): Promise<void> {
-	await new Promise(resolve => setTimeout(resolve, ms));
-}
-
 // =============================================================================
 // USERS
 // =============================================================================
@@ -72,10 +61,6 @@ async function mockDelay(ms: number = 100): Promise<void> {
  * We call GET /auth/me and return a one-element array.
  */
 export async function fetchAllUsers(): Promise<AuthUser[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllUsers();
-	}
 	const response = await apiFetch(`${BASE_URL}/auth/me`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch current user: ${response.status}`);
@@ -90,10 +75,6 @@ export async function fetchAllUsers(): Promise<AuthUser[]> {
  * requested ID does not match the authenticated user.
  */
 export async function fetchUser(id: string): Promise<AuthUser | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getUserById(id) || null;
-	}
 	const response = await apiFetch(`${BASE_URL}/auth/me`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch current user: ${response.status}`);
@@ -110,10 +91,6 @@ export async function fetchUser(id: string): Promise<AuthUser | null> {
  * Fetch all clients (global list for sidebar)
  */
 export async function fetchAllClients(): Promise<Client[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllClients();
-	}
 	const response = await apiFetch(`${BASE_URL}/client`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch clients: ${response.status}`);
@@ -125,10 +102,6 @@ export async function fetchAllClients(): Promise<Client[]> {
  * Fetch a client by ID
  */
 export async function fetchClient(id: string): Promise<Client | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getClientById(id) || null;
-	}
 	const response = await apiFetch(`${BASE_URL}/client/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
@@ -144,15 +117,6 @@ export async function createClient(request: {
 	name: string;
 	type?: string;
 }): Promise<Client> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const newClient: Client = {
-			id: `mock-${Date.now()}`,
-			name: request.name,
-			type: (request.type || 'company') as any,
-		};
-		return newClient;
-	}
 	const response = await apiFetch(`${BASE_URL}/client`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -170,17 +134,6 @@ export async function updateClient(id: string, request: {
 	name?: string;
 	type?: string;
 }): Promise<Client> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const existing = mockData.getClientById(id);
-		if (!existing) throw new Error(`Client ${id} not found`);
-		const updated: Client = {
-			id: existing.id,
-			name: request.name ?? existing.name,
-			type: (request.type ?? existing.type) as any,
-		};
-		return updated;
-	}
 	const response = await apiFetch(`${BASE_URL}/client/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -195,10 +148,6 @@ export async function updateClient(id: string, request: {
  * Delete a client
  */
 export async function deleteClient(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
 	const response = await apiFetch(`${BASE_URL}/client/${id}`, {
 		method: 'DELETE',
 	});
@@ -211,10 +160,6 @@ export async function deleteClient(id: string): Promise<void> {
  * Fetch contacts for a specific client
  */
 export async function fetchClientContacts(clientId: string): Promise<Contact[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getContactsByClientId(clientId);
-	}
 	const response = await apiFetch(`${BASE_URL}/client/${clientId}/contact`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch client contacts: ${response.status}`);
@@ -230,10 +175,6 @@ export async function fetchClientContacts(clientId: string): Promise<Contact[]> 
  * Fetch a contact by ID
  */
 export async function fetchContact(id: string): Promise<Contact | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getContactById(id) || null;
-	}
 	const response = await apiFetch(`${BASE_URL}/contact/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
@@ -253,20 +194,6 @@ export async function createContact(request: {
 	phone?: string;
 	position?: string;
 }): Promise<Contact> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const newContact: Contact = {
-			id: `mock-${Date.now()}`,
-			clientID: request.clientID,
-			lastname: request.lastname,
-			firstname: request.firstname,
-			email: request.email ?? '',
-			phone: request.phone ?? '',
-			position: request.position ?? '',
-			createdAt: new Date().toISOString(),
-		};
-		return newContact;
-	}
 	const response = await apiFetch(`${BASE_URL}/client/${request.clientID}/contact`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -287,13 +214,6 @@ export async function updateContact(id: string, request: {
 	phone?: string;
 	position?: string;
 }): Promise<Contact> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const existing = mockData.getContactById(id);
-		if (!existing) throw new Error(`Contact ${id} not found`);
-		const updated = { ...existing, ...request };
-		return updated;
-	}
 	const response = await apiFetch(`${BASE_URL}/contact/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -308,10 +228,6 @@ export async function updateContact(id: string, request: {
  * Delete a contact
  */
 export async function deleteContact(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
 	const response = await apiFetch(`${BASE_URL}/contact/${id}`, {
 		method: 'DELETE',
 	});
@@ -334,14 +250,6 @@ interface FetchCasesParams {
  * Fetch all cases with optional pagination and filters
  */
 export async function fetchAllCases(params?: FetchCasesParams): Promise<ListCasesResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			cases: mockData.getAllCases(),
-			pagination: { page: 1, pageSize: 50, totalItems: mockData.getAllCases().length, totalPages: 1 }
-		};
-	}
-
 	const url = new URL(`${BASE_URL}/cases`);
 
 	if (params?.page) url.searchParams.set('page', params.page.toString());
@@ -360,13 +268,6 @@ export async function fetchAllCases(params?: FetchCasesParams): Promise<ListCase
  * Fetch a case by ID with full details
  */
 export async function fetchCase(id: string): Promise<Case> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const caseData = mockData.getCaseById(id);
-		if (!caseData) throw new Error(`Case ${id} not found`);
-		return caseData;
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${id}`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch case: ${response.status}`);
@@ -386,14 +287,6 @@ export async function fetchCasesByStatus(status: string): Promise<ListCasesRespo
  * Fetch cases by client ID
  */
 export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCasesParams, 'status'>): Promise<ListCasesResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			cases: mockData.getCasesByClientId(clientId),
-			pagination: { page: 1, pageSize: 50, totalItems: mockData.getCasesByClientId(clientId).length, totalPages: 1 }
-		};
-	}
-
 	const url = new URL(`${BASE_URL}/clients/${clientId}/cases`);
 
 	if (params?.page) url.searchParams.set('page', params.page.toString());
@@ -411,34 +304,6 @@ export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCa
  * Create a new case
  */
 export async function createCase(request: CreateCaseRequest): Promise<Case> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const newCase: Case = {
-			id: `mock-${Date.now()}`,
-			title: request.title,
-			description: request.description,
-			clientId: request.clientId,
-			assignedContactID: request.assignedContactID ?? null,
-			caseSubjectId: request.caseSubjectId ?? null,
-			externalReference: request.externalReference ?? null,
-			caseTypeId: request.caseTypeId ?? null,
-			status: request.status,
-			placename: request.placename ?? null,
-			address1: request.address1 ?? null,
-			address2: request.address2 ?? null,
-			city: request.city ?? null,
-			postalCode: request.postalCode ?? null,
-			country: request.country ?? null,
-			latitude: request.latitude ?? null,
-			longitude: request.longitude ?? null,
-			locationType: request.locationType ?? null,
-			locationNotes: request.locationNotes ?? null,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		};
-		return newCase;
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -455,14 +320,6 @@ export async function createCase(request: CreateCaseRequest): Promise<Case> {
  * Update an existing case
  */
 export async function updateCase(id: string, request: Partial<CreateCaseRequest>): Promise<Case> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const existing = mockData.getCaseById(id);
-		if (!existing) throw new Error(`Case ${id} not found`);
-		const updated = { ...existing, ...request, updatedAt: new Date().toISOString() };
-		return updated;
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -479,11 +336,6 @@ export async function updateCase(id: string, request: Partial<CreateCaseRequest>
  * Delete a case
  */
 export async function deleteCase(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${id}`, {
 		method: 'DELETE',
 	});
@@ -497,11 +349,6 @@ export async function deleteCase(id: string): Promise<void> {
  * Mark a case as ready
  */
 export async function markCaseReady(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${id}/mark-ready`, {
 		method: 'POST',
 	});
@@ -515,17 +362,6 @@ export async function markCaseReady(id: string): Promise<void> {
  * Release a case and generate portal access token
  */
 export async function releaseCase(id: string): Promise<ReleaseResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			caseId: id,
-			tokenId: `mock-token-${Date.now()}`,
-			rawToken: 'mock-raw-token',
-			portalUrl: 'https://portal.example.com',
-			expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
-		};
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${id}/release`, {
 		method: 'POST',
 	});
@@ -545,10 +381,6 @@ export async function releaseCase(id: string): Promise<ReleaseResponse> {
  * Fetch all case subjects (global list)
  */
 export async function fetchAllCaseSubjects(): Promise<CaseSubject[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllCaseSubjects();
-	}
 	const response = await apiFetch(`${BASE_URL}/subjects`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch case subjects: ${response.status}`);
@@ -560,10 +392,6 @@ export async function fetchAllCaseSubjects(): Promise<CaseSubject[]> {
  * Fetch a case subject by ID
  */
 export async function fetchCaseSubject(id: string): Promise<CaseSubject | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getCaseSubjectById(id) || null;
-	}
 	const response = await apiFetch(`${BASE_URL}/subjects/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
@@ -587,24 +415,6 @@ export async function createCaseSubject(request: {
 	occupation?: string;
 	notes?: string;
 }): Promise<CaseSubject> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const newSubject: CaseSubject = {
-			id: `mock-${Date.now()}`,
-			firstname: request.firstname,
-			lastname: request.lastname,
-			email: request.email ?? '',
-			phone: request.phone ?? '',
-			address1: request.address1 ?? '',
-			address2: request.address2 ?? '',
-			city: request.city ?? '',
-			postalCode: request.postalCode ?? '',
-			occupation: request.occupation ?? '',
-			notes: request.notes ?? '',
-			createdAt: new Date().toISOString(),
-		};
-		return newSubject;
-	}
 	const response = await apiFetch(`${BASE_URL}/subjects`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -630,13 +440,6 @@ export async function updateCaseSubject(id: string, request: {
 	occupation?: string;
 	notes?: string;
 }): Promise<CaseSubject> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const existing = mockData.getCaseSubjectById(id);
-		if (!existing) throw new Error(`Case subject ${id} not found`);
-		const updated = { ...existing, ...request };
-		return updated;
-	}
 	const response = await apiFetch(`${BASE_URL}/subjects/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -651,10 +454,6 @@ export async function updateCaseSubject(id: string, request: {
  * Delete a case subject
  */
 export async function deleteCaseSubject(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
 	const response = await apiFetch(`${BASE_URL}/subjects/${id}`, {
 		method: 'DELETE',
 	});
@@ -671,10 +470,6 @@ export async function deleteCaseSubject(id: string): Promise<void> {
  * Fetch all case types (global list)
  */
 export async function fetchAllCaseTypes(): Promise<CaseType[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllCaseTypes() as unknown as CaseType[];
-	}
 	const response = await apiFetch(`${BASE_URL}/case-types`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch case types: ${response.status}`);
@@ -686,10 +481,6 @@ export async function fetchAllCaseTypes(): Promise<CaseType[]> {
  * Fetch a case type by ID
  */
 export async function fetchCaseType(id: string): Promise<CaseType | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getCaseTypeById(id) as unknown as CaseType || null;
-	}
 	const response = await apiFetch(`${BASE_URL}/case-types/${id}`);
 	if (!response.ok) {
 		if (response.status === 404) return null;
@@ -702,16 +493,6 @@ export async function fetchCaseType(id: string): Promise<CaseType | null> {
  * Create a new case type
  */
 export async function createCaseType(request: { name: string }): Promise<CaseType> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const newType: CaseType = {
-			id: `mock-${Date.now()}`,
-			name: request.name,
-			createdAt: new Date().toISOString(),
-			updatedAt: new Date().toISOString(),
-		};
-		return newType;
-	}
 	const response = await apiFetch(`${BASE_URL}/case-types`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -726,13 +507,6 @@ export async function createCaseType(request: { name: string }): Promise<CaseTyp
  * Update an existing case type
  */
 export async function updateCaseType(id: string, request: { name: string }): Promise<CaseType> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const existing = mockData.getCaseTypeById(id) as unknown as CaseType | undefined;
-		if (!existing) throw new Error(`Case type ${id} not found`);
-		const updated = { ...existing, name: request.name, updatedAt: new Date().toISOString() };
-		return updated;
-	}
 	const response = await apiFetch(`${BASE_URL}/case-types/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -747,10 +521,6 @@ export async function updateCaseType(id: string, request: { name: string }): Pro
  * Delete a case type
  */
 export async function deleteCaseType(id: string): Promise<void> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return;
-	}
 	const response = await apiFetch(`${BASE_URL}/case-types/${id}`, {
 		method: 'DELETE',
 	});
@@ -764,41 +534,9 @@ export async function deleteCaseType(id: string): Promise<void> {
 // =============================================================================
 
 /**
- * Maps a camelCase mock estimate object to the snake_case Estimate entity type.
- */
-function mapMockEstimate(mock: any): Estimate {
-	return {
-		id: mock.id,
-		case_id: mock.caseId,
-		client_id: mock.clientId,
-		estimate_number: mock.estimateNumber,
-		issue_date: mock.issueDate,
-		valid_until: mock.validUntil,
-		line_items: (mock.lineItems || []).map((li: any) => ({
-			description: li.description,
-			quantity: li.quantity,
-			unit_price: li.unitPrice,
-			subtotal: li.total,
-		})),
-		estimated_total: mock.estimatedTotal,
-		notes: mock.notes,
-		accepted: mock.accepted,
-		accepted_at: mock.acceptedAt,
-		accepted_by: mock.acceptedBy,
-		status: mock.status,
-		created_at: mock.createdAt,
-		updated_at: mock.updatedAt,
-	};
-}
-
-/**
  * Fetch all estimates (global list for sidebar)
  */
 export async function fetchAllEstimates(): Promise<Estimate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllEstimates().map(mapMockEstimate);
-	}
 	const result = await fetchDocuments({ type: 'estimate' });
 	return result.data as unknown as Estimate[];
 }
@@ -807,10 +545,6 @@ export async function fetchAllEstimates(): Promise<Estimate[]> {
  * Fetch estimates for a specific case
  */
 export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getEstimatesByCaseId(caseId).map(mapMockEstimate);
-	}
 	const result = await fetchDocuments({ type: 'estimate', case_id: caseId });
 	return result.data as unknown as Estimate[];
 }
@@ -819,11 +553,6 @@ export async function fetchCaseEstimates(caseId: string): Promise<Estimate[]> {
  * Fetch an estimate by ID
  */
 export async function fetchEstimate(id: string): Promise<Estimate | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const mock = mockData.getEstimateById(id);
-		return mock ? mapMockEstimate(mock) : null;
-	}
 	const result = await fetchDocument(id, 'estimate');
 	return result.data as Estimate || null;
 }
@@ -832,10 +561,6 @@ export async function fetchEstimate(id: string): Promise<Estimate | null> {
  * Fetch estimates by client ID
  */
 export async function fetchClientEstimates(clientId: string): Promise<Estimate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getEstimatesByClientId(clientId).map(mapMockEstimate);
-	}
 	const result = await fetchDocuments({ type: 'estimate' });
 	return (result.data as unknown as Estimate[]).filter(est => (est as Estimate).client_id === clientId);
 }
@@ -844,20 +569,6 @@ export async function fetchClientEstimates(clientId: string): Promise<Estimate[]
  * Create a new estimate
  */
 export async function createEstimate(estimate: Estimate): Promise<DocumentAPIResponse<Estimate>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			success: true,
-			data: {
-				...estimate,
-				id: `mock-${Date.now()}`,
-				status: 'draft',
-				accepted: false,
-				created_at: new Date().toISOString(),
-				updated_at: new Date().toISOString(),
-			},
-		};
-	}
 	const response = await apiFetch(`${BASE_URL}/estimates`, {
 		method: 'POST',
 		body: JSON.stringify(estimate),
@@ -875,10 +586,6 @@ export async function createEstimate(estimate: Estimate): Promise<DocumentAPIRes
  * Update an estimate (line items only — the backend does not support updating dates or notes)
  */
 export async function updateEstimate(id: string, lineItems: EstimateItem[]): Promise<DocumentAPIResponse<Estimate>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: null as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/estimates/${id}`, {
 		method: 'PATCH',
 		body: JSON.stringify({ line_items: lineItems }),
@@ -896,16 +603,6 @@ export async function updateEstimate(id: string, lineItems: EstimateItem[]): Pro
  * Accept an estimate — the backend derives the accepting user from the session
  */
 export async function acceptEstimate(id: string): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			success: true,
-			data: {
-				id: `mock-mandate-${Date.now()}`,
-				mandate_number: `MAN-${new Date().getFullYear()}-001`,
-			},
-		};
-	}
 	const response = await apiFetch(`${BASE_URL}/estimates/${id}/accept`, {
 		method: 'POST',
 	});
@@ -923,52 +620,9 @@ export async function acceptEstimate(id: string): Promise<DocumentAPIResponse> {
 // =============================================================================
 
 /**
- * Maps a camelCase mock mandate object to the snake_case Mandate entity type.
- */
-function mapMockMandate(mock: any): Mandate {
-	return {
-		id: mock.id,
-		case_id: mock.caseId,
-		client_id: mock.clientId,
-		mandate_number: mock.mandateNumber,
-		issue_date: mock.issueDate,
-		scope_of_work: mock.scopeOfWork,
-		valid_from: mock.validFrom,
-		valid_until: mock.validUntil,
-		terms_conditions: mock.termsConditions,
-		client_signature: mock.clientSignature
-			? {
-				id: `sig-${mock.id}-client`,
-				name: mock.clientSignature.name,
-				role: 'client',
-				signed_at: mock.clientSignature.date,
-			}
-			: undefined,
-		investigator_signature: mock.investigatorSignature
-			? {
-				id: `sig-${mock.id}-investigator`,
-				name: mock.investigatorSignature.name,
-				role: 'investigator',
-				signed_at: mock.investigatorSignature.date,
-			}
-			: undefined,
-		linked_estimate_id: mock.linkedEstimateId,
-		special_instructions: mock.specialInstructions,
-		jurisdiction: mock.jurisdiction,
-		status: mock.status,
-		created_at: mock.createdAt,
-		updated_at: mock.updatedAt,
-	};
-}
-
-/**
  * Fetch all mandates (global list for sidebar)
  */
 export async function fetchAllMandates(): Promise<Mandate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllMandates().map(mapMockMandate);
-	}
 	const result = await fetchDocuments({ type: 'mandate' });
 	return result.data as unknown as Mandate[];
 }
@@ -977,10 +631,6 @@ export async function fetchAllMandates(): Promise<Mandate[]> {
  * Fetch mandates for a specific case
  */
 export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getMandatesByCaseId(caseId).map(mapMockMandate);
-	}
 	const result = await fetchDocuments({ type: 'mandate', case_id: caseId });
 	return result.data as unknown as Mandate[];
 }
@@ -989,11 +639,6 @@ export async function fetchCaseMandates(caseId: string): Promise<Mandate[]> {
  * Fetch a mandate by ID
  */
 export async function fetchMandate(id: string): Promise<Mandate | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const mock = mockData.getMandateById(id);
-		return mock ? mapMockMandate(mock) : null;
-	}
 	const result = await fetchDocument(id, 'mandate');
 	return result.data as Mandate || null;
 }
@@ -1002,10 +647,6 @@ export async function fetchMandate(id: string): Promise<Mandate | null> {
  * Fetch mandates by client ID
  */
 export async function fetchClientMandates(clientId: string): Promise<Mandate[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getMandatesByClientId(clientId).map(mapMockMandate);
-	}
 	const result = await fetchDocuments({ type: 'mandate' });
 	return (result.data as unknown as Mandate[]).filter(mand => (mand as Mandate).client_id === clientId);
 }
@@ -1014,10 +655,6 @@ export async function fetchClientMandates(clientId: string): Promise<Mandate[]> 
  * Create a new mandate
  */
 export async function createMandate(mandate: Mandate): Promise<DocumentAPIResponse<Mandate>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: mandate };
-	}
 	const response = await apiFetch(`${BASE_URL}/mandates`, {
 		method: 'POST',
 		body: JSON.stringify(mandate),
@@ -1034,10 +671,6 @@ export async function createMandate(mandate: Mandate): Promise<DocumentAPIRespon
  * Sign a mandate
  */
 export async function signMandate(id: string, request: SignDocumentRequest): Promise<DocumentAPIResponse<Mandate>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/mandates/${id}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1058,10 +691,6 @@ export async function signMandate(id: string, request: SignDocumentRequest): Pro
  * Activate a mandate
  */
 export async function activateMandate(id: string): Promise<DocumentAPIResponse<Mandate>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/mandates/${id}/activate`, {
 		method: 'POST',
 	});
@@ -1081,10 +710,6 @@ export async function activateMandate(id: string): Promise<DocumentAPIResponse<M
  * Create a contract from a mandate
  */
 export async function createContractFromMandate(mandateId: string, contract: Contract): Promise<DocumentAPIResponse<Contract>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: contract };
-	}
 	const response = await apiFetch(`${BASE_URL}/mandates/${mandateId}/create-contract`, {
 		method: 'POST',
 		body: JSON.stringify(contract),
@@ -1101,43 +726,10 @@ export async function createContractFromMandate(mandateId: string, contract: Con
 // CONTRACTS
 // =============================================================================
 
-function mapMockContract(mock: any): Contract {
-	return {
-		id: mock.id,
-		case_id: mock.caseId,
-		client_id: mock.clientId,
-		contract_number: mock.contractNumber,
-		start_date: mock.startDate,
-		end_date: mock.endDate,
-		scope_of_services: mock.scopeOfServices,
-		payment_terms: mock.paymentTerms,
-		confidentiality: mock.confidentiality,
-		termination_clause: mock.terminationClause,
-		signatures: (mock.signatures || []).map((s: any) => ({
-			id: `sig-${mock.id}-${s.role}`,
-			name: s.name,
-			role: s.role,
-			signed_at: s.date,
-		})),
-		linked_mandate_id: mock.linkedMandateId,
-		contract_value: mock.contractValue,
-		currency: mock.currency,
-		renewal_terms: mock.renewalTerms,
-		governing_law: mock.governingLaw,
-		status: mock.status,
-		created_at: mock.createdAt,
-		updated_at: mock.updatedAt,
-	};
-}
-
 /**
  * Fetch all contracts (global list for sidebar)
  */
 export async function fetchAllContracts(): Promise<Contract[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllContracts().map(mapMockContract);
-	}
 	const result = await fetchDocuments({ type: 'contract' });
 	return result.data as unknown as Contract[];
 }
@@ -1146,10 +738,6 @@ export async function fetchAllContracts(): Promise<Contract[]> {
  * Fetch contracts for a specific case
  */
 export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getContractsByCaseId(caseId).map(mapMockContract);
-	}
 	const result = await fetchDocuments({ type: 'contract', case_id: caseId });
 	return result.data as unknown as Contract[];
 }
@@ -1158,11 +746,6 @@ export async function fetchCaseContracts(caseId: string): Promise<Contract[]> {
  * Fetch a contract by ID
  */
 export async function fetchContract(id: string): Promise<Contract | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const mock = mockData.getContractById(id);
-		return mock ? mapMockContract(mock) : null;
-	}
 	const result = await fetchDocument(id, 'contract');
 	return result.data as Contract || null;
 }
@@ -1171,10 +754,6 @@ export async function fetchContract(id: string): Promise<Contract | null> {
  * Fetch contracts by client ID
  */
 export async function fetchClientContracts(clientId: string): Promise<Contract[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getContractsByClientId(clientId).map(mapMockContract);
-	}
 	const result = await fetchDocuments({ type: 'contract' });
 	return (result.data as unknown as Contract[]).filter(cont => (cont as Contract).client_id === clientId);
 }
@@ -1183,10 +762,6 @@ export async function fetchClientContracts(clientId: string): Promise<Contract[]
  * Create a new contract
  */
 export async function createContract(contract: Contract): Promise<DocumentAPIResponse<Contract>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: contract };
-	}
 	const response = await apiFetch(`${BASE_URL}/contracts`, {
 		method: 'POST',
 		body: JSON.stringify(contract),
@@ -1203,10 +778,6 @@ export async function createContract(contract: Contract): Promise<DocumentAPIRes
  * Sign a contract
  */
 export async function signContract(id: string, request: SignDocumentRequest): Promise<DocumentAPIResponse<Contract>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/contracts/${id}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1227,10 +798,6 @@ export async function signContract(id: string, request: SignDocumentRequest): Pr
  * Activate a contract
  */
 export async function activateContract(id: string): Promise<DocumentAPIResponse<Contract>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/contracts/${id}/activate`, {
 		method: 'POST',
 	});
@@ -1250,10 +817,6 @@ export async function activateContract(id: string): Promise<DocumentAPIResponse<
  * Create an invoice from a contract
  */
 export async function createInvoiceFromContract(contractId: string, invoice: Invoice): Promise<DocumentAPIResponse<Invoice>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: invoice };
-	}
 	const response = await apiFetch(`${BASE_URL}/contracts/${contractId}/create-invoice`, {
 		method: 'POST',
 		body: JSON.stringify(invoice),
@@ -1274,47 +837,10 @@ export async function createInvoiceFromContract(contractId: string, invoice: Inv
 // INVOICES
 // =============================================================================
 
-function mapMockInvoice(mock: any): Invoice {
-	return {
-		id: mock.id,
-		case_id: mock.caseId,
-		client_id: mock.clientId,
-		invoice_number: mock.invoiceNumber,
-		issue_date: mock.issueDate,
-		due_date: mock.dueDate,
-		line_items: (mock.lineItems || []).map((li: any) => ({
-			description: li.description,
-			quantity: li.quantity,
-			unit_price: li.unitPrice,
-			subtotal: li.total,
-		})),
-		total_amount: mock.totalAmount,
-		tax_rate: mock.taxRate,
-		tax_amount: mock.taxAmount,
-		notes: mock.notes,
-		payment_status: mock.paymentStatus,
-		paid_at: mock.paidAt ?? undefined,
-		paid_amount: mock.paidAmount ?? undefined,
-		payment_method: mock.paymentMethod ?? undefined,
-		linked_contract_id: mock.linkedContractId ?? undefined,
-		currency: mock.currency,
-		payment_terms: mock.paymentTerms,
-		late_fee: mock.lateFee ?? undefined,
-		late_fee_rate: mock.lateFeeRate ?? undefined,
-		status: mock.status,
-		created_at: mock.createdAt,
-		updated_at: mock.updatedAt,
-	};
-}
-
 /**
  * Fetch all invoices (global list for sidebar)
  */
 export async function fetchAllInvoices(): Promise<Invoice[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getAllInvoices().map(mapMockInvoice);
-	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return result.data as unknown as Invoice[];
 }
@@ -1323,10 +849,6 @@ export async function fetchAllInvoices(): Promise<Invoice[]> {
  * Fetch invoices for a specific case
  */
 export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getInvoicesByCaseId(caseId).map(mapMockInvoice);
-	}
 	const result = await fetchDocuments({ type: 'invoice', case_id: caseId });
 	return result.data as unknown as Invoice[];
 }
@@ -1335,11 +857,6 @@ export async function fetchCaseInvoices(caseId: string): Promise<Invoice[]> {
  * Fetch an invoice by ID
  */
 export async function fetchInvoice(id: string): Promise<Invoice | null> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const mock = mockData.getInvoiceById(id);
-		return mock ? mapMockInvoice(mock) : null;
-	}
 	const result = await fetchDocument(id, 'invoice');
 	return result.data as Invoice || null;
 }
@@ -1348,10 +865,6 @@ export async function fetchInvoice(id: string): Promise<Invoice | null> {
  * Fetch invoices by client ID
  */
 export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getInvoicesByClientId(clientId).map(mapMockInvoice);
-	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).client_id === clientId);
 }
@@ -1360,10 +873,6 @@ export async function fetchClientInvoices(clientId: string): Promise<Invoice[]> 
  * Fetch invoices by payment status
  */
 export async function fetchInvoicesByPaymentStatus(paymentStatus: string): Promise<Invoice[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return mockData.getInvoicesByPaymentStatus(paymentStatus as any).map(mapMockInvoice);
-	}
 	const result = await fetchDocuments({ type: 'invoice' });
 	return (result.data as unknown as Invoice[]).filter(inv => (inv as Invoice).payment_status === paymentStatus);
 }
@@ -1372,10 +881,6 @@ export async function fetchInvoicesByPaymentStatus(paymentStatus: string): Promi
  * Create a new invoice
  */
 export async function createInvoice(invoice: Invoice): Promise<DocumentAPIResponse<Invoice>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: invoice };
-	}
 	const response = await apiFetch(`${BASE_URL}/invoices`, {
 		method: 'POST',
 		body: JSON.stringify(invoice),
@@ -1392,16 +897,6 @@ export async function createInvoice(invoice: Invoice): Promise<DocumentAPIRespon
  * Fetch overdue invoices
  */
 export async function fetchOverdueInvoices(page: number = 1, perPage: number = 20): Promise<OverdueInvoicesResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			success: true,
-			data: [],
-			total: 0,
-			page,
-			per_page: perPage
-		};
-	}
 	const url = new URL(`${BASE_URL}/invoices/overdue`);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
@@ -1418,10 +913,6 @@ export async function fetchOverdueInvoices(page: number = 1, perPage: number = 2
  * Process a payment on an invoice
  */
 export async function processPayment(id: string, request: PaymentRequest): Promise<DocumentAPIResponse<Invoice>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/pay`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1442,10 +933,6 @@ export async function processPayment(id: string, request: PaymentRequest): Promi
  * Void an invoice
  */
 export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoice>> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id } as any };
-	}
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/void`, {
 		method: 'POST',
 	});
@@ -1476,12 +963,6 @@ export interface ApiImage {
  * Calls GET /case/{caseId}/media?type=image and maps the response to ApiImage.
  */
 export async function fetchCaseImages(caseId: string): Promise<ApiImage[]> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		// Use the existing mock data for images
-		// This is handled by the photos/mockData.ts file in routes
-		return [];
-	}
 	const url = new URL(`${BASE_URL}/case/${caseId}/media`);
 	url.searchParams.set('type', 'image');
 
@@ -1682,18 +1163,6 @@ interface FetchDocumentsParams {
  * Fetch documents with optional filters and pagination
  */
 export async function fetchDocuments(params?: FetchDocumentsParams): Promise<DocumentListResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		// Return mock data for now
-		return {
-			success: true,
-			data: [],
-			total: 0,
-			page: 1,
-			per_page: 20
-		};
-	}
-
 	const url = new URL(`${BASE_URL}/documents`);
 
 	if (params?.case_id) url.searchParams.set('case_id', params.case_id);
@@ -1714,11 +1183,6 @@ export async function fetchDocuments(params?: FetchDocumentsParams): Promise<Doc
  * Create a new document
  */
 export async function createDocument(request: CreateDocumentRequest): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id: `mock-${Date.now()}` } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1735,11 +1199,6 @@ export async function createDocument(request: CreateDocumentRequest): Promise<Do
  * Fetch a single document by ID and type
  */
 export async function fetchDocument(id: string, type: string): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id, type } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch document: ${response.status}`);
@@ -1752,11 +1211,6 @@ export async function fetchDocument(id: string, type: string): Promise<DocumentA
  * Update an existing document
  */
 export async function updateDocument(id: string, type: string, request: UpdateDocumentRequest): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id, type } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`, {
 		method: 'PATCH',
 		body: JSON.stringify(request),
@@ -1773,11 +1227,6 @@ export async function updateDocument(id: string, type: string, request: UpdateDo
  * Delete a document
  */
 export async function deleteDocument(id: string, type: string): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { message: 'Document deleted successfully' } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}`, {
 		method: 'DELETE',
 	});
@@ -1793,11 +1242,6 @@ export async function deleteDocument(id: string, type: string): Promise<Document
  * Send a document to recipients
  */
 export async function sendDocument(id: string, type: string, request: SendDocumentRequest): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { message: 'Document sent successfully' } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/send`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1818,11 +1262,6 @@ export async function sendDocument(id: string, type: string, request: SendDocume
  * Sign a document
  */
 export async function signDocument(id: string, type: string, request: SignDocumentRequest): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { id, type } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/sign`, {
 		method: 'POST',
 		body: JSON.stringify(request),
@@ -1839,11 +1278,6 @@ export async function signDocument(id: string, type: string, request: SignDocume
  * Archive a document
  */
 export async function archiveDocument(id: string, type: string): Promise<DocumentAPIResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return { success: true, data: { message: 'Document archived successfully' } };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/archive`, {
 		method: 'POST',
 	});
@@ -1859,17 +1293,6 @@ export async function archiveDocument(id: string, type: string): Promise<Documen
  * Fetch document history (versions)
  */
 export async function fetchDocumentHistory(id: string, type: string, page: number = 1, perPage: number = 20): Promise<DocumentHistoryResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		return {
-			success: true,
-			data: [],
-			total: 0,
-			page,
-			per_page: perPage
-		};
-	}
-
 	const url = new URL(`${BASE_URL}/documents/${id}/${type}/history`);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
@@ -1886,73 +1309,6 @@ export async function fetchDocumentHistory(id: string, type: string, page: numbe
  * Fetch document workflow for a case (full document chain)
  */
 export async function fetchDocumentWorkflow(caseId: string): Promise<DocumentWorkflowResponse> {
-	if (isMockEnabled()) {
-		await mockDelay();
-		const summaries: DocumentSummary[] = [];
-
-		const ests = mockData.getEstimatesByCaseId(caseId);
-		if (ests.length > 0) {
-			const latest = ests[ests.length - 1];
-			summaries.push({
-				id: latest.id,
-				case_id: latest.caseId,
-				client_id: latest.clientId,
-				type: 'estimate',
-				status: latest.status as DocumentStatus,
-				document_ref: latest.estimateNumber,
-				created_at: latest.createdAt,
-				updated_at: latest.updatedAt,
-			});
-		}
-
-		const mands = mockData.getMandatesByCaseId(caseId);
-		if (mands.length > 0) {
-			const latest = mands[mands.length - 1];
-			summaries.push({
-				id: latest.id,
-				case_id: latest.caseId,
-				client_id: latest.clientId,
-				type: 'mandate',
-				status: latest.status as DocumentStatus,
-				document_ref: latest.mandateNumber,
-				created_at: latest.createdAt,
-				updated_at: latest.updatedAt,
-			});
-		}
-
-		const conts = mockData.getContractsByCaseId(caseId);
-		if (conts.length > 0) {
-			const latest = conts[conts.length - 1];
-			summaries.push({
-				id: latest.id,
-				case_id: latest.caseId,
-				client_id: latest.clientId,
-				type: 'contract',
-				status: latest.status as DocumentStatus,
-				document_ref: latest.contractNumber,
-				created_at: latest.createdAt,
-				updated_at: latest.updatedAt,
-			});
-		}
-
-		const invs = mockData.getInvoicesByCaseId(caseId);
-		if (invs.length > 0) {
-			const latest = invs[invs.length - 1];
-			summaries.push({
-				id: latest.id,
-				case_id: latest.caseId,
-				client_id: latest.clientId,
-				type: 'invoice',
-				status: latest.status as DocumentStatus,
-				document_ref: latest.invoiceNumber,
-				created_at: latest.createdAt,
-				updated_at: latest.updatedAt,
-			});
-		}
-
-		return { success: true, data: summaries };
-	}
-
 	const response = await apiFetch(`${BASE_URL}/cases/${caseId}/document-workflow`);
 	if (!response.ok) {
 		throw new Error(`Failed to fetch document workflow: ${response.status}`);
@@ -1960,4 +1316,3 @@ export async function fetchDocumentWorkflow(caseId: string): Promise<DocumentWor
 
 	return response.json();
 }
-
