@@ -145,8 +145,8 @@ func (m *mockDocumentService) ActivateContract(ctx context.Context, id string) (
 	}
 	return args.Get(0).(*document.Contract), args.Error(1)
 }
-func (m *mockDocumentService) CreateInvoiceFromContract(ctx context.Context, contractID string, inv *document.Invoice) (*document.Invoice, error) {
-	args := m.Called(ctx, contractID, inv)
+func (m *mockDocumentService) CreateInvoiceFromContract(ctx context.Context, contractID string) (*document.Invoice, error) {
+	args := m.Called(ctx, contractID)
 	if args.Get(0) == nil {
 		return nil, args.Error(1)
 	}

@@ -552,18 +552,7 @@ func (h *handler) CreateInvoiceFromContract(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
-	var invoice document.Invoice
-	if err := json.NewDecoder(r.Body).Decode(&invoice); err != nil {
-		h.writeError(w, http.StatusBadRequest, "Invalid request body")
-		return
-	}
-
-	if err := invoice.Validate(); err != nil {
-		h.writeError(w, http.StatusUnprocessableEntity, err.Error())
-		return
-	}
-
-	createdInvoice, err := h.service.CreateInvoiceFromContract(r.Context(), contractID, &invoice)
+	createdInvoice, err := h.service.CreateInvoiceFromContract(r.Context(), contractID)
 	if err != nil {
 		if err.Error() == "contract not found" {
 			h.writeError(w, http.StatusNotFound, "Contract not found")

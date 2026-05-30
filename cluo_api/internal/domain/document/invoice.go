@@ -283,7 +283,7 @@ func NewInvoice(caseID, clientID uuid.UUID, invoiceNumber string, lineItems []In
 		LineItems:     lineItems,
 		TaxRate:       taxRate,
 		PaymentStatus: PaymentStatusUnpaid,
-		Currency:      stringPtr("USD"), // Default currency
+		Currency:      stringPtr("EUR"),
 	}
 
 	invoice.CalculateTotals()

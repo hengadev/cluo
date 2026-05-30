@@ -34,7 +34,7 @@ type DocumentService interface {
 	CreateContract(ctx context.Context, contract *document.Contract) (*document.Contract, error)
 	SignContract(ctx context.Context, contractID string, req *document.SignDocumentRequest) (*document.Contract, error)
 	ActivateContract(ctx context.Context, contractID string) (*document.Contract, error)
-	CreateInvoiceFromContract(ctx context.Context, contractID string, invoice *document.Invoice) (*document.Invoice, error)
+	CreateInvoiceFromContract(ctx context.Context, contractID string) (*document.Invoice, error)
 
 	// Invoice operations
 	CreateInvoice(ctx context.Context, invoice *document.Invoice) (*document.Invoice, error)
