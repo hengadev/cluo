@@ -1,4 +1,4 @@
-FROM node:20.11.1-alpine AS base
+FROM node:20.19.2-alpine AS base
 WORKDIR /usr/src/app
 
 ENV PNPM_HOME="/pnpm"
@@ -13,7 +13,7 @@ RUN --mount=type=cache,id=pnpm-web,target=/pnpm/store pnpm install --frozen-lock
 COPY . .
 RUN pnpm run build
 
-FROM node:20.11.1-alpine AS runtime
+FROM node:20.19.2-alpine AS runtime
 WORKDIR /usr/src/app
 
 COPY --from=build /usr/src/app/build/ ./build/
