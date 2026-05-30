@@ -6,32 +6,26 @@
         type LayoutMode,
     } from "./_floatingToolbar.svelte";
 
-    import { isMockEnabled } from "$lib/config";
-    import { images as mockImages } from "./mockData";
     import { fetchCaseImages } from "$lib/services/api";
     import type { Image, ReportImage, BurstGroup } from "./types";
     import { onMount } from "svelte";
     import { page } from "$app/stores";
 
-    let allImages = $state<Image[]>(mockImages);
+    let allImages = $state<Image[]>([]);
     let loading = $state(false);
 
-    // Load images based on mock flag
+    // Load images from the API on mount
     onMount(async () => {
-        if (!isMockEnabled()) {
-            loading = true;
-            try {
-                const caseId = $page.params.id;
-                const apiImages = await fetchCaseImages(caseId);
-                if (apiImages.length > 0) {
-                    allImages = apiImages as Image[];
-                }
-            } catch (error) {
-                console.error("Failed to fetch images:", error);
-                allImages = [];
-            } finally {
-                loading = false;
-            }
+        loading = true;
+        try {
+            const caseId = $page.params.id;
+            const apiImages = await fetchCaseImages(caseId);
+            allImages = apiImages as Image[];
+        } catch (error) {
+            console.error("Failed to fetch images:", error);
+            allImages = [];
+        } finally {
+            loading = false;
         }
     });
     let reportImages = $state<ReportImage[]>([]);
@@ -217,7 +211,7 @@
         {:else if allImages.length === 0}
             <div class="flex items-center justify-center h-full">
                 <p class="text-muted-foreground">
-                    Aucune photo disponible. {isMockEnabled() ? '' : '(API non configurée)'}
+                    Aucune photo disponible.
                 </p>
             </div>
         {:else if layoutMode === "library"}
