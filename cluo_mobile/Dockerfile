@@ -1,9 +1,7 @@
 FROM node:20.11.1-alpine AS base
 WORKDIR /usr/src/app
 
-ENV PNPM_HOME="/pnpm"
-ENV PATH="$PNPM_HOME:$PATH"
-RUN corepack enable
+RUN npm install -g pnpm@9
 
 COPY package.json pnpm-lock.yaml .npmrc* ./
 
