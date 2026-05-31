@@ -7,7 +7,19 @@
     import { Button, Tooltip } from "bits-ui";
     import { currentCase } from "$lib/stores/case";
     import { fetchCase, fetchClient } from "$lib/services/api";
-    import type { Case, Client } from "$lib/types/entities";
+    import type { Case, Client, CaseStatus } from "$lib/types/entities";
+
+    const STATUS_LABELS: Record<CaseStatus, string> = {
+        in_progress: "En cours",
+        ready: "Prêt",
+        released: "Clôturé",
+    };
+
+    const STATUS_CLASSES: Record<CaseStatus, string> = {
+        in_progress: "bg-blue-100 text-blue-800",
+        ready: "bg-green-100 text-green-800",
+        released: "bg-purple-100 text-purple-800",
+    };
 
     let caseData: Case | null = $state(null);
     let clientData: Client | null = $state(null);
@@ -39,6 +51,9 @@
                 </div>
                 <p>&bull;</p>
                 <p>{caseData.title}</p>
+                <span class="status-badge {STATUS_CLASSES[caseData.status]}">
+                    {STATUS_LABELS[caseData.status]}
+                </span>
             {:else}
                 <div class="no-case">
                     <Folder size={16} />
@@ -108,6 +123,13 @@
         display: flex;
         gap: 0.5rem;
         align-items: center;
+    }
+    .status-badge {
+        display: inline-block;
+        padding: 0.125rem 0.5rem;
+        border-radius: 9999px;
+        font-size: 0.75rem;
+        font-weight: 500;
     }
     .no-case {
         display: flex;
