@@ -15,6 +15,7 @@ import type {
     AnalysisResponse,
     RecordingsListResponse,
 } from "../types/recording";
+import type { Case } from "../types/case";
 
 // Simulate network delay
 const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -432,6 +433,22 @@ export async function getRecording(id: string): Promise<{
         } as Recording & { audioUrl?: string },
         transcript,
         analysis,
+    };
+}
+
+/**
+ * Mock: Get the current active case
+ */
+export async function getCurrentCase(_caseId?: string): Promise<Case | null> {
+    await delay(300);
+    return {
+        id: "mock-case-1",
+        title: "Réclamation pour préjudice corporel",
+        status: "in_progress",
+        externalReference: "CS-2024-892",
+        clientId: "mock-client-1",
+        clientName: "Sarah JENKINS",
+        clientNumber: "CLI-9438",
     };
 }
 

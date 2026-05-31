@@ -86,6 +86,13 @@ export async function getAudioUrl(id: string) {
     return realApi.getAudioUrl(id);
 }
 
+/**
+ * Get the current active case.
+ */
+export async function getCurrentCase(caseId?: string) {
+    return getApi().getCurrentCase(caseId);
+}
+
 // Re-export types
 export type {
     UploadRecordingResponse,
@@ -94,3 +101,4 @@ export type {
     AnalysisResponse,
     RecordingsListResponse,
 } from "../types/recording";
+export type { Case } from "../types/case";

@@ -18,6 +18,7 @@ import type {
 	AnalysisResult,
 	RecordingStatus,
 } from "../types/recording";
+import type { Case } from "../types/case";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
@@ -153,6 +154,17 @@ interface AnalysisApiResponse {
 interface ListMediaApiResponse {
 	media: MediaResponse[];
 	pagination: { page: number; pageSize: number; totalItems: number; totalPages: number };
+}
+
+interface CaseApiResponse {
+	id: string;
+	title: string;
+	description: string;
+	clientId: string;
+	status: string;
+	externalReference?: string;
+	createdAt: string;
+	updatedAt: string;
 }
 
 // ---------------------------------------------------------------------------
@@ -513,6 +525,35 @@ export async function getRecording(id: string): Promise<{
 export async function getAudioUrl(id: string): Promise<string> {
 	const media = await apiFetch<MediaResponse>(`/media/${id}`);
 	return media.url;
+}
+
+/**
+ * Fetch the active case by ID.
+ * Falls back to the last-used caseId stored in localStorage.
+ */
+export async function getCurrentCase(caseId?: string): Promise<Case | null> {
+	let id = caseId;
+	if (!id) {
+		try {
+			id = localStorage.getItem(CASE_KEY) ?? "";
+		} catch {
+			return null;
+		}
+	}
+	if (!id) return null;
+
+	try {
+		const res = await apiFetch<CaseApiResponse>(`/case/${id}`);
+		return {
+			id: res.id,
+			title: res.title,
+			status: res.status,
+			externalReference: res.externalReference,
+			clientId: res.clientId,
+		};
+	} catch {
+		return null;
+	}
 }
 
 /**
