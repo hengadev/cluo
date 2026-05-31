@@ -210,7 +210,7 @@ export async function uploadRecording(
 ): Promise<UploadRecordingResponse> {
 	const caseId = metadata?.caseId ?? localStorage.getItem(CASE_KEY) ?? "";
 	if (!caseId) {
-		throw new Error("caseId is required to upload a recording");
+		throw new Error("Le caseId est requis pour envoyer un enregistrement");
 	}
 
 	// Upload media
@@ -228,7 +228,7 @@ export async function uploadRecording(
 	});
 	if (!uploadRes.ok) {
 		const err = await uploadRes.text().catch(() => "Unknown error");
-		throw new Error(`Failed to upload: ${err}`);
+		throw new Error(`Échec de l'envoi : ${err}`);
 	}
 	const media: MediaResponse = await uploadRes.json();
 
@@ -249,7 +249,7 @@ export async function uploadRecording(
 	});
 	if (!jobRes.ok) {
 		const err = await jobRes.text().catch(() => "Unknown error");
-		throw new Error(`Failed to submit transcription job: ${err}`);
+		throw new Error(`Échec de la soumission de la tâche de transcription : ${err}`);
 	}
 	const job: SubmitJobApiResponse = await jobRes.json();
 
@@ -340,7 +340,7 @@ export async function getTranscript(id: string): Promise<TranscriptResponse> {
 	);
 
 	if (!res.transcriptions.length) {
-		throw new Error("Transcript not yet available");
+		throw new Error("Transcription pas encore disponible");
 	}
 
 	const t = res.transcriptions[0];
@@ -375,7 +375,7 @@ export async function analyzeTranscript(id: string): Promise<void> {
 			`/ai/speech/transcriptions?mediaFileId=${id}`,
 		);
 		if (!res.transcriptions.length) {
-			throw new Error("Transcript not available — cannot analyze");
+			throw new Error("Transcription non disponible — impossible d'analyser");
 		}
 		transcriptionId = res.transcriptions[0].id;
 		updateChain(id, { transcriptionId });
@@ -397,7 +397,7 @@ export async function getAnalysis(id: string): Promise<AnalysisResponse> {
 	const { analysisId } = getChain(id);
 
 	if (!analysisId) {
-		throw new Error("No analysis found. Please analyze the transcript first.");
+		throw new Error("Aucune analyse trouvée. Veuillez d'abord analyser la transcription.");
 	}
 
 	const a = await apiFetch<AnalysisApiResponse>(`/ai/analysis/${analysisId}`);
@@ -532,5 +532,5 @@ export async function pollRecordingStatus(
 		}
 		await new Promise((resolve) => setTimeout(resolve, interval));
 	}
-	throw new Error("Polling timeout: recording did not complete in time");
+	throw new Error("Délai d'attente dépassé : l'enregistrement n'a pas été traité dans le temps imparti");
 }
