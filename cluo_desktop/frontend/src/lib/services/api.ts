@@ -1396,7 +1396,6 @@ export async function fetchDocumentHistory(id: string, type: string, page: numbe
  */
 export async function searchAll(query: string): Promise<SearchResult[]> {
 	if (MOCK) return mock.searchAll(query);
-	// TODO: implement backend endpoint GET /search?q=<query>
 	const response = await apiFetch(`${BASE_URL}/search?q=${encodeURIComponent(query)}`);
 	if (!response.ok) throw new Error(`Search failed: ${response.status}`);
 	const data: { results: SearchResult[] } = await response.json();
