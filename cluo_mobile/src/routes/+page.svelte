@@ -1,5 +1,6 @@
 <script lang="ts">
     import { ChevronDown } from "@lucide/svelte";
+    import { auth } from "$lib/stores/auth";
 
     import Input from "$lib/components/ui/Input.svelte";
     import Recording from "./PastRecording.svelte";
@@ -8,11 +9,14 @@
     // Data is passed from +page.ts load function
     let { data } = $props();
     const recordings = data.recordings;
+    const currentCase = data.currentCase;
     const error = data.error;
+
+    const greeting = $derived($auth.user?.name ?? $auth.user?.email?.split('@')[0] ?? '');
 </script>
 
 <div class="min-h-screen flex flex-col gap-8">
-    <p class="text-dark-900 font-extrabold text-xl">Bonjour John,</p>
+    <p class="text-dark-900 font-extrabold text-xl">Bonjour {greeting},</p>
     <div class="grid gap-4">
         <div class="flex justify-between items-center">
             <p class="font-extrabold text-lg text-dark-800">Affaire active</p>
@@ -21,7 +25,7 @@
                 <ChevronDown />
             </div>
         </div>
-        <CurrentCase />
+        <CurrentCase {currentCase} />
     </div>
     <div class="flex gap-4">
         <Input placeholder="Recherche parmi les enregistrements" />
