@@ -18,7 +18,7 @@ export const load: PageLoad = async ({ url }): Promise<HomePageData> => {
 	} catch (error) {
 		return {
 			recordings: [],
-			error: error instanceof Error ? error.message : "Failed to load recordings",
+			error: error instanceof Error ? error.message : "Échec du chargement des enregistrements",
 		};
 	}
 };

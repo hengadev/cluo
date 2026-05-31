@@ -13,12 +13,20 @@
 
     let {
         id = 0,
-        title = "The title of the recording",
-        date = "01 Jan, 2025",
+        title = "Titre de l'enregistrement",
+        date = "01 janv. 2025",
         startTime = "00:00",
         duration = "00:00",
         status = "completed",
     }: Props = $props();
+
+    const statusLabels: Record<string, string> = {
+        uploading: "Téléchargement",
+        transcribing: "Transcription",
+        analyzing: "Analyse",
+        completed: "Terminé",
+        failed: "Échoué",
+    };
 
     const isProcessing = $derived(
         status === "uploading" ||
@@ -51,7 +59,7 @@
             {#if isProcessing}
                 <div class="flex items-center gap-1">
                     <Loader2 size={10} class="animate-spin text-yellow-600" />
-                    <p class="text-dark-500 text-xxs capitalize">{status}</p>
+                    <p class="text-dark-500 text-xxs">{statusLabels[status] ?? status}</p>
                 </div>
             {/if}
         </div>
