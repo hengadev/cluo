@@ -83,7 +83,7 @@
 		onpause={handlePause}
 		onended={handleEnded}
 		onloadedmetadata={handleLoadedMetadata}
-		aria-label="Audio recording player"
+		aria-label="Lecteur audio"
 	></audio>
 
 	<div class="flex items-center gap-3">
@@ -91,7 +91,7 @@
 			type="button"
 			onclick={togglePlay}
 			class="flex items-center justify-center w-10 h-10 bg-dark-700 hover:bg-dark-600 text-foreground rounded-full transition-colors"
-			aria-label={isPlaying ? "Pause" : "Play"}
+			aria-label={isPlaying ? "Pause" : "Lecture"}
 		>
 			{#if isPlaying}
 				<Pause size={16} />
@@ -111,7 +111,7 @@
 				value={progress}
 				oninput={handleSeek}
 				class="w-full h-1 bg-dark-200 rounded-lg appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-3 [&::-webkit-slider-thumb]:h-3 [&::-webkit-slider-thumb]:bg-dark-700 [&::-webkit-slider-thumb]:rounded-full"
-				aria-label="Seek audio"
+				aria-label="Rechercher dans l'audio"
 			/>
 		</div>
 	</div>

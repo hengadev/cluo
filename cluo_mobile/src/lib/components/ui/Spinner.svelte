@@ -18,5 +18,5 @@
 <div
     class={`${spinnerClass} border-dark-200 border-t-dark-700 rounded-full animate-spin`}
     role="status"
-    aria-label="Loading"
+    aria-label="Chargement"
 ></div>

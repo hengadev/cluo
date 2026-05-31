@@ -5,7 +5,7 @@
 	}
 
 	let {
-		message = "Transcription and analysis are processed on private infrastructure",
+		message = "La transcription et l'analyse sont traitées sur une infrastructure privée",
 		class: className = "",
 	}: Props = $props();
 </script>

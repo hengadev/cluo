@@ -29,7 +29,7 @@ function createSnackbarStore() {
         show,
         dismiss,
         error: (message: string, onRetry?: () => void) => {
-            show(message, onRetry ? { label: "Retry", onClick: onRetry } : undefined);
+            show(message, onRetry ? { label: "Réessayer", onClick: onRetry } : undefined);
         },
     };
 }

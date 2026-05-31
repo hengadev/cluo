@@ -24,9 +24,9 @@
 	// Category display names
 	const categoryNames: Record<SuggestionCategory, string> = {
 		observations: "Observations",
-		statements: "Statements",
+		statements: "Déclarations",
 		actions: "Actions",
-		unclear: "Unclear / Requires confirmation",
+		unclear: "Flou / Nécessite une confirmation",
 	};
 
 	// Category icons (simple emoji for now, could use Lucide icons)
@@ -61,7 +61,7 @@
 			<span class="text-2xl">{categoryIcons[category]}</span>
 			<div class="flex flex-col items-start">
 				<p class="text-dark-900 font-semibold">{categoryNames[category]}</p>
-				<p class="text-dark-600 text-xs">{selectedCount} / {suggestions.length} selected</p>
+				<p class="text-dark-600 text-xs">{selectedCount} / {suggestions.length} sélectionné{suggestions.length > 1 ? 's' : ''}</p>
 			</div>
 		</div>
 		{#if isExpanded}
@@ -75,7 +75,7 @@
 		<!-- Suggestions List -->
 		<div class="flex flex-col gap-2">
 			{#if suggestions.length === 0}
-				<p class="text-dark-500 text-sm italic p-4">No suggestions in this category.</p>
+				<p class="text-dark-500 text-sm italic p-4">Aucune suggestion dans cette catégorie.</p>
 			{:else}
 				<!-- Select All Button -->
 				{#if !readonly}
@@ -85,10 +85,10 @@
 					>
 						{#if suggestions.every((s) => s.selected)}
 							<CheckSquare size={16} />
-							<span>Deselect all</span>
+							<span>Tout désélectionner</span>
 						{:else}
 							<Square size={16} />
-							<span>Select all</span>
+							<span>Tout sélectionner</span>
 						{/if}
 					</button>
 				{/if}
