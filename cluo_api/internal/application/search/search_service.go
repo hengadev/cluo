@@ -6,7 +6,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
-	"github.com/lithammer/fuzzysearch/fuzzy"
+	"github.com/sahilm/fuzzy"
 
 	"github.com/hengadev/cluo_api/internal/domain/investigation"
 	searchDomain "github.com/hengadev/cluo_api/internal/domain/search"
@@ -36,12 +36,8 @@ func (s *Service) Search(ctx context.Context, query string) (*searchDomain.Respo
 		return nil, err
 	}
 	for _, c := range casesResp.Cases {
-		if score := scoreCase(query, c); score >= 0 {
-			results = append(results, searchDomain.Result{
-				Type:  searchDomain.ResultTypeCase,
-				Score: float64(score),
-				Item:  c,
-			})
+		if r := matchCase(query, c); r != nil {
+			results = append(results, *r)
 		}
 	}
 
@@ -54,11 +50,12 @@ func (s *Service) Search(ctx context.Context, query string) (*searchDomain.Respo
 	clientNameByID := make(map[string]string, len(clients))
 	for _, c := range clients {
 		clientNameByID[c.ID] = c.Name
-		if score := fuzzy.RankMatchFold(query, c.Name); score >= 0 {
+		if m := matchField(strings.ToLower(query), c.Name, "name"); m != nil {
 			results = append(results, searchDomain.Result{
-				Type:  searchDomain.ResultTypeClient,
-				Score: float64(score),
-				Item:  c,
+				Type:    searchDomain.ResultTypeClient,
+				Score:   float64(m.score),
+				Item:    c,
+				Matches: m.matches,
 			})
 		}
 	}
@@ -75,48 +72,99 @@ func (s *Service) Search(ctx context.Context, query string) (*searchDomain.Respo
 		}
 		for _, contact := range contacts {
 			fullName := contact.Firstname + " " + contact.Lastname
-			if score := fuzzy.RankMatchFold(query, fullName); score >= 0 {
+			if m := matchField(strings.ToLower(query), fullName, "fullName"); m != nil {
 				clientName := clientNameByID[contact.ClientID]
 				results = append(results, searchDomain.Result{
 					Type:       searchDomain.ResultTypeContact,
-					Score:      float64(score),
+					Score:      float64(m.score),
 					Item:       contact,
 					ClientName: &clientName,
+					Matches:    m.matches,
 				})
 			}
 		}
 	}
 
+	// sahilm/fuzzy: higher score = better match, so sort descending.
 	sort.Slice(results, func(i, j int) bool {
-		return results[i].Score < results[j].Score
+		return results[i].Score > results[j].Score
 	})
 
 	return &searchDomain.Response{Results: results}, nil
 }
 
-// scoreCase returns the best weighted fuzzy score for a case across its
-// searchable fields. Returns -1 if no field matches.
-// Field priority: title (no penalty) > city (+10) > externalReference (+20).
-func scoreCase(query string, c *investigation.CaseResponse) int {
-	best := -1
+type fieldMatch struct {
+	score   int
+	matches []searchDomain.ResultMatch
+}
 
-	apply := func(score, penalty int) {
-		if score < 0 {
+// matchField fuzzy-matches lowerQuery against a single field value, case-insensitively.
+// Returns nil if no match.
+func matchField(lowerQuery, value, key string) *fieldMatch {
+	ms := fuzzy.Find(lowerQuery, []string{strings.ToLower(value)})
+	if len(ms) == 0 {
+		return nil
+	}
+	return &fieldMatch{
+		score: ms[0].Score,
+		matches: []searchDomain.ResultMatch{{
+			Key:     key,
+			Indices: collapseIndices(ms[0].MatchedIndexes),
+			Value:   value,
+		}},
+	}
+}
+
+// matchCase returns a Result for a case, picking the best-matching field.
+// Field priority: title (no penalty) > city (+10) > externalReference (+20).
+func matchCase(query string, c *investigation.CaseResponse) *searchDomain.Result {
+	lowerQuery := strings.ToLower(query)
+	bestScore := -1
+	var bestMatch []searchDomain.ResultMatch
+
+	tryField := func(value, key string, penalty int) {
+		m := matchField(lowerQuery, value, key)
+		if m == nil {
 			return
 		}
-		weighted := score + penalty
-		if best < 0 || weighted < best {
-			best = weighted
+		score := m.score - penalty
+		if bestScore < 0 || score > bestScore {
+			bestScore = score
+			bestMatch = m.matches
 		}
 	}
 
-	apply(fuzzy.RankMatchFold(query, c.Title), 0)
+	tryField(c.Title, "title", 0)
 	if c.City != nil {
-		apply(fuzzy.RankMatchFold(query, *c.City), 10)
+		tryField(*c.City, "city", 10)
 	}
 	if c.ExternalReference != nil {
-		apply(fuzzy.RankMatchFold(query, *c.ExternalReference), 20)
+		tryField(*c.ExternalReference, "externalReference", 20)
 	}
 
-	return best
+	if bestScore < 0 {
+		return nil
+	}
+	return &searchDomain.Result{
+		Type:    searchDomain.ResultTypeCase,
+		Score:   float64(bestScore),
+		Item:    c,
+		Matches: bestMatch,
+	}
+}
+
+// collapseIndices merges a sorted slice of char indices into [start, end] inclusive pairs.
+func collapseIndices(idxs []int) [][2]int {
+	if len(idxs) == 0 {
+		return nil
+	}
+	ranges := [][2]int{{idxs[0], idxs[0]}}
+	for _, idx := range idxs[1:] {
+		if idx == ranges[len(ranges)-1][1]+1 {
+			ranges[len(ranges)-1][1] = idx
+		} else {
+			ranges = append(ranges, [2]int{idx, idx})
+		}
+	}
+	return ranges
 }
