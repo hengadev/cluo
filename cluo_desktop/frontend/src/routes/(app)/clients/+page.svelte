@@ -85,8 +85,8 @@
 	}
 </script>
 
-<div class="p-8">
-	<div class="flex items-center justify-between mb-8 animate-fade-in">
+<div class="p-8 flex flex-col gap-6">
+	<div class="flex items-center justify-between animate-fade-in">
 		<h1 class="text-3xl font-bold">Clients</h1>
 		<button
 			class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
@@ -98,7 +98,7 @@
 	</div>
 
 	<!-- Search bar -->
-	<div class="relative mb-6 animate-fade-in" style="animation-delay: 100ms;">
+	<div class="relative animate-fade-in" style="animation-delay: 100ms;">
 		<Search
 			size={18}
 			class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -107,7 +107,7 @@
 			type="text"
 			placeholder="Rechercher un client par nom..."
 			bind:value={searchQuery}
-			class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full pl-10 pr-4 text-sm focus:ring-2 focus:ring-offset-2"
+			class="h-input rounded-input border border-border-card bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full pl-10 pr-4 text-sm focus:ring-2 focus:ring-offset-2"
 		/>
 	</div>
 
