@@ -69,7 +69,7 @@ export interface UploadMediaResponse {
  */
 function formatDate(date: Date | string): string {
 	const d = typeof date === "string" ? new Date(date) : date;
-	return d.toLocaleDateString("en-GB", {
+	return d.toLocaleDateString("fr-FR", {
 		day: "2-digit",
 		month: "short",
 		year: "numeric",
@@ -109,13 +109,13 @@ export async function fetchMediaById(
 	});
 
 	if (res.status === 404) {
-		throw error(404, { message: "Recording not found" });
+		throw error(404, { message: "Enregistrement introuvable" });
 	}
 
 	if (!res.ok) {
 		const body = await res.text().catch(() => "Unknown error");
 		console.error(`API error fetching media ${id}: ${res.status} ${body}`);
-		throw error(500, { message: "Failed to load recording" });
+		throw error(500, { message: "Échec du chargement de l'enregistrement" });
 	}
 
 	const media: MediaApiResponse = await res.json();
@@ -127,7 +127,7 @@ export async function fetchMediaById(
 		id: media.id,
 		title: media.caption || media.fileName,
 		date: formatDate(createdAt),
-		startTime: createdAt.toLocaleTimeString("en-GB", {
+		startTime: createdAt.toLocaleTimeString("fr-FR", {
 			hour: "2-digit",
 			minute: "2-digit",
 		}),
@@ -152,13 +152,13 @@ export async function fetchProcessingStatus(
 	});
 
 	if (res.status === 404) {
-		throw error(404, { message: "Recording not found" });
+		throw error(404, { message: "Enregistrement introuvable" });
 	}
 
 	if (!res.ok) {
 		const body = await res.text().catch(() => "Unknown error");
 		console.error(`API error fetching media ${id}: ${res.status} ${body}`);
-		throw error(500, { message: "Failed to load processing status" });
+		throw error(500, { message: "Échec du chargement de l'état du traitement" });
 	}
 
 	const media: MediaApiResponse = await res.json();
@@ -229,7 +229,7 @@ export async function uploadAudio(
 
 	if (!res.ok) {
 		const body = await res.text().catch(() => "Unknown error");
-		throw new Error(`Upload failed (${res.status}): ${body}`);
+		throw new Error(`Échec de l'envoi (${res.status}) : ${body}`);
 	}
 
 	const created: UploadMediaResponse = await res.json();

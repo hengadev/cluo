@@ -80,17 +80,17 @@ describe("fetchMediaById", () => {
 	it("throws a 404 SvelteKit error when API returns 404", async () => {
 		const fetch = mockFetch({ status: 404, text: "Not found" });
 
-		await expect(fetchMediaById(fetch, "nonexistent")).rejects.toThrow("Recording not found");
+		await expect(fetchMediaById(fetch, "nonexistent")).rejects.toThrow("Enregistrement introuvable");
 		const { error } = await import("@sveltejs/kit");
-		expect(error).toHaveBeenCalledWith(404, { message: "Recording not found" });
+		expect(error).toHaveBeenCalledWith(404, { message: "Enregistrement introuvable" });
 	});
 
 	it("throws a 500 SvelteKit error when API returns 500", async () => {
 		const fetch = mockFetch({ status: 500, text: "Internal Server Error" });
 
-		await expect(fetchMediaById(fetch, "abc-123")).rejects.toThrow("Failed to load recording");
+		await expect(fetchMediaById(fetch, "abc-123")).rejects.toThrow("Échec du chargement de l'enregistrement");
 		const { error } = await import("@sveltejs/kit");
-		expect(error).toHaveBeenCalledWith(500, { message: "Failed to load recording" });
+		expect(error).toHaveBeenCalledWith(500, { message: "Échec du chargement de l'enregistrement" });
 	});
 });
 
@@ -140,7 +140,7 @@ describe("fetchProcessingStatus", () => {
 		const fetch = mockFetch({ status: 404, text: "Not found" });
 
 		await expect(fetchProcessingStatus(fetch, "nonexistent")).rejects.toThrow(
-			"Recording not found",
+			"Enregistrement introuvable",
 		);
 	});
 
@@ -148,7 +148,7 @@ describe("fetchProcessingStatus", () => {
 		const fetch = mockFetch({ status: 500, text: "Error" });
 
 		await expect(fetchProcessingStatus(fetch, "abc-123")).rejects.toThrow(
-			"Failed to load processing status",
+			"Échec du chargement de l'état du traitement",
 		);
 	});
 });
@@ -190,7 +190,7 @@ describe("uploadAudio", () => {
 
 		const blob = new Blob(["audio-data"], { type: "audio/webm" });
 		await expect(uploadAudio(fetch, blob, "case-456")).rejects.toThrow(
-			"Upload failed (500)",
+			"Échec de l'envoi (500)",
 		);
 	});
 });
