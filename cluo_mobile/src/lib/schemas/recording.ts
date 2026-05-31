@@ -77,10 +77,16 @@ export const SuggestionSchema = type({
 
 /**
  * Schema for analysis response from API.
+ * Matches the backend GET /ai/analysis/{id} shape.
  */
 export const AnalysisResponseSchema = type({
-	recordingId: "string",
-	suggestions: SuggestionSchema.array(),
+	id: "string",
+	transcriptionId: "string",
+	keyFindings: "string",
+	summary: "string",
+	sentiment: "string",
+	topics: "string",
+	suggestedActions: "string",
 	createdAt: "string",
 });
 
@@ -98,14 +104,14 @@ export const UploadRecordingResponseSchema = type({
 export const RecordingsListResponseSchema = type({
 	recordings: type({
 		id: "string",
-		caseId: "string?",
+		"caseId?": "string",
 		title: "string",
 		date: "string",
 		startTime: "string",
 		duration: "number",
-		fileSize: "number?",
+		"fileSize?": "number",
 		status: type(RecordingStatusValues),
-		processingSteps: ProcessingStepSchema.array()?,
+		"processingSteps?": ProcessingStepSchema.array(),
 	}).array(),
 	totalCount: "number",
 });
@@ -115,14 +121,14 @@ export const RecordingsListResponseSchema = type({
  */
 export const RecordingSchema = type({
 	id: "string",
-	caseId: "string?",
+	"caseId?": "string",
 	title: "string",
 	date: "string",
 	startTime: "string",
 	duration: "number",
-	fileSize: "number?",
+	"fileSize?": "number",
 	status: type(RecordingStatusValues),
-	processingSteps: ProcessingStepSchema.array()?,
+	"processingSteps?": ProcessingStepSchema.array(),
 });
 
 /**

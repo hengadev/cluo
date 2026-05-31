@@ -66,10 +66,16 @@ export interface Suggestion {
 
 /**
  * Analysis result from AI processing of transcript.
+ * Matches the backend GET /ai/analysis/{id} response shape.
  */
 export interface AnalysisResult {
-	recordingId: string;
-	suggestions: Suggestion[];
+	id: string;
+	transcriptionId: string;
+	keyFindings: string;
+	summary: string;
+	sentiment: string;
+	topics: string; // JSON-encoded array string from the backend
+	suggestedActions: string;
 	createdAt: string;
 }
 
@@ -112,12 +118,9 @@ export interface ConfirmTranscriptRequest {
 
 /**
  * Response from analysis API call.
+ * Alias of AnalysisResult for compatibility with the API layer.
  */
-export interface AnalysisResponse {
-	recordingId: string;
-	suggestions: Suggestion[];
-	createdAt: string;
-}
+export type AnalysisResponse = AnalysisResult;
 
 /**
  * Response from recordings list API call.
