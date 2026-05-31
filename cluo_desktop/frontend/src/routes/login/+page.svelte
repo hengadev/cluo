@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { apiPost } from '$lib/services/apiFetch';
 	import { auth } from '$lib/stores/auth';
+	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
 
 	let email = '';
 	let password = '';
@@ -37,6 +38,10 @@
 		}
 	}
 </script>
+
+<div class="theme-toggle-corner">
+	<ThemeToggle />
+</div>
 
 <div class="login-container">
 	<div class="login-card">
@@ -80,6 +85,12 @@
 </div>
 
 <style>
+	.theme-toggle-corner {
+		position: fixed;
+		top: 1rem;
+		right: 1rem;
+	}
+
 	.login-container {
 		display: flex;
 		align-items: center;
