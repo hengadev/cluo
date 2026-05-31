@@ -5,7 +5,7 @@
         build-prod    build-prod-api    build-prod-web    build-prod-mobile \
         push-staging  push-staging-api  push-staging-web  push-staging-mobile \
         push-prod     push-prod-api     push-prod-web     push-prod-mobile \
-        release-staging release release-desktop \
+        release-staging release release-desktop release-desktop-linux \
         restart-staging restart-staging-api restart-staging-web restart-staging-mobile \
         restart-prod    restart-prod-api    restart-prod-web    restart-prod-mobile \
         deploy-staging deploy-staging-api deploy-staging-web deploy-staging-mobile \
@@ -83,6 +83,45 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 		--content-type application/json \
 		--cache-control "no-cache,no-store,must-revalidate"; \
 	echo "==> Released v$(VERSION). Manifest: $(DESKTOP_MANIFEST_URL)"
+
+# =============================================================================
+# Desktop release — Linux (native build, no cross-compiler required)
+# Merges linux_amd64 into the existing manifest, preserving other platforms.
+# Prerequisites: wails CLI, AWS CLI, jq, signing key
+# Usage: make release-desktop-linux VERSION=1.2.0
+# =============================================================================
+
+release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x.y.z required
+	@test -n "$(VERSION)" || (echo "ERROR: VERSION is required. Usage: make release-desktop-linux VERSION=1.0.0"; exit 1)
+	@test -f $(SIGNING_KEY_FILE) || (echo "ERROR: Signing key not found. Run 'make generate-signing-key' first."; exit 1)
+	@echo "==> Building cluo_desktop v$(VERSION) for Linux (native)..."
+	cd cluo_desktop && wails build -platform linux/amd64 \
+		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
+	@set -e; \
+	BINARY=cluo_desktop/build/bin/cluo_desktop; \
+	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
+	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/desktop/v$(VERSION)/cluo_desktop_linux_amd64; \
+	echo "==> Checksum: $$CHECKSUM"; \
+	echo "==> Uploading binary to S3..."; \
+	aws s3 cp $$BINARY \
+		s3://$(DESKTOP_S3_BUCKET)/desktop/v$(VERSION)/cluo_desktop_linux_amd64 \
+		--content-type application/octet-stream; \
+	echo "==> Fetching existing manifest for merge..."; \
+	aws s3 cp s3://$(DESKTOP_S3_BUCKET)/desktop/manifest.json /tmp/cluo_current_manifest.json 2>/dev/null \
+		|| printf '{"downloads":{},"checksums":{}}' > /tmp/cluo_current_manifest.json; \
+	echo "==> Merging linux_amd64 into manifest..."; \
+	jq --arg ver "$(VERSION)" --arg notes "$(RELEASE_NOTES)" \
+		--arg url "$$DOWNLOAD_URL" --arg cs "$$CHECKSUM" \
+		'.version = $$ver | .release_notes = $$notes | .downloads.linux_amd64 = $$url | .checksums.linux_amd64 = $$cs | del(.signature)' \
+		/tmp/cluo_current_manifest.json > /tmp/cluo_desktop_manifest.json; \
+	echo "==> Signing manifest..."; \
+	$(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE); \
+	echo "==> Uploading signed manifest to S3..."; \
+	aws s3 cp /tmp/cluo_desktop_manifest.json \
+		s3://$(DESKTOP_S3_BUCKET)/desktop/manifest.json \
+		--content-type application/json \
+		--cache-control "no-cache,no-store,must-revalidate"; \
+	echo "==> Released v$(VERSION) for linux/amd64. Manifest: $(DESKTOP_MANIFEST_URL)"
 
 # =============================================================================
 # Local development
