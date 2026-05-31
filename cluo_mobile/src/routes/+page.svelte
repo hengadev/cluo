@@ -5,14 +5,30 @@
     import Input from "$lib/components/ui/Input.svelte";
     import Recording from "./PastRecording.svelte";
     import CurrentCase from "./CurrentCase.svelte";
+    import CasePicker from "./CasePicker.svelte";
 
-    // Data is passed from +page.ts load function
+    import { getCases } from "$lib/api";
+    import type { Case } from "$lib/types/case";
+
     let { data } = $props();
     const recordings = data.recordings;
-    const currentCase = data.currentCase;
     const error = data.error;
 
+    let currentCase = $state<Case | null>(data.currentCase);
+    let pickerOpen = $state(false);
+
+    const casesPromise = getCases();
+
     const greeting = $derived($auth.user?.name ?? $auth.user?.email?.split('@')[0] ?? '');
+
+    function handleCaseSelect(c: Case) {
+        currentCase = c;
+        try {
+            localStorage.setItem("cluo_current_case_id", c.id);
+        } catch {
+            // localStorage unavailable
+        }
+    }
 </script>
 
 <div class="min-h-screen flex flex-col gap-8">
@@ -20,10 +36,13 @@
     <div class="grid gap-4">
         <div class="flex justify-between items-center">
             <p class="font-extrabold text-lg text-dark-800">Affaire active</p>
-            <div class="flex items-center gap-1">
-                <p class="text-dark-600 text-sm">Changer d'affaire</p>
-                <ChevronDown />
-            </div>
+            <button
+                onclick={() => (pickerOpen = true)}
+                class="flex items-center gap-1 text-dark-600 text-sm cursor-pointer hover:text-dark-900 transition-colors"
+            >
+                <span>Changer d'affaire</span>
+                <ChevronDown size={16} />
+            </button>
         </div>
         <CurrentCase {currentCase} />
     </div>
@@ -57,3 +76,12 @@
         {/if}
     </div>
 </div>
+
+{#await casesPromise then cases}
+    <CasePicker
+        bind:open={pickerOpen}
+        {cases}
+        activeId={currentCase?.id ?? null}
+        onselect={handleCaseSelect}
+    />
+{/await}
