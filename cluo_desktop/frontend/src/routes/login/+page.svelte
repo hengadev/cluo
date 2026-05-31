@@ -31,7 +31,7 @@
 			if (err instanceof Error) {
 				error = err.message;
 			} else {
-				error = 'Login failed. Please try again.';
+				error = 'Échec de la connexion. Veuillez réessayer.';
 			}
 		} finally {
 			isLoading = false;
@@ -62,7 +62,7 @@
 			</div>
 
 			<div class="form-group">
-				<label for="password">Password</label>
+				<label for="password">Mot de passe</label>
 				<input
 					id="password"
 					type="password"
