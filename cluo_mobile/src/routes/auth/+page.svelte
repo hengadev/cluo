@@ -12,7 +12,7 @@
 
     onMount(() => {
         if (MOCK_USER_ROLE) {
-            auth.setUser({ id: 'mock-user', email: 'dev@cluo.local', role: MOCK_USER_ROLE as 'admin' | 'investigator' | 'viewer' });
+            auth.setUser({ id: 'mock-user', email: 'dev@cluo.local', role: MOCK_USER_ROLE as 'admin' | 'investigator' | 'viewer', name: 'John' });
             goto('/');
         }
     });
