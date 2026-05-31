@@ -4,6 +4,7 @@
     import { onMount } from 'svelte';
     import { dev } from '$app/environment';
     import { goto } from '$app/navigation';
+    import { PUBLIC_APP_ENV } from '$env/static/public';
 
     import Footer from "./Footer.svelte";
     import Snackbar from "$lib/components/Snackbar.svelte";
@@ -11,6 +12,7 @@
 
     const API_URL = import.meta.env.VITE_API_URL ?? '';
     const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
+    const isStaging = PUBLIC_APP_ENV === 'staging';
 
     let { children } = $props();
 
@@ -44,6 +46,13 @@
         }
     });
 </script>
+
+<svelte:head>
+    {#if isStaging}
+        <meta name="apple-mobile-web-app-title" content="Cluo [Staging]" />
+        <link rel="apple-touch-icon" href="/icon-staging-192.png" />
+    {/if}
+</svelte:head>
 
 <div class="relative px-4">
     {@render children()}
