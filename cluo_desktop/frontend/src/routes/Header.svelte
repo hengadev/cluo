@@ -5,19 +5,46 @@
     import ThemeToggle from "$lib/components/ThemeToggle.svelte";
     // TODO: pour la partie client ou type d'enquete, il faut un select avec tous les anciens clients + un bouton plus pour ajouter un nouvel element
     import { Button, Tooltip } from "bits-ui";
+    import { currentCase } from "$lib/stores/case";
+    import { fetchCase, fetchClient } from "$lib/services/api";
+    import type { Case, Client } from "$lib/types/entities";
+
+    let caseData: Case | null = $state(null);
+    let clientData: Client | null = $state(null);
+
+    $effect(() => {
+        const caseId = $currentCase.id;
+        if (!caseId) {
+            caseData = null;
+            clientData = null;
+            return;
+        }
+        fetchCase(caseId).then(async (c) => {
+            caseData = c;
+            const client = await fetchClient(c.clientId);
+            clientData = client;
+        });
+    });
 </script>
 
 <div class="header border-1 border-dark-50 animate-fade-in" style="animation-delay: 100ms;">
     <div class="grid">
         <div class="left">
-            <div class="current-case">
-                <div class="p-2 rounded-input bg-foreground">
-                    <Folder size={16} class="text-background" />
+            {#if caseData}
+                <div class="current-case">
+                    <div class="p-2 rounded-input bg-foreground">
+                        <Folder size={16} class="text-background" />
+                    </div>
+                    <p>{clientData?.name ?? '…'}</p>
                 </div>
-                <p>Cabinet DUPONT</p>
-            </div>
-            <p>&bull;</p>
-            <p>Affaire Ti Sonson</p>
+                <p>&bull;</p>
+                <p>{caseData.title}</p>
+            {:else}
+                <div class="no-case">
+                    <Folder size={16} />
+                    <p>Aucune affaire ouverte</p>
+                </div>
+            {/if}
         </div>
     </div>
     <Search />
@@ -81,6 +108,13 @@
         display: flex;
         gap: 0.5rem;
         align-items: center;
+    }
+    .no-case {
+        display: flex;
+        gap: 0.5rem;
+        align-items: center;
+        color: var(--foreground-alt);
+        font-weight: 400;
     }
     .buttons {
         display: flex;
