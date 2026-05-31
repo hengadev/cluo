@@ -264,7 +264,7 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col flex-1 min-h-0">
+<div class="p-8 flex flex-col flex-1 min-h-0 gap-6">
 	{#if loading}
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
@@ -275,7 +275,7 @@
 		</div>
 	{:else}
 		<!-- Header -->
-		<div class="flex items-center justify-between mb-6">
+		<div class="flex items-center justify-between">
 			<div class="flex items-center gap-3">
 				{#if viewMode !== "list"}
 					<button
@@ -366,7 +366,7 @@
 		<!-- ================================================================ -->
 		{#if viewMode === "list"}
 			{#if mandates.length === 0}
-				<div class="border border-dashed border-border rounded-lg p-12 bg-muted/20 flex flex-col items-center justify-center gap-4 flex-1 min-h-[60vh]">
+				<div class="border border-dashed border-border rounded-lg p-12 bg-muted/20 flex flex-col items-center justify-center gap-4 flex-1 min-h-[50vh]">
 					<FileText class="w-12 h-12 text-muted-foreground" />
 					<p class="text-muted-foreground text-center">Aucun mandat pour ce dossier.</p>
 					<p class="text-sm text-muted-foreground text-center">
