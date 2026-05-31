@@ -123,102 +123,26 @@ const mockAnalysis: Map<string, AnalysisResult> = new Map([
     [
         "1",
         {
-            recordingId: "1",
-            suggestions: [
-                {
-                    id: "s1",
-                    category: "observations",
-                    text: "Witness was positioned 50 meters from the incident location",
-                    selected: false,
-                },
-                {
-                    id: "s2",
-                    category: "observations",
-                    text: "Incident occurred at approximately 2:30 PM",
-                    selected: false,
-                },
-                {
-                    id: "s3",
-                    category: "observations",
-                    text: "Visibility conditions were good with no obstructions",
-                    selected: false,
-                },
-                {
-                    id: "s4",
-                    category: "statements",
-                    text: "Witness heard loud voices followed by a crashing sound",
-                    selected: false,
-                },
-                {
-                    id: "s5",
-                    category: "statements",
-                    text: "Witness was able to describe clothing and heights of individuals",
-                    selected: false,
-                },
-                {
-                    id: "s6",
-                    category: "actions",
-                    text: "Emergency services were called immediately after the incident",
-                    selected: false,
-                },
-                {
-                    id: "s7",
-                    category: "actions",
-                    text: "Follow up with witness for detailed physical descriptions",
-                    selected: false,
-                },
-                {
-                    id: "s8",
-                    category: "unclear",
-                    text: "Exact position of witness relative to incident needs clarification",
-                    selected: false,
-                },
-            ],
+            id: "mock-analysis-1",
+            transcriptionId: "mock-transcription-1",
+            keyFindings: "Witness was positioned 50 meters from the incident location.\nIncident occurred at approximately 2:30 PM.\nVisibility conditions were good with no obstructions.\nWitness heard loud voices followed by a crashing sound.",
+            summary: "Witness statement regarding incident on January 30th. Witness had clear line of sight and was able to provide detailed descriptions of individuals involved.",
+            sentiment: "neutral",
+            topics: JSON.stringify(["witness statement", "incident report", "physical descriptions"]),
+            suggestedActions: "Follow up with witness for detailed physical descriptions.\nVerify incident timeline with other witnesses.\nRequest CCTV footage from the area.",
             createdAt: "2026-01-30T14:45:00Z",
         },
     ],
     [
         "4",
         {
-            recordingId: "4",
-            suggestions: [
-                {
-                    id: "s9",
-                    category: "observations",
-                    text: "Project deadline extended by two weeks",
-                    selected: false,
-                },
-                {
-                    id: "s10",
-                    category: "observations",
-                    text: "Budget increased by 15% for security measures",
-                    selected: false,
-                },
-                {
-                    id: "s11",
-                    category: "actions",
-                    text: "Sarah to send updated project plan by Friday",
-                    selected: false,
-                },
-                {
-                    id: "s12",
-                    category: "actions",
-                    text: "Michael to provide technical specifications",
-                    selected: false,
-                },
-                {
-                    id: "s13",
-                    category: "actions",
-                    text: "John to confirm stakeholder availability",
-                    selected: false,
-                },
-                {
-                    id: "s14",
-                    category: "statements",
-                    text: "Weekly status meetings every Tuesday at 10 AM",
-                    selected: false,
-                },
-            ],
+            id: "mock-analysis-4",
+            transcriptionId: "mock-transcription-4",
+            keyFindings: "Project deadline extended by two weeks.\nBudget increased by 15% for security measures.\nWeekly status meetings scheduled every Tuesday at 10 AM.",
+            summary: "Client meeting to discuss project timeline and deliverables. Several key decisions were made regarding budget, timeline, and communication cadence.",
+            sentiment: "positive",
+            topics: JSON.stringify(["project management", "budget", "timeline", "meetings"]),
+            suggestedActions: "Sarah to send updated project plan by Friday.\nMichael to provide technical specifications for new features.\nJohn to confirm stakeholder availability for demo session.",
             createdAt: "2026-01-28T10:15:00Z",
         },
     ],
@@ -397,33 +321,13 @@ export async function analyzeTranscript(id: string): Promise<void> {
     // Create mock analysis if it doesn't exist
     if (!mockAnalysis.has(id)) {
         mockAnalysis.set(id, {
-            recordingId: id,
-            suggestions: [
-                {
-                    id: `${id}-s1`,
-                    category: "observations",
-                    text: "Key observation extracted from the transcript",
-                    selected: false,
-                },
-                {
-                    id: `${id}-s2`,
-                    category: "statements",
-                    text: "Important statement identified in the recording",
-                    selected: false,
-                },
-                {
-                    id: `${id}-s3`,
-                    category: "actions",
-                    text: "Recommended follow-up action based on content",
-                    selected: false,
-                },
-                {
-                    id: `${id}-s4`,
-                    category: "unclear",
-                    text: "Section requiring clarification or review",
-                    selected: false,
-                },
-            ],
+            id: `mock-analysis-${id}`,
+            transcriptionId: `mock-transcription-${id}`,
+            keyFindings: "Key observation extracted from the transcript.\nImportant detail identified in the recording.",
+            summary: "Auto-generated summary of the recording content. Review and verify before use.",
+            sentiment: "neutral",
+            topics: JSON.stringify(["recording", "notes", "review"]),
+            suggestedActions: "Review the transcript for accuracy.\nFollow up on any unclear sections.",
             createdAt: new Date().toISOString(),
         });
     }
@@ -456,7 +360,7 @@ export async function listRecordings(options?: {
 
     let recordings = Array.from(mockRecordings.values()).map((r) => ({
         ...r,
-        duration: formatDuration(r.duration),
+        duration: formatDuration(typeof r.duration === "number" ? r.duration : 0),
     }));
 
     // Apply filters
@@ -524,7 +428,7 @@ export async function getRecording(id: string): Promise<{
     return {
         recording: {
             ...recording,
-            duration: formatDuration(recording.duration),
+            duration: formatDuration(typeof recording.duration === "number" ? recording.duration : 0),
         } as Recording & { audioUrl?: string },
         transcript,
         analysis,
