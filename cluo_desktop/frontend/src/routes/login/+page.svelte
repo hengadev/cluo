@@ -46,7 +46,6 @@
 <div class="login-container">
 	<div class="login-card">
 		<h1>Cluo</h1>
-		<h2>Investigation Portal</h2>
 
 		<form onsubmit={handleLogin}>
 			<div class="form-group">
