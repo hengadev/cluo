@@ -46,6 +46,7 @@
 <div class="login-container">
 	<div class="login-card">
 		<h1>Cluo</h1>
+		<h2>Portail d'investigation</h2>
 
 		<form onsubmit={handleLogin}>
 			<div class="form-group">
@@ -77,7 +78,7 @@
 			{/if}
 
 			<button type="submit" disabled={isLoading}>
-				{isLoading ? 'Logging in...' : 'Log in'}
+				{isLoading ? 'Connexion…' : 'Se connecter'}
 			</button>
 		</form>
 	</div>
