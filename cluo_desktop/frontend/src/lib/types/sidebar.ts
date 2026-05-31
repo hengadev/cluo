@@ -7,7 +7,6 @@ export const SIDEBAR_STATES = {
     Devis: 'Devis',
     Contrat: 'Contrat',
     Reseaux: 'Reseaux',
-    Utilisateurs: 'Utilisateurs',
     Pièces: 'Pièces',
     Enregistrements: 'Enregistrements',
     Clients: 'Clients',

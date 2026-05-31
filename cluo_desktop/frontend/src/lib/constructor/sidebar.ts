@@ -6,7 +6,6 @@ import {
     Globe,
     Camera,
     UserPen,
-    Users,
     Paperclip,
     Mic,
     Briefcase,
@@ -25,7 +24,6 @@ export type SidebarItem = {
 export const items: SidebarItem[] = [
     { icon: Info, title: SIDEBAR_STATES.Informations, path: "/cases/:id" },
     { icon: Paperclip, title: SIDEBAR_STATES.Pièces, path: "/cases/:id/pieces" },
-    { icon: Users, title: SIDEBAR_STATES.Utilisateurs, path: "/users" },
     { icon: Mic, title: SIDEBAR_STATES.Enregistrements, path: "/cases/:id/recordings" },
     { icon: FileText, title: SIDEBAR_STATES.Rapport, path: "/cases/:id/rapport" },
     { icon: Camera, title: SIDEBAR_STATES.Photos, path: "/cases/:id/photos" },
