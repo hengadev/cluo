@@ -24,6 +24,7 @@ import (
 	documentHandler "github.com/hengadev/cluo_api/internal/interface/document"
 	investigationHandler "github.com/hengadev/cluo_api/internal/interface/investigation"
 	clientHandler "github.com/hengadev/cluo_api/internal/interface/client"
+	searchHandler "github.com/hengadev/cluo_api/internal/interface/search"
 	mediaHandler "github.com/hengadev/cluo_api/internal/interface/media"
 	pieceHandler "github.com/hengadev/cluo_api/internal/interface/piece"
 	rapportHandler "github.com/hengadev/cluo_api/internal/interface/rapport"
@@ -172,6 +173,11 @@ func (s *Server) registerAPIRoutes(mux *http.ServeMux) {
 		s.registerDocumentRoutes(mux)
 	}
 
+	// Register search routes
+	if s.container.CaseService() != nil && s.container.ClientService() != nil {
+		s.registerSearchRoutes(mux)
+	}
+
 	// Register AI routes
 	s.registerAIRoutes(mux)
 }
@@ -313,4 +319,10 @@ func (s *Server) registerDocumentRoutes(mux *http.ServeMux) {
 	handler := documentHandler.New(s.container.DocumentService(), s.container.AuthMiddleware())
 	handler.RegisterRoutes(mux)
 	s.logger.Info("Document routes registered")
+}
+
+func (s *Server) registerSearchRoutes(mux *http.ServeMux) {
+	handler := searchHandler.New(s.container.SearchService(), s.container.AuthMiddleware())
+	handler.RegisterRoutes(mux)
+	s.logger.Info("Search routes registered")
 }

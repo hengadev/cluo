@@ -12,6 +12,7 @@ import (
 	mediaService "github.com/hengadev/cluo_api/internal/application/media"
 	pieceService "github.com/hengadev/cluo_api/internal/application/piece"
 	rapportService "github.com/hengadev/cluo_api/internal/application/rapport"
+	searchService "github.com/hengadev/cluo_api/internal/application/search"
 	tokenService "github.com/hengadev/cluo_api/internal/application/token"
 	documentService "github.com/hengadev/cluo_api/internal/application/document"
 )
@@ -42,6 +43,10 @@ func (c *Container) initServices(ctx context.Context) error {
 	// Initialize client service
 	c.clientService = clientService.New(c.clientRepo, c.crypto)
 	c.logger.InfoContext(ctx, "Client service initialized")
+
+	// Initialize search service
+	c.searchService = searchService.New(c.caseService, c.clientService)
+	c.logger.InfoContext(ctx, "Search service initialized")
 
 	// Initialize auth service
 	if c.sessionRepo != nil && c.userRepo != nil {

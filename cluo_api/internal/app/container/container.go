@@ -45,6 +45,7 @@ type Container struct {
 	caseSubjectService ports.CaseSubjectService
 	caseTypeService    ports.CaseTypeService
 	clientService      ports.ClientService
+	searchService      ports.SearchService
 	documentService    ports.DocumentService
 	mediaService       ports.MediaService
 	pieceService       ports.PieceService
@@ -173,6 +174,11 @@ func (c *Container) CaseService() ports.CaseService {
 // ClientService returns the client service.
 func (c *Container) ClientService() ports.ClientService {
 	return c.clientService
+}
+
+// SearchService returns the search service.
+func (c *Container) SearchService() ports.SearchService {
+	return c.searchService
 }
 
 // DocumentService returns the document service.
