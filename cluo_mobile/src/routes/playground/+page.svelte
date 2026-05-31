@@ -8,6 +8,6 @@
 	h-12 items-center justify-center px-[21px] text-[15px]
 	font-semibold active:scale-[0.98] active:transition-all"
     >
-        Here is some button that I am trying to make work
+        Voici un bouton que j'essaie de faire fonctionner
     </Button>
 </div>
