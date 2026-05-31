@@ -412,7 +412,7 @@
 	}
 </script>
 
-<div class="p-8">
+<div class="p-8 flex flex-col gap-6">
 	{#if loading}
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
@@ -682,7 +682,7 @@
 
 		<!-- Case Subject -->
 		<div
-			class="mt-8 border border-border-card rounded-card p-6 animate-fade-in"
+			class="border border-border-card rounded-card p-6 animate-fade-in"
 			style="animation-delay: 400ms;"
 		>
 			<div class="flex justify-between items-center mb-4">

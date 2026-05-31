@@ -79,9 +79,11 @@
 	]);
 </script>
 
-<div class="p-8">
-	<h1 class="text-3xl font-bold mb-2">Documents</h1>
-	<p class="text-muted-foreground mb-8">Gestion des documents du dossier</p>
+<div class="p-8 flex flex-col gap-6">
+	<div>
+		<h1 class="text-3xl font-bold">Documents</h1>
+		<p class="text-muted-foreground mt-1">Gestion des documents du dossier</p>
+	</div>
 
 	{#if loading}
 		<div class="flex items-center justify-center py-12">

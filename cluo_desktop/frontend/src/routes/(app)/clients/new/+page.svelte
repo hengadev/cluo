@@ -62,16 +62,16 @@
 	}
 </script>
 
-<div class="p-8 max-w-xl">
+<div class="p-8 max-w-xl flex flex-col gap-6">
 	<button
-		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors cursor-pointer"
+		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 		onclick={() => goto("/clients")}
 	>
 		<ArrowLeft size={18} />
 		<span class="text-sm font-medium">Retour aux clients</span>
 	</button>
 
-	<h1 class="text-3xl font-bold mb-8 animate-fade-in">Nouveau client</h1>
+	<h1 class="text-3xl font-bold animate-fade-in">Nouveau client</h1>
 
 	<form
 		onsubmit={handleSubmit}

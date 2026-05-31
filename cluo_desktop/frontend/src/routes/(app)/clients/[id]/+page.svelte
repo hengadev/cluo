@@ -315,9 +315,9 @@
 	}
 </script>
 
-<div class="p-8">
+<div class="p-8 flex flex-col gap-6">
 	<button
-		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground mb-6 transition-colors cursor-pointer"
+		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 		onclick={() => goto("/clients")}
 	>
 		<ArrowLeft size={18} />
@@ -337,7 +337,7 @@
 	{:else if client}
 		<!-- Client header -->
 		<div
-			class="border border-border-card rounded-card p-6 mb-8 animate-fade-in hover:shadow-md transition-shadow duration-300"
+			class="border border-border-card rounded-card p-6 animate-fade-in hover:shadow-md transition-shadow duration-300"
 		>
 			<div class="flex items-start justify-between">
 				<div class="flex-1">

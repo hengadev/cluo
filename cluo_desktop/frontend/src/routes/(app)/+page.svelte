@@ -37,14 +37,13 @@
 	}
 </script>
 
-<div class="p-8 grid gap-8">
-    <div class="">
-        <h1 class="text-3xl font-bold mb-8 animate-fade-in">Tableau de bord</h1>
-        <h2 class="text-xl font-semibold mb-24 animate-fade-in" style="animation-delay: 100ms;">
+<div class="p-8 flex flex-col gap-6">
+    <div class="animate-fade-in">
+        <h1 class="text-3xl font-bold">Tableau de bord</h1>
+        <h2 class="text-xl font-semibold mt-2" style="animation-delay: 100ms;">
             Dossiers récents
         </h2>
     </div>
-	<div class="grid gap-6">
 		<section>
 			{#if loading}
 				<p class="text-muted-foreground">Chargement...</p>

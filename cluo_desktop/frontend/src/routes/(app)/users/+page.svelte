@@ -30,12 +30,11 @@
 	});
 </script>
 
-<div class="p-8 grid gap-8">
+<div class="p-8 flex flex-col gap-6">
 	<div class="">
-		<h1 class="text-2xl font-bold mb-4">Utilisateurs</h1>
-		<p class="text-muted-foreground mb-24">Gestion des utilisateurs</p>
+		<h1 class="text-2xl font-bold">Utilisateurs</h1>
+		<p class="text-muted-foreground mt-1">Gestion des utilisateurs</p>
 	</div>
-	<div class="grid gap-6">
 		{#if loading}
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
@@ -78,5 +77,4 @@
 			</table>
 		</div>
 		{/if}
-	</div>
 </div>

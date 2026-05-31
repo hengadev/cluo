@@ -11,7 +11,7 @@
     });
 </script>
 
-<div class="p-8">
-    <h1 class="text-2xl font-bold mb-4">Réseaux</h1>
+<div class="p-8 flex flex-col gap-6">
+    <h1 class="text-2xl font-bold">Réseaux</h1>
     <p class="text-muted-foreground">Gestion des réseaux du dossier</p>
 </div>

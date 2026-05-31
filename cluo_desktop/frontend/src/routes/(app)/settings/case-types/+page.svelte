@@ -154,9 +154,9 @@
 	}
 </script>
 
-<div class="p-8">
+<div class="p-8 flex flex-col gap-6">
 	<!-- Header -->
-	<div class="flex items-center gap-4 mb-8 animate-fade-in">
+	<div class="flex items-center gap-4 animate-fade-in">
 		<button
 			class="p-2 rounded-lg hover:bg-muted transition-colors cursor-pointer"
 			onclick={() => goto("/settings")}
