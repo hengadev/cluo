@@ -1,6 +1,9 @@
 /**
- * API utilities for audio recording, transcription, and analysis.
- * All functions communicate with the Golang backend.
+ * Client-side API wrappers for the Golang backend.
+ *
+ * ID chain problem: the backend uses separate IDs at each stage of the recording
+ * pipeline (mediaId → jobId → transcriptionId → analysisId). Since the mobile
+ * app routes use only the mediaId, we track the chain in localStorage.
  */
 
 import type {
@@ -9,29 +12,66 @@ import type {
 	TranscriptResponse,
 	AnalysisResponse,
 	RecordingsListResponse,
-} from "../schemas/recording";
-import type {
-	ConfirmTranscriptRequest,
 	ProcessingStep,
-	RecordingStatusResponse as RecordingStatusInterface,
+	Recording,
+	Transcript,
+	AnalysisResult,
+	RecordingStatus,
 } from "../types/recording";
 
-/**
- * Base URL for the backend API.
- * Uses environment variable or defaults to local development.
- */
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
-/**
- * Helper function to make API requests with proper error handling.
- */
-async function apiFetch<T>(
-	path: string,
-	options?: RequestInit,
-): Promise<T> {
-	const url = `${API_URL}${path}`;
+// ---------------------------------------------------------------------------
+// localStorage ID chain
+// ---------------------------------------------------------------------------
 
-	const response = await fetch(url, {
+interface RecordingChain {
+	jobId?: string;
+	transcriptionId?: string;
+	analysisId?: string;
+}
+
+const CHAIN_KEY = "cluo_recording_chain";
+const CASE_KEY = "cluo_current_case_id";
+
+function getChain(mediaId: string): RecordingChain {
+	try {
+		const raw = localStorage.getItem(CHAIN_KEY);
+		if (!raw) return {};
+		const all: Record<string, RecordingChain> = JSON.parse(raw);
+		return all[mediaId] ?? {};
+	} catch {
+		return {};
+	}
+}
+
+function updateChain(mediaId: string, update: Partial<RecordingChain>): void {
+	try {
+		const raw = localStorage.getItem(CHAIN_KEY);
+		const all: Record<string, RecordingChain> = raw ? JSON.parse(raw) : {};
+		all[mediaId] = { ...all[mediaId], ...update };
+		localStorage.setItem(CHAIN_KEY, JSON.stringify(all));
+	} catch {
+		// localStorage unavailable (SSR or private browsing)
+	}
+}
+
+function clearChain(mediaId: string): void {
+	try {
+		const raw = localStorage.getItem(CHAIN_KEY);
+		if (!raw) return;
+		const all: Record<string, RecordingChain> = JSON.parse(raw);
+		delete all[mediaId];
+		localStorage.setItem(CHAIN_KEY, JSON.stringify(all));
+	} catch {}
+}
+
+// ---------------------------------------------------------------------------
+// HTTP helper
+// ---------------------------------------------------------------------------
+
+async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
+	const response = await fetch(`${API_URL}${path}`, {
 		credentials: "include",
 		headers: {
 			"Content-Type": "application/json",
@@ -39,181 +79,444 @@ async function apiFetch<T>(
 		},
 		...options,
 	});
-
 	if (!response.ok) {
 		const errorText = await response.text().catch(() => "Unknown error");
 		throw new Error(`API error (${response.status}): ${errorText}`);
 	}
-
 	return response.json() as Promise<T>;
 }
 
+// ---------------------------------------------------------------------------
+// Backend response types (Go handler shapes)
+// ---------------------------------------------------------------------------
+
+interface MediaResponse {
+	id: string;
+	caseId: string;
+	url: string;
+	type: string;
+	mimeType: string;
+	fileName: string;
+	fileSize: number;
+	caption: string;
+	isPublished: boolean;
+	createdAt: string;
+}
+
+interface SubmitJobApiResponse {
+	jobId: string;
+	mediaFileId: string;
+	status: string;
+	progress: number;
+	createdAt: string;
+}
+
+interface JobStatusApiResponse {
+	jobId: string;
+	mediaFileId: string;
+	status: string; // "pending" | "running" | "completed" | "failed" | "cancelled"
+	progress: number;
+	errorMessage?: string;
+	transcriptionId?: string;
+	createdAt: string;
+	startedAt?: string;
+	completedAt?: string;
+}
+
+interface TranscriptionApiResponse {
+	id: string;
+	jobId: string;
+	mediaFileId: string;
+	audioUrl: string;
+	transcript: string;
+	confidenceScore: number;
+	language: string;
+	duration: number; // milliseconds
+	modelName: string;
+	processingTimeMs: number;
+	createdAt: string;
+}
+
+interface AnalysisApiResponse {
+	id: string;
+	transcriptionId: string;
+	keyFindings: string;
+	summary: string;
+	sentiment: string;
+	topics: string; // JSON-encoded array string from backend
+	suggestedActions: string;
+	modelUsed?: string;
+	processingTimeMs?: number;
+	createdAt: string;
+}
+
+interface ListMediaApiResponse {
+	media: MediaResponse[];
+	pagination: { page: number; pageSize: number; totalItems: number; totalPages: number };
+}
+
+// ---------------------------------------------------------------------------
+// Helpers
+// ---------------------------------------------------------------------------
+
+function formatDate(iso: string): string {
+	return new Date(iso).toLocaleDateString("en-GB", {
+		day: "2-digit",
+		month: "short",
+		year: "numeric",
+	});
+}
+
+function formatTime(iso: string): string {
+	return new Date(iso).toLocaleTimeString("en-GB", {
+		hour: "2-digit",
+		minute: "2-digit",
+	});
+}
+
+function deriveStatus(isPublished: boolean, url: string): RecordingStatus {
+	if (isPublished && url) return "completed";
+	if (url) return "transcribing";
+	return "uploading";
+}
+
+function mediaToRecording(m: MediaResponse): Recording & { audioUrl?: string } {
+	return {
+		id: m.id,
+		caseId: m.caseId,
+		title: m.caption || m.fileName,
+		date: formatDate(m.createdAt),
+		startTime: formatTime(m.createdAt),
+		duration: 0,
+		fileSize: m.fileSize,
+		status: deriveStatus(m.isPublished, m.url),
+		audioUrl: m.url || undefined,
+	};
+}
+
+// ---------------------------------------------------------------------------
+// API functions
+// ---------------------------------------------------------------------------
+
 /**
- * Upload an audio recording to the backend.
- *
- * @param blob - The audio blob to upload
- * @param metadata - Optional metadata (caseId, title, etc.)
- * @returns Response with recording ID and initial status
+ * Upload a recording:
+ * 1. POST /media  — stores the audio file
+ * 2. POST /ai/speech/jobs — submits it for transcription
+ * Stores the jobId in localStorage keyed by mediaId for later polling.
  */
 export async function uploadRecording(
 	blob: Blob,
 	metadata?: { caseId?: string; title?: string },
 ): Promise<UploadRecordingResponse> {
-	const formData = new FormData();
-	formData.append("audio", blob, "recording.webm");
-
-	if (metadata?.caseId) {
-		formData.append("caseId", metadata.caseId);
+	const caseId = metadata?.caseId ?? localStorage.getItem(CASE_KEY) ?? "";
+	if (!caseId) {
+		throw new Error("caseId is required to upload a recording");
 	}
+
+	// Upload media
+	const uploadForm = new FormData();
+	uploadForm.append("file", blob, "recording.webm");
+	uploadForm.append("caseId", caseId);
 	if (metadata?.title) {
-		formData.append("title", metadata.title);
+		uploadForm.append("caption", metadata.title);
 	}
 
-	const response = await fetch(`${API_URL}/api/audio`, {
+	const uploadRes = await fetch(`${API_URL}/media`, {
 		method: "POST",
 		credentials: "include",
-		body: formData,
+		body: uploadForm,
 	});
-
-	if (!response.ok) {
-		const errorText = await response.text().catch(() => "Unknown error");
-		throw new Error(`Failed to upload recording: ${errorText}`);
+	if (!uploadRes.ok) {
+		const err = await uploadRes.text().catch(() => "Unknown error");
+		throw new Error(`Failed to upload: ${err}`);
 	}
+	const media: MediaResponse = await uploadRes.json();
 
-	return response.json() as Promise<UploadRecordingResponse>;
+	// Store the caseId for future listRecordings calls
+	try {
+		localStorage.setItem(CASE_KEY, caseId);
+	} catch {}
+
+	// Submit transcription job with the same audio blob
+	const jobForm = new FormData();
+	jobForm.append("file", blob, "recording.webm");
+	jobForm.append("mediaFileId", media.id);
+
+	const jobRes = await fetch(`${API_URL}/ai/speech/jobs`, {
+		method: "POST",
+		credentials: "include",
+		body: jobForm,
+	});
+	if (!jobRes.ok) {
+		const err = await jobRes.text().catch(() => "Unknown error");
+		throw new Error(`Failed to submit transcription job: ${err}`);
+	}
+	const job: SubmitJobApiResponse = await jobRes.json();
+
+	updateChain(media.id, { jobId: job.jobId });
+
+	return { id: media.id, status: "uploading" };
 }
 
 /**
- * Get the current processing status of a recording.
- * Fetches GET /media/{id} from the Go API and maps the media state to processing steps.
- *
- * @param id - The recording ID
- * @returns Recording status with processing steps
+ * Poll the transcription job status for a given mediaId.
+ * Falls back to GET /media/{id} if no jobId is stored yet.
  */
-export async function getRecordingStatus(
-	id: string,
-): Promise<RecordingStatusInterface> {
-	const media = await apiFetch<{ url: string; isPublished: boolean }>(`/media/${id}`);
-	const isComplete = !!(media.isPublished && media.url);
+export async function getRecordingStatus(id: string): Promise<RecordingStatusResponse> {
+	const { jobId } = getChain(id);
+
+	if (!jobId) {
+		// No job ID yet — derive status from media record
+		const media = await apiFetch<MediaResponse>(`/media/${id}`);
+		const isComplete = !!(media.isPublished && media.url);
+		const steps: ProcessingStep[] = [
+			{ title: "Téléchargement audio", status: "completed" },
+			{
+				title: "Traitement de la transcription",
+				status: isComplete ? "completed" : "processing",
+			},
+			{
+				title: "Génération du résumé",
+				status: isComplete ? "completed" : "processing",
+			},
+			{ title: "Terminé", status: isComplete ? "completed" : "processing" },
+		];
+		return {
+			id,
+			status: isComplete ? "completed" : "transcribing",
+			processingSteps: steps,
+		};
+	}
+
+	const job = await apiFetch<JobStatusApiResponse>(`/ai/speech/jobs/${jobId}`);
+
+	if (job.transcriptionId) {
+		updateChain(id, { transcriptionId: job.transcriptionId });
+	}
+
+	const statusMap: Record<string, RecordingStatus> = {
+		pending: "transcribing",
+		running: "transcribing",
+		completed: "completed",
+		failed: "failed",
+		cancelled: "failed",
+	};
+	const recordingStatus: RecordingStatus = statusMap[job.status] ?? "transcribing";
+
+	const isComplete = job.status === "completed";
+	const isFailed = job.status === "failed" || job.status === "cancelled";
 
 	const steps: ProcessingStep[] = [
 		{ title: "Téléchargement audio", status: "completed" },
-		{ title: "Traitement de la transcription", status: isComplete ? "completed" : "processing" },
-		{ title: "Génération du résumé", status: isComplete ? "completed" : "processing" },
-		{ title: "Terminé", status: isComplete ? "completed" : "processing" },
+		{
+			title: "Traitement de la transcription",
+			status: isComplete ? "completed" : isFailed ? "failed" : "processing",
+		},
+		{
+			title: "Génération du résumé",
+			status: isComplete ? "completed" : isFailed ? "failed" : "pending",
+		},
+		{
+			title: "Terminé",
+			status: isComplete ? "completed" : isFailed ? "failed" : "pending",
+		},
 	];
 
 	return {
 		id,
-		status: isComplete ? "completed" : "transcribing",
+		status: recordingStatus,
 		processingSteps: steps,
+		error: job.errorMessage,
 	};
 }
 
 /**
- * Get the transcript for a recording.
- *
- * @param id - The recording ID
- * @returns Transcript data with text and metadata
+ * Fetch the transcript for a recording by looking up the transcription via mediaFileId.
+ * Stores the transcriptionId in the chain for later analysis calls.
  */
-export async function getTranscript(
-	id: string,
-): Promise<TranscriptResponse> {
-	return apiFetch<TranscriptResponse>(`/api/recordings/${id}/transcript`);
+export async function getTranscript(id: string): Promise<TranscriptResponse> {
+	const res = await apiFetch<{ transcriptions: TranscriptionApiResponse[]; total: number }>(
+		`/ai/speech/transcriptions?mediaFileId=${id}`,
+	);
+
+	if (!res.transcriptions.length) {
+		throw new Error("Transcript not yet available");
+	}
+
+	const t = res.transcriptions[0];
+	updateChain(id, { transcriptionId: t.id });
+
+	return {
+		recordingId: id,
+		text: t.transcript,
+		confidence: t.confidenceScore,
+		isConfirmed: false, // backend has no confirm concept; set false so the user reviews before analyzing
+		createdAt: t.createdAt,
+		updatedAt: t.createdAt,
+	};
 }
 
 /**
- * Confirm or update the transcript for a recording.
- *
- * @param id - The recording ID
- * @param text - The confirmed/edited transcript text
- * @returns void on success
+ * No-op: the backend has no transcript confirm endpoint.
+ * The caller sets isConfirmed locally to gate the analyze action.
  */
-export async function confirmTranscript(
-	id: string,
-	text: string,
-): Promise<void> {
-	await apiFetch<void>(`/api/recordings/${id}/transcript`, {
-		method: "PUT",
-		body: JSON.stringify({ text }),
-	});
-}
+export async function confirmTranscript(_id: string, _text: string): Promise<void> {}
 
 /**
- * Request analysis of a confirmed transcript.
- *
- * @param id - The recording ID
- * @returns void on success (analysis is async)
+ * Request AI analysis of the transcript.
+ * Looks up transcriptionId from the chain, then calls POST /ai/analysis/analyze.
+ * Stores the resulting analysisId for getAnalysis.
  */
-export async function analyzeTranscript(
-	id: string,
-): Promise<void> {
-	await apiFetch<void>(`/api/recordings/${id}/analyze`, {
+export async function analyzeTranscript(id: string): Promise<void> {
+	let { transcriptionId } = getChain(id);
+
+	if (!transcriptionId) {
+		const res = await apiFetch<{ transcriptions: TranscriptionApiResponse[]; total: number }>(
+			`/ai/speech/transcriptions?mediaFileId=${id}`,
+		);
+		if (!res.transcriptions.length) {
+			throw new Error("Transcript not available — cannot analyze");
+		}
+		transcriptionId = res.transcriptions[0].id;
+		updateChain(id, { transcriptionId });
+	}
+
+	const analysis = await apiFetch<AnalysisApiResponse>(`/ai/analysis/analyze`, {
 		method: "POST",
+		body: JSON.stringify({ transcriptionId }),
 	});
+
+	updateChain(id, { analysisId: analysis.id });
 }
 
 /**
- * Get the analysis results for a recording.
- *
- * @param id - The recording ID
- * @returns Analysis results with categorized suggestions
+ * Fetch the AI analysis for a recording.
+ * Requires that analyzeTranscript has been called first (analysisId stored in chain).
  */
-export async function getAnalysis(
-	id: string,
-): Promise<AnalysisResponse> {
-	return apiFetch<AnalysisResponse>(`/api/recordings/${id}/analysis`);
+export async function getAnalysis(id: string): Promise<AnalysisResponse> {
+	const { analysisId } = getChain(id);
+
+	if (!analysisId) {
+		throw new Error("No analysis found. Please analyze the transcript first.");
+	}
+
+	const a = await apiFetch<AnalysisApiResponse>(`/ai/analysis/${analysisId}`);
+
+	return {
+		id: a.id,
+		transcriptionId: a.transcriptionId,
+		keyFindings: a.keyFindings,
+		summary: a.summary,
+		sentiment: a.sentiment,
+		topics: a.topics,
+		suggestedActions: a.suggestedActions,
+		createdAt: a.createdAt,
+	};
 }
 
 /**
- * List all recordings for the current user.
- *
- * @param options - Optional query parameters (limit, offset, caseId, status)
- * @returns List of recordings with total count
+ * List recordings for a given caseId.
+ * Falls back to the last-used caseId stored in localStorage.
  */
-export async function listRecordings(
-	options?: {
-		limit?: number;
-		offset?: number;
-		caseId?: string;
-		status?: string;
-	},
-): Promise<RecordingsListResponse> {
-	const params = new URLSearchParams();
-	if (options?.limit) params.append("limit", options.limit.toString());
-	if (options?.offset) params.append("offset", options.offset.toString());
-	if (options?.caseId) params.append("caseId", options.caseId);
-	if (options?.status) params.append("status", options.status);
+export async function listRecordings(options?: {
+	limit?: number;
+	offset?: number;
+	caseId?: string;
+	status?: string;
+}): Promise<RecordingsListResponse> {
+	const caseId = options?.caseId ?? localStorage.getItem(CASE_KEY) ?? "";
 
-	const queryString = params.toString();
-	const path = `/api/recordings${queryString ? `?${queryString}` : ""}`;
+	if (!caseId) {
+		return { recordings: [], totalCount: 0 };
+	}
 
-	return apiFetch<RecordingsListResponse>(path);
+	const pageSize = options?.limit ?? 20;
+	const page = options?.offset ? Math.floor(options.offset / pageSize) + 1 : 1;
+	const params = new URLSearchParams({ page: String(page), pageSize: String(pageSize), type: "audio" });
+
+	const res = await apiFetch<ListMediaApiResponse>(`/case/${caseId}/media?${params}`);
+
+	const recordings = res.media.map(mediaToRecording) as Recording[];
+
+	return {
+		recordings,
+		totalCount: res.pagination.totalItems,
+	};
 }
 
 /**
- * Delete a recording.
- *
- * @param id - The recording ID
- * @returns void on success
+ * Delete a media record and clear its local ID chain.
  */
-export async function deleteRecording(
-	id: string,
-): Promise<void> {
-	await apiFetch<void>(`/api/recordings/${id}`, {
-		method: "DELETE",
-	});
+export async function deleteRecording(id: string): Promise<void> {
+	await apiFetch<void>(`/media/${id}`, { method: "DELETE" });
+	clearChain(id);
 }
 
 /**
- * Poll for recording status updates.
- * Returns a promise that resolves when the recording reaches the target status.
- *
- * @param id - The recording ID
- * @param targetStatus - The status to wait for (default: "completed")
- * @param interval - Polling interval in ms (default: 2000)
- * @param timeout - Maximum time to wait in ms (default: 300000 = 5 minutes)
- * @returns Final recording status
+ * Fetch a recording with its transcript and analysis in one call.
+ */
+export async function getRecording(id: string): Promise<{
+	recording: Recording & { audioUrl?: string };
+	transcript: Transcript | null;
+	analysis: AnalysisResult | null;
+}> {
+	const media = await apiFetch<MediaResponse>(`/media/${id}`);
+	const recording = mediaToRecording(media);
+
+	let transcript: Transcript | null = null;
+	try {
+		const res = await apiFetch<{ transcriptions: TranscriptionApiResponse[]; total: number }>(
+			`/ai/speech/transcriptions?mediaFileId=${id}`,
+		);
+		if (res.transcriptions.length) {
+			const t = res.transcriptions[0];
+			updateChain(id, { transcriptionId: t.id });
+			transcript = {
+				recordingId: id,
+				text: t.transcript,
+				confidence: t.confidenceScore,
+				isConfirmed: false,
+				createdAt: t.createdAt,
+				updatedAt: t.createdAt,
+			};
+		}
+	} catch {
+		// transcript not yet available
+	}
+
+	let analysis: AnalysisResult | null = null;
+	try {
+		const { analysisId } = getChain(id);
+		if (analysisId) {
+			const a = await apiFetch<AnalysisApiResponse>(`/ai/analysis/${analysisId}`);
+			analysis = {
+				id: a.id,
+				transcriptionId: a.transcriptionId,
+				keyFindings: a.keyFindings,
+				summary: a.summary,
+				sentiment: a.sentiment,
+				topics: a.topics,
+				suggestedActions: a.suggestedActions,
+				createdAt: a.createdAt,
+			};
+		}
+	} catch {
+		// analysis not yet available
+	}
+
+	return { recording, transcript, analysis };
+}
+
+/**
+ * Return the direct audio URL for a media record.
+ */
+export async function getAudioUrl(id: string): Promise<string> {
+	const media = await apiFetch<MediaResponse>(`/media/${id}`);
+	return media.url;
+}
+
+/**
+ * Poll until the recording reaches one of the target statuses.
  */
 export async function pollRecordingStatus(
 	id: string,
@@ -222,63 +525,12 @@ export async function pollRecordingStatus(
 	timeout = 300000,
 ): Promise<RecordingStatusResponse> {
 	const startTime = Date.now();
-
 	while (Date.now() - startTime < timeout) {
 		const status = await getRecordingStatus(id);
-
-		if (targetStatus.includes(status.status)) {
+		if (targetStatus.includes(status.status as "completed" | "failed")) {
 			return status;
 		}
-
-		// Wait before next poll
 		await new Promise((resolve) => setTimeout(resolve, interval));
 	}
-
 	throw new Error("Polling timeout: recording did not complete in time");
-}
-
-/**
- * Get a single recording with its transcript and analysis.
- *
- * @param id - The recording ID
- * @returns Recording details with transcript and analysis if available
- */
-export async function getRecording(id: string): Promise<{
-	recording: import("../types/recording").Recording & { audioUrl?: string };
-	transcript: import("../types/recording").Transcript | null;
-	analysis: import("../types/recording").AnalysisResult | null;
-}> {
-	// Fetch recording details
-	const recording = await apiFetch<import("../types/recording").Recording & { audioUrl?: string }>(
-		`/api/recordings/${id}`,
-	);
-
-	// Try to fetch transcript (may not exist)
-	let transcript: import("../types/recording").Transcript | null = null;
-	try {
-		transcript = await getTranscript(id);
-	} catch {
-		// Transcript not available yet
-	}
-
-	// Try to fetch analysis (may not exist)
-	let analysis: import("../types/recording").AnalysisResult | null = null;
-	try {
-		analysis = await getAnalysis(id);
-	} catch {
-		// Analysis not available yet
-	}
-
-	return { recording, transcript, analysis };
-}
-
-/**
- * Get the audio URL/blob for a recording.
- *
- * @param id - The recording ID
- * @returns URL to the audio file
- */
-export async function getAudioUrl(id: string): Promise<string> {
-	// The backend should return a signed URL or the audio can be streamed directly
-	return `${API_URL}/api/recordings/${id}/audio`;
 }
