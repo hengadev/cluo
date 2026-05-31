@@ -163,8 +163,8 @@
                 </div>
                 <div class="flex-1">
                     <p class="text-dark-900 font-semibold">AI Analysis</p>
-                    <p class="text-dark-600 text-sm">
-                        {analysis.suggestions.length} suggestions
+                    <p class="text-dark-600 text-sm capitalize">
+                        {analysis.sentiment || "Completed"}
                     </p>
                 </div>
             </a>

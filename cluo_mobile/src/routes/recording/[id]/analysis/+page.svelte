@@ -1,49 +1,18 @@
 <script lang="ts">
-	import { ChevronLeft, Sparkles, Download, Share2 } from "@lucide/svelte";
+	import { ChevronLeft, Download } from "@lucide/svelte";
 	import { goto } from "$app/navigation";
 	import { onMount } from "svelte";
-	import AnalysisSection from "$lib/components/AnalysisSection.svelte";
 	import { getAnalysis } from "$lib/api";
-	import type { AnalysisResult, Suggestion, SuggestionCategory } from "$lib/types/recording";
+	import type { AnalysisResult } from "$lib/types/recording";
 
 	let analysis = $state<AnalysisResult | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
-
-	// Get recording ID from URL
 	let recordingId = $state("");
 
-	// Group suggestions by category
-	let groupedSuggestions = $derived(() => {
-		if (!analysis) return null;
-		const groups: Record<SuggestionCategory, Suggestion[]> = {
-			observations: [],
-			statements: [],
-			actions: [],
-			unclear: [],
-		};
-		analysis.suggestions.forEach((s) => {
-			groups[s.category].push(s);
-		});
-		return groups;
-	});
-
-	// Count total selected suggestions
-	let totalSelected = $derived(() => {
-		if (!groupedSuggestions) return 0;
-		return (
-			groupedSuggestions.observations.filter((s) => s.selected).length +
-			groupedSuggestions.statements.filter((s) => s.selected).length +
-			groupedSuggestions.actions.filter((s) => s.selected).length +
-			groupedSuggestions.unclear.filter((s) => s.selected).length
-		);
-	});
-
 	onMount(() => {
-		// Extract recording ID from URL path
 		const pathParts = window.location.pathname.split("/");
-		recordingId = pathParts[pathParts.length - 2]; // Get the ID before "analysis"
-
+		recordingId = pathParts[pathParts.length - 2];
 		loadAnalysis();
 	});
 
@@ -59,51 +28,35 @@
 		}
 	}
 
-	function getSelectedSuggestions(): Suggestion[] {
-		if (!analysis) return [];
-		return analysis.suggestions.filter((s) => s.selected);
+	function parsedTopics(): string[] {
+		if (!analysis?.topics) return [];
+		try {
+			return JSON.parse(analysis.topics) as string[];
+		} catch {
+			return analysis.topics ? [analysis.topics] : [];
+		}
+	}
+
+	function sentimentColor(sentiment: string): string {
+		switch (sentiment?.toLowerCase()) {
+			case "positive": return "bg-green-100 text-green-800";
+			case "negative": return "bg-red-100 text-red-800";
+			default: return "bg-dark-100 text-dark-700";
+		}
 	}
 
 	function handleExport() {
-		const selected = getSelectedSuggestions();
-		if (selected.length === 0) {
-			alert("No suggestions selected");
-			return;
-		}
+		if (!analysis) return;
 
-		// Group by category for export
-		const grouped: Record<string, string[]> = {
-			Observations: [],
-			Statements: [],
-			Actions: [],
-			Unclear: [],
-		};
+		const topics = parsedTopics();
+		let text = `AI Analysis\n${"=".repeat(40)}\n\n`;
+		text += `Sentiment: ${analysis.sentiment}\n\n`;
+		if (topics.length) text += `Topics: ${topics.join(", ")}\n\n`;
+		text += `Summary\n${"-".repeat(20)}\n${analysis.summary}\n\n`;
+		text += `Key Findings\n${"-".repeat(20)}\n${analysis.keyFindings}\n\n`;
+		text += `Suggested Actions\n${"-".repeat(20)}\n${analysis.suggestedActions}\n`;
 
-		selected.forEach((s) => {
-			const category =
-				s.category.charAt(0).toUpperCase() +
-				s.category.slice(1);
-			if (category === "Unclear") {
-				grouped.Unclear.push(s.text);
-			} else if (grouped[category]) {
-				grouped[category].push(s.text);
-			}
-		});
-
-		// Create formatted text
-		let exportText = `Analysis Results - Recording ${recordingId}\n\n`;
-		Object.entries(grouped).forEach(([category, items]) => {
-			if (items.length > 0) {
-				exportText += `## ${category}\n\n`;
-				items.forEach((item, i) => {
-					exportText += `${i + 1}. ${item}\n`;
-				});
-				exportText += "\n";
-			}
-		});
-
-		// Download as text file
-		const blob = new Blob([exportText], { type: "text/plain" });
+		const blob = new Blob([text], { type: "text/plain" });
 		const url = URL.createObjectURL(blob);
 		const a = document.createElement("a");
 		a.href = url;
@@ -145,62 +98,60 @@
 				Retry
 			</button>
 		</div>
-	{:else if analysis && groupedSuggestions}
+	{:else if analysis}
+		<!-- Sentiment + topics -->
+		<div class="flex flex-wrap items-center gap-2">
+			<span class="px-3 py-1 rounded-full text-sm font-medium {sentimentColor(analysis.sentiment)} capitalize">
+				{analysis.sentiment || "neutral"}
+			</span>
+			{#each parsedTopics() as topic}
+				<span class="px-3 py-1 rounded-full text-sm bg-dark-50 text-dark-700 border border-dark-100">
+					{topic}
+				</span>
+			{/each}
+		</div>
+
 		<!-- Summary -->
-		<div class="flex items-center justify-between p-4 bg-dark-50 rounded-xl">
-			<div class="flex items-center gap-3">
-				<Sparkles class="text-accent" size={20} />
-				<div>
-					<p class="text-dark-900 font-semibold text-sm">
-						{analysis.suggestions.length} suggestions
-					</p>
-					<p class="text-dark-600 text-xs">
-						{totalSelected} selected
-					</p>
-				</div>
+		{#if analysis.summary}
+			<div class="flex flex-col gap-2 p-4 bg-dark-50 rounded-2xl">
+				<p class="text-dark-800 font-semibold text-sm uppercase tracking-wide">Summary</p>
+				<p class="text-dark-700 text-sm leading-relaxed">{analysis.summary}</p>
 			</div>
-		</div>
+		{/if}
 
-		<!-- Analysis Sections -->
-		<div class="flex flex-col gap-4">
-			<AnalysisSection
-				category="observations"
-				suggestions={groupedSuggestions.observations}
-			/>
-			<AnalysisSection
-				category="statements"
-				suggestions={groupedSuggestions.statements}
-			/>
-			<AnalysisSection
-				category="actions"
-				suggestions={groupedSuggestions.actions}
-			/>
-			<AnalysisSection
-				category="unclear"
-				suggestions={groupedSuggestions.unclear}
-			/>
-		</div>
+		<!-- Key findings -->
+		{#if analysis.keyFindings}
+			<div class="flex flex-col gap-2 p-4 border border-dark-100 rounded-2xl">
+				<p class="text-dark-800 font-semibold text-sm uppercase tracking-wide">Key Findings</p>
+				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line">{analysis.keyFindings}</p>
+			</div>
+		{/if}
 
-		<!-- Action Buttons -->
-		<div class="flex flex-col gap-3">
+		<!-- Suggested actions -->
+		{#if analysis.suggestedActions}
+			<div class="flex flex-col gap-2 p-4 border border-dark-100 rounded-2xl">
+				<p class="text-dark-800 font-semibold text-sm uppercase tracking-wide">Suggested Actions</p>
+				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line">{analysis.suggestedActions}</p>
+			</div>
+		{/if}
+
+		<!-- Actions -->
+		<div class="flex flex-col gap-3 mt-2">
 			<button
 				onclick={handleExport}
-				disabled={totalSelected === 0}
-				class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-700 hover:bg-dark-600 disabled:bg-dark-400 text-foreground rounded-xl transition-colors font-semibold"
+				class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold"
 			>
 				<Download size={18} />
-				<span>Export Selected ({totalSelected})</span>
+				<span>Export Analysis</span>
 			</button>
-
 			<button
 				onclick={() => goto(`/recording/${recordingId}`)}
 				class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-100 hover:bg-dark-200 text-dark-700 rounded-xl transition-colors font-semibold"
 			>
-				<span>Back to Recording</span>
+				Back to Recording
 			</button>
 		</div>
 
-		<!-- Privacy Notice -->
 		<div class="flex items-center justify-center p-4 bg-dark-50 rounded-2xl mt-2">
 			<p class="text-dark-600 text-sm text-center">
 				Analysis is processed on private infrastructure
