@@ -1,8 +1,18 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
+	import { onMount } from 'svelte';
 	import { apiPost } from '$lib/services/apiFetch';
 	import { auth } from '$lib/stores/auth';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+
+	const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as string | undefined;
+
+	onMount(() => {
+		if (MOCK_USER_ROLE) {
+			auth.setUser({ id: 'mock-user', email: 'dev@cluo.local', role: MOCK_USER_ROLE as 'admin' | 'investigator' | 'viewer' });
+			goto('/');
+		}
+	});
 
 	let email = '';
 	let password = '';
