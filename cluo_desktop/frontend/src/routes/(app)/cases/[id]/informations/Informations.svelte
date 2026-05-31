@@ -15,6 +15,7 @@
 		updateCaseSubject,
 		deleteCaseSubject,
 	} from "$lib/services/api";
+	import { recentCases } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
@@ -109,6 +110,8 @@
 				loading = false;
 				return;
 			}
+
+			recentCases.push({ id: caseData.id, title: caseData.title, status: caseData.status });
 
 			const [clientData, contactData, subjectData, typesData] = await Promise.all([
 				fetchClient(caseData.clientId),
