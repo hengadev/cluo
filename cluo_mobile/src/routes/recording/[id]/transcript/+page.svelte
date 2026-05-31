@@ -29,7 +29,7 @@
 			error = null;
 			transcript = await getTranscript(recordingId);
 		} catch (err) {
-			error = err instanceof Error ? err.message : "Failed to load transcript";
+			error = err instanceof Error ? err.message : "Échec du chargement de la transcription";
 		} finally {
 			isLoading = false;
 		}
@@ -47,7 +47,7 @@
 				transcript.isConfirmed = true;
 			}
 		} catch (err) {
-			error = err instanceof Error ? err.message : "Failed to save transcript";
+			error = err instanceof Error ? err.message : "Échec de la sauvegarde de la transcription";
 		} finally {
 			isSaving = false;
 		}
@@ -62,7 +62,7 @@
 			// Navigate to analysis page
 			goto(`/recording/${recordingId}/analysis`);
 		} catch (err) {
-			error = err instanceof Error ? err.message : "Failed to analyze transcript";
+			error = err instanceof Error ? err.message : "Échec de l'analyse de la transcription";
 		} finally {
 			isAnalyzing = false;
 		}
@@ -80,23 +80,23 @@
 		<button onclick={goBack} class="text-dark-700 hover:text-dark-900">
 			<ChevronLeft />
 		</button>
-		<p class="text-dark-900 font-bold text-lg">Transcript Review</p>
+		<p class="text-dark-900 font-bold text-lg">Révision de la transcription</p>
 		<div class="w-6"></div>
 	</div>
 
 	{#if isLoading}
 		<div class="flex items-center justify-center p-12">
-			<p class="text-dark-600">Loading transcript...</p>
+			<p class="text-dark-600">Chargement de la transcription...</p>
 		</div>
 	{:else if error}
 		<div class="flex flex-col items-center gap-4 p-8 bg-red-50 rounded-2xl">
-			<p class="text-red-700 font-semibold">Error</p>
+			<p class="text-red-700 font-semibold">Erreur</p>
 			<p class="text-red-600 text-sm text-center">{error}</p>
 			<button
 				onclick={loadTranscript}
 				class="px-6 py-3 bg-red-600 hover:bg-red-500 text-white rounded-xl transition-colors font-medium"
 			>
-				Retry
+				Réessayer
 			</button>
 		</div>
 	{:else if transcript}
@@ -112,8 +112,8 @@
 			<div class="w-2 h-2 rounded-full {transcript.isConfirmed ? 'bg-green-500' : 'bg-yellow-500'}"></div>
 			<p class="text-dark-700 text-sm">
 				{transcript.isConfirmed
-					? "Transcript confirmed"
-					: "Please review and confirm the transcript"}
+					? "Transcription confirmée"
+					: "Veuillez relire et confirmer la transcription"}
 			</p>
 		</div>
 
@@ -126,14 +126,14 @@
 				class="flex items-center justify-center gap-2 px-6 py-4 bg-accent hover:bg-accent/90 disabled:bg-dark-200 text-accent-foreground disabled:text-dark-500 rounded-xl transition-colors font-semibold"
 			>
 				<Sparkles size={18} />
-				<span>{isAnalyzing ? "Analyzing..." : "Analyze Notes"}</span>
+				<span>{isAnalyzing ? "Analyse en cours..." : "Analyser les notes"}</span>
 			</button>
 		</div>
 
 		<!-- Privacy Notice -->
 		<div class="flex items-center justify-center p-4 bg-dark-50 rounded-2xl mt-2">
 			<p class="text-dark-600 text-sm text-center">
-				Transcription and analysis are processed on private infrastructure
+				La transcription et l'analyse sont traitées sur une infrastructure privée
 			</p>
 		</div>
 	{/if}

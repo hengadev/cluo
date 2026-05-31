@@ -19,6 +19,14 @@
         else window.location.href = "/";
     }
 
+    const statusLabels: Record<string, string> = {
+        uploading: "Téléchargement",
+        transcribing: "Transcription",
+        analyzing: "Analyse",
+        completed: "Terminé",
+        failed: "Échoué",
+    };
+
     async function handleDownload() {
         if (isDownloading) return;
 
@@ -39,7 +47,7 @@
             document.body.removeChild(a);
         } catch (error) {
             console.error("Download failed:", error);
-            snackbar.error("Failed to download audio", () => handleDownload());
+            snackbar.error("Échec du téléchargement de l'audio", () => handleDownload());
         } finally {
             isDownloading = false;
         }
@@ -50,7 +58,7 @@
 
         // Show confirmation
         const confirmed = confirm(
-            `Are you sure you want to delete "${recording.title}"? This action cannot be undone.`
+            `Êtes-vous sûr de vouloir supprimer « ${recording.title} » ? Cette action est irréversible.`
         );
 
         if (!confirmed) return;
@@ -62,7 +70,7 @@
             goto("/");
         } catch (error) {
             console.error("Delete failed:", error);
-            snackbar.error("Failed to delete recording", () => handleDelete());
+            snackbar.error("Échec de la suppression de l'enregistrement", () => handleDelete());
         } finally {
             isDeleting = false;
         }
@@ -78,7 +86,7 @@
         >
             <ArrowLeft class="text-dark-700" />
         </button>
-        <h1 class="text-dark-900 font-extrabold text-xl">Recording Details</h1>
+        <h1 class="text-dark-900 font-extrabold text-xl">Détails de l'enregistrement</h1>
     </div>
 
     {#if data.error}
@@ -122,15 +130,15 @@
                     >
                         <Play class="text-dark-400" fill="currentColor" size={20} />
                     </button>
-                    <p class="text-dark-500 text-sm">Audio not available</p>
+                    <p class="text-dark-500 text-sm">Audio non disponible</p>
                 </div>
             {/if}
         </div>
 
         <!-- Status Badge -->
         <div class="flex items-center justify-center py-2 px-4 rounded-full bg-dark-100 w-fit">
-            <p class="text-dark-700 text-sm font-medium capitalize">
-                {recording.status}
+            <p class="text-dark-700 text-sm font-medium">
+                {statusLabels[recording.status] ?? recording.status}
             </p>
         </div>
 
@@ -144,9 +152,9 @@
                     <FileText class="text-dark-700" size={20} />
                 </div>
                 <div class="flex-1">
-                    <p class="text-dark-900 font-semibold">Transcript</p>
+                    <p class="text-dark-900 font-semibold">Transcription</p>
                     <p class="text-dark-600 text-sm">
-                        {transcript.isConfirmed ? "Confirmed" : "Pending review"}
+                        {transcript.isConfirmed ? "Confirmée" : "En attente de révision"}
                     </p>
                 </div>
             </a>
@@ -162,9 +170,9 @@
                     <Sparkles class="text-dark-700" size={20} />
                 </div>
                 <div class="flex-1">
-                    <p class="text-dark-900 font-semibold">AI Analysis</p>
-                    <p class="text-dark-600 text-sm capitalize">
-                        {analysis.sentiment || "Completed"}
+                    <p class="text-dark-900 font-semibold">Analyse IA</p>
+                    <p class="text-dark-600 text-sm">
+                        {analysis.sentiment === "neutre" ? "Neutre" : analysis.sentiment === "positif" ? "Positif" : analysis.sentiment === "négatif" ? "Négatif" : analysis.sentiment || "Terminé"}
                     </p>
                 </div>
             </a>
@@ -177,14 +185,14 @@
                     href="/processing/{recording.id}"
                     class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold no-underline"
                 >
-                    View Processing Status
+                    Voir l'état du traitement
                 </a>
             {:else if !analysis}
                 <a
                     href="/recording/{recording.id}/transcript"
                     class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold no-underline"
                 >
-                    Review Transcript
+                    Réviser la transcription
                 </a>
             {/if}
 
@@ -199,7 +207,7 @@
                     {:else}
                         <Download size={18} />
                     {/if}
-                    <span class="font-medium">Download</span>
+                    <span class="font-medium">Télécharger</span>
                 </button>
                 <button
                     onclick={handleDelete}
@@ -211,7 +219,7 @@
                     {:else}
                         <Trash2 size={18} />
                     {/if}
-                    <span class="font-medium">Delete</span>
+                    <span class="font-medium">Supprimer</span>
                 </button>
             </div>
         </div>
