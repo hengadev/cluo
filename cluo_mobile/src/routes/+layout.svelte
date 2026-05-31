@@ -3,19 +3,44 @@
     import { page } from "$app/state";
     import { onMount } from 'svelte';
     import { dev } from '$app/environment';
+    import { goto } from '$app/navigation';
 
     import Footer from "./Footer.svelte";
     import Snackbar from "$lib/components/Snackbar.svelte";
+    import { auth } from '$lib/stores/auth';
+
+    const API_URL = import.meta.env.VITE_API_URL ?? '';
+    const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
 
     let { children } = $props();
 
-    // Hide footer on auth pages
     const showFooter = $derived(!page.url.pathname.startsWith("/auth"));
 
-    // Register service worker for PWA functionality
-    onMount(() => {
+    onMount(async () => {
         if (!dev && 'serviceWorker' in navigator) {
             navigator.serviceWorker.register('/service-worker.js');
+        }
+
+        // Skip auth check in mock mode (VITE_MOCK_USER_ROLE handles it in +page.svelte)
+        if (MOCK_MODE) return;
+
+        // Skip if already heading to auth
+        if (page.url.pathname.startsWith('/auth')) return;
+
+        try {
+            const res = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
+            if (res.ok) {
+                const user = await res.json() as { id: string; email: string; role: string };
+                auth.setUser({
+                    id: user.id,
+                    email: user.email,
+                    role: user.role as 'admin' | 'investigator' | 'viewer',
+                });
+            } else {
+                goto('/auth');
+            }
+        } catch {
+            goto('/auth');
         }
     });
 </script>
