@@ -12,6 +12,7 @@
 
     const API_URL = import.meta.env.VITE_API_URL ?? '';
     const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === 'true';
+    const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as string | undefined;
     const isStaging = PUBLIC_APP_ENV === 'staging';
 
     let { children } = $props();
@@ -23,8 +24,12 @@
             navigator.serviceWorker.register('/service-worker.js');
         }
 
-        // Skip auth check in mock mode (VITE_MOCK_USER_ROLE handles it in +page.svelte)
-        if (MOCK_MODE) return;
+        if (MOCK_MODE) {
+            if (MOCK_USER_ROLE) {
+                auth.setUser({ id: 'mock-user', email: 'dev@cluo.local', role: MOCK_USER_ROLE as 'admin' | 'investigator' | 'viewer', name: 'John' });
+            }
+            return;
+        }
 
         // Skip if already heading to auth
         if (page.url.pathname.startsWith('/auth')) return;
