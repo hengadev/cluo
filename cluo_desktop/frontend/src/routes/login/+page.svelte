@@ -95,14 +95,14 @@
 		align-items: center;
 		justify-content: center;
 		height: 100vh;
-		background: var(--color-background);
+		background: var(--background);
 	}
 
 	.login-card {
 		width: 100%;
 		max-width: 400px;
 		padding: 2rem;
-		background: var(--color-surface);
+		background: var(--background-alt);
 		border-radius: 8px;
 		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 	}
@@ -120,7 +120,7 @@
 		font-weight: 500;
 		text-align: center;
 		margin: 0 0 2rem 0;
-		color: var(--color-text-secondary);
+		color: var(--foreground-alt);
 	}
 
 	.form-group {
@@ -132,17 +132,17 @@
 		margin-bottom: 0.25rem;
 		font-size: 0.875rem;
 		font-weight: 500;
-		color: var(--color-text);
+		color: var(--foreground);
 	}
 
 	input {
 		width: 100%;
 		padding: 0.625rem;
-		border: 1px solid var(--color-border);
+		border: 1px solid var(--border-input);
 		border-radius: 4px;
 		font-size: 0.875rem;
-		background: var(--color-background);
-		color: var(--color-text);
+		background: var(--background);
+		color: var(--foreground);
 	}
 
 	input:focus {
@@ -159,7 +159,7 @@
 		margin: 0 0 1rem 0;
 		padding: 0.5rem;
 		background: var(--color-error-background, #fee2e2);
-		color: var(--color-error, #dc2626);
+		color: var(--destructive);
 		border-radius: 4px;
 		font-size: 0.875rem;
 	}
