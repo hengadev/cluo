@@ -1,5 +1,17 @@
 <script lang="ts">
+    import { onMount } from 'svelte';
+    import { goto } from '$app/navigation';
+    import { auth } from '$lib/stores/auth';
     import { Button, Input, Checkbox } from "$lib/components/ui";
+
+    const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as string | undefined;
+
+    onMount(() => {
+        if (MOCK_USER_ROLE) {
+            auth.setUser({ id: 'mock-user', email: 'dev@cluo.local', role: MOCK_USER_ROLE as 'admin' | 'investigator' | 'viewer' });
+            goto('/');
+        }
+    });
 </script>
 
 <div class="min-h-screen bg-white">
