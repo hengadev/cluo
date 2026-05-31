@@ -364,7 +364,7 @@
 	}
 </script>
 
-<div class="p-8">
+<div class="p-8 flex flex-col flex-1 min-h-0">
 	{#if loading}
 		<div class="flex items-center justify-center py-12">
 			<p class="text-muted-foreground">Chargement...</p>
@@ -459,7 +459,7 @@
 		<!-- ================================================================ -->
 		{#if viewMode === "list"}
 			{#if invoices.length === 0}
-				<div class="border border-dashed border-border rounded-lg p-12 bg-muted/20 flex flex-col items-center gap-4 max-w-lg mx-auto mt-8">
+				<div class="border border-dashed border-border rounded-lg p-12 bg-muted/20 flex flex-col items-center justify-center gap-4 flex-1 min-h-[60vh]">
 					<FileText class="w-12 h-12 text-muted-foreground" />
 					<p class="text-muted-foreground text-center">Aucune facture pour ce dossier.</p>
 					<p class="text-sm text-muted-foreground text-center">

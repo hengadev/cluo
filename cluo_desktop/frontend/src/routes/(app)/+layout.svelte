@@ -26,5 +26,7 @@
         grid-area: content;
         height: 100%;
         overflow: auto;
+        display: flex;
+        flex-direction: column;
     }
 </style>
