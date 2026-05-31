@@ -35,6 +35,7 @@
 
 	let searchValue = $state("");
 	let searchResults = $state<SearchResult[]>([]);
+	let open = $state(false);
 	let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 	const showRecent = $derived(searchValue.trim() === "");
@@ -130,6 +131,7 @@
 
 <Combobox.Root
 	type="single"
+	bind:open
 	onValueChange={handleValueChange}
 	onOpenChange={(o) => {
 		if (!o) {
@@ -145,6 +147,7 @@
 		/>
 		<Combobox.Input
 			oninput={handleInput}
+			onfocus={() => (open = true)}
 			value={searchValue}
 			class="h-10 rounded-input bg-dark-50 placeholder-dark-300 focus:ring-foreground focus:ring-offset-background focus:outline-hidden inline-flex w-[600px] truncate px-11 text-base transition-colors focus:ring-2 focus:ring-offset-2 sm:text-sm"
 			placeholder="Rechercher dans la base de donnée"
