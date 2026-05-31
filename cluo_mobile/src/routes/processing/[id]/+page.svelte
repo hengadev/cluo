@@ -103,7 +103,7 @@
         <div class="flex flex-col items-center gap-4 p-8 bg-red-50 rounded-2xl">
             <XCircle class="text-red-500" size={48} />
             <div class="text-center">
-                <p class="text-red-700 font-semibold text-lg">Processing Failed</p>
+                <p class="text-red-700 font-semibold text-lg">Échec du traitement</p>
                 <p class="text-red-600 text-sm mt-1">{error}</p>
             </div>
             <button
@@ -112,7 +112,7 @@
                 disabled={isRetrying}
             >
                 <RotateCw size={18} class={isRetrying ? 'animate-spin' : ''} />
-                <span>Retry</span>
+                <span>Réessayer</span>
             </button>
         </div>
     {:else}
@@ -177,7 +177,7 @@
     <!-- Privacy Notice -->
     <div class="flex items-center justify-center p-4 bg-dark-50 rounded-2xl mt-4">
         <p class="text-dark-600 text-sm text-center">
-            Transcription and analysis are processed on private infrastructure
+            La transcription et l'analyse sont traitées sur une infrastructure privée
         </p>
     </div>
 </div>

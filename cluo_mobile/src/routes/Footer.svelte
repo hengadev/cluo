@@ -190,7 +190,7 @@
         } catch (error) {
             console.error("Failed to send audio:", error);
             snackbar.error(
-                "Failed to upload recording",
+                "Échec de l'envoi de l'enregistrement",
                 () => lastUploadBlob && sendAudio(lastUploadBlob)
             );
         } finally {
@@ -212,7 +212,7 @@
 >
     {#if footerState === "idle"}
         <div class="absolute inset-0 flex items-center justify-center">
-            <p class="text-dark-200 text-base select-none">Slide to start</p>
+            <p class="text-dark-200 text-base select-none">Glisser pour commencer</p>
         </div>
 
         <button
@@ -254,14 +254,14 @@
                     onclick={discardRecording}
                 >
                     <X size={18} />
-                    <span class="text-sm font-medium">Discard</span>
+                    <span class="text-sm font-medium">Annuler</span>
                 </button>
                 <button
                     class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors"
                     onclick={keepRecording}
                 >
                     <Check size={18} />
-                    <span class="text-sm font-medium">Keep & Upload</span>
+                    <span class="text-sm font-medium">Conserver et envoyer</span>
                 </button>
             </div>
         </div>
