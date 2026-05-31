@@ -113,7 +113,7 @@
 		font-weight: 700;
 		text-align: center;
 		margin: 0 0 0.25rem 0;
-		color: var(--color-primary);
+		color: var(--foreground);
 	}
 
 	h2 {
@@ -148,7 +148,7 @@
 
 	input:focus {
 		outline: none;
-		border-color: var(--color-primary);
+		border-color: var(--foreground);
 	}
 
 	input:disabled {
@@ -168,8 +168,8 @@
 	button {
 		width: 100%;
 		padding: 0.625rem;
-		background: var(--color-primary);
-		color: white;
+		background: var(--foreground);
+		color: var(--background);
 		border: none;
 		border-radius: 4px;
 		font-size: 0.875rem;
