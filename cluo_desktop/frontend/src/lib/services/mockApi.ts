@@ -19,11 +19,18 @@ import type {
 	OverdueInvoicesResponse,
 	PaymentRequest,
 	ReleaseResponse,
+	SearchResult,
 	SendDocumentRequest,
 	SignDocumentRequest,
 	UpdateDocumentRequest,
 	CreateDocumentRequest,
 } from '../types/entities';
+import Fuse, { type FuseResultMatch } from 'fuse.js';
+
+function mapMatches(matches?: readonly FuseResultMatch[]) {
+	return matches?.map((m: FuseResultMatch) => ({ key: m.key ?? '', indices: m.indices, value: m.value }));
+}
+
 import type {
 	SendMessageRequest,
 	SendMessageResponse,
@@ -518,4 +525,76 @@ export async function fetchDocumentHistory(
 
 export async function fetchDocumentWorkflow(_caseId: string): Promise<DocumentWorkflowResponse> {
 	return { success: true, data: [] };
+}
+
+// =============================================================================
+// SEARCH
+// =============================================================================
+
+export async function searchAll(query: string): Promise<SearchResult[]> {
+	if (!query.trim()) return [];
+
+	const results: SearchResult[] = [];
+
+	const caseFuse = new Fuse(getAllCases(), {
+		keys: [
+			{ name: 'title', weight: 3 },
+			{ name: 'city', weight: 2 },
+			{ name: 'externalReference', weight: 1 },
+		],
+		includeScore: true,
+		includeMatches: true,
+		threshold: 0.4,
+		ignoreLocation: true,
+	});
+	for (const r of caseFuse.search(query)) {
+		results.push({
+			type: 'case',
+			score: r.score ?? 1,
+			item: r.item as unknown as Case,
+			matches: mapMatches(r.matches),
+		});
+	}
+
+	const clientFuse = new Fuse(getAllClients(), {
+		keys: [{ name: 'name', weight: 1 }],
+		includeScore: true,
+		includeMatches: true,
+		threshold: 0.4,
+		ignoreLocation: true,
+	});
+	for (const r of clientFuse.search(query)) {
+		results.push({
+			type: 'client',
+			score: r.score ?? 1,
+			item: r.item as unknown as Client,
+			matches: mapMatches(r.matches),
+		});
+	}
+
+	const contactsWithFullName = getAllContacts().map(c => ({
+		...c,
+		fullName: `${c.firstname} ${c.lastname}`,
+	}));
+	const contactFuse = new Fuse(contactsWithFullName, {
+		keys: [{ name: 'fullName', weight: 1 }],
+		includeScore: true,
+		includeMatches: true,
+		threshold: 0.4,
+		ignoreLocation: true,
+	});
+	for (const r of contactFuse.search(query)) {
+		const { fullName: _fullName, ...contact } = r.item;
+		const client = getClientById(contact.clientID);
+		results.push({
+			type: 'contact',
+			score: r.score ?? 1,
+			item: contact as unknown as Contact,
+			clientName: client?.name,
+			matches: mapMatches(r.matches),
+		});
+	}
+
+	results.sort((a, b) => a.score - b.score);
+	return results;
 }

@@ -397,3 +397,21 @@ export interface DocumentAPIResponse<T = any> {
 	data?: T;
 	error?: string;
 }
+
+// =============================================================================
+// SEARCH TYPES
+// =============================================================================
+
+export interface SearchResultMatch {
+	key: string;
+	indices: readonly [number, number][];
+	value?: string;
+}
+
+export interface SearchResult {
+	type: 'case' | 'client' | 'contact';
+	score: number;
+	item: Case | Client | Contact;
+	clientName?: string;
+	matches?: SearchResultMatch[];
+}
