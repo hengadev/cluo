@@ -25,8 +25,8 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
         "1",
         {
             id: "1",
-            title: "Interview with witness #1",
-            date: "30 Jan, 2026",
+            title: "Interview avec le témoin n°1",
+            date: "30 janv. 2026",
             startTime: "14:30",
             duration: 323,
             status: "completed",
@@ -37,8 +37,8 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
         "2",
         {
             id: "2",
-            title: "Site visit notes",
-            date: "30 Jan, 2026",
+            title: "Notes de visite sur site",
+            date: "30 janv. 2026",
             startTime: "10:15",
             duration: 225,
             status: "completed",
@@ -49,8 +49,8 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
         "3",
         {
             id: "3",
-            title: "Phone call recording",
-            date: "29 Jan, 2026",
+            title: "Enregistrement d'appel téléphonique",
+            date: "29 janv. 2026",
             startTime: "16:00",
             duration: 730,
             status: "transcribing",
@@ -61,8 +61,8 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
         "4",
         {
             id: "4",
-            title: "Client meeting summary",
-            date: "28 Jan, 2026",
+            title: "Compte-rendu de réunion client",
+            date: "28 janv. 2026",
             startTime: "09:00",
             duration: 1845,
             status: "completed",
@@ -73,8 +73,8 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
         "5",
         {
             id: "5",
-            title: "Field inspection audio",
-            date: "27 Jan, 2026",
+            title: "Audio d'inspection sur le terrain",
+            date: "27 janv. 2026",
             startTime: "11:30",
             duration: 456,
             status: "analyzing",
@@ -88,7 +88,7 @@ const mockTranscripts: Map<string, Transcript> = new Map([
         "1",
         {
             recordingId: "1",
-            text: "This is the transcript for the witness interview. The witness stated that they observed the incident from approximately 50 meters away. They described the sequence of events in detail, noting the time was around 2:30 PM when the incident began.\n\nThe witness mentioned that visibility was good and there were no obstructions. They were able to clearly see the individuals involved and provided descriptions of their clothing and approximate heights.\n\nWhen asked about any sounds they heard, the witness recalled hearing loud voices followed by what they described as a 'crashing sound.' They immediately called emergency services after witnessing the event.",
+            text: "Ceci est la transcription de l'interview du témoin. Le témoin a déclaré avoir observé l'incident depuis environ 50 mètres de distance. Il a décrit la séquence des événements en détail, notant que l'heure était autour de 14h30 lorsque l'incident a commencé.\n\nLe témoin a mentionné que la visibilité était bonne et qu'il n'y avait aucun obstacle. Il a pu voir clairement les personnes impliquées et a fourni des descriptions de leurs vêtements et de leurs tailles approximatives.\n\nLorsqu'on lui a demandé s'il avait entendu des bruits, le témoin s'est souvenu avoir entendu des voix fortes suivies de ce qu'il a décrit comme un « bruit de collision ». Il a immédiatement appelé les services d'urgence après avoir assisté à l'événement.",
             confidence: 0.94,
             isConfirmed: true,
             createdAt: "2026-01-30T14:35:00Z",
@@ -99,7 +99,7 @@ const mockTranscripts: Map<string, Transcript> = new Map([
         "2",
         {
             recordingId: "2",
-            text: "Site visit conducted on January 30th. The property is located at the corner of Main Street and Oak Avenue. Upon arrival, I noted the following conditions:\n\nThe exterior of the building shows signs of water damage on the north-facing wall. Paint is peeling in several areas and there appears to be mold growth near the foundation.\n\nThe roof has several missing shingles and the gutters are clogged with debris. Drainage appears to be inadequate, with water pooling near the entrance.\n\nInterior inspection revealed humidity issues in the basement. The electrical panel is outdated and may not meet current code requirements. Recommend full inspection by licensed electrician.",
+            text: "Visite sur site effectuée le 30 janvier. La propriété est située à l'angle de la rue Principale et de l'avenue du Chêne. À l'arrivée, j'ai constaté les conditions suivantes :\n\nL'extérieur du bâtiment présente des signes de dégâts des eaux sur le mur nord. La peinture s'écaille à plusieurs endroits et il semble y avoir de la moisissure près des fondations.\n\nLe toit a plusieurs bardeaux manquants et les gouttières sont obstruées par des débris. Le drainage semble insuffisant, avec de l'eau stagnante près de l'entrée.\n\nL'inspection intérieure a révélé des problèmes d'humidité dans le sous-sol. Le tableau électrique est obsolète et pourrait ne pas répondre aux exigences actuelles. Recommandation de procéder à une inspection complète par un électricien agréé.",
             confidence: 0.91,
             isConfirmed: false,
             createdAt: "2026-01-30T10:20:00Z",
@@ -110,7 +110,7 @@ const mockTranscripts: Map<string, Transcript> = new Map([
         "4",
         {
             recordingId: "4",
-            text: "Client meeting held to discuss project timeline and deliverables. Attendees: John Smith (client), Sarah Johnson (project manager), Michael Chen (lead developer).\n\nKey discussion points:\n1. Project deadline extended by two weeks to accommodate additional feature requests\n2. Budget increase of 15% approved for enhanced security measures\n3. Weekly status meetings scheduled for every Tuesday at 10 AM\n\nAction items:\n- Sarah to send updated project plan by Friday\n- Michael to provide technical specifications for new features\n- John to confirm stakeholder availability for demo session\n\nNext meeting scheduled for February 4th to review progress.",
+            text: "Réunion client tenue pour discuter du calendrier du projet et des livrables. Participants : John Smith (client), Sarah Johnson (chef de projet), Michael Chen (développeur principal).\n\nPoints de discussion clés :\n1. Délai du projet prolongé de deux semaines pour accommodate les demandes de fonctionnalités supplémentaires\n2. Augmentation du budget de 15 % approuvée pour des mesures de sécurité renforcées\n3. Réunions d'avancement hebdomadaires planifiées chaque mardi à 10h\n\nPoints d'action :\n- Sarah doit envoyer le plan de projet mis à jour d'ici vendredi\n- Michael doit fournir les spécifications techniques pour les nouvelles fonctionnalités\n- John doit confirmer la disponibilité des parties prenantes pour la session de démonstration\n\nProchaine réunion prévue le 4 février pour faire le point sur l'avancement.",
             confidence: 0.96,
             isConfirmed: true,
             createdAt: "2026-01-28T09:35:00Z",
@@ -125,11 +125,11 @@ const mockAnalysis: Map<string, AnalysisResult> = new Map([
         {
             id: "mock-analysis-1",
             transcriptionId: "mock-transcription-1",
-            keyFindings: "Witness was positioned 50 meters from the incident location.\nIncident occurred at approximately 2:30 PM.\nVisibility conditions were good with no obstructions.\nWitness heard loud voices followed by a crashing sound.",
-            summary: "Witness statement regarding incident on January 30th. Witness had clear line of sight and was able to provide detailed descriptions of individuals involved.",
-            sentiment: "neutral",
-            topics: JSON.stringify(["witness statement", "incident report", "physical descriptions"]),
-            suggestedActions: "Follow up with witness for detailed physical descriptions.\nVerify incident timeline with other witnesses.\nRequest CCTV footage from the area.",
+            keyFindings: "Le témoin était positionné à 50 mètres du lieu de l'incident.\nL'incident s'est produit à environ 14h30.\nLes conditions de visibilité étaient bonnes sans aucun obstacle.\nLe témoin a entendu des voix fortes suivies d'un bruit de collision.",
+            summary: "Déclaration du témoin concernant l'incident du 30 janvier. Le témoin avait une ligne de vue dégagée et a pu fournir des descriptions détaillées des personnes impliquées.",
+            sentiment: "neutre",
+            topics: JSON.stringify(["déclaration de témoin", "rapport d'incident", "descriptions physiques"]),
+            suggestedActions: "Assurer un suivi avec le témoin pour des descriptions physiques détaillées.\nVérifier le calendrier de l'incident avec d'autres témoins.\nDemander les images de vidéosurveillance de la zone.",
             createdAt: "2026-01-30T14:45:00Z",
         },
     ],
@@ -138,11 +138,11 @@ const mockAnalysis: Map<string, AnalysisResult> = new Map([
         {
             id: "mock-analysis-4",
             transcriptionId: "mock-transcription-4",
-            keyFindings: "Project deadline extended by two weeks.\nBudget increased by 15% for security measures.\nWeekly status meetings scheduled every Tuesday at 10 AM.",
-            summary: "Client meeting to discuss project timeline and deliverables. Several key decisions were made regarding budget, timeline, and communication cadence.",
-            sentiment: "positive",
-            topics: JSON.stringify(["project management", "budget", "timeline", "meetings"]),
-            suggestedActions: "Sarah to send updated project plan by Friday.\nMichael to provide technical specifications for new features.\nJohn to confirm stakeholder availability for demo session.",
+            keyFindings: "Délai du projet prolongé de deux semaines.\nBudget augmenté de 15 % pour les mesures de sécurité.\nRéunions d'avancement hebdomadaires planifiées chaque mardi à 10h.",
+            summary: "Réunion client pour discuter du calendrier du projet et des livrables. Plusieurs décisions clés ont été prises concernant le budget, le calendrier et la fréquence de communication.",
+            sentiment: "positif",
+            topics: JSON.stringify(["gestion de projet", "budget", "calendrier", "réunions"]),
+            suggestedActions: "Sarah doit envoyer le plan de projet mis à jour d'ici vendredi.\nMichael doit fournir les spécifications techniques pour les nouvelles fonctionnalités.\nJohn doit confirmer la disponibilité des parties prenantes pour la session de démonstration.",
             createdAt: "2026-01-28T10:15:00Z",
         },
     ],
@@ -175,14 +175,14 @@ export async function uploadRecording(
     // Create new recording entry
     const recording: Recording & { audioUrl?: string } = {
         id,
-        title: metadata?.title || `Recording ${now.toLocaleTimeString()}`,
+        title: metadata?.title || `Enregistrement ${now.toLocaleTimeString()}`,
         caseId: metadata?.caseId,
-        date: now.toLocaleDateString("en-GB", {
+        date: now.toLocaleDateString("fr-FR", {
             day: "2-digit",
             month: "short",
             year: "numeric",
         }),
-        startTime: now.toLocaleTimeString("en-GB", {
+        startTime: now.toLocaleTimeString("fr-FR", {
             hour: "2-digit",
             minute: "2-digit",
         }),
@@ -208,7 +208,7 @@ export async function getRecordingStatus(id: string): Promise<RecordingStatusRes
 
     const recording = mockRecordings.get(id);
     if (!recording) {
-        throw new Error("Recording not found");
+        throw new Error("Enregistrement introuvable");
     }
 
     // Simulate processing progression
@@ -245,7 +245,7 @@ export async function getRecordingStatus(id: string): Promise<RecordingStatusRes
             if (!mockTranscripts.has(id)) {
                 mockTranscripts.set(id, {
                     recordingId: id,
-                    text: "This is an automatically generated transcript for your recording. The audio has been processed and converted to text. Please review and edit as needed before confirming.\n\nNote: This is mock data for development purposes.",
+                    text: "Ceci est une transcription automatiquement générée pour votre enregistrement. L'audio a été traité et converti en texte. Veuillez relire et modifier si nécessaire avant de confirmer.\n\nNote : Il s'agit de données de test à des fins de développement.",
                     confidence: 0.89,
                     isConfirmed: false,
                     createdAt: new Date().toISOString(),
@@ -284,7 +284,7 @@ export async function getTranscript(id: string): Promise<TranscriptResponse> {
 
     const transcript = mockTranscripts.get(id);
     if (!transcript) {
-        throw new Error("Transcript not found. Processing may not be complete.");
+        throw new Error("Transcription introuvable. Le traitement n'est peut-être pas terminé.");
     }
 
     return transcript;
@@ -298,7 +298,7 @@ export async function confirmTranscript(id: string, text: string): Promise<void>
 
     const transcript = mockTranscripts.get(id);
     if (!transcript) {
-        throw new Error("Transcript not found");
+        throw new Error("Transcription introuvable");
     }
 
     transcript.text = text;
@@ -315,7 +315,7 @@ export async function analyzeTranscript(id: string): Promise<void> {
 
     const transcript = mockTranscripts.get(id);
     if (!transcript) {
-        throw new Error("Transcript not found");
+        throw new Error("Transcription introuvable");
     }
 
     // Create mock analysis if it doesn't exist
@@ -323,11 +323,11 @@ export async function analyzeTranscript(id: string): Promise<void> {
         mockAnalysis.set(id, {
             id: `mock-analysis-${id}`,
             transcriptionId: `mock-transcription-${id}`,
-            keyFindings: "Key observation extracted from the transcript.\nImportant detail identified in the recording.",
-            summary: "Auto-generated summary of the recording content. Review and verify before use.",
-            sentiment: "neutral",
-            topics: JSON.stringify(["recording", "notes", "review"]),
-            suggestedActions: "Review the transcript for accuracy.\nFollow up on any unclear sections.",
+            keyFindings: "Observation clé extraite de la transcription.\nDétail important identifié dans l'enregistrement.",
+            summary: "Résumé généré automatiquement du contenu de l'enregistrement. Veuillez relire et vérifier avant utilisation.",
+            sentiment: "neutre",
+            topics: JSON.stringify(["enregistrement", "notes", "révision"]),
+            suggestedActions: "Relire la transcription pour vérifier l'exactitude.\nAssurer un suivi sur les sections peu claires.",
             createdAt: new Date().toISOString(),
         });
     }
@@ -341,7 +341,7 @@ export async function getAnalysis(id: string): Promise<AnalysisResponse> {
 
     const analysis = mockAnalysis.get(id);
     if (!analysis) {
-        throw new Error("Analysis not found. Please run analysis first.");
+        throw new Error("Analyse introuvable. Veuillez d'abord lancer l'analyse.");
     }
 
     return analysis;
@@ -398,7 +398,7 @@ export async function deleteRecording(id: string): Promise<void> {
     await delay(400);
 
     if (!mockRecordings.has(id)) {
-        throw new Error("Recording not found");
+        throw new Error("Enregistrement introuvable");
     }
 
     mockRecordings.delete(id);
@@ -419,7 +419,7 @@ export async function getRecording(id: string): Promise<{
 
     const recording = mockRecordings.get(id);
     if (!recording) {
-        throw new Error("Recording not found");
+        throw new Error("Enregistrement introuvable");
     }
 
     const transcript = mockTranscripts.get(id) ?? null;
@@ -443,7 +443,7 @@ export async function getAudioUrl(id: string): Promise<string> {
 
     const recording = mockRecordings.get(id);
     if (!recording) {
-        throw new Error("Recording not found");
+        throw new Error("Enregistrement introuvable");
     }
 
     return recording.audioUrl ?? "";
