@@ -437,6 +437,42 @@ export async function getRecording(id: string): Promise<{
 }
 
 /**
+ * Mock: List all cases for the current user
+ */
+export async function getCases(): Promise<Case[]> {
+    await delay(300);
+    return [
+        {
+            id: "mock-case-1",
+            title: "Réclamation pour préjudice corporel",
+            status: "in_progress",
+            externalReference: "CS-2024-892",
+            clientId: "mock-client-1",
+            clientName: "Sarah JENKINS",
+            clientNumber: "CLI-9438",
+        },
+        {
+            id: "mock-case-2",
+            title: "Litige contrat de travail",
+            status: "ready",
+            externalReference: "CS-2024-741",
+            clientId: "mock-client-2",
+            clientName: "Marc DUPONT",
+            clientNumber: "CLI-2201",
+        },
+        {
+            id: "mock-case-3",
+            title: "Divorce contentieux",
+            status: "in_progress",
+            externalReference: "CS-2025-013",
+            clientId: "mock-client-3",
+            clientName: "Julie MARTIN",
+            clientNumber: "CLI-5567",
+        },
+    ];
+}
+
+/**
  * Mock: Get the current active case
  */
 export async function getCurrentCase(_caseId?: string): Promise<Case | null> {

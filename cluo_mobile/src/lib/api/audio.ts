@@ -528,6 +528,24 @@ export async function getAudioUrl(id: string): Promise<string> {
 }
 
 /**
+ * Fetch all cases for the current user.
+ */
+export async function getCases(): Promise<Case[]> {
+	try {
+		const res = await apiFetch<{ cases: CaseApiResponse[] }>("/cases");
+		return res.cases.map((c) => ({
+			id: c.id,
+			title: c.title,
+			status: c.status,
+			externalReference: c.externalReference,
+			clientId: c.clientId,
+		}));
+	} catch {
+		return [];
+	}
+}
+
+/**
  * Fetch the active case by ID.
  * Falls back to the last-used caseId stored in localStorage.
  */

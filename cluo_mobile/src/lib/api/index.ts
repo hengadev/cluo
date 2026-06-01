@@ -87,6 +87,13 @@ export async function getAudioUrl(id: string) {
 }
 
 /**
+ * Get all cases for the current user.
+ */
+export async function getCases() {
+    return getApi().getCases();
+}
+
+/**
  * Get the current active case.
  */
 export async function getCurrentCase(caseId?: string) {
