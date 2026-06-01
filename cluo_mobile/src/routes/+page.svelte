@@ -7,7 +7,6 @@
     import CurrentCase from "./CurrentCase.svelte";
     import CasePicker from "./CasePicker.svelte";
 
-    import { getCases } from "$lib/api";
     import type { Case } from "$lib/types/case";
 
     let { data } = $props();
@@ -16,8 +15,6 @@
 
     let currentCase = $state<Case | null>(data.currentCase);
     let pickerOpen = $state(false);
-
-    const casesPromise = getCases();
 
     const greeting = $derived($auth.user?.name ?? $auth.user?.email?.split('@')[0] ?? '');
 
@@ -77,11 +74,8 @@
     </div>
 </div>
 
-{#await casesPromise then cases}
-    <CasePicker
-        bind:open={pickerOpen}
-        {cases}
-        activeId={currentCase?.id ?? null}
-        onselect={handleCaseSelect}
-    />
-{/await}
+<CasePicker
+    bind:open={pickerOpen}
+    activeId={currentCase?.id ?? null}
+    onselect={handleCaseSelect}
+/>
