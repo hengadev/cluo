@@ -7,13 +7,7 @@
 	import { searchAll } from "$lib/services/api";
 	import type { SearchResult, Case, Client, Contact, ClientType, CaseStatus } from "$lib/types/entities";
 
-	const TYPE_PILL: Record<'case' | 'client' | 'contact', { label: string; cls: string }> = {
-		case:    { label: 'AFFAIRE',  cls: 'bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300' },
-		client:  { label: 'CLIENT',   cls: 'bg-violet-100 text-violet-800 dark:bg-violet-900/30 dark:text-violet-300' },
-		contact: { label: 'CONTACT',  cls: 'bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300' },
-	};
-
-	const STATUS_LABELS: Record<CaseStatus, string> = {
+const STATUS_LABELS: Record<CaseStatus, string> = {
 		in_progress: 'En cours',
 		ready: 'Prêt',
 		released: 'Clôturé',
@@ -40,6 +34,12 @@
 
 	const showRecent = $derived(searchValue.trim() === "");
 	const recentItems = $derived($recentCases);
+
+	const groupedResults = $derived({
+		cases:    searchResults.filter(r => r.type === 'case'),
+		clients:  searchResults.filter(r => r.type === 'client'),
+		contacts: searchResults.filter(r => r.type === 'contact'),
+	});
 
 	function handleInput(e: Event) {
 		const val = (e.currentTarget as HTMLInputElement).value;
@@ -196,47 +196,81 @@
 						Aucun résultat.
 					</span>
 				{:else}
-					{#each searchResults as result (result.type + ':' + result.item.id)}
-						{@const pill = TYPE_PILL[result.type]}
-						<Combobox.Item
-							class="rounded-button data-highlighted:bg-muted outline-hidden flex min-h-10 w-full select-none items-center gap-2 py-2 pl-3 pr-2 text-sm"
-							value="{result.type}:{result.item.id}"
-							label={result.type === 'case'
-								? (result.item as Case).title
-								: result.type === 'client'
-									? (result.item as Client).name
-									: `${(result.item as Contact).firstname} ${(result.item as Contact).lastname}`}
-						>
-							<span class="shrink-0 px-1.5 py-0.5 rounded text-[10px] font-semibold tracking-wide {pill.cls}">
-								{pill.label}
-							</span>
-
-							<span class="flex-1 truncate">
-								{@html getHighlightedText(result)}
-							</span>
-
-							{#if result.type === 'case'}
+					{#if groupedResults.cases.length > 0}
+						<Combobox.Group>
+							<Combobox.GroupHeading class="px-4 pb-1 pt-1 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+								Affaires
+							</Combobox.GroupHeading>
+							{#each groupedResults.cases as result (result.item.id)}
 								{@const c = result.item as Case}
-								<span class="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
-									{#if c.city}
-										<span>{c.city}</span>
-									{/if}
-									<span class="px-1.5 py-0.5 rounded-full font-medium {STATUS_CLASSES[c.status]}">
-										{STATUS_LABELS[c.status]}
+								<Combobox.Item
+									class="rounded-button data-highlighted:bg-muted outline-hidden flex min-h-10 w-full select-none items-center gap-2 py-2 pl-4 pr-2 text-sm"
+									value="case:{c.id}"
+									label={c.title}
+								>
+									<span class="flex-1 truncate">
+										{@html getHighlightedText(result)}
 									</span>
-								</span>
-							{:else if result.type === 'client'}
+									<span class="flex shrink-0 items-center gap-1.5 text-xs text-muted-foreground">
+										{#if c.city}
+											<span>{c.city}</span>
+										{/if}
+										<span class="px-1.5 py-0.5 rounded-full font-medium {STATUS_CLASSES[c.status]}">
+											{STATUS_LABELS[c.status]}
+										</span>
+									</span>
+								</Combobox.Item>
+							{/each}
+						</Combobox.Group>
+					{/if}
+
+					{#if groupedResults.clients.length > 0}
+						<Combobox.Group>
+							<Combobox.GroupHeading class="px-4 pb-1 pt-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+								Clients
+							</Combobox.GroupHeading>
+							{#each groupedResults.clients as result (result.item.id)}
 								{@const c = result.item as Client}
-								<span class="shrink-0 text-xs text-muted-foreground">
-									{CLIENT_TYPE_LABELS[c.type]}
-								</span>
-							{:else if result.type === 'contact' && result.clientName}
-								<span class="shrink-0 text-xs text-muted-foreground">
-									{result.clientName}
-								</span>
-							{/if}
-						</Combobox.Item>
-					{/each}
+								<Combobox.Item
+									class="rounded-button data-highlighted:bg-muted outline-hidden flex min-h-10 w-full select-none items-center gap-2 py-2 pl-4 pr-2 text-sm"
+									value="client:{c.id}"
+									label={c.name}
+								>
+									<span class="flex-1 truncate">
+										{@html getHighlightedText(result)}
+									</span>
+									<span class="shrink-0 text-xs text-muted-foreground">
+										{CLIENT_TYPE_LABELS[c.type]}
+									</span>
+								</Combobox.Item>
+							{/each}
+						</Combobox.Group>
+					{/if}
+
+					{#if groupedResults.contacts.length > 0}
+						<Combobox.Group>
+							<Combobox.GroupHeading class="px-4 pb-1 pt-2 text-xs font-medium text-muted-foreground uppercase tracking-wide">
+								Contacts
+							</Combobox.GroupHeading>
+							{#each groupedResults.contacts as result (result.item.id)}
+								{@const contact = result.item as Contact}
+								<Combobox.Item
+									class="rounded-button data-highlighted:bg-muted outline-hidden flex min-h-10 w-full select-none items-center gap-2 py-2 pl-4 pr-2 text-sm"
+									value="contact:{contact.id}"
+									label="{contact.firstname} {contact.lastname}"
+								>
+									<span class="flex-1 truncate">
+										{@html getHighlightedText(result)}
+									</span>
+									{#if result.clientName}
+										<span class="shrink-0 text-xs text-muted-foreground">
+											{result.clientName}
+										</span>
+									{/if}
+								</Combobox.Item>
+							{/each}
+						</Combobox.Group>
+					{/if}
 				{/if}
 			</Combobox.Viewport>
 
