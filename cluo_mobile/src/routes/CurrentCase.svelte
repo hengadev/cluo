@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { Case } from "$lib/types/case";
+    import type { Case, CaseStatus } from "$lib/types/case";
 
     interface Props {
         currentCase?: Case | null;
@@ -7,7 +7,7 @@
 
     let { currentCase = null }: Props = $props();
 
-    const statusLabels: Record<string, string> = {
+    const statusLabels: Record<CaseStatus, string> = {
         in_progress: "En cours",
         ready: "Prêt",
         released: "Clôturé",

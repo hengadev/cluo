@@ -1,7 +1,7 @@
 <script lang="ts">
     import { Dialog } from "bits-ui";
     import { X, Check, Search } from "@lucide/svelte";
-    import type { Case } from "$lib/types/case";
+    import type { Case, CaseStatus } from "$lib/types/case";
     import { getCases } from "$lib/api";
 
     interface Props {
@@ -18,14 +18,16 @@
     let loading = $state(false);
     let fetchError = $state<string | null>(null);
     let query = $state("");
-    let statusFilter = $state<string | null>(null);
+    let statusFilter = $state<CaseStatus | null>(null);
     let showAll = $state(false);
 
-    const statusLabels: Record<string, string> = {
+    const statusLabels: Record<CaseStatus, string> = {
         in_progress: "En cours",
         ready: "Prêt",
         released: "Clôturé",
     };
+
+    const statusOptions: (CaseStatus | null)[] = [null, "in_progress", "ready", "released"];
 
     $effect(() => {
         if (open) {
@@ -91,7 +93,7 @@
 
             <!-- Status filter chips -->
             <div class="flex gap-2 flex-wrap">
-                {#each [null, "in_progress", "ready", "released"] as s}
+                {#each statusOptions as s}
                     <button
                         onclick={() => { statusFilter = s; showAll = false; }}
                         class="px-3 py-1 rounded-full text-xs font-medium transition-colors cursor-pointer

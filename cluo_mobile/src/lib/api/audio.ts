@@ -18,7 +18,7 @@ import type {
 	AnalysisResult,
 	RecordingStatus,
 } from "../types/recording";
-import type { Case } from "../types/case";
+import type { Case, CaseStatus } from "../types/case";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
@@ -538,7 +538,7 @@ export async function getCases(): Promise<Case[]> {
 	return res.cases.map((c) => ({
 		id: c.id,
 		title: c.title,
-		status: c.status,
+		status: c.status as CaseStatus,
 		externalReference: c.externalReference,
 		clientId: c.clientId,
 		clientName: c.clientName,
@@ -566,7 +566,7 @@ export async function getCurrentCase(caseId?: string): Promise<Case | null> {
 		return {
 			id: res.id,
 			title: res.title,
-			status: res.status,
+			status: res.status as CaseStatus,
 			externalReference: res.externalReference,
 			clientId: res.clientId,
 			clientName: res.clientName,

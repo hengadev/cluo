@@ -1,7 +1,9 @@
+export type CaseStatus = "in_progress" | "ready" | "released";
+
 export interface Case {
 	id: string;
 	title: string;
-	status: string; // "in_progress" | "ready" | "released" from backend
+	status: CaseStatus;
 	externalReference?: string;
 	clientId?: string;
 	clientName?: string;
