@@ -20,7 +20,16 @@
     let currentCase = $state<Case | null>(data.currentCase);
     let pickerOpen = $state(false);
     let recordingsLoading = $state(false);
+    let searchQuery = $state("");
     let fetchSeq = 0;
+
+    const filteredRecordings = $derived(
+        searchQuery.trim() === ""
+            ? recordings
+            : recordings.filter((r) =>
+                  r.title.toLowerCase().includes(searchQuery.trim().toLowerCase()),
+              ),
+    );
 
     // Sync local state to shared store so the layout/Footer can read it
     $effect(() => {
@@ -47,6 +56,7 @@
 
     function handleCaseSelect(c: Case) {
         currentCase = c;
+        searchQuery = "";
         try {
             localStorage.setItem("cluo_current_case_id", c.id);
         } catch {
@@ -72,7 +82,7 @@
         <CurrentCase {currentCase} />
     </div>
     <div class="flex gap-4">
-        <Input placeholder="Recherche parmi les enregistrements" />
+        <Input placeholder="Recherche parmi les enregistrements" bind:value={searchQuery} type="search" />
     </div>
     <div class="flex flex-col gap-4">
         <p class="text-dark-700 font-bold text-base">Enregistrements</p>
@@ -88,9 +98,13 @@
             <div class="flex items-center justify-center p-8 bg-dark-50 rounded-2xl">
                 <p class="text-dark-600">Aucun enregistrement pour le moment. Commencez par enregistrer des notes !</p>
             </div>
+        {:else if filteredRecordings.length === 0}
+            <div class="flex items-center justify-center p-8 bg-dark-50 rounded-2xl">
+                <p class="text-dark-600">Aucun enregistrement ne correspond à «\u00a0{searchQuery}\u00a0».</p>
+            </div>
         {:else}
             <div class="flex flex-col gap-2">
-                {#each recordings as recording}
+                {#each filteredRecordings as recording}
                     <Recording
                         id={recording.id}
                         title={recording.title}
