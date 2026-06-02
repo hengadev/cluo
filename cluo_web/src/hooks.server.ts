@@ -37,7 +37,7 @@ const SECURITY_HEADERS: Record<string, string> = {
 		"media-src 'self' https:",
 		"font-src 'self'",
 		"connect-src 'self'",
-		"frame-src 'none'",
+		"frame-src 'self'",
 		"frame-ancestors 'none'",
 		"object-src 'none'",
 		"base-uri 'self'",

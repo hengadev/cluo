@@ -36,7 +36,7 @@ export const GET: RequestHandler = async ({ params }) => {
 	return new Response(pdfBytes, {
 		headers: {
 			'Content-Type': 'application/pdf',
-			'Content-Disposition': `attachment; filename="${params.type}.pdf"`
+			'Content-Disposition': `inline; filename="${params.type}.pdf"`
 		}
 	});
 };

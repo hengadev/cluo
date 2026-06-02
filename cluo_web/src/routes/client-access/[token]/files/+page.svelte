@@ -2,6 +2,7 @@
 	import type { PageData } from './$types';
 	import { cn, buttonVariants } from '$lib/utils/design-system';
 	import type { DocumentSummaryResponse, MediaResponse } from '$lib/server/client-access';
+	import ExpiryWarning from '$lib/components/ExpiryWarning.svelte';
 
 	interface Props {
 		data: PageData;
@@ -16,6 +17,9 @@
 	/** Track which document sections are expanded */
 	let expandedDocs = $state<Set<string>>(new Set());
 
+	/** Track which document previews are open */
+	let previewOpen = $state<Set<string>>(new Set());
+
 	function toggleDoc(id: string) {
 		const next = new Set(expandedDocs);
 		if (next.has(id)) {
@@ -24,6 +28,16 @@
 			next.add(id);
 		}
 		expandedDocs = next;
+	}
+
+	function togglePreview(id: string) {
+		const next = new Set(previewOpen);
+		if (next.has(id)) {
+			next.delete(id);
+		} else {
+			next.add(id);
+		}
+		previewOpen = next;
 	}
 
 	/** Canonical display order for document types */
@@ -59,7 +73,6 @@
 
 	const images: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'image'));
 	const videos: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'video'));
-	const audioTracks: MediaResponse[] = $derived(data.media.filter((m) => m.type === 'audio'));
 
 	let lightboxOpen = $state(false);
 	let lightboxIndex = $state(0);
@@ -125,6 +138,7 @@
 					{#if data.caseData.externalReference}
 						<p class="text-foreground-alt text-xs">{data.caseData.externalReference}</p>
 					{/if}
+					<ExpiryWarning expiresAt={data.caseData.tokenExpiresAt} />
 				</div>
 			</div>
 			<a
@@ -209,6 +223,13 @@
 											<p class="text-foreground text-sm">{formatDate(doc.updated_at)}</p>
 										</div>
 									</div>
+								<div class="flex gap-2">
+									<button
+										class={buttonVariants({ variant: 'outline', size: 'sm' })}
+										onclick={() => togglePreview(doc.id)}
+									>
+										Prévisualiser
+									</button>
 									<a
 										href="/client-access/{data.token}/documents/{doc.type}/pdf"
 										class={buttonVariants({ variant: 'outline', size: 'sm' })}
@@ -220,6 +241,18 @@
 										Télécharger le PDF
 									</a>
 								</div>
+
+								{#if previewOpen.has(doc.id)}
+									<div class="mt-4">
+										<iframe
+											src="/client-access/{data.token}/documents/{doc.type}/pdf"
+											class="w-full border border-border-card rounded"
+											style="height: 600px;"
+											title="Prévisualisation PDF"
+										></iframe>
+									</div>
+								{/if}
+							</div>
 							{/if}
 						</div>
 					{/each}
@@ -360,47 +393,7 @@
 					</section>
 				{/if}
 
-				<!-- Audio -->
-				{#if audioTracks.length > 0}
-					<section class="mb-10">
-						<h2 class="font-serif text-foreground text-lg mb-4">Audio</h2>
-						<div class="flex flex-col gap-3">
-							{#each audioTracks as aud (aud.id)}
-								<div class="rounded-card border border-border-card bg-background p-4">
-									<div class="flex items-center gap-3 mb-3">
-										<div class="w-8 h-8 rounded-full bg-muted flex items-center justify-center shrink-0">
-											<svg class="w-4 h-4 text-foreground-alt" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m-4-8a3 3 0 016 0v4a3 3 0 01-6 0V8z" />
-											</svg>
-										</div>
-										<div class="min-w-0 flex-1">
-											{#if aud.caption}
-												<p class="text-foreground text-sm truncate">{aud.caption}</p>
-											{/if}
-											<p class="text-foreground-alt text-xs">{aud.fileName} · {formatFileSize(aud.fileSize)}</p>
-										</div>
-									</div>
-									<audio controls preload="metadata" class="w-full">
-										<source src={aud.url} type={aud.mimeType} />
-										Votre navigateur ne supporte pas la lecture audio.
-									</audio>
-									<div class="mt-3 flex justify-end">
-										<a
-											href="/client-access/{data.token}/media/{aud.id}/download"
-											download
-											class={cn(buttonVariants({ variant: 'outline', size: 'sm' }))}
-										>
-											<svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-												<path stroke-linecap="round" stroke-linejoin="round" d="M4 16v2a2 2 0 002 2h12a2 2 0 002-2v-2M7 10l5 5 5-5M12 15V3" />
-											</svg>
-											Télécharger
-										</a>
-									</div>
-								</div>
-							{/each}
-						</div>
-					</section>
-				{/if}
+
 			{/if}
 		{/if}
 	</main>
