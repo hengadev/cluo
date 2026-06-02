@@ -32,6 +32,11 @@ func (s *Service) GetPublishedMediaByToken(ctx context.Context, rawToken string)
 			continue
 		}
 
+		// Exclude audio files from the client portal
+		if media.Type == domainMedia.MediaTypeAudio {
+			continue
+		}
+
 		responses = append(responses, media.ToResponse())
 	}
 
