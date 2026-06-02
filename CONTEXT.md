@@ -74,6 +74,10 @@ A `MediaFile` is any image, video, or audio file collected during fieldwork and 
 - **Unpublished** (`IsPublished = false`): internal only, visible to the investigator in the desktop app.
 - **Published** (`IsPublished = true`): included in the deliverable; visible to the client in the web portal.
 
+MediaFiles are stored in S3 under type-segregated paths: audio files (Recordings) live under a dedicated prefix, separate from images and videos, within the same bucket. This separation is intentional and must be preserved when uploading new media.
+
+**Recording** is the term for audio MediaFiles captured in the field. It is a subtype of MediaFile (`type: "audio"`). The mobile app (`cluo_mobile`) uses "enregistrement" (recording) as the user-facing label for this subtype and manages Recordings as a distinct concept from image/video MediaFiles.
+
 ### Documents
 Four document types cover the legal and financial lifecycle of a Case. All documents are expected to be present — the profession is regulated and having everything in order is the norm.
 
@@ -131,6 +135,8 @@ Tauri + SvelteKit desktop app for the **Investigator**. Used at the office (or a
 
 ### `cluo_mobile`
 SvelteKit **PWA** for the **Investigator in the field**. Optimised for mobile use during surveillance. Primary function: capture audio recordings and upload them to the backend, linked to the active Case. Recordings are then transcribed by AI on the backend. Transcriptions feed into the Rapport writing workflow on the desktop.
+
+The app is deliberately narrow in scope: launch speed and friction are critical in field conditions. In-app camera capture is not a goal — the investigator uses the native camera for photos, and if photo upload is ever added it should be via gallery picker (select from existing photos), not live capture.
 
 ### `cluo_web`
 SvelteKit web app for the **Client**. Credential-gated — no persistent account. Access is granted via a **magic link** the PI sends manually from the desktop app. The backend generates a random token, stores its SHA-256 hash in `cases.case_access_tokens`, and includes the raw token in the emailed link. Tokens expire after **30 days** (fixed); the PI can revoke them at any time. The portal is only accessible when the Case is `released`. It is strictly read-only — no client input of any kind.
