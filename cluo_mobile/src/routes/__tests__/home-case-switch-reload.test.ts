@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 
 /**
  * Tests for the home-page case-switch + recordings-reload behaviour.
@@ -56,7 +56,8 @@ const recordingsB: Recording[] = [
 // ---------------------------------------------------------------------------
 
 describe("Home — case switch recordings reload", () => {
-    let mockListRecordings: ReturnType<typeof vi.fn>;
+    type ListFn = (opts?: { caseId?: string }) => Promise<{ recordings: Recording[]; totalCount: number }>;
+    let mockListRecordings: Mock<ListFn>;
 
     beforeEach(() => {
         mockListRecordings = vi.fn();

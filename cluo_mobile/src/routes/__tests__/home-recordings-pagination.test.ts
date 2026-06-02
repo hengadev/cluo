@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach, type Mock } from "vitest";
 
 /**
  * Tests for the home-page recordings pagination behaviour.
@@ -76,7 +76,8 @@ const secondPage: Recording[] = Array.from({ length: 5 }, (_, i) => makeRecordin
 // ---------------------------------------------------------------------------
 
 describe("Home — recordings pagination", () => {
-	let mockListRecordings: ReturnType<typeof vi.fn>;
+	type ListFn = (opts?: { caseId?: string; offset?: number; limit?: number }) => Promise<{ recordings: Recording[]; totalCount: number }>;
+	let mockListRecordings: Mock<ListFn>;
 
 	beforeEach(() => {
 		mockListRecordings = vi.fn();
