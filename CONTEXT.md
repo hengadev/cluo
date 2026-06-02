@@ -148,8 +148,10 @@ The portal has two stages:
 The client can:
 - View non-draft documents (status: `sent`, `signed`, `active`, or `archived`) rendered inline, and download each as a PDF
 - View the Rapport rendered inline, and download it as a PDF
-- Browse published Media (photo gallery, inline video and audio playback), download individual files, and download all media as an archive
+- Browse published Media (photo gallery and inline video playback), download individual files, and download all media as an archive
 - Download a **complete case archive** containing all documents as PDFs, the Rapport as a PDF, and all published Media files
+
+Audio Recordings are **never** exposed in the client portal. They are an internal investigator tool; their value to the client is through the Rapport (via AI transcription), not as raw files. The portal media endpoint must exclude audio, and the portal UI must not render audio. Published Media accessible to clients is limited to images and videos.
 
 Token table: `id`, `case_id`, `token_hash`, `expires_at`, `revoked_at` (nullable), `created_at`. Operations: create (PI), validate (portal on every request), revoke (PI), list by case (PI).
 
