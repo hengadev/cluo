@@ -475,17 +475,10 @@ export async function getCases(): Promise<Case[]> {
 /**
  * Mock: Get the current active case
  */
-export async function getCurrentCase(_caseId?: string): Promise<Case | null> {
+export async function getCurrentCase(caseId?: string): Promise<Case | null> {
     await delay(300);
-    return {
-        id: "mock-case-1",
-        title: "Réclamation pour préjudice corporel",
-        status: "in_progress",
-        externalReference: "CS-2024-892",
-        clientId: "mock-client-1",
-        clientName: "Sarah JENKINS",
-        clientNumber: "CLI-9438",
-    };
+    const cases = await getCases();
+    return cases.find((c) => c.id === caseId) ?? cases[0] ?? null;
 }
 
 /**
