@@ -4,6 +4,13 @@
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
     import { uploadRecording } from "$lib/api";
     import { snackbar } from "$lib/stores/snackbar";
+    import type { Case } from "$lib/types/case";
+
+    interface Props {
+        currentCase?: Case | null;
+    }
+
+    let { currentCase = null }: Props = $props();
 
     type FooterState = "idle" | "recording" | "preview";
 
@@ -22,8 +29,7 @@
 
     let containerElement: HTMLDivElement;
 
-    // Format duration as MM:SS
-    const formattedDuration = $derived(() => {
+    const formattedDuration = $derived.by(() => {
         const minutes = Math.floor(recordingDuration / 60);
         const seconds = recordingDuration % 60;
         return `${minutes.toString().padStart(2, "0")}:${seconds.toString().padStart(2, "0")}`;
@@ -40,6 +46,7 @@
 
     function handleDragStart(e: MouseEvent | TouchEvent) {
         if (footerState !== "idle") return;
+        if (!currentCase) return;
         isDragging = true;
     }
 
@@ -180,7 +187,7 @@
             isUploading = true;
             lastUploadBlob = blob;
 
-            const response = await uploadRecording(blob);
+            const response = await uploadRecording(blob, { caseId: currentCase!.id });
             const recordingId = response.id;
 
             // Reset state and navigate to processing page
@@ -211,20 +218,26 @@
     class="relative flex justify-center items-center bg-dark-900 px-4 py-6 min-h-20 overflow-hidden"
 >
     {#if footerState === "idle"}
-        <div class="absolute inset-0 flex items-center justify-center">
-            <p class="text-dark-200 text-base select-none">Glisser pour commencer</p>
-        </div>
+        {#if currentCase}
+            <div class="absolute inset-0 flex items-center justify-center">
+                <p class="text-dark-200 text-base select-none">Glisser pour commencer</p>
+            </div>
 
-        <button
-            class="absolute left-4 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
-            style="transform: translateX({dragX}px); transition: {isDragging
-                ? 'none'
-                : 'transform 0.3s ease-out'}"
-            onmousedown={handleDragStart}
-            ontouchstart={handleDragStart}
-        >
-            <ArrowRight class="text-foreground" />
-        </button>
+            <button
+                class="absolute left-4 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
+                style="transform: translateX({dragX}px); transition: {isDragging
+                    ? 'none'
+                    : 'transform 0.3s ease-out'}"
+                onmousedown={handleDragStart}
+                ontouchstart={handleDragStart}
+            >
+                <ArrowRight class="text-foreground" />
+            </button>
+        {:else}
+            <p class="text-dark-400 text-base select-none text-center">
+                Sélectionnez une affaire pour enregistrer
+            </p>
+        {/if}
     {:else if footerState === "recording"}
         <div class="flex justify-between items-center w-full">
             <div class="w-12"></div>
@@ -234,7 +247,7 @@
                     class="w-3 h-3 bg-destructive rounded-full animate-pulse"
                 ></div>
                 <p class="text-dark-200 text-lg font-mono font-semibold">
-                    {formattedDuration()}
+                    {formattedDuration}
                 </p>
             </div>
 
