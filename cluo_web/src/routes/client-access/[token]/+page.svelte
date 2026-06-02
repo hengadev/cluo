@@ -1,6 +1,7 @@
 <script lang="ts">
 	import type { PageData } from './$types';
 	import { buttonVariants, cardVariants, cn } from '$lib/utils/design-system';
+	import ExpiryWarning from '$lib/components/ExpiryWarning.svelte';
 
 	interface Props {
 		data: PageData;
@@ -72,6 +73,8 @@
 				<p class="text-foreground text-sm mb-6">
 					{formatDate(data.caseData.tokenExpiresAt)}
 				</p>
+
+				<ExpiryWarning expiresAt={data.caseData.tokenExpiresAt} />
 
 				<a
 					href="/client-access/{data.token}/files"
