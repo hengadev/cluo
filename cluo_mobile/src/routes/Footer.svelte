@@ -13,6 +13,7 @@
     let { currentCase = null }: Props = $props();
 
     type FooterState = "idle" | "recording" | "preview";
+    type ConfirmDialog = { show: true; onConfirm: () => void } | { show: false };
 
     let footerState: FooterState = $state("idle");
     let isRecording = $state(false);
@@ -166,19 +167,31 @@
         dragX = 0;
     }
 
+    let confirmDialog: ConfirmDialog = $state({ show: false });
+    let isUploading = $state(false);
+    let lastUploadBlob: Blob | null = $state(null);
+
     async function keepRecording() {
         if (!recordedBlob) return;
 
-        try {
-            await sendAudio(recordedBlob);
-        } catch (error) {
-            console.error("Failed to send audio:", error);
-            // Show error and stay in preview state
+        if (currentCase?.status === "released") {
+            confirmDialog = {
+                show: true,
+                onConfirm: () => {
+                    confirmDialog = { show: false };
+                    doUpload();
+                },
+            };
+            return;
         }
+
+        doUpload();
     }
 
-    let isUploading = $state(false);
-    let lastUploadBlob: Blob | null = $state(null);
+    async function doUpload() {
+        if (!recordedBlob) return;
+        await sendAudio(recordedBlob);
+    }
 
     async function sendAudio(blob: Blob) {
         if (isUploading) return;
@@ -270,8 +283,9 @@
                     <span class="text-sm font-medium">Annuler</span>
                 </button>
                 <button
-                    class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors"
+                    class="flex-1 flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors disabled:opacity-50"
                     onclick={keepRecording}
+                    disabled={isUploading}
                 >
                     <Check size={18} />
                     <span class="text-sm font-medium">Conserver et envoyer</span>
@@ -280,3 +294,30 @@
         </div>
     {/if}
 </div>
+
+{#if confirmDialog.show}
+    <div
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/60"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Confirmation"
+    >
+        <div class="bg-dark-800 rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl">
+            <p class="text-foreground text-base mb-6">Cette affaire est clôturée. Continuer quand même ?</p>
+            <div class="flex gap-3">
+                <button
+                    class="flex-1 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
+                    onclick={() => (confirmDialog = { show: false })}
+                >
+                    Annuler
+                </button>
+                <button
+                    class="flex-1 bg-green-600 hover:bg-green-500 text-white px-4 py-3 rounded-xl transition-colors"
+                    onclick={confirmDialog.onConfirm}
+                >
+                    Continuer
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
