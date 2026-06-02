@@ -15,13 +15,21 @@
 
     let { data } = $props();
 
+    const PAGE_SIZE = 20;
+
     let recordings = $state<Recording[]>(data.recordings);
+    let totalCount = $state<number>(data.totalCount);
     let error = $state<string | null>(data.error);
     let currentCase = $state<Case | null>(data.currentCase);
     let pickerOpen = $state(false);
     let recordingsLoading = $state(false);
+    let loadingMore = $state(false);
+    let loadMoreError = $state<string | null>(null);
     let searchQuery = $state("");
     let fetchSeq = 0;
+
+    const remainingCount = $derived(Math.max(0, totalCount - recordings.length));
+    const hasMore = $derived(remainingCount > 0);
 
     const filteredRecordings = $derived(
         searchQuery.trim() === ""
@@ -46,11 +54,31 @@
             const res = await listRecordings({ caseId });
             if (seq !== fetchSeq) return;
             recordings = res.recordings;
+            totalCount = res.totalCount;
         } catch (e) {
             if (seq !== fetchSeq) return;
             error = e instanceof Error ? e.message : "Échec du chargement des enregistrements";
         } finally {
             if (seq === fetchSeq) recordingsLoading = false;
+        }
+    }
+
+    async function loadMore() {
+        if (loadingMore || !hasMore || !currentCase) return;
+        loadingMore = true;
+        loadMoreError = null;
+        try {
+            const res = await listRecordings({
+                caseId: currentCase.id,
+                offset: recordings.length,
+                limit: PAGE_SIZE,
+            });
+            recordings = [...recordings, ...res.recordings];
+            totalCount = res.totalCount;
+        } catch (e) {
+            loadMoreError = e instanceof Error ? e.message : "Échec du chargement des enregistrements";
+        } finally {
+            loadingMore = false;
         }
     }
 
@@ -114,6 +142,24 @@
                         status={recording.status}
                     />
                 {/each}
+
+                {#if loadMoreError}
+                    <p class="text-red-600 text-sm text-center py-2">{loadMoreError}</p>
+                {/if}
+                {#if hasMore}
+                    <button
+                        onclick={loadMore}
+                        disabled={loadingMore}
+                        class="text-sm text-dark-500 hover:text-dark-900 transition-colors py-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-60 flex items-center justify-center gap-2"
+                    >
+                        {#if loadingMore}
+                            <Spinner size="sm" />
+                            <span>Chargement...</span>
+                        {:else}
+                            <span>Voir plus ({remainingCount})</span>
+                        {/if}
+                    </button>
+                {/if}
             </div>
         {/if}
     </div>
