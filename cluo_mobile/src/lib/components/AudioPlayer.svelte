@@ -1,11 +1,11 @@
 <script lang="ts">
-	import type { HTMLAudioElementAttributes } from "svelte/elements";
+	import type { HTMLAudioAttributes } from "svelte/elements";
 	import { Play, Pause } from "@lucide/svelte";
 
 	interface Props {
 		src: string | Blob;
 		duration?: number;
-		class?: HTMLAudioElementAttributes["class"];
+		class?: HTMLAudioAttributes["class"];
 	}
 
 	let {
