@@ -24,7 +24,7 @@ const SuggestionCategoryValues = ["observations", "statements", "actions", "uncl
  */
 export const ProcessingStepSchema = type({
 	title: "string",
-	status: type(StepStatusValues),
+	status: type.enumerated(...StepStatusValues),
 });
 
 /**
@@ -32,7 +32,7 @@ export const ProcessingStepSchema = type({
  */
 export const RecordingStatusResponseSchema = type({
 	id: "string",
-	status: type(RecordingStatusValues),
+	status: type.enumerated(...RecordingStatusValues),
 	processingSteps: ProcessingStepSchema.array(),
 	error: "string?",
 });
@@ -42,8 +42,8 @@ export const RecordingStatusResponseSchema = type({
  */
 export const TranscriptResponseSchema = type({
 	recordingId: "string",
-	text: "string.min(1)",
-	confidence: "number.between(0, 1)?",
+	text: "string >= 1",
+	"confidence?": "0 <= number <= 1",
 	isConfirmed: "boolean",
 	createdAt: "string",
 	updatedAt: "string",
@@ -53,7 +53,7 @@ export const TranscriptResponseSchema = type({
  * Schema for confirming/updating transcript request.
  */
 export const ConfirmTranscriptRequestSchema = type({
-	text: "string.min(1).max(100000)", // Max 100k characters
+	text: "1 <= string <= 100000",
 });
 
 /**
@@ -61,7 +61,7 @@ export const ConfirmTranscriptRequestSchema = type({
  * More lenient than API version for better UX.
  */
 export const TranscriptTextInputSchema = type({
-	text: "string.max(100000)",
+	text: "string <= 100000",
 });
 
 /**
@@ -69,8 +69,8 @@ export const TranscriptTextInputSchema = type({
  */
 export const SuggestionSchema = type({
 	id: "string",
-	category: type(SuggestionCategoryValues),
-	text: "string.min(1)",
+	category: type.enumerated(...SuggestionCategoryValues),
+	text: "string >= 1",
 	selected: "boolean",
 	timestamp: "string?",
 });
@@ -95,7 +95,7 @@ export const AnalysisResponseSchema = type({
  */
 export const UploadRecordingResponseSchema = type({
 	id: "string",
-	status: type(RecordingStatusValues),
+	status: type.enumerated(...RecordingStatusValues),
 });
 
 /**
@@ -110,7 +110,7 @@ export const RecordingsListResponseSchema = type({
 		startTime: "string",
 		duration: "number",
 		"fileSize?": "number",
-		status: type(RecordingStatusValues),
+		status: type.enumerated(...RecordingStatusValues),
 		"processingSteps?": ProcessingStepSchema.array(),
 	}).array(),
 	totalCount: "number",
@@ -127,7 +127,7 @@ export const RecordingSchema = type({
 	startTime: "string",
 	duration: "number",
 	"fileSize?": "number",
-	status: type(RecordingStatusValues),
+	status: type.enumerated(...RecordingStatusValues),
 	"processingSteps?": ProcessingStepSchema.array(),
 });
 
@@ -135,15 +135,15 @@ export const RecordingSchema = type({
  * Schema for audio file validation before upload.
  */
 export const AudioFileSchema = type({
-	type: 'string.startsWith("audio/")',
-	size: "number.between(1, 500000000)", // Max 500MB
+	type: type("string").matching(/^audio\//),
+	size: "1 <= number <= 500000000",
 });
 
 /**
  * Schema for recording ID parameter validation.
  */
 export const RecordingIdParamSchema = type({
-	id: "string.minLength(1)",
+	id: "string >= 1",
 });
 
 /**
