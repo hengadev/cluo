@@ -3,7 +3,9 @@
     import { goto } from "$app/navigation";
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
     import { uploadRecording } from "$lib/api";
+    import { enqueue } from "$lib/upload-queue";
     import { snackbar } from "$lib/stores/snackbar";
+    import { queueCount } from "$lib/stores/upload-queue-count";
     import type { Case } from "$lib/types/case";
 
     interface Props {
@@ -207,11 +209,12 @@
     async function sendAudio(blob: Blob) {
         if (isUploading) return;
 
+        const title = effectiveTitle();
+
         try {
             isUploading = true;
             lastUploadBlob = blob;
 
-            const title = effectiveTitle();
             const response = await uploadRecording(blob, { caseId: currentCase!.id, title });
             const recordingId = response.id;
 
@@ -223,10 +226,21 @@
             goto(`/processing/${recordingId}`);
         } catch (error) {
             console.error("Failed to send audio:", error);
-            snackbar.error(
-                "Échec de l'envoi de l'enregistrement",
-                () => lastUploadBlob && sendAudio(lastUploadBlob)
-            );
+
+            try {
+                await enqueue(blob, { caseId: currentCase!.id, title });
+                snackbar.show("Enregistrement mis en attente — sera envoyé dès que possible");
+                queueCount.refresh();
+            } catch {
+                snackbar.error("Échec de l'envoi de l'enregistrement");
+            }
+
+            // Reset to idle so the investigator can continue recording
+            recordedBlob = null;
+            recordingTitle = "";
+            defaultRecordingTitle = "";
+            footerState = "idle";
+            dragX = 0;
         } finally {
             isUploading = false;
         }
