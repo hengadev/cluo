@@ -16,6 +16,7 @@
 
     let allCases = $state<Case[]>([]);
     let loading = $state(false);
+    let fetchError = $state<string | null>(null);
     let query = $state("");
     let statusFilter = $state<string | null>(null);
     let showAll = $state(false);
@@ -28,13 +29,12 @@
 
     $effect(() => {
         if (open) {
-            if (allCases.length === 0) {
-                loading = true;
-                getCases().then((cases) => {
-                    allCases = cases;
-                    loading = false;
-                });
-            }
+            loading = true;
+            fetchError = null;
+            getCases()
+                .then((cases) => { allCases = cases; })
+                .catch(() => { fetchError = "Impossible de charger les affaires."; })
+                .finally(() => { loading = false; });
         } else {
             query = "";
             statusFilter = null;
@@ -108,6 +108,8 @@
             <div class="flex flex-col gap-2 overflow-y-auto">
                 {#if loading}
                     <p class="text-sm text-dark-400 text-center py-6">Chargement...</p>
+                {:else if fetchError}
+                    <p class="text-sm text-red-500 text-center py-6">{fetchError}</p>
                 {:else if filtered.length === 0}
                     <p class="text-sm text-dark-400 text-center py-6">Aucune affaire trouvée.</p>
                 {:else}
