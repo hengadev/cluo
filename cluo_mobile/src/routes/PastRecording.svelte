@@ -7,7 +7,7 @@
         title?: string;
         date?: string;
         startTime?: string;
-        duration?: string;
+        duration?: number | string;
         status?: RecordingStatus;
     }
 

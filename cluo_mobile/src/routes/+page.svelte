@@ -1,14 +1,17 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { ChevronDown } from "@lucide/svelte";
     import { auth } from "$lib/stores/auth";
 
     import Input from "$lib/components/ui/Input.svelte";
     import Spinner from "$lib/components/ui/Spinner.svelte";
-    import Recording from "./PastRecording.svelte";
+    import PastRecording from "./PastRecording.svelte";
     import CurrentCase from "./CurrentCase.svelte";
     import CasePicker from "./CasePicker.svelte";
     import { currentCase as currentCaseStore } from "$lib/stores/current-case";
-    import { listRecordings } from "$lib/api";
+    import { listRecordings, uploadRecording } from "$lib/api";
+    import { flush } from "$lib/upload-queue";
+    import { queueCount } from "$lib/stores/upload-queue-count";
 
     import type { Case } from "$lib/types/case";
     import type { Recording } from "$lib/types/recording";
@@ -27,7 +30,6 @@
     let loadMoreError = $state<string | null>(null);
     let searchQuery = $state("");
     let fetchSeq = 0;
-
     const remainingCount = $derived(Math.max(0, totalCount - recordings.length));
     const hasMore = $derived(remainingCount > 0);
 
@@ -45,6 +47,20 @@
     });
 
     const greeting = $derived($auth.user?.name ?? $auth.user?.email?.split('@')[0] ?? '');
+
+    async function handleOnline() {
+        const result = await flush(uploadRecording);
+        if (result.succeeded.length > 0 && currentCase) {
+            fetchRecordings(currentCase.id);
+        }
+        queueCount.refresh();
+    }
+
+    onMount(() => {
+        queueCount.refresh();
+        window.addEventListener("online", handleOnline);
+        return () => window.removeEventListener("online", handleOnline);
+    });
 
     async function fetchRecordings(caseId: string) {
         const seq = ++fetchSeq;
@@ -113,7 +129,14 @@
         <Input placeholder="Recherche parmi les enregistrements" bind:value={searchQuery} type="search" />
     </div>
     <div class="flex flex-col gap-4">
-        <p class="text-dark-700 font-bold text-base">Enregistrements</p>
+        <div class="flex items-center gap-2">
+            <p class="text-dark-700 font-bold text-base">Enregistrements</p>
+            {#if $queueCount > 0}
+                <span class="bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                    {$queueCount} en attente
+                </span>
+            {/if}
+        </div>
         {#if recordingsLoading}
             <div class="flex items-center justify-center p-8">
                 <Spinner size="md" />
@@ -133,7 +156,7 @@
         {:else}
             <div class="flex flex-col gap-2">
                 {#each filteredRecordings as recording}
-                    <Recording
+                    <PastRecording
                         id={recording.id}
                         title={recording.title}
                         date={recording.date}
