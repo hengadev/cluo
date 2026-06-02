@@ -173,18 +173,19 @@ interface CaseApiResponse {
 // Helpers
 // ---------------------------------------------------------------------------
 
-function formatDate(iso: string): string {
-	return new Date(iso).toLocaleDateString("en-GB", {
+export function formatDate(iso: string): string {
+	return new Date(iso).toLocaleDateString("fr-FR", {
 		day: "2-digit",
 		month: "short",
 		year: "numeric",
 	});
 }
 
-function formatTime(iso: string): string {
-	return new Date(iso).toLocaleTimeString("en-GB", {
+export function formatTime(iso: string): string {
+	return new Date(iso).toLocaleTimeString("fr-FR", {
 		hour: "2-digit",
 		minute: "2-digit",
+		hour12: false,
 	});
 }
 
