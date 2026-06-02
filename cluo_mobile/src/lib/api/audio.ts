@@ -161,6 +161,8 @@ interface CaseApiResponse {
 	title: string;
 	description: string;
 	clientId: string;
+	clientName?: string;
+	clientNumber?: string;
 	status: string;
 	externalReference?: string;
 	createdAt: string;
@@ -531,18 +533,16 @@ export async function getAudioUrl(id: string): Promise<string> {
  * Fetch all cases for the current user.
  */
 export async function getCases(): Promise<Case[]> {
-	try {
-		const res = await apiFetch<{ cases: CaseApiResponse[] }>("/cases");
-		return res.cases.map((c) => ({
-			id: c.id,
-			title: c.title,
-			status: c.status,
-			externalReference: c.externalReference,
-			clientId: c.clientId,
-		}));
-	} catch {
-		return [];
-	}
+	const res = await apiFetch<{ cases: CaseApiResponse[] }>("/cases");
+	return res.cases.map((c) => ({
+		id: c.id,
+		title: c.title,
+		status: c.status,
+		externalReference: c.externalReference,
+		clientId: c.clientId,
+		clientName: c.clientName,
+		clientNumber: c.clientNumber,
+	}));
 }
 
 /**
@@ -568,6 +568,8 @@ export async function getCurrentCase(caseId?: string): Promise<Case | null> {
 			status: res.status,
 			externalReference: res.externalReference,
 			clientId: res.clientId,
+			clientName: res.clientName,
+			clientNumber: res.clientNumber,
 		};
 	} catch {
 		return null;
