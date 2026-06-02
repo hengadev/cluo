@@ -19,7 +19,7 @@
         id,
         name,
         placeholder,
-        value,
+        value = $bindable(),
         disabled = false,
         readonly = false,
         required = false,
@@ -65,7 +65,7 @@
     {id}
     {name}
     {placeholder}
-    {value}
+    bind:value
     {disabled}
     {readonly}
     {required}
