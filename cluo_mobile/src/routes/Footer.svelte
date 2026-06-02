@@ -27,6 +27,8 @@
     let recordingDuration = $state(0);
     let timerInterval: number | null = null;
     let recordedBlob: Blob | null = $state(null);
+    let recordingTitle: string = $state("");
+    let defaultRecordingTitle: string = $state("");
 
     let containerElement: HTMLDivElement;
 
@@ -145,6 +147,8 @@
 
             // Store blob for preview
             recordedBlob = audioBlob;
+            defaultRecordingTitle = generateTimestampTitle();
+            recordingTitle = defaultRecordingTitle;
             footerState = "preview";
 
             // Clear chunks
@@ -161,8 +165,16 @@
         }
     }
 
+    function generateTimestampTitle(date: Date = new Date()): string {
+        const hours = date.getHours().toString().padStart(2, "0");
+        const minutes = date.getMinutes().toString().padStart(2, "0");
+        return `Enregistrement ${hours}h${minutes}`;
+    }
+
     function discardRecording() {
         recordedBlob = null;
+        recordingTitle = "";
+        defaultRecordingTitle = "";
         footerState = "idle";
         dragX = 0;
     }
@@ -179,18 +191,17 @@
                 show: true,
                 onConfirm: () => {
                     confirmDialog = { show: false };
-                    doUpload();
+                    sendAudio(recordedBlob!);
                 },
             };
             return;
         }
 
-        doUpload();
+        sendAudio(recordedBlob);
     }
 
-    async function doUpload() {
-        if (!recordedBlob) return;
-        await sendAudio(recordedBlob);
+    function effectiveTitle(): string {
+        return recordingTitle.trim() || defaultRecordingTitle;
     }
 
     async function sendAudio(blob: Blob) {
@@ -200,11 +211,14 @@
             isUploading = true;
             lastUploadBlob = blob;
 
-            const response = await uploadRecording(blob, { caseId: currentCase!.id });
+            const title = effectiveTitle();
+            const response = await uploadRecording(blob, { caseId: currentCase!.id, title });
             const recordingId = response.id;
 
             // Reset state and navigate to processing page
             recordedBlob = null;
+            recordingTitle = "";
+            defaultRecordingTitle = "";
             footerState = "idle";
             goto(`/processing/${recordingId}`);
         } catch (error) {
@@ -274,6 +288,12 @@
     {:else if footerState === "preview" && recordedBlob}
         <div class="flex flex-col gap-3 w-full">
             <AudioPlayer src={recordedBlob} duration={recordingDuration} />
+            <input
+                type="text"
+                bind:value={recordingTitle}
+                placeholder={defaultRecordingTitle}
+                class="w-full bg-dark-700 text-foreground placeholder-dark-400 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-dark-400"
+            />
             <div class="flex gap-3">
                 <button
                     class="flex-1 flex items-center justify-center gap-2 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
