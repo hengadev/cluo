@@ -9,6 +9,7 @@
     import Footer from "./Footer.svelte";
     import Snackbar from "$lib/components/Snackbar.svelte";
     import { auth } from "$lib/stores/auth";
+    import { currentCase } from "$lib/stores/current-case";
 
     const API_URL = import.meta.env.VITE_API_URL ?? "";
     const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === "true";
@@ -80,7 +81,7 @@
     {@render children()}
     {#if showFooter}
         <div class="fixed bottom-0 inset-x-0 z-50">
-            <Footer />
+            <Footer currentCase={$currentCase} />
         </div>
     {/if}
 </div>

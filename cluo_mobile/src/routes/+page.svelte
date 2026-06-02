@@ -6,6 +6,7 @@
     import Recording from "./PastRecording.svelte";
     import CurrentCase from "./CurrentCase.svelte";
     import CasePicker from "./CasePicker.svelte";
+    import { currentCase as currentCaseStore } from "$lib/stores/current-case";
 
     import type { Case } from "$lib/types/case";
 
@@ -15,6 +16,11 @@
 
     let currentCase = $state<Case | null>(data.currentCase);
     let pickerOpen = $state(false);
+
+    // Sync local state to shared store so the layout/Footer can read it
+    $effect(() => {
+        currentCaseStore.set(currentCase);
+    });
 
     const greeting = $derived($auth.user?.name ?? $auth.user?.email?.split('@')[0] ?? '');
 
