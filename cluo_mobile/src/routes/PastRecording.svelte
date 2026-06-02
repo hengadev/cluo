@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { ChevronRight, Square, Loader2 } from "@lucide/svelte";
+    import { ChevronRight } from "@lucide/svelte";
     import type { RecordingStatus } from "$lib/types/recording";
 
     interface Props {
@@ -29,52 +29,61 @@
     };
 
     const isProcessing = $derived(
-        status === "uploading" ||
-        status === "transcribing" ||
-        status === "analyzing"
+        status === "uploading" || status === "transcribing" || status === "analyzing"
     );
 
-    const statusColor = $derived(() => {
-        switch (status) {
-            case "completed":
-                return "bg-green-500";
-            case "failed":
-                return "bg-red-500";
-            default:
-                return "bg-yellow-500";
-        }
-    });
+    const avatarBg = $derived(
+        status === "completed" ? "bg-green-50" :
+        status === "failed" ? "bg-red-50" :
+        "bg-amber-50"
+    );
+
+    const barColor = $derived(
+        status === "completed" ? "bg-green-400" :
+        status === "failed" ? "bg-red-400" :
+        "bg-amber-400"
+    );
+
+    const statusTextColor = $derived(
+        status === "completed" ? "text-green-600" :
+        status === "failed" ? "text-red-500" :
+        "text-amber-600"
+    );
 </script>
 
 <a
     href="/recording/{id}"
-    class="flex justify-between border-1 border-black-50 rounded-input px-3 py-4 hover:bg-dark-50 transition-colors cursor-pointer no-underline"
+    class="flex items-center gap-3 border border-dark-100 rounded-card-sm px-3 py-3 hover:bg-dark-50 transition-colors cursor-pointer no-underline"
 >
-    <div>
-        <p class="text-dark-700 font-medium text-sm">{title}</p>
-        <div class="flex gap-4 items-center">
-            <p class="text-dark-600 text-xxs">{date}</p>
-            <Square class="bg-dark-100" size={4} />
-            <p class="text-dark-300 text-xxs">{startTime}</p>
-            {#if isProcessing}
-                <div class="flex items-center gap-1">
-                    <Loader2 size={10} class="animate-spin text-yellow-600" />
-                    <p class="text-dark-500 text-xxs">{statusLabels[status] ?? status}</p>
-                </div>
-            {/if}
+    <!-- Waveform avatar -->
+    <div class="flex-shrink-0 w-10 h-10 rounded-card-sm {avatarBg} flex items-center justify-center gap-[3px]">
+        <div class="w-[3px] rounded-full {barColor} h-2 {isProcessing ? 'animate-pulse' : ''}"></div>
+        <div class="w-[3px] rounded-full {barColor} h-4 {isProcessing ? 'animate-pulse' : ''}"></div>
+        <div class="w-[3px] rounded-full {barColor} h-6 {isProcessing ? 'animate-pulse' : ''}"></div>
+        <div class="w-[3px] rounded-full {barColor} h-3 {isProcessing ? 'animate-pulse' : ''}"></div>
+        <div class="w-[3px] rounded-full {barColor} h-5 {isProcessing ? 'animate-pulse' : ''}"></div>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+        <p class="text-dark-700 font-medium text-sm truncate">{title}</p>
+        <div class="flex gap-1.5 items-center mt-0.5">
+            <p class="text-dark-500 text-xxs">{date}</p>
+            <span class="text-dark-300 text-xxs">·</span>
+            <p class="text-dark-400 text-xxs">{startTime}</p>
         </div>
     </div>
-    <div class="flex items-center gap-4">
-        <div class="flex items-center gap-2">
+
+    <!-- Duration + status -->
+    <div class="flex flex-col items-end gap-0.5 flex-shrink-0">
+        <p class="text-dark-700 font-mono text-xs font-medium">{duration}</p>
+        <span class="text-xxs {statusTextColor} flex items-center gap-1">
             {#if isProcessing}
-                <div class="w-2 h-2 rounded-full {statusColor} animate-pulse"></div>
+                <span class="w-1.5 h-1.5 rounded-full bg-current animate-pulse inline-block"></span>
             {/if}
-            <p
-                class="flex justify-center items-center border-1 border-dark-100 rounded-3xl bg-dark-50 text-dark-600 py-1 px-2 text-xs"
-            >
-                {duration}
-            </p>
-        </div>
-        <ChevronRight />
+            {statusLabels[status] ?? status}
+        </span>
     </div>
+
+    <ChevronRight size={16} class="text-dark-300 flex-shrink-0" />
 </a>
