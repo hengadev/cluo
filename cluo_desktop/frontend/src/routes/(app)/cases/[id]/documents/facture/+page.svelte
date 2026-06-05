@@ -11,11 +11,13 @@
 		Plus,
 		X,
 		Save,
+		Trash2,
 	} from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
 		fetchCaseInvoices,
+		createInvoice,
 		sendDocument,
 		processPayment,
 		voidInvoice,
@@ -48,7 +50,21 @@
 
 	// Currently selected invoice for viewing
 	let selectedInvoice: Invoice | null = $state(null);
-	let viewMode: "list" | "detail" = $state("list");
+	let viewMode: "list" | "detail" | "create" = $state("list");
+
+	// Create form state
+	interface FormItem {
+		description: string;
+		quantity: number;
+		unit_price: number;
+	}
+	let formIssueDate = $state(todayISO());
+	let formDueDate = $state("");
+	let formTaxRate = $state(0);
+	let formNotes = $state("");
+	let formPaymentTerms = $state("");
+	let formLineItems = $state<FormItem[]>([{ description: "", quantity: 1, unit_price: 0 }]);
+	let formSaving = $state(false);
 
 	// Lifecycle action state
 	let sendingInvoice = $state(false);
@@ -111,6 +127,10 @@
 		online: "Paiement en ligne",
 		other: "Autre",
 	};
+
+	function todayISO(): string {
+		return new Date().toISOString().split("T")[0];
+	}
 
 	function formatDate(dateStr: string): string {
 		if (!dateStr) return "—";
@@ -207,10 +227,99 @@
 	// Navigation helpers
 	// =========================================================================
 
+	function formTotal(): number {
+		const subtotal = formLineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+		return subtotal + subtotal * (formTaxRate / 100);
+	}
+
+	function addLineItem() {
+		formLineItems = [...formLineItems, { description: "", quantity: 1, unit_price: 0 }];
+	}
+
+	function removeLineItem(index: number) {
+		if (formLineItems.length <= 1) return;
+		formLineItems = formLineItems.filter((_, i) => i !== index);
+	}
+
 	function showList() {
 		selectedInvoice = null;
 		viewMode = "list";
 		showPaymentForm = false;
+		formLineItems = [{ description: "", quantity: 1, unit_price: 0 }];
+		formIssueDate = todayISO();
+		formDueDate = "";
+		formTaxRate = 0;
+		formNotes = "";
+		formPaymentTerms = "";
+	}
+
+	function showCreate() {
+		selectedInvoice = null;
+		viewMode = "create";
+		formLineItems = [{ description: "", quantity: 1, unit_price: 0 }];
+		formIssueDate = todayISO();
+		formDueDate = "";
+		formTaxRate = 0;
+		formNotes = "";
+		formPaymentTerms = "";
+	}
+
+	async function handleCreate() {
+		if (!caseData) return;
+		if (formLineItems.some((li) => !li.description.trim())) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Toutes les lignes doivent avoir une description.");
+			return;
+		}
+		if (!formDueDate) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "La date d'échéance est obligatoire.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const subtotal = formLineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+			const taxAmount = subtotal * (formTaxRate / 100);
+			const totalAmount = subtotal + taxAmount;
+			const invoiceNumber = `FAC-${new Date().getFullYear()}-${String(invoices.length + 1).padStart(3, "0")}`;
+
+			const payload = {
+				case_id: caseData.id,
+				client_id: caseData.clientId,
+				invoice_number: invoiceNumber,
+				issue_date: new Date(formIssueDate).toISOString(),
+				due_date: new Date(formDueDate).toISOString(),
+				line_items: formLineItems.map((li) => ({
+					description: li.description.trim(),
+					quantity: li.quantity,
+					unit_price: li.unit_price,
+					subtotal: li.quantity * li.unit_price,
+				})),
+				total_amount: totalAmount,
+				tax_rate: formTaxRate,
+				tax_amount: taxAmount,
+				payment_status: "unpaid" as const,
+				currency: "EUR",
+				notes: formNotes.trim() || undefined,
+				payment_terms: formPaymentTerms.trim() || undefined,
+				status: "draft" as const,
+			} as Invoice;
+
+			const result = await createInvoice(payload);
+			if (result.data) {
+				invoices = [...invoices, result.data];
+				selectedInvoice = result.data;
+				viewMode = "detail";
+				toastState.add(TOAST_LEVELS.Info, "Facture créée", "La facture a été créée en brouillon.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de créer la facture.",
+			);
+		} finally {
+			formSaving = false;
+		}
 	}
 
 	function showDetail(inv: Invoice) {
@@ -388,7 +497,9 @@
 				{/if}
 				<div>
 					<h1 class="text-2xl font-bold text-foreground">
-						{#if viewMode === "detail" && selectedInvoice}
+						{#if viewMode === "create"}
+							Nouvelle facture
+						{:else if viewMode === "detail" && selectedInvoice}
 							Facture {selectedInvoice.invoice_number}
 						{:else}
 							Factures
@@ -403,6 +514,16 @@
 					</p>
 				</div>
 			</div>
+
+			{#if viewMode === "list" && invoices.length > 0}
+				<button
+					type="button"
+					onclick={showCreate}
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+				>
+					Nouvelle facture
+				</button>
+			{/if}
 
 			{#if viewMode === "detail" && selectedInvoice}
 				<div class="flex items-center gap-2">
@@ -463,8 +584,15 @@
 					<FileText class="w-12 h-12 text-muted-foreground" />
 					<p class="text-muted-foreground text-center">Aucune facture pour ce dossier.</p>
 					<p class="text-sm text-muted-foreground text-center">
-						Une facture peut être créée à partir d'un contrat actif.
+						Une facture peut être créée à partir d'un contrat actif, ou vous pouvez en créer une manuellement.
 					</p>
+					<button
+						type="button"
+						onclick={showCreate}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+					>
+						Créer une facture
+					</button>
 				</div>
 			{:else}
 				<div class="border border-border-card rounded-lg overflow-hidden">
@@ -517,6 +645,155 @@
 					</table>
 				</div>
 			{/if}
+
+		<!-- ================================================================ -->
+		<!-- CREATE FORM -->
+		<!-- ================================================================ -->
+		{:else if viewMode === "create"}
+			<div class="border border-border-card rounded-lg p-6 max-w-3xl animate-fade-in">
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date d'émission *</label>
+						<input
+							type="date"
+							bind:value={formIssueDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date d'échéance *</label>
+						<input
+							type="date"
+							bind:value={formDueDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+				</div>
+
+				<!-- Line items -->
+				<div class="mb-6">
+					<div class="flex items-center justify-between mb-3">
+						<label class="text-sm font-medium text-foreground">Lignes de facture</label>
+						<button
+							type="button"
+							onclick={addLineItem}
+							class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+						>
+							<Plus size={14} />
+							Ajouter une ligne
+						</button>
+					</div>
+
+					<div class="space-y-3">
+						{#each formLineItems as item, i (i)}
+							<div class="flex items-start gap-3 border border-border rounded-lg p-3 bg-muted/30">
+								<div class="flex-1">
+									<input
+										type="text"
+										bind:value={item.description}
+										placeholder="Description de la prestation"
+										class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									/>
+								</div>
+								<div class="w-24">
+									<label class="text-xs text-muted-foreground mb-1 block">Quantité</label>
+									<input
+										type="number"
+										bind:value={item.quantity}
+										min="1"
+										step="1"
+										class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									/>
+								</div>
+								<div class="w-32">
+									<label class="text-xs text-muted-foreground mb-1 block">Prix unitaire (€)</label>
+									<input
+										type="number"
+										bind:value={item.unit_price}
+										min="0"
+										step="0.01"
+										class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									/>
+								</div>
+								<div class="w-28 pt-5 text-right">
+									<span class="text-sm font-medium text-foreground">
+										{formatCurrency(item.quantity * item.unit_price)}
+									</span>
+								</div>
+								{#if formLineItems.length > 1}
+									<button
+										type="button"
+										onclick={() => removeLineItem(i)}
+										class="p-2 mt-3 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+										title="Supprimer la ligne"
+									>
+										<Trash2 size={14} />
+									</button>
+								{/if}
+							</div>
+						{/each}
+					</div>
+
+					<div class="flex items-end justify-end gap-6 mt-4 pt-4 border-t border-border">
+						<div class="flex items-center gap-3">
+							<label class="text-xs text-muted-foreground">TVA (%)</label>
+							<input
+								type="number"
+								bind:value={formTaxRate}
+								min="0"
+								max="100"
+								step="0.1"
+								class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-20 px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							/>
+						</div>
+						<div class="text-right">
+							<p class="text-sm text-muted-foreground">Total TTC</p>
+							<p class="text-2xl font-bold text-foreground">{formatCurrency(formTotal())}</p>
+						</div>
+					</div>
+				</div>
+
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Conditions de paiement</label>
+						<input
+							type="text"
+							bind:value={formPaymentTerms}
+							placeholder="Ex : Paiement à 30 jours"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Notes</label>
+						<input
+							type="text"
+							bind:value={formNotes}
+							placeholder="Notes internes..."
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+				</div>
+
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={showList}
+						class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					>
+						<X size={14} class="mr-1" />
+						Annuler
+					</button>
+					<button
+						type="button"
+						onclick={handleCreate}
+						disabled={formSaving}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+					>
+						<Save size={14} class="mr-1" />
+						{formSaving ? "Enregistrement..." : "Créer la facture"}
+					</button>
+				</div>
+			</div>
 
 		<!-- ================================================================ -->
 		<!-- DETAIL VIEW -->
