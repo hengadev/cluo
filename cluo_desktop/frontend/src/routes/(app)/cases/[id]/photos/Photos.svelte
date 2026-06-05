@@ -191,7 +191,7 @@
     }
 </script>
 
-<div class="content p-6 pr-6 h-[calc(100vh-80px)] flex flex-col">
+<div class="p-8 flex flex-col flex-1 min-h-0 gap-6">
     <!-- Hidden File Input -->
     <input
         type="file"
@@ -202,6 +202,23 @@
         class="hidden"
     />
 
+    <!-- Header -->
+    <div class="flex items-center justify-between">
+        <div>
+            <h1 class="text-2xl font-bold text-foreground">Photos</h1>
+            <p class="text-sm text-muted-foreground">Photos du dossier</p>
+        </div>
+        {#if allImages.length > 0}
+            <button
+                type="button"
+                onclick={handleImport}
+                class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+            >
+                Importer des photos
+            </button>
+        {/if}
+    </div>
+
     <!-- Panel Layout -->
     <div class="flex-1 min-h-0 overflow-hidden">
         {#if loading}
@@ -209,10 +226,15 @@
                 <p class="text-muted-foreground">Chargement des photos...</p>
             </div>
         {:else if allImages.length === 0}
-            <div class="flex items-center justify-center h-full">
-                <p class="text-muted-foreground">
-                    Aucune photo disponible.
-                </p>
+            <div class="border border-dashed border-border rounded-lg bg-muted/20 flex flex-col items-center justify-center h-full gap-4">
+                <p class="text-muted-foreground">Aucune photo pour ce dossier.</p>
+                <button
+                    type="button"
+                    onclick={handleImport}
+                    class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+                >
+                    Importer des photos
+                </button>
             </div>
         {:else if layoutMode === "library"}
             <!-- Library Only -->
@@ -232,6 +254,7 @@
                     }
                 }}
                 onAdd={addToReport}
+                onImport={handleImport}
             />
         {:else if layoutMode === "split"}
             <!-- Split View -->

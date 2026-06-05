@@ -12,6 +12,7 @@
         selectedIds: Set<string>;
         onSelectionChange: (id: string) => void;
         onAdd: (image: Image) => void;
+        onImport?: () => void;
     }
 
     let {
@@ -22,6 +23,7 @@
         selectedIds,
         onSelectionChange,
         onAdd,
+        onImport,
     }: Props = $props();
 
     let openBurstGroupId = $state<string | null>(null);
@@ -56,9 +58,18 @@
 
     {#if images.length === 0}
         <div
-            class="flex flex-col items-center justify-center flex-1 text-center"
+            class="flex flex-col items-center justify-center flex-1 text-center gap-3"
         >
             <p class="text-muted-foreground">Aucune image disponible</p>
+            {#if onImport}
+                <button
+                    type="button"
+                    onclick={onImport}
+                    class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+                >
+                    Importer des photos
+                </button>
+            {/if}
         </div>
     {:else}
         <div class="flex-1 min-h-0 overflow-y-auto p-4">
