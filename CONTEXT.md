@@ -120,7 +120,7 @@ Go backend. Sole owner of all business logic and data persistence. Follows **hex
 | `migrations/` | SQL migration files. Naming convention: `{timestamp}_{domain}_{action}.sql`. |
 
 ### `cluo_desktop`
-Tauri + SvelteKit desktop app for the **Investigator**. Used at the office (or anywhere with the desktop). Provides the full case management interface:
+Wails + SvelteKit desktop app for the **Investigator**. Used at the office (or anywhere with the desktop). Provides the full case management interface:
 
 | Route | Responsibility |
 |---|---|
