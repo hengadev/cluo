@@ -4,6 +4,9 @@
 	import { fetchAllCases } from "$lib/services/api";
 	import type { Case, CaseStatus } from "$lib/types/entities";
 	import { caseStatusBadge } from "$lib/utils/badgeVariants";
+	import Spinner from "$lib/components/Spinner.svelte";
+	import EmptyState from "$lib/components/EmptyState.svelte";
+	import { FolderOpen } from "@lucide/svelte";
 
 	let cases: Case[] = [];
 	let loading = true;
@@ -33,20 +36,34 @@
 <div class="p-8 flex flex-col gap-6">
     <div class="animate-fade-in">
         <h1 class="text-3xl font-bold">Tableau de bord</h1>
-        <h2 class="text-xl font-semibold mt-2" style="animation-delay: 100ms;">
+        <h2 class="text-xl font-semibold mt-2 animate-fade-in" style="animation-delay: 100ms;">
             Dossiers récents
         </h2>
     </div>
 		<section>
 			{#if loading}
-				<p class="text-muted-foreground">Chargement...</p>
+				<Spinner size="lg" />
 			{:else if error}
 				<div class="alert-error">
 					{error}
 				</div>
 			{:else if cases.length === 0}
-				<p class="text-muted-foreground">Aucun dossier disponible</p>
+				<EmptyState icon={FolderOpen} message="Aucun dossier disponible" />
 			{:else}
+				<div class="flex gap-4 mb-2">
+					<div class="bg-muted rounded-card-sm px-4 py-3 flex flex-col">
+						<span class="text-xs text-muted-foreground">Total</span>
+						<span class="text-lg font-semibold text-foreground">{cases.length}</span>
+					</div>
+					<div class="bg-muted rounded-card-sm px-4 py-3 flex flex-col">
+						<span class="text-xs text-muted-foreground">En cours</span>
+						<span class="text-lg font-semibold text-foreground">{cases.filter(c => c.status === 'in_progress').length}</span>
+					</div>
+					<div class="bg-muted rounded-card-sm px-4 py-3 flex flex-col">
+						<span class="text-xs text-muted-foreground">Prêts</span>
+						<span class="text-lg font-semibold text-foreground">{cases.filter(c => c.status === 'ready').length}</span>
+					</div>
+				</div>
 				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{#each cases as caseItem, index}
 						<button
@@ -55,7 +72,9 @@
 							onclick={() => selectCase(caseItem.id)}
 						>
 							<h3 class="font-semibold text-foreground">{caseItem.title}</h3>
-							<p class="text-sm text-muted-foreground">{caseItem.id}</p>
+							{#if caseItem.externalReference}
+								<p class="text-sm text-muted-foreground">{caseItem.externalReference}</p>
+							{/if}
 							{#if caseItem.status}
 								<span
 									class="inline-block mt-2 px-2 py-1 text-xs rounded-full {caseStatusBadge(caseItem.status)}"
