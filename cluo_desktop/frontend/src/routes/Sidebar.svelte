@@ -118,7 +118,7 @@
             class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
                 ? 'bg-foreground text-background'
-                : 'bg-transparent text-foreground'} {disabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-muted'}"
+                : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
             onclick={disabled ? undefined : () => handleItemClick(item)}
             disabled={disabled}
         >
@@ -134,7 +134,7 @@
                     class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
                         ? 'bg-foreground text-background'
-                        : 'bg-transparent text-foreground'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all hover:bg-muted'}"
+                        : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all'}"
                     onclick={disabled ? undefined : () => handleItemClick(item)}
                     disabled={disabled}
                 >
