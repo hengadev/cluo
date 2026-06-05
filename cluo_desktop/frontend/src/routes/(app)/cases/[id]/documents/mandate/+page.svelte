@@ -8,11 +8,15 @@
 		ChevronLeft,
 		AlertTriangle,
 		FileText,
+		Plus,
+		X,
+		Save,
 	} from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
 		fetchCaseMandates,
+		createMandate,
 		sendDocument,
 		signMandate,
 		activateMandate,
@@ -45,7 +49,16 @@
 
 	// Currently selected mandate for viewing
 	let selectedMandate: Mandate | null = $state(null);
-	let viewMode: "list" | "detail" = $state("list");
+	let viewMode: "list" | "detail" | "create" = $state("list");
+
+	// Create form state
+	let formScopeOfWork = $state("");
+	let formTermsConditions = $state("");
+	let formValidFrom = $state(todayISO());
+	let formValidUntil = $state("");
+	let formJurisdiction = $state("");
+	let formSpecialInstructions = $state("");
+	let formSaving = $state(false);
 
 	// Lifecycle action state
 	let sendingMandate = $state(false);
@@ -74,6 +87,10 @@
 		rejected: "bg-red-100 text-red-800",
 		expired: "bg-orange-100 text-orange-800",
 	};
+
+	function todayISO(): string {
+		return new Date().toISOString().split("T")[0];
+	}
 
 	function formatDate(dateStr: string): string {
 		if (!dateStr) return "—";
@@ -157,11 +174,70 @@
 	function showList() {
 		selectedMandate = null;
 		viewMode = "list";
+		formScopeOfWork = "";
+		formTermsConditions = "";
+		formValidFrom = todayISO();
+		formValidUntil = "";
+		formJurisdiction = "";
+		formSpecialInstructions = "";
+	}
+
+	function showCreate() {
+		selectedMandate = null;
+		viewMode = "create";
+		formScopeOfWork = "";
+		formTermsConditions = "";
+		formValidFrom = todayISO();
+		formValidUntil = "";
+		formJurisdiction = "";
+		formSpecialInstructions = "";
 	}
 
 	function showDetail(m: Mandate) {
 		selectedMandate = m;
 		viewMode = "detail";
+	}
+
+	async function handleCreate() {
+		if (!caseData) return;
+		if (!formScopeOfWork.trim() || !formTermsConditions.trim() || !formValidFrom) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Veuillez remplir tous les champs obligatoires.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const mandateNumber = `MAN-${new Date().getFullYear()}-${String(mandates.length + 1).padStart(3, "0")}`;
+			const payload = {
+				case_id: caseData.id,
+				client_id: caseData.clientId,
+				mandate_number: mandateNumber,
+				issue_date: new Date().toISOString(),
+				scope_of_work: formScopeOfWork.trim(),
+				terms_conditions: formTermsConditions.trim(),
+				valid_from: new Date(formValidFrom).toISOString(),
+				valid_until: formValidUntil ? new Date(formValidUntil).toISOString() : undefined,
+				jurisdiction: formJurisdiction.trim() || undefined,
+				special_instructions: formSpecialInstructions.trim() || undefined,
+				status: "draft" as const,
+			} as Mandate;
+
+			const result = await createMandate(payload);
+			if (result.data) {
+				mandates = [...mandates, result.data];
+				selectedMandate = result.data;
+				viewMode = "detail";
+				toastState.add(TOAST_LEVELS.Info, "Mandat créé", "Le mandat a été créé en brouillon.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de créer le mandat.",
+			);
+		} finally {
+			formSaving = false;
+		}
 	}
 
 	// =========================================================================
@@ -288,7 +364,9 @@
 				{/if}
 				<div>
 					<h1 class="text-2xl font-bold text-foreground">
-						{#if viewMode === "detail" && selectedMandate}
+						{#if viewMode === "create"}
+							Nouveau mandat
+						{:else if viewMode === "detail" && selectedMandate}
 							Mandat {selectedMandate.mandate_number}
 						{:else}
 							Mandats
@@ -303,6 +381,16 @@
 					</p>
 				</div>
 			</div>
+
+			{#if viewMode === "list" && mandates.length > 0}
+				<button
+					type="button"
+					onclick={showCreate}
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+				>
+					Nouveau mandat
+				</button>
+			{/if}
 
 			{#if viewMode === "detail" && selectedMandate}
 				<div class="flex items-center gap-2">
@@ -370,8 +458,15 @@
 					<FileText class="w-12 h-12 text-muted-foreground" />
 					<p class="text-muted-foreground text-center">Aucun mandat pour ce dossier.</p>
 					<p class="text-sm text-muted-foreground text-center">
-						Un mandat est automatiquement créé lorsqu'un devis est accepté.
+						Un mandat est automatiquement créé lorsqu'un devis est accepté, ou vous pouvez en créer un manuellement.
 					</p>
+					<button
+						type="button"
+						onclick={showCreate}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+					>
+						Créer un mandat
+					</button>
 				</div>
 			{:else}
 				<div class="border border-border-card rounded-lg overflow-hidden">
@@ -412,6 +507,91 @@
 					</table>
 				</div>
 			{/if}
+
+		<!-- ================================================================ -->
+		<!-- CREATE FORM -->
+		<!-- ================================================================ -->
+		{:else if viewMode === "create"}
+			<div class="border border-border-card rounded-lg p-6 max-w-3xl animate-fade-in">
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Valide du *</label>
+						<input
+							type="date"
+							bind:value={formValidFrom}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Valide jusqu'au</label>
+						<input
+							type="date"
+							bind:value={formValidUntil}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Objet de la mission *</label>
+					<textarea
+						bind:value={formScopeOfWork}
+						placeholder="Décrivez l'objet de la mission..."
+						rows="3"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Conditions *</label>
+					<textarea
+						bind:value={formTermsConditions}
+						placeholder="Conditions générales du mandat..."
+						rows="3"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Juridiction</label>
+					<input
+						type="text"
+						bind:value={formJurisdiction}
+						placeholder="Ex : France, Paris..."
+						class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+					/>
+				</div>
+
+				<div class="mb-6">
+					<label class="text-xs text-muted-foreground mb-1 block">Instructions spéciales</label>
+					<textarea
+						bind:value={formSpecialInstructions}
+						placeholder="Instructions particulières..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={showList}
+						class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					>
+						<X size={14} class="mr-1" />
+						Annuler
+					</button>
+					<button
+						type="button"
+						onclick={handleCreate}
+						disabled={formSaving}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+					>
+						<Save size={14} class="mr-1" />
+						{formSaving ? "Enregistrement..." : "Créer le mandat"}
+					</button>
+				</div>
+			</div>
 
 		<!-- ================================================================ -->
 		<!-- DETAIL VIEW -->
