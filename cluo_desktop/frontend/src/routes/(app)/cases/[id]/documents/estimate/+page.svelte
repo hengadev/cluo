@@ -440,7 +440,6 @@
 					onclick={showCreate}
 					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
 				>
-					<Plus size={16} class="mr-2" />
 					Nouveau devis
 				</button>
 			{/if}
@@ -508,7 +507,6 @@
 						onclick={showCreate}
 						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
 					>
-						<Plus size={16} class="mr-2" />
 						Créer un devis
 					</button>
 				</div>
