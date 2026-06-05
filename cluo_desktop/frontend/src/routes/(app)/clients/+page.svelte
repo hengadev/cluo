@@ -2,6 +2,8 @@
 	import { onMount } from "svelte";
 	import { goto } from "$app/navigation";
 	import { Plus, Search, Building2, User, Scale, Shield, Landmark } from "@lucide/svelte";
+	import Spinner from "$lib/components/Spinner.svelte";
+	import EmptyState from "$lib/components/EmptyState.svelte";
 	import { fetchAllClients, deleteClient } from "$lib/services/api";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
@@ -36,7 +38,7 @@
 		insurance: "bg-accent text-accent-foreground",
 		lawyer: "bg-tertiary/15 text-tertiary",
 		company: "bg-success/15 text-success",
-		government: "bg-destructive/15 text-destructive",
+		government: "bg-muted text-foreground",
 	};
 
 	let filteredClients = $derived(
@@ -113,7 +115,7 @@
 
 	{#if loading}
 		<div class="flex items-center justify-center py-12">
-			<p class="text-muted-foreground">Chargement...</p>
+			<Spinner />
 		</div>
 	{:else if error}
 		<div
@@ -122,13 +124,19 @@
 			{error}
 		</div>
 	{:else if filteredClients.length === 0}
-		<div class="text-center py-12">
-			<p class="text-muted-foreground">
-				{searchQuery
-					? "Aucun client trouvé pour cette recherche."
-					: "Aucun client enregistré. Créez votre premier client !"}
-			</p>
-		</div>
+		{#if searchQuery}
+			<EmptyState icon={Search} message="Aucun client trouvé pour cette recherche." />
+		{:else}
+			<EmptyState icon={Building2} message="Aucun client enregistré.">
+				<button
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
+					onclick={() => goto("/clients/new")}
+				>
+					<Plus size={18} />
+					Nouveau client
+				</button>
+			</EmptyState>
+		{/if}
 	{:else}
 		<div
 			class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"
