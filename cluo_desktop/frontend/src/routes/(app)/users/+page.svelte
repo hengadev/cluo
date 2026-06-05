@@ -1,7 +1,8 @@
 <script lang="ts">
 	import { onMount } from "svelte";
+	import { userRoleBadge } from "$lib/utils/badgeVariants";
 	import { fetchAllUsers } from "$lib/services/api";
-	import type { AuthUser } from "$lib/types/entities";
+	import type { AuthUser, UserRole } from "$lib/types/entities";
 
 	let users: AuthUser[] = [];
 	let loading = true;
@@ -13,11 +14,6 @@
 		viewer: "Lecteur"
 	};
 
-	const ROLE_BADGE_CLASSES: Record<string, string> = {
-		admin: "bg-red-100 text-red-800",
-		investigator: "bg-blue-100 text-blue-800",
-		viewer: "bg-gray-100 text-gray-800"
-	};
 
 	onMount(async () => {
 		try {
@@ -40,7 +36,7 @@
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
 		{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		<div class="alert-error">
 			{error}
 		</div>
 		{:else if users.length === 0}
@@ -67,7 +63,7 @@
 								<div class="text-sm text-muted-foreground">{user.email}</div>
 							</td>
 							<td class="px-6 py-4 whitespace-nowrap">
-								<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {ROLE_BADGE_CLASSES[user.role] || 'bg-gray-100 text-gray-800'}">
+								<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {userRoleBadge(user.role as UserRole)}">
 									{ROLE_LABELS[user.role] || user.role}
 								</span>
 							</td>

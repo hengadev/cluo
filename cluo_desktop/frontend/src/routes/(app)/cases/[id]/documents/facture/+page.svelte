@@ -26,8 +26,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+	import { documentStatusBadge, paymentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
-	import type { Case, Client, Invoice, InvoiceItem, PaymentRequest } from "$lib/types/entities";
+	import type { Case, Client, Invoice, InvoiceItem, PaymentRequest, DocumentStatus, PaymentStatus } from "$lib/types/entities";
 
 	const toastState = getToastContext();
 
@@ -89,17 +90,7 @@
 		void: "Annulé",
 	};
 
-	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-gray-100 text-gray-800",
-		sent: "bg-blue-100 text-blue-800",
-		signed: "bg-green-100 text-green-800",
-		active: "bg-emerald-100 text-emerald-800",
-		archived: "bg-slate-100 text-slate-700",
-		cancelled: "bg-red-100 text-red-800",
-		rejected: "bg-red-100 text-red-800",
-		expired: "bg-orange-100 text-orange-800",
-		void: "bg-red-100 text-red-800",
-	};
+
 
 	const PAYMENT_STATUS_LABELS: Record<string, string> = {
 		unpaid: "Non payée",
@@ -110,14 +101,7 @@
 		void: "Annulée",
 	};
 
-	const PAYMENT_STATUS_COLORS: Record<string, string> = {
-		unpaid: "bg-gray-100 text-gray-800",
-		paid: "bg-green-100 text-green-800",
-		partially_paid: "bg-yellow-100 text-yellow-800",
-		overdue: "bg-red-100 text-red-800",
-		refunded: "bg-purple-100 text-purple-800",
-		void: "bg-red-100 text-red-800",
-	};
+
 
 	const PAYMENT_METHODS: Record<string, string> = {
 		bank_transfer: "Virement bancaire",
@@ -479,7 +463,7 @@
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
 	{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		<div class="alert-error">
 			{error}
 		</div>
 	{:else}
@@ -537,7 +521,7 @@
 							<button
 								type="button"
 								disabled={sendingInvoice}
-								class="h-input rounded-input bg-blue-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Send size={14} class="mr-1" />
 								{sendingInvoice ? "Envoi..." : "Envoyer"}
@@ -548,7 +532,7 @@
 						<button
 							type="button"
 							onclick={openPaymentForm}
-							class="h-input rounded-input bg-emerald-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+							class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer"
 						>
 							<Banknote size={14} class="mr-1" />
 							Enregistrer un paiement
@@ -564,7 +548,7 @@
 							<button
 								type="button"
 								disabled={voidingInvoice}
-								class="h-input rounded-input bg-red-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Ban size={14} class="mr-1" />
 								{voidingInvoice ? "Annulation..." : "Annuler la facture"}
@@ -630,12 +614,12 @@
 										</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {PAYMENT_STATUS_COLORS[inv.payment_status] || 'bg-gray-100 text-gray-800'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {paymentStatusBadge(inv.payment_status as PaymentStatus)}">
 											{PAYMENT_STATUS_LABELS[inv.payment_status] || inv.payment_status}
 										</span>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[inv.status] || 'bg-gray-100 text-gray-800'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(inv.status as DocumentStatus)}">
 											{STATUS_LABELS[inv.status] || inv.status}
 										</span>
 									</td>
@@ -724,7 +708,7 @@
 									<button
 										type="button"
 										onclick={() => removeLineItem(i)}
-										class="p-2 mt-3 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+										class="p-2 mt-3 rounded btn-ghost-destructive cursor-pointer"
 										title="Supprimer la ligne"
 									>
 										<Trash2 size={14} />
@@ -802,34 +786,34 @@
 			<div class="max-w-3xl animate-fade-in">
 				<!-- Status banner -->
 				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedInvoice.status] || 'bg-gray-100 text-gray-800'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedInvoice.status as DocumentStatus)}">
 						{STATUS_LABELS[selectedInvoice.status] || selectedInvoice.status}
 					</span>
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {PAYMENT_STATUS_COLORS[selectedInvoice.payment_status] || 'bg-gray-100 text-gray-800'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {paymentStatusBadge(selectedInvoice.payment_status as PaymentStatus)}">
 						{PAYMENT_STATUS_LABELS[selectedInvoice.payment_status] || selectedInvoice.payment_status}
 					</span>
 					{#if selectedInvoice.payment_status === "paid"}
-						<span class="text-sm text-green-700">
+						<span class="text-sm text-success">
 							Facture réglée.
 						</span>
 					{:else if selectedInvoice.payment_status === "overdue"}
-						<span class="text-sm text-red-700">
+						<span class="text-sm text-destructive">
 							Paiement en retard — l'échéance est dépassée.
 						</span>
 					{:else if selectedInvoice.payment_status === "partially_paid"}
-						<span class="text-sm text-yellow-700">
+						<span class="text-sm text-tertiary">
 							Paiement partiel — reste {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}.
 						</span>
 					{:else if selectedInvoice.status === "sent"}
-						<span class="text-sm text-blue-700">
+						<span class="text-sm text-accent-foreground">
 							Envoyée au client — en attente de paiement.
 						</span>
 					{:else if selectedInvoice.status === "draft"}
-						<span class="text-sm text-gray-600">
+						<span class="text-sm text-muted-foreground">
 							Brouillon — à envoyer au client.
 						</span>
 					{:else if selectedInvoice.payment_status === "void"}
-						<span class="text-sm text-red-700">
+						<span class="text-sm text-destructive">
 							Facture annulée.
 						</span>
 					{/if}
@@ -940,7 +924,7 @@
 							</div>
 							<div class="w-full bg-muted rounded-full h-2.5">
 								<div
-									class="h-2.5 rounded-full transition-all duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-green-500' : selectedInvoice.payment_status === 'overdue' ? 'bg-red-500' : 'bg-blue-500'}"
+									class="h-2.5 rounded-full transition-all duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent-foreground'}"
 									style="width: {paymentProgress(selectedInvoice)}%"
 								></div>
 							</div>
@@ -970,7 +954,7 @@
 							{#if selectedInvoice.late_fee}
 								<div>
 									<p class="text-xs text-muted-foreground mb-1">Pénalité de retard</p>
-									<p class="text-sm text-red-700">{formatCurrency(selectedInvoice.late_fee, selectedInvoice.currency)}</p>
+									<p class="text-sm text-destructive">{formatCurrency(selectedInvoice.late_fee, selectedInvoice.currency)}</p>
 								</div>
 							{/if}
 						</div>
@@ -981,7 +965,7 @@
 				<!-- PAYMENT FORM -->
 				<!-- ============================================================ -->
 				{#if showPaymentForm}
-					<div class="border border-emerald-200 bg-emerald-50/50 rounded-lg p-6 mb-6 animate-fade-in">
+					<div class="border border-success/30 bg-success/10 rounded-lg p-6 mb-6 animate-fade-in">
 						<h3 class="text-sm font-semibold text-foreground mb-4">Enregistrer un paiement</h3>
 
 						<div class="grid grid-cols-2 gap-4 mb-4">
@@ -1025,7 +1009,7 @@
 								type="button"
 								onclick={handlePayment}
 								disabled={paymentSubmitting}
-								class="h-input rounded-input bg-emerald-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Save size={14} class="mr-1" />
 								{paymentSubmitting ? "Enregistrement..." : "Enregistrer le paiement"}
