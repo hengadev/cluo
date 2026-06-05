@@ -106,25 +106,25 @@
 	};
 
 	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-gray-100 text-gray-800",
-		sent: "bg-blue-100 text-blue-800",
-		signed: "bg-green-100 text-green-800",
-		active: "bg-emerald-100 text-emerald-800",
-		archived: "bg-slate-100 text-slate-700",
-		cancelled: "bg-red-100 text-red-800",
-		rejected: "bg-red-100 text-red-800",
-		expired: "bg-orange-100 text-orange-800",
+		draft: "bg-muted text-muted-foreground",
+		sent: "bg-accent text-accent-foreground",
+		signed: "bg-success/15 text-success",
+		active: "bg-success text-success-foreground",
+		archived: "bg-muted text-muted-foreground",
+		cancelled: "bg-destructive/15 text-destructive",
+		rejected: "bg-destructive/15 text-destructive",
+		expired: "bg-tertiary/15 text-tertiary",
 	};
 
 	const STATUS_DOT_COLORS: Record<string, string> = {
-		draft: "bg-gray-400",
-		sent: "bg-blue-500",
-		signed: "bg-green-500",
-		active: "bg-emerald-500",
-		archived: "bg-slate-400",
-		cancelled: "bg-red-500",
-		rejected: "bg-red-500",
-		expired: "bg-orange-500",
+		draft: "bg-muted-foreground",
+		sent: "bg-accent-foreground",
+		signed: "bg-success",
+		active: "bg-success",
+		archived: "bg-muted-foreground",
+		cancelled: "bg-destructive",
+		rejected: "bg-destructive",
+		expired: "bg-tertiary",
 	};
 
 	// =========================================================================
@@ -187,7 +187,7 @@
 				return {
 					label: "Envoyer",
 					icon: Send,
-					color: "bg-blue-600 text-white",
+					color: "bg-accent text-accent-foreground",
 					needsConfirm: true,
 					confirmTitle: "Envoyer le devis",
 					confirmDescription: "Le devis sera marqué comme envoyé au client. Cette action est irréversible.",
@@ -207,7 +207,7 @@
 				return {
 					label: "Accepter",
 					icon: CheckCircle,
-					color: "bg-emerald-600 text-white",
+					color: "bg-success text-success-foreground",
 					needsConfirm: true,
 					confirmTitle: "Accepter le devis",
 					confirmDescription: "Le devis sera marqué comme accepté et un mandat sera automatiquement créé.",
@@ -224,7 +224,7 @@
 				return {
 					label: "Envoyer",
 					icon: Send,
-					color: "bg-blue-600 text-white",
+					color: "bg-accent text-accent-foreground",
 					needsConfirm: true,
 					confirmTitle: "Envoyer le mandat",
 					confirmDescription: "Le mandat sera marqué comme envoyé au client. Cette action est irréversible.",
@@ -244,7 +244,7 @@
 				return {
 					label: "Signer",
 					icon: CheckCircle,
-					color: "bg-green-600 text-white",
+					color: "bg-success text-success-foreground",
 					needsConfirm: true,
 					confirmTitle: "Signer le mandat",
 					confirmDescription: "Enregistrez la signature du mandat. Le mandat passera en état « Signé ».",
@@ -262,7 +262,7 @@
 				return {
 					label: "Activer",
 					icon: ShieldCheck,
-					color: "bg-emerald-600 text-white",
+					color: "bg-success text-success-foreground",
 					needsConfirm: true,
 					confirmTitle: "Activer le mandat",
 					confirmDescription: "Le mandat sera activé, autorisant formellement le début de l'enquête. Cette action est irréversible.",
@@ -279,7 +279,7 @@
 				return {
 					label: "Envoyer",
 					icon: Send,
-					color: "bg-blue-600 text-white",
+					color: "bg-accent text-accent-foreground",
 					needsConfirm: true,
 					confirmTitle: "Envoyer le contrat",
 					confirmDescription: "Le contrat sera marqué comme envoyé au client.",
@@ -299,7 +299,7 @@
 				return {
 					label: "Signer",
 					icon: CheckCircle,
-					color: "bg-green-600 text-white",
+					color: "bg-success text-success-foreground",
 					needsConfirm: true,
 					confirmTitle: "Signer le contrat",
 					confirmDescription: "Enregistrez la signature du contrat.",
@@ -317,7 +317,7 @@
 				return {
 					label: "Activer",
 					icon: ShieldCheck,
-					color: "bg-emerald-600 text-white",
+					color: "bg-success text-success-foreground",
 					needsConfirm: true,
 					confirmTitle: "Activer le contrat",
 					confirmDescription: "Le contrat sera activé, mettant en vigueur l'accord commercial.",
@@ -334,7 +334,7 @@
 				return {
 					label: "Envoyer",
 					icon: Send,
-					color: "bg-blue-600 text-white",
+					color: "bg-accent text-accent-foreground",
 					needsConfirm: true,
 					confirmTitle: "Envoyer la facture",
 					confirmDescription: "La facture sera marquée comme envoyée au client.",
@@ -385,7 +385,7 @@
 		return {
 			label: "Créer facture",
 			icon: ReceiptEuro,
-			color: "bg-violet-600 text-white",
+			color: "bg-tertiary text-background",
 			needsConfirm: true,
 			confirmTitle: "Créer une facture",
 			confirmDescription: "Une facture sera générée à partir du contrat actif.",
@@ -438,7 +438,7 @@
 			<span class="ml-2 text-sm text-muted-foreground">Chargement du workflow...</span>
 		</div>
 	{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		<div class="alert-error">
 			{error}
 		</div>
 	{:else}
@@ -477,8 +477,8 @@
 
 							<!-- Status dot/badge -->
 							{#if doc}
-								<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium {STATUS_COLORS[doc.status] || 'bg-gray-100 text-gray-800'}">
-									<span class="w-1.5 h-1.5 rounded-full {STATUS_DOT_COLORS[doc.status] || 'bg-gray-400'}"></span>
+								<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium {STATUS_COLORS[doc.status] || 'bg-muted text-muted-foreground'}">
+									<span class="w-1.5 h-1.5 rounded-full {STATUS_DOT_COLORS[doc.status] || 'bg-muted-foreground'}"></span>
 									{STATUS_LABELS[doc.status] || doc.status}
 								</span>
 							{:else}

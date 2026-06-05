@@ -97,7 +97,7 @@
         <div
             class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all z-10 {isSelected
                 ? 'bg-primary border-primary'
-                : 'bg-white/80 border-white'}"
+                : 'bg-background/80 border-background'}}"
         >
             {#if isSelected}
                 <svg
@@ -119,7 +119,7 @@
     {:else if isInReport}
         <!-- Check Indicator (some photos in report) -->
         <div
-            class="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-mini z-10"
+            class="absolute top-2 right-2 w-8 h-8 bg-success rounded-full flex items-center justify-center shadow-mini z-10"
         >
             <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -131,7 +131,7 @@
                 stroke-width="3"
                 stroke-linecap="round"
                 stroke-linejoin="round"
-                class="text-white"
+                class="text-success-foreground"
             >
                 <polyline points="20 6 9 17 4 12"></polyline>
             </svg>
@@ -169,28 +169,28 @@
     /* Main front card */
     .burst-card-main {
         z-index: 4;
-        border: 2px solid white;
+        border: 2px solid var(--background);
     }
 
     /* Layer 1 - slightly behind */
     .burst-card-layer-1 {
         z-index: 3;
         transform: translate(4px, 3px);
-        border: 2px solid white;
+        border: 2px solid var(--background);
     }
 
     /* Layer 2 - more behind */
     .burst-card-layer-2 {
         z-index: 2;
         transform: translate(8px, 6px);
-        border: 2px solid white;
+        border: 2px solid var(--background);
     }
 
     /* Layer 3 - furthest behind */
     .burst-card-layer-3 {
         z-index: 1;
         transform: translate(12px, 9px);
-        border: 2px solid white;
+        border: 2px solid var(--background);
     }
 
     /* On hover, spread the stack */

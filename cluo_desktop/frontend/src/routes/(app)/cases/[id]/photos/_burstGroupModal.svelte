@@ -109,9 +109,9 @@
                         <!-- Already in report indicator -->
                         {#if reportedIds.has(image.id)}
                             <div
-                                class="absolute top-2 right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center"
+                                class="absolute top-2 right-2 w-6 h-6 bg-success rounded-full flex items-center justify-center"
                             >
-                                <Check size={14} class="text-white" />
+                                <Check size={14} class="text-success-foreground" />
                             </div>
                         {/if}
                     </div>

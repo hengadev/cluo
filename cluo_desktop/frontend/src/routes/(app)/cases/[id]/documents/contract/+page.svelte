@@ -83,14 +83,14 @@
 	};
 
 	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-gray-100 text-gray-800",
-		sent: "bg-blue-100 text-blue-800",
-		signed: "bg-green-100 text-green-800",
-		active: "bg-emerald-100 text-emerald-800",
-		archived: "bg-slate-100 text-slate-700",
-		cancelled: "bg-red-100 text-red-800",
-		rejected: "bg-red-100 text-red-800",
-		expired: "bg-orange-100 text-orange-800",
+		draft: "bg-muted text-muted-foreground",
+		sent: "bg-accent text-accent-foreground",
+		signed: "bg-success/15 text-success",
+		active: "bg-success text-success-foreground",
+		archived: "bg-muted text-muted-foreground",
+		cancelled: "bg-destructive/15 text-destructive",
+		rejected: "bg-destructive/15 text-destructive",
+		expired: "bg-tertiary/15 text-tertiary",
 	};
 
 	function todayISO(): string {
@@ -397,7 +397,7 @@
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
 	{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		<div class="alert-error">
 			{error}
 		</div>
 	{:else}
@@ -455,7 +455,7 @@
 							<button
 								type="button"
 								disabled={sendingContract}
-								class="h-input rounded-input bg-blue-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Send size={14} class="mr-1" />
 								{sendingContract ? "Envoi..." : "Envoyer"}
@@ -472,7 +472,7 @@
 							<button
 								type="button"
 								disabled={signingContract}
-								class="h-input rounded-input bg-green-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<CheckCircle size={14} class="mr-1" />
 								{signingContract ? "Signature..." : "Signer"}
@@ -489,7 +489,7 @@
 							<button
 								type="button"
 								disabled={activatingContract}
-								class="h-input rounded-input bg-emerald-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<ShieldCheck size={14} class="mr-1" />
 								{activatingContract ? "Activation..." : "Activer"}
@@ -506,7 +506,7 @@
 							<button
 								type="button"
 								disabled={creatingInvoice}
-								class="h-input rounded-input bg-violet-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-tertiary text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Receipt size={14} class="mr-1" />
 								{creatingInvoice ? "Création..." : "Créer une facture"}
@@ -575,7 +575,7 @@
 										{/if}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[c.status] || 'bg-gray-100 text-gray-800'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground'}">
 											{STATUS_LABELS[c.status] || c.status}
 										</span>
 									</td>
@@ -698,27 +698,27 @@
 			<div class="max-w-3xl animate-fade-in">
 				<!-- Status banner -->
 				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedContract.status] || 'bg-gray-100 text-gray-800'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedContract.status] || 'bg-muted text-muted-foreground'}">
 						{STATUS_LABELS[selectedContract.status] || selectedContract.status}
 					</span>
 					{#if selectedContract.status === "active"}
-						<span class="text-sm text-emerald-700">
+						<span class="text-sm text-success">
 							Accord commercial en vigueur.
 						</span>
 					{:else if selectedContract.status === "signed"}
-						<span class="text-sm text-green-700">
+						<span class="text-sm text-success">
 							Signé — en attente d'activation.
 						</span>
 					{:else if selectedContract.status === "sent"}
-						<span class="text-sm text-blue-700">
+						<span class="text-sm text-accent-foreground">
 							Envoyé au client — en attente de signature.
 						</span>
 					{:else if selectedContract.status === "draft"}
-						<span class="text-sm text-gray-600">
+						<span class="text-sm text-muted-foreground">
 							Brouillon — à envoyer pour signature.
 						</span>
 					{:else if selectedContract.status === "archived"}
-						<span class="text-sm text-slate-600">
+						<span class="text-sm text-muted-foreground">
 							Archivé — ce contrat n'est plus actif.
 						</span>
 					{/if}
@@ -813,7 +813,7 @@
 											{sig.role === 'investigator' ? 'Enquêteur' : sig.role === 'client' ? 'Client' : `Signataire ${i + 1}`}
 										</p>
 										<div class="flex items-center gap-2">
-											<CheckCircle size={16} class="text-green-600 flex-shrink-0" />
+											<CheckCircle size={16} class="text-success flex-shrink-0" />
 											<div>
 												<p class="text-sm font-medium text-foreground">{sig.name}</p>
 												<p class="text-xs text-muted-foreground">

@@ -43,7 +43,7 @@
     class="flex gap-4 border rounded-card p-3 bg-muted/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 {isDragging
         ? 'opacity-50'
         : ''} {isDragOver
-        ? 'border-blue-500 bg-blue-50/50'
+        ? 'border-accent bg-accent/50'
         : 'border-border-card'}"
     draggable="true"
     ondragstart={(e) => onDragStart(e, image.id)}

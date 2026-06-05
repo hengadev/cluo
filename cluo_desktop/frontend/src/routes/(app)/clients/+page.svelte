@@ -32,11 +32,11 @@
 	};
 
 	const TYPE_BADGE: Record<ClientType, string> = {
-		person: "bg-violet-100 text-violet-800",
-		insurance: "bg-blue-100 text-blue-800",
-		lawyer: "bg-amber-100 text-amber-800",
-		company: "bg-emerald-100 text-emerald-800",
-		government: "bg-red-100 text-red-800",
+		person: "bg-tertiary/15 text-tertiary",
+		insurance: "bg-accent text-accent-foreground",
+		lawyer: "bg-tertiary/15 text-tertiary",
+		company: "bg-success/15 text-success",
+		government: "bg-destructive/15 text-destructive",
 	};
 
 	let filteredClients = $derived(
@@ -117,7 +117,7 @@
 		</div>
 	{:else if error}
 		<div
-			class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+			class="alert-error"
 		>
 			{error}
 		</div>
@@ -135,7 +135,7 @@
 		>
 			{#each filteredClients as client, index}
 				{@const Icon = TYPE_ICONS[client.type] || Building2}
-				{@const badge = TYPE_BADGE[client.type] || "bg-gray-100 text-gray-800"}
+				{@const badge = TYPE_BADGE[client.type] || "bg-muted text-muted-foreground"}
 				<div
 					class="border border-border-card rounded-card p-5 bg-background hover:border-border-input-hover hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade-in cursor-pointer group"
 					style="animation-delay: {200 + index * 50}ms;"
@@ -173,7 +173,7 @@
 								onConfirm={() => handleDelete(client)}
 							>
 								<button
-									class="p-1.5 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors"
+									class="p-1.5 rounded btn-ghost-destructive"
 									onclick={(e: MouseEvent) => e.stopPropagation()}
 									type="button"
 								>

@@ -76,14 +76,14 @@
 	};
 
 	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-gray-100 text-gray-800",
-		sent: "bg-blue-100 text-blue-800",
-		signed: "bg-green-100 text-green-800",
-		active: "bg-emerald-100 text-emerald-800",
-		archived: "bg-slate-100 text-slate-700",
-		cancelled: "bg-red-100 text-red-800",
-		rejected: "bg-red-100 text-red-800",
-		expired: "bg-orange-100 text-orange-800",
+		draft: "bg-muted text-muted-foreground",
+		sent: "bg-accent text-accent-foreground",
+		signed: "bg-success/15 text-success",
+		active: "bg-success text-success-foreground",
+		archived: "bg-muted text-muted-foreground",
+		cancelled: "bg-destructive/15 text-destructive",
+		rejected: "bg-destructive/15 text-destructive",
+		expired: "bg-tertiary/15 text-tertiary",
 	};
 
 	interface FormItem {
@@ -396,7 +396,7 @@
 			<p class="text-muted-foreground">Chargement...</p>
 		</div>
 	{:else if error}
-		<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+		<div class="alert-error">
 			{error}
 		</div>
 	{:else}
@@ -466,7 +466,7 @@
 							<button
 								type="button"
 								disabled={sendingEstimate}
-								class="h-input rounded-input bg-blue-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<Send size={14} class="mr-1" />
 								{sendingEstimate ? "Envoi..." : "Envoyer"}
@@ -483,7 +483,7 @@
 							<button
 								type="button"
 								disabled={acceptingEstimate}
-								class="h-input rounded-input bg-emerald-600 text-white shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
 								<CheckCircle size={14} class="mr-1" />
 								{acceptingEstimate ? "Acceptation..." : "Accepter"}
@@ -537,7 +537,7 @@
 										<div class="text-sm font-medium text-foreground">{formatCurrency(est.estimated_total)}</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[est.status] || 'bg-gray-100 text-gray-800'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[est.status] || 'bg-muted text-muted-foreground'}">
 											{STATUS_LABELS[est.status] || est.status}
 										</span>
 									</td>
@@ -629,7 +629,7 @@
 									<button
 										type="button"
 										onclick={() => removeLineItem(i)}
-										class="p-2 mt-3 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+										class="p-2 mt-3 rounded btn-ghost-destructive cursor-pointer"
 										title="Supprimer la ligne"
 									>
 										<Trash2 size={14} />
@@ -689,7 +689,7 @@
 			<div class="max-w-3xl animate-fade-in">
 				<!-- Status banner -->
 				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedEstimate.status] || 'bg-gray-100 text-gray-800'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedEstimate.status] || 'bg-muted text-muted-foreground'}">
 						{STATUS_LABELS[selectedEstimate.status] || selectedEstimate.status}
 					</span>
 					{#if selectedEstimate.status !== "draft"}
@@ -723,9 +723,9 @@
 					</div>
 
 					{#if selectedEstimate.accepted && selectedEstimate.accepted_at}
-						<div class="bg-green-50 border border-green-200 rounded-lg p-3 mb-4 flex items-center gap-2">
-							<CheckCircle size={16} class="text-green-600 flex-shrink-0" />
-							<p class="text-sm text-green-800">
+						<div class="bg-success/10 border border-success/30 rounded-lg p-3 mb-4 flex items-center gap-2">
+							<CheckCircle size={16} class="text-success flex-shrink-0" />
+							<p class="text-sm text-success">
 								Accepté le {formatDate(selectedEstimate.accepted_at)}
 							</p>
 						</div>

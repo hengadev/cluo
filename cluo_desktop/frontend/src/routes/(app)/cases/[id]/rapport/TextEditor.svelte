@@ -334,12 +334,8 @@
 
 <style>
     .tiptap-editor {
-        background: white;
+        background: var(--background);
         box-shadow: 0 0 10px var(--color-dark-10);
-    }
-
-    :global(.dark) .tiptap-editor {
-        background: var(--color-background-alt);
     }
 
     :global(.tiptap-editor .ProseMirror) {
@@ -351,13 +347,9 @@
 
     /* Style pages created by pagination extension */
     :global(.tiptap-editor .page) {
-        background: white !important;
+        background: var(--background) !important;
         box-shadow: 0 0 10px var(--color-dark-10);
         color: var(--color-foreground);
-    }
-
-    :global(.dark .tiptap-editor .page) {
-        background: var(--color-background-alt) !important;
     }
 
     /* Style page gaps/breaks to match container background */

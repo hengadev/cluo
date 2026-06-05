@@ -330,7 +330,7 @@
 		</div>
 	{:else if error}
 		<div
-			class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+			class="alert-error"
 		>
 			{error}
 		</div>
@@ -392,7 +392,7 @@
 						<div class="flex items-center gap-4">
 							<h1 class="text-3xl font-bold">{client.name}</h1>
 							<span
-								class="px-2 py-0.5 text-xs rounded-full bg-blue-100 text-blue-800"
+								class="px-2 py-0.5 text-xs rounded-full bg-accent text-accent-foreground"
 							>
 								{TYPE_LABELS[client.type] || client.type}
 							</span>
@@ -417,7 +417,7 @@
 							onConfirm={handleDeleteClient}
 						>
 							<button
-								class="p-2 rounded-lg hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+								class="p-2 rounded-lg btn-ghost-destructive cursor-pointer"
 								title="Supprimer"
 							>
 								<Trash2 size={18} />
@@ -452,7 +452,7 @@
 			{#if showNewContact}
 				<form
 					onsubmit={handleCreateContact}
-					class="border border-blue-200 rounded-card p-5 mb-4 bg-blue-50/30"
+					class="border border-accent/50 rounded-card p-5 mb-4 bg-accent/30"
 				>
 					<h3 class="text-sm font-semibold mb-4">Nouveau contact</h3>
 					<div
@@ -655,7 +655,7 @@
 											onConfirm={() => handleDeleteContact(contact.id)}
 										>
 											<button
-												class="p-1.5 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+												class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
 												title="Supprimer"
 											>
 												<Trash2 size={14} />

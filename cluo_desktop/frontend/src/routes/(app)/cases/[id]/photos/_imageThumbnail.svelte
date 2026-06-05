@@ -58,7 +58,7 @@
         {#if !isInReport}
             <!-- Add Button (visible on hover) -->
             <button
-                class="absolute top-2 right-2 w-8 h-8 bg-white rounded-full shadow-mini flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-white/90 active:scale-95"
+                class="absolute top-2 right-2 w-8 h-8 bg-background rounded-full shadow-mini flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-background/90 active:scale-95"
                 onclick={onAdd}
                 title="Ajouter au rapport"
             >
@@ -67,9 +67,9 @@
         {:else}
             <!-- Check Indicator (always visible when in report) -->
             <div
-                class="absolute top-2 right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-mini"
+                class="absolute top-2 right-2 w-8 h-8 bg-success rounded-full flex items-center justify-center shadow-mini"
             >
-                <Check size={16} class="text-white" />
+                <Check size={16} class="text-success-foreground" />
             </div>
         {/if}
     {/if}

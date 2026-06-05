@@ -165,7 +165,7 @@
                     <Download class="size-5" />
                     Update Available
                 {:else if updateState === "uptodate"}
-                    <Check class="size-5 text-green-500" />
+                    <Check class="size-5 text-success" />
                     Up to Date
                 {:else if updateState === "downloading"}
                     <Loader2 class="size-5 animate-spin" />
@@ -174,10 +174,10 @@
                     <Loader2 class="size-5 animate-spin" />
                     Installing Update...
                 {:else if updateState === "ready"}
-                    <Check class="size-5 text-green-500" />
+                    <Check class="size-5 text-success" />
                     Update Ready
                 {:else if updateState === "error"}
-                    <AlertCircle class="size-5 text-red-500" />
+                    <AlertCircle class="size-5 text-destructive" />
                     Update Error
                 {:else}
                     <RefreshCw class="size-5" />
@@ -235,8 +235,8 @@
                         The update has been installed. Restart the application to apply the changes.
                     </p>
                 {:else if updateState === "error"}
-                    <div class="rounded-md bg-red-50 p-3 dark:bg-red-950">
-                        <p class="text-sm text-red-600 dark:text-red-400">
+                    <div class="rounded-md alert-error">
+                        <p class="text-sm">
                             {errorMessage || "An unknown error occurred."}
                         </p>
                     </div>
