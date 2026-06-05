@@ -53,23 +53,9 @@
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
 >
-    <!-- Chevron toggle button -->
-    <button
-        onclick={() => (isExpanded = !isExpanded)}
-        class="absolute bottom-16 text-dark-500 right-[-1.25rem] border-dark-50 bg-dark-50 p-2 rounded-3xl hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
-        title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
-        type="button"
-    >
-        {#if isExpanded}
-            <ChevronLeft size={24} strokeWidth={1.5} />
-        {:else}
-            <ChevronRight size={24} strokeWidth={1.5} />
-        {/if}
-    </button>
-
-    <div class="grid gap-4">
+    <div class="flex {isExpanded ? 'justify-between' : 'justify-center'} items-center w-full">
         <Button.Root
-            class="bg-background border-1 border-border-input p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 {isExpanded
+            class="p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 bg-transparent text-foreground hover:bg-foreground/10 {isExpanded
                 ? 'justify-start gap-3 px-4'
                 : 'justify-center'}"
             onclick={() => goto("/")}
@@ -79,6 +65,20 @@
                 <span class="text-sm font-medium">Home</span>
             {/if}
         </Button.Root>
+
+        <!-- Chevron toggle button -->
+        <button
+            onclick={() => (isExpanded = !isExpanded)}
+            class="p-2 rounded-input text-dark-500 hover:bg-foreground/10 hover:scale-110 active:scale-95 transition-all duration-200 {isExpanded ? '' : '!mt-1'}"
+            title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
+            type="button"
+        >
+            {#if isExpanded}
+                <ChevronLeft size={24} strokeWidth={1.5} />
+            {:else}
+                <ChevronRight size={24} strokeWidth={1.5} />
+            {/if}
+        </button>
     </div>
     <div class="flex flex-col justify-between h-full">
         <div
