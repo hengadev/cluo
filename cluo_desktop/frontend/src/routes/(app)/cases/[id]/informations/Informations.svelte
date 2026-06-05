@@ -16,9 +16,11 @@
 		deleteCaseSubject,
 	} from "$lib/services/api";
 	import { recentCases } from "$lib/stores/case";
+	import { caseStatusBadge } from "$lib/utils/badgeVariants";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import Spinner from "$lib/components/Spinner.svelte";
 	import DocumentWorkflowSummary from "./DocumentWorkflowSummary.svelte";
 	import type {
 		Case,
@@ -415,7 +417,7 @@
 <div class="p-8 flex flex-col gap-6">
 	{#if loading}
 		<div class="flex items-center justify-center py-12">
-			<p class="text-muted-foreground">Chargement...</p>
+			<Spinner size="lg" />
 		</div>
 	{:else if error}
 		<div
@@ -432,9 +434,9 @@
 			>
 				<div class="flex gap-4 items-center">
 					<span
-						class="bg-accent text-accent-foreground px-2 py-1 rounded-card text-sm font-medium"
+						class="{caseStatusBadge(caseData.status)} px-2 py-1 rounded-card text-sm font-medium"
 					>
-						STATUT: {STATUS_LABELS[caseData.status] || caseData.status}
+						{STATUS_LABELS[caseData.status] || caseData.status}
 					</span>
 					<p class="text-muted-foreground text-sm">
 						Créé le {formatDate(caseData.createdAt)}
@@ -535,7 +537,7 @@
 								<button
 									type="button"
 									onclick={cancelClientEdit}
-									class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+									class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
 								>
 									<X size={14} />
 								</button>
@@ -655,7 +657,7 @@
 								<button
 									type="button"
 									onclick={cancelCaseTypeEdit}
-									class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+									class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
 								>
 									<X size={14} />
 								</button>
@@ -819,7 +821,7 @@
 						<button
 							type="button"
 							onclick={cancelSubjectForm}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
 						>
 							<X size={14} class="mr-1" />
 							Annuler
