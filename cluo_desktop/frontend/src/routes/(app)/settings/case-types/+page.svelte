@@ -179,7 +179,7 @@
 			</div>
 		{:else if error}
 			<div
-				class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+				class="alert-error"
 			>
 				{error}
 			</div>
@@ -210,7 +210,7 @@
 									type="button"
 									onclick={saveRename}
 									disabled={savingRename || !editingName.trim()}
-									class="p-1.5 rounded hover:bg-emerald-50 text-muted-foreground hover:text-emerald-600 transition-colors cursor-pointer disabled:opacity-50"
+									class="p-1.5 rounded hover:bg-success/10 text-muted-foreground hover:text-success transition-colors cursor-pointer disabled:opacity-50"
 								>
 									{#if savingRename}
 										<Loader2 size={16} class="animate-spin" />
@@ -222,7 +222,7 @@
 									type="button"
 									onclick={cancelRename}
 									disabled={savingRename}
-									class="p-1.5 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+									class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
 								>
 									<X size={16} />
 								</button>
@@ -248,7 +248,7 @@
 									<button
 										type="button"
 										onclick={() => (deletingId = ct.id)}
-										class="p-1.5 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+										class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
 										title="Supprimer"
 									>
 										<Trash2 size={14} />

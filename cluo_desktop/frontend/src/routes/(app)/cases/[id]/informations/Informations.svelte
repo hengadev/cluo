@@ -419,7 +419,7 @@
 		</div>
 	{:else if error}
 		<div
-			class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg"
+			class="alert-error"
 		>
 			{error}
 		</div>
@@ -432,7 +432,7 @@
 			>
 				<div class="flex gap-4 items-center">
 					<span
-						class="bg-blue-100 text-blue-800 px-2 py-1 rounded-card text-sm font-medium"
+						class="bg-accent text-accent-foreground px-2 py-1 rounded-card text-sm font-medium"
 					>
 						STATUT: {STATUS_LABELS[caseData.status] || caseData.status}
 					</span>
@@ -671,7 +671,7 @@
 						</div>
 					{:else}
 						{#if caseTypeName}
-							<span class="bg-emerald-100 text-emerald-800 px-2 py-1 rounded-card text-sm font-medium w-fit">{caseTypeName}</span>
+							<span class="bg-success/15 text-success px-2 py-1 rounded-card text-sm font-medium w-fit">{caseTypeName}</span>
 						{:else}
 							<p class="text-sm text-muted-foreground">Non défini</p>
 						{/if}
@@ -704,7 +704,7 @@
 							onConfirm={detachSubject}
 						>
 							<button
-								class="p-1 rounded hover:bg-red-50 text-muted-foreground hover:text-red-600 transition-colors cursor-pointer"
+								class="p-1 rounded btn-ghost-destructive cursor-pointer"
 								title="Détacher la personne"
 							>
 								<Trash2 size={14} />
@@ -839,7 +839,7 @@
 				<!-- Display mode: existing subject -->
 				<div class="border border-border rounded-lg p-4 bg-muted/30 max-w-2xl">
 					<div class="flex items-start gap-4">
-						<div class="w-10 h-10 rounded-full bg-blue-100 text-blue-800 flex items-center justify-center flex-shrink-0">
+						<div class="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center flex-shrink-0">
 							<User size={20} />
 						</div>
 						<div class="flex-1">
