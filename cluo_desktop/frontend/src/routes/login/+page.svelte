@@ -84,7 +84,7 @@
 			</div>
 
 			{#if error}
-				<p class="error">{error}</p>
+				<p class="alert-error">{error}</p>
 			{/if}
 
 			<button type="submit" disabled={isLoading}>
@@ -114,13 +114,15 @@
 		max-width: 400px;
 		padding: 2rem;
 		background: var(--background-alt);
-		border-radius: 8px;
-		box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+		border: 1px solid var(--border-card);
+		border-radius: var(--radius-card);
+		box-shadow: var(--shadow-card);
 	}
 
 	h1 {
-		font-size: 1.5rem;
-		font-weight: 700;
+		font-family: var(--font-serif);
+		font-size: 2rem;
+		font-weight: 400;
 		text-align: center;
 		margin: 0 0 0.25rem 0;
 		color: var(--foreground);
@@ -150,7 +152,7 @@
 		width: 100%;
 		padding: 0.625rem;
 		border: 1px solid var(--border-input);
-		border-radius: 4px;
+		border-radius: var(--radius-input);
 		font-size: 0.875rem;
 		background: var(--background);
 		color: var(--foreground);
@@ -166,12 +168,8 @@
 		cursor: not-allowed;
 	}
 
-	.error {
+	.alert-error {
 		margin: 0 0 1rem 0;
-		padding: 0.5rem;
-		background: var(--color-error-background, #fee2e2);
-		color: var(--destructive);
-		border-radius: 4px;
 		font-size: 0.875rem;
 	}
 
@@ -181,7 +179,7 @@
 		background: var(--foreground);
 		color: var(--background);
 		border: none;
-		border-radius: 4px;
+		border-radius: var(--radius-button);
 		font-size: 0.875rem;
 		font-weight: 500;
 		cursor: pointer;
