@@ -19,6 +19,7 @@ export type SidebarItem = {
     icon: typeof import('@lucide/svelte').Icon;
     title: SidebarState;
     path: string;  // Route path for navigation
+    disabled?: boolean;
 }
 
 export const items: SidebarItem[] = [
@@ -31,7 +32,7 @@ export const items: SidebarItem[] = [
     { icon: Handshake, title: SIDEBAR_STATES.Mandat, path: "/cases/:id/documents/mandate" },
     { icon: ShieldCheck, title: SIDEBAR_STATES.Contrat, path: "/cases/:id/documents/contract" },
     { icon: ReceiptEuro, title: SIDEBAR_STATES.Facture, path: "/cases/:id/documents/facture" },
-    { icon: Globe, title: SIDEBAR_STATES.Reseaux, path: "/cases/:id/reseaux" },
     { icon: Briefcase, title: SIDEBAR_STATES.Clients, path: "/clients" },
     { icon: Settings, title: SIDEBAR_STATES.Paramètres, path: "/settings" },
+    { icon: Globe, title: SIDEBAR_STATES.Reseaux, path: "/cases/:id/reseaux", disabled: true },
 ]

@@ -15,6 +15,9 @@
 
     let isExpanded: boolean = $state(false);
 
+    const regularItems = items.filter(i => !i.disabled);
+    const disabledItems = items.filter(i => i.disabled);
+
     // Get the current route path for highlighting
     function getRouteForItem(item: SidebarItem): string {
         // Routes without :id are used as-is
@@ -82,7 +85,12 @@
             class="flex flex-col gap-2"
             style:align-items={isExpanded ? 'stretch' : 'center'}
         >
-            {#each items as item}
+            {#each regularItems as item}
+                {@render button(item)}
+            {/each}
+        </div>
+        <div class="flex flex-col gap-2 mb-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
+            {#each disabledItems as item}
                 {@render button(item)}
             {/each}
         </div>
@@ -104,13 +112,15 @@
 {#snippet button(item: SidebarItem)}
     {@const Icon = item.icon}
     {@const active = isActive(item)}
+    {@const disabled = item.disabled ?? false}
     {#if isExpanded}
         <button
             class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
                 ? 'bg-foreground text-background'
-                : 'bg-transparent text-foreground hover:bg-muted'}"
-            onclick={() => handleItemClick(item)}
+                : 'bg-transparent text-foreground'} {disabled ? 'opacity-35 cursor-not-allowed' : 'hover:bg-muted'}"
+            onclick={disabled ? undefined : () => handleItemClick(item)}
+            disabled={disabled}
         >
             <Icon size={24} strokeWidth={1.75} />
             <span class="text-sm font-medium whitespace-nowrap"
@@ -121,13 +131,14 @@
         <Tooltip.Provider>
             <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
-                    class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
+                    class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
                         ? 'bg-foreground text-background'
-                        : 'bg-transparent text-foreground hover:bg-muted'}"
-                    onclick={() => handleItemClick(item)}
+                        : 'bg-transparent text-foreground'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all hover:bg-muted'}"
+                    onclick={disabled ? undefined : () => handleItemClick(item)}
+                    disabled={disabled}
                 >
-                    <Button.Root class="cursor-pointer">
+                    <Button.Root class={disabled ? 'cursor-not-allowed pointer-events-none' : 'cursor-pointer'}>
                         <Icon size={24} strokeWidth={1.75} />
                     </Button.Root>
                 </Tooltip.Trigger>
