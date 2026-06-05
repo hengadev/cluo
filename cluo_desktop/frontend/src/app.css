@@ -348,6 +348,14 @@
 		@apply hover:text-foreground/80 focus-visible:ring-foreground focus-visible:ring-offset-background rounded-xs focus-visible:outline-hidden inline-flex items-center gap-1 font-medium underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-offset-2;
 	}
 
+	.alert-error {
+		@apply bg-destructive/10 border border-destructive/30 text-destructive px-4 py-3 rounded-card-sm;
+	}
+
+	.btn-ghost-destructive {
+		@apply text-muted-foreground hover:bg-destructive/10 hover:text-destructive transition-colors;
+	}
+
 	.animate-fade-in {
 		animation: fade-in 0.5s ease-out forwards;
 	}
