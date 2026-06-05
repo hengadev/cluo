@@ -3,23 +3,16 @@
 	import { onMount } from "svelte";
 	import { fetchAllCases } from "$lib/services/api";
 	import type { Case, CaseStatus } from "$lib/types/entities";
+	import { caseStatusBadge } from "$lib/utils/badgeVariants";
 
 	let cases: Case[] = [];
 	let loading = true;
 	let error: string | null = null;
 
 	const STATUS_LABELS: Record<CaseStatus, string> = {
-		draft: "Brouillon",
 		in_progress: "En cours",
 		ready: "Prêt",
 		released: "Clôturé"
-	};
-
-	const STATUS_BADGE_CLASSES: Record<CaseStatus, string> = {
-		draft: "bg-gray-100 text-gray-800",
-		in_progress: "bg-blue-100 text-blue-800",
-		ready: "bg-green-100 text-green-800",
-		released: "bg-purple-100 text-purple-800"
 	};
 
 	onMount(async () => {
@@ -48,7 +41,7 @@
 			{#if loading}
 				<p class="text-muted-foreground">Chargement...</p>
 			{:else if error}
-				<div class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
+				<div class="alert-error">
 					{error}
 				</div>
 			{:else if cases.length === 0}
@@ -65,7 +58,7 @@
 							<p class="text-sm text-muted-foreground">{caseItem.id}</p>
 							{#if caseItem.status}
 								<span
-									class="inline-block mt-2 px-2 py-1 text-xs rounded-full {STATUS_BADGE_CLASSES[caseItem.status] || 'bg-gray-100 text-gray-800'}"
+									class="inline-block mt-2 px-2 py-1 text-xs rounded-full {caseStatusBadge(caseItem.status)}"
 								>
 									{STATUS_LABELS[caseItem.status] || caseItem.status}
 								</span>

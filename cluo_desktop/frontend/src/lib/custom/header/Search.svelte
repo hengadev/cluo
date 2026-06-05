@@ -5,18 +5,13 @@
 	import { currentCase, recentCases } from "$lib/stores/case";
 	import type { RecentCaseEntry } from "$lib/stores/case";
 	import { searchAll } from "$lib/services/api";
+	import { caseStatusBadge } from "$lib/utils/badgeVariants";
 	import type { SearchResult, Case, Client, Contact, ClientType, CaseStatus } from "$lib/types/entities";
 
 const STATUS_LABELS: Record<CaseStatus, string> = {
 		in_progress: 'En cours',
 		ready: 'Prêt',
 		released: 'Clôturé',
-	};
-
-	const STATUS_CLASSES: Record<CaseStatus, string> = {
-		in_progress: 'bg-blue-100 text-blue-800',
-		ready: 'bg-green-100 text-green-800',
-		released: 'bg-purple-100 text-purple-800',
 	};
 
 	const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
@@ -185,7 +180,7 @@ const STATUS_LABELS: Record<CaseStatus, string> = {
 							>
 								<Clock class="size-4 text-muted-foreground shrink-0" />
 								<span class="truncate flex-1">{entry.title}</span>
-								<span class="shrink-0 px-1.5 py-0.5 rounded-full text-xs font-medium {STATUS_CLASSES[entry.status]}">
+								<span class="shrink-0 px-1.5 py-0.5 rounded-full text-xs font-medium {caseStatusBadge(entry.status)}">
 									{STATUS_LABELS[entry.status]}
 								</span>
 							</Combobox.Item>
@@ -215,7 +210,7 @@ const STATUS_LABELS: Record<CaseStatus, string> = {
 										{#if c.city}
 											<span>{c.city}</span>
 										{/if}
-										<span class="px-1.5 py-0.5 rounded-full font-medium {STATUS_CLASSES[c.status]}">
+										<span class="px-1.5 py-0.5 rounded-full font-medium {caseStatusBadge(c.status)}">
 											{STATUS_LABELS[c.status]}
 										</span>
 									</span>

@@ -8,17 +8,12 @@
     import { currentCase } from "$lib/stores/case";
     import { fetchCase, fetchClient } from "$lib/services/api";
     import type { Case, Client, CaseStatus } from "$lib/types/entities";
+    import { caseStatusBadge } from "$lib/utils/badgeVariants";
 
     const STATUS_LABELS: Record<CaseStatus, string> = {
         in_progress: "En cours",
         ready: "Prêt",
         released: "Clôturé",
-    };
-
-    const STATUS_CLASSES: Record<CaseStatus, string> = {
-        in_progress: "bg-blue-100 text-blue-800",
-        ready: "bg-green-100 text-green-800",
-        released: "bg-purple-100 text-purple-800",
     };
 
     let caseData: Case | null = $state(null);
@@ -51,7 +46,7 @@
                 </div>
                 <p>&bull;</p>
                 <p>{caseData.title}</p>
-                <span class="status-badge {STATUS_CLASSES[caseData.status]}">
+                <span class="status-badge {caseStatusBadge(caseData.status)}">
                     {STATUS_LABELS[caseData.status]}
                 </span>
             {:else}
