@@ -10,11 +10,14 @@
 		ChevronLeft,
 		AlertTriangle,
 		FileText,
+		X,
+		Save,
 	} from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
 		fetchCaseContracts,
+		createContract,
 		sendDocument,
 		signContract,
 		activateContract,
@@ -48,7 +51,18 @@
 
 	// Currently selected contract for viewing
 	let selectedContract: Contract | null = $state(null);
-	let viewMode: "list" | "detail" = $state("list");
+	let viewMode: "list" | "detail" | "create" = $state("list");
+
+	// Create form state
+	let formStartDate = $state(todayISO());
+	let formEndDate = $state("");
+	let formScopeOfServices = $state("");
+	let formPaymentTerms = $state("");
+	let formConfidentiality = $state("");
+	let formTerminationClause = $state("");
+	let formContractValue = $state("");
+	let formCurrency = $state("EUR");
+	let formSaving = $state(false);
 
 	// Lifecycle action state
 	let sendingContract = $state(false);
@@ -78,6 +92,10 @@
 		rejected: "bg-red-100 text-red-800",
 		expired: "bg-orange-100 text-orange-800",
 	};
+
+	function todayISO(): string {
+		return new Date().toISOString().split("T")[0];
+	}
 
 	function formatDate(dateStr: string): string {
 		if (!dateStr) return "—";
@@ -172,11 +190,76 @@
 	function showList() {
 		selectedContract = null;
 		viewMode = "list";
+		formScopeOfServices = "";
+		formPaymentTerms = "";
+		formConfidentiality = "";
+		formTerminationClause = "";
+		formStartDate = todayISO();
+		formEndDate = "";
+		formContractValue = "";
+		formCurrency = "EUR";
+	}
+
+	function showCreate() {
+		selectedContract = null;
+		viewMode = "create";
+		formScopeOfServices = "";
+		formPaymentTerms = "";
+		formConfidentiality = "";
+		formTerminationClause = "";
+		formStartDate = todayISO();
+		formEndDate = "";
+		formContractValue = "";
+		formCurrency = "EUR";
 	}
 
 	function showDetail(c: Contract) {
 		selectedContract = c;
 		viewMode = "detail";
+	}
+
+	async function handleCreate() {
+		if (!caseData) return;
+		if (!formScopeOfServices.trim() || !formPaymentTerms.trim() || !formConfidentiality.trim() || !formTerminationClause.trim() || !formStartDate) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Veuillez remplir tous les champs obligatoires.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const contractNumber = `CTR-${new Date().getFullYear()}-${String(contracts.length + 1).padStart(3, "0")}`;
+			const payload = {
+				case_id: caseData.id,
+				client_id: caseData.clientId,
+				contract_number: contractNumber,
+				start_date: new Date(formStartDate).toISOString(),
+				end_date: formEndDate ? new Date(formEndDate).toISOString() : undefined,
+				scope_of_services: formScopeOfServices.trim(),
+				payment_terms: formPaymentTerms.trim(),
+				confidentiality: formConfidentiality.trim(),
+				termination_clause: formTerminationClause.trim(),
+				contract_value: formContractValue ? parseFloat(formContractValue) : undefined,
+				currency: formCurrency || "EUR",
+				signatures: [],
+				status: "draft" as const,
+			} as Contract;
+
+			const result = await createContract(payload);
+			if (result.data) {
+				contracts = [...contracts, result.data];
+				selectedContract = result.data;
+				viewMode = "detail";
+				toastState.add(TOAST_LEVELS.Info, "Contrat créé", "Le contrat a été créé en brouillon.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de créer le contrat.",
+			);
+		} finally {
+			formSaving = false;
+		}
 	}
 
 	// =========================================================================
@@ -332,7 +415,9 @@
 				{/if}
 				<div>
 					<h1 class="text-2xl font-bold text-foreground">
-						{#if viewMode === "detail" && selectedContract}
+						{#if viewMode === "create"}
+							Nouveau contrat
+						{:else if viewMode === "detail" && selectedContract}
 							Contrat {selectedContract.contract_number}
 						{:else}
 							Contrats
@@ -347,6 +432,16 @@
 					</p>
 				</div>
 			</div>
+
+			{#if viewMode === "list" && contracts.length > 0}
+				<button
+					type="button"
+					onclick={showCreate}
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+				>
+					Nouveau contrat
+				</button>
+			{/if}
 
 			{#if viewMode === "detail" && selectedContract}
 				<div class="flex items-center gap-2">
@@ -431,8 +526,15 @@
 					<FileText class="w-12 h-12 text-muted-foreground" />
 					<p class="text-muted-foreground text-center">Aucun contrat pour ce dossier.</p>
 					<p class="text-sm text-muted-foreground text-center">
-						Un contrat peut être créé à partir d'un mandat activé.
+						Un contrat peut être créé à partir d'un mandat activé, ou vous pouvez en créer un manuellement.
 					</p>
+					<button
+						type="button"
+						onclick={showCreate}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+					>
+						Créer un contrat
+					</button>
 				</div>
 			{:else}
 				<div class="border border-border-card rounded-lg overflow-hidden">
@@ -483,6 +585,111 @@
 					</table>
 				</div>
 			{/if}
+
+		<!-- ================================================================ -->
+		<!-- CREATE FORM -->
+		<!-- ================================================================ -->
+		{:else if viewMode === "create"}
+			<div class="border border-border-card rounded-lg p-6 max-w-3xl animate-fade-in">
+				<div class="grid grid-cols-2 gap-4 mb-6">
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date de début *</label>
+						<input
+							type="date"
+							bind:value={formStartDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date de fin</label>
+						<input
+							type="date"
+							bind:value={formEndDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Montant du contrat (€)</label>
+						<input
+							type="number"
+							bind:value={formContractValue}
+							min="0"
+							step="0.01"
+							placeholder="0.00"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Devise</label>
+						<input
+							type="text"
+							bind:value={formCurrency}
+							placeholder="EUR"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Objet des prestations *</label>
+					<textarea
+						bind:value={formScopeOfServices}
+						placeholder="Décrivez l'objet des prestations..."
+						rows="3"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Conditions de paiement *</label>
+					<textarea
+						bind:value={formPaymentTerms}
+						placeholder="Ex : Paiement à 30 jours..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="mb-4">
+					<label class="text-xs text-muted-foreground mb-1 block">Clause de confidentialité *</label>
+					<textarea
+						bind:value={formConfidentiality}
+						placeholder="Clause de confidentialité..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="mb-6">
+					<label class="text-xs text-muted-foreground mb-1 block">Clause de résiliation *</label>
+					<textarea
+						bind:value={formTerminationClause}
+						placeholder="Conditions de résiliation..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div class="flex justify-end gap-2">
+					<button
+						type="button"
+						onclick={showList}
+						class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					>
+						<X size={14} class="mr-1" />
+						Annuler
+					</button>
+					<button
+						type="button"
+						onclick={handleCreate}
+						disabled={formSaving}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+					>
+						<Save size={14} class="mr-1" />
+						{formSaving ? "Enregistrement..." : "Créer le contrat"}
+					</button>
+				</div>
+			</div>
 
 		<!-- ================================================================ -->
 		<!-- DETAIL VIEW -->
