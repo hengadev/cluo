@@ -75,5 +75,4 @@
 				</div>
 			{/if}
 		</section>
-	</div>
 </div>
