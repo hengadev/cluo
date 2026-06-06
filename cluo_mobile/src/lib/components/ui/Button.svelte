@@ -27,12 +27,12 @@
 
     const variantClasses = {
         primary:
-            "bg-black hover:bg-gray-800 text-white focus-visible:ring-gray-400",
+            "bg-foreground hover:bg-dark-800 text-background focus-visible:ring-foreground",
         secondary:
-            "bg-gray-100 hover:bg-gray-200 text-gray-900 focus-visible:ring-gray-400",
+            "bg-muted hover:bg-dark-100 text-foreground focus-visible:ring-foreground",
         outline:
-            "border border-gray-300 bg-white hover:bg-gray-50 text-gray-900 focus-visible:ring-gray-400",
-        ghost: "hover:bg-gray-100 text-gray-900 focus-visible:ring-gray-400",
+            "border border-border-input bg-background hover:bg-muted text-foreground focus-visible:ring-foreground",
+        ghost: "hover:bg-muted text-foreground focus-visible:ring-foreground",
     };
 
     const sizeClasses = {
