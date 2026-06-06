@@ -110,7 +110,7 @@
     }
 </script>
 
-<div class="min-h-screen flex flex-col gap-8">
+<div class="min-h-screen flex flex-col gap-8 pb-28">
     <p class="text-dark-900 font-extrabold text-xl">Bonjour {greeting},</p>
     <div class="grid gap-4">
         <div class="flex justify-between items-center">
@@ -132,7 +132,7 @@
         <div class="flex items-center gap-2">
             <p class="text-dark-700 font-bold text-base">Enregistrements</p>
             {#if $queueCount > 0}
-                <span class="bg-amber-500 text-white text-xs font-semibold px-2 py-0.5 rounded-full">
+                <span class="bg-tertiary text-background text-xs font-semibold px-2 py-0.5 rounded-full">
                     {$queueCount} en attente
                 </span>
             {/if}
