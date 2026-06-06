@@ -1,6 +1,8 @@
 <script lang="ts">
 	import { ChevronLeft, FileText, Sparkles } from "@lucide/svelte";
+	import Spinner from "$lib/components/ui/Spinner.svelte";
 	import { goto } from "$app/navigation";
+	import PrivacyNotice from "$lib/components/PrivacyNotice.svelte";
 	import { onMount } from "svelte";
 	import TranscriptEditor from "$lib/components/TranscriptEditor.svelte";
 	import { getTranscript, confirmTranscript, analyzeTranscript } from "$lib/api";
@@ -74,7 +76,7 @@
 	}
 </script>
 
-<div class="min-h-screen flex flex-col gap-6 pb-24 mt-8 px-4">
+<div class="min-h-screen flex flex-col gap-6 pb-24">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<button onclick={goBack} class="text-dark-700 hover:text-dark-900">
@@ -85,8 +87,8 @@
 	</div>
 
 	{#if isLoading}
-		<div class="flex items-center justify-center p-12">
-			<p class="text-dark-600">Chargement de la transcription...</p>
+		<div class="flex items-center justify-center p-8">
+			<Spinner size="md" />
 		</div>
 	{:else if error}
 		<div class="flex flex-col items-center gap-4 p-8 bg-red-50 rounded-2xl">
@@ -131,10 +133,6 @@
 		</div>
 
 		<!-- Privacy Notice -->
-		<div class="flex items-center justify-center p-4 bg-dark-50 rounded-2xl mt-2">
-			<p class="text-dark-600 text-sm text-center">
-				La transcription et l'analyse sont traitées sur une infrastructure privée
-			</p>
-		</div>
+		<PrivacyNotice class="mt-2" />
 	{/if}
 </div>

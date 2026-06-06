@@ -2,6 +2,7 @@
     import { Check, ChevronLeft, Ellipsis, XCircle, RotateCw } from "@lucide/svelte";
     import Spinner from "$lib/components/ui/Spinner.svelte";
     import { goto } from "$app/navigation";
+    import PrivacyNotice from "$lib/components/PrivacyNotice.svelte";
     import { onMount, onDestroy } from "svelte";
     import type { ProcessingStep } from "$lib/types/recording";
     import { getRecordingStatus } from "$lib/api";
@@ -80,7 +81,7 @@
     const hasFailed = $derived(error !== null);
 </script>
 
-<div class="min-h-screen flex flex-col gap-8 pb-24 mt-8 px-4">
+<div class="min-h-screen flex flex-col gap-8 pb-24">
     <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between mb-8">
             <button onclick={goBack}>
@@ -120,7 +121,7 @@
         <div class="flex flex-col gap-4">
             {#each steps as step}
                 <div
-                    class="flex items-center gap-4 p-4 border-1 border-dark-100 rounded-2xl bg-background-alt"
+                    class="flex items-center gap-4 p-4 border border-dark-100 rounded-2xl bg-background-alt"
                 >
                     <div
                         class="flex items-center justify-center w-12 h-12 rounded-full {step.status ===
@@ -175,9 +176,5 @@
     {/if}
 
     <!-- Privacy Notice -->
-    <div class="flex items-center justify-center p-4 bg-dark-50 rounded-2xl mt-4">
-        <p class="text-dark-600 text-sm text-center">
-            La transcription et l'analyse sont traitées sur une infrastructure privée
-        </p>
-    </div>
+    <PrivacyNotice class="mt-4" />
 </div>
