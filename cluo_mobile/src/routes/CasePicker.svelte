@@ -1,5 +1,6 @@
 <script lang="ts">
     import { Dialog } from "bits-ui";
+    import Spinner from "$lib/components/ui/Spinner.svelte";
     import { X, Check, Search } from "@lucide/svelte";
     import type { Case, CaseStatus } from "$lib/types/case";
     import { getCases } from "$lib/api";
@@ -70,7 +71,7 @@
     <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 bg-black/40 z-40" />
         <Dialog.Content
-            class="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-2xl px-4 pt-4 pb-8 max-h-[80vh] flex flex-col gap-4 shadow-xl"
+            class="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl px-4 pt-4 pb-8 max-h-[80vh] flex flex-col gap-4 shadow-xl"
         >
             <div class="flex items-center justify-between">
                 <Dialog.Title class="font-extrabold text-lg text-dark-900">
@@ -109,7 +110,9 @@
             <!-- Case list -->
             <div class="flex flex-col gap-2 overflow-y-auto">
                 {#if loading}
-                    <p class="text-sm text-dark-400 text-center py-6">Chargement...</p>
+                    <div class="flex items-center justify-center p-8">
+                        <Spinner size="md" />
+                    </div>
                 {:else if fetchError}
                     <p class="text-sm text-red-500 text-center py-6">{fetchError}</p>
                 {:else if filtered.length === 0}
