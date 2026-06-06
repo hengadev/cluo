@@ -77,7 +77,7 @@
     }
 </script>
 
-<div class="min-h-screen flex flex-col gap-6 pb-24 px-4">
+<div class="min-h-screen flex flex-col gap-6 pb-24">
     <!-- Header with back button -->
     <div class="flex items-center gap-3">
         <button
@@ -95,7 +95,7 @@
         </div>
     {:else}
         <!-- Recording Info Card -->
-        <div class="flex flex-col gap-4 p-4 border-1 border-dark-100 rounded-2xl">
+        <div class="flex flex-col gap-4 p-4 border border-dark-100 rounded-2xl">
             <div class="flex justify-between items-start">
                 <div>
                     <h2 class="text-dark-800 font-bold text-lg">
@@ -109,7 +109,7 @@
                 </div>
                 <div class="flex items-center gap-2">
                     <p
-                        class="flex justify-center items-center border-1 border-dark-100 rounded-3xl bg-dark-50 text-dark-600 py-1 px-3 text-sm font-medium"
+                        class="flex justify-center items-center border border-dark-100 rounded-3xl bg-dark-50 text-dark-600 py-1 px-3 text-sm font-medium"
                     >
                         {recording.duration}
                     </p>
@@ -122,7 +122,7 @@
                 <AudioPlayer src={recording.audioUrl} />
             {:else}
                 <div
-                    class="flex items-center gap-4 p-4 bg-dark-50 rounded-xl border-1 border-dark-100"
+                    class="flex items-center gap-4 p-4 bg-dark-50 rounded-xl border border-dark-100"
                 >
                     <button
                         class="flex items-center justify-center w-12 h-12 bg-dark-700 rounded-full hover:bg-dark-600 transition-colors"

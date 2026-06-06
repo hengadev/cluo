@@ -96,7 +96,7 @@
 				<!-- Individual Suggestions -->
 				{#each suggestions as suggestion, index}
 					<div
-						class="flex items-start gap-3 p-3 bg-background border-1 border-dark-100 rounded-lg hover:bg-dark-50 transition-colors {suggestion.selected
+						class="flex items-start gap-3 p-3 bg-background border border-dark-100 rounded-lg hover:bg-dark-50 transition-colors {suggestion.selected
 							? 'border-accent'
 							: ''}"
 					>

@@ -67,7 +67,7 @@
 			id="transcript-textarea"
 			readonly={readonly}
 			maxlength={maxChars}
-			class="w-full min-h-48 p-4 border-1 border-dark-200 rounded-xl bg-background text-dark-800 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-dark-300 placeholder:text-dark-400"
+			class="w-full min-h-48 p-4 border border-dark-200 rounded-xl bg-background text-dark-800 text-sm leading-relaxed resize-y focus:outline-none focus:ring-2 focus:ring-foreground placeholder:text-dark-400"
 			placeholder="La transcription apparaîtra ici..."
 			class:readonly={readonly}
 		></textarea>
