@@ -13,14 +13,21 @@
         released: "Clôturé",
     };
 
+    const statusBadgeClasses: Record<CaseStatus, string> = {
+        in_progress: "bg-accent text-accent-foreground",
+        ready: "bg-success text-success-foreground",
+        released: "bg-muted text-muted-foreground",
+    };
+
     const statusLabel = $derived(currentCase ? (statusLabels[currentCase.status] ?? currentCase.status) : "");
+    const badgeClass = $derived(currentCase ? (statusBadgeClasses[currentCase.status] ?? "bg-dark-900 text-white") : "bg-dark-900 text-white");
     const displayId = $derived(currentCase?.externalReference ?? currentCase?.id ?? "");
 </script>
 
 {#if currentCase}
-<div class="border-1 border-dark-50 px-4 py-2 rounded-xl grid gap-4">
+<div class="border border-dark-100 px-4 py-2 rounded-xl grid gap-4">
     <div class="flex gap-4 items-center">
-        <span class="bg-dark-900 text-white px-4 py-2 rounded-2xl">{statusLabel}</span>
+        <span class="{badgeClass} px-4 py-2 rounded-2xl">{statusLabel}</span>
         <p class="text-dark-600 text-sm">ID: {displayId}</p>
     </div>
     <p class="text-dark-900 font-extrabold text-lg">{currentCase.title}</p>
@@ -40,7 +47,7 @@
     </div>
 </div>
 {:else}
-<div class="border-1 border-dark-50 px-4 py-2 rounded-xl flex items-center justify-center h-24">
+<div class="border border-dark-100 px-4 py-2 rounded-xl flex items-center justify-center h-24">
     <p class="text-dark-500 text-sm">Aucune affaire active</p>
 </div>
 {/if}
