@@ -33,16 +33,18 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col gap-6">
+<div class="p-8 flex flex-col gap-6 flex-1">
     <div class="animate-fade-in">
         <h1 class="text-3xl font-bold">Tableau de bord</h1>
         <h2 class="text-xl font-semibold mt-2 animate-fade-in" style="animation-delay: 100ms;">
             Dossiers récents
         </h2>
     </div>
-		<section>
+		<section class="flex flex-col flex-1">
 			{#if loading}
-				<Spinner size="lg" />
+				<div class="flex flex-1 items-center justify-center">
+					<Spinner size="lg" />
+				</div>
 			{:else if error}
 				<div class="alert-error">
 					{error}
