@@ -1,6 +1,6 @@
 .PHONY: help \
         dev dev-down dev-logs \
-        build-desktop-linux-local \
+        build-desktop-linux-local install-desktop-linux \
         generate-signing-key \
         build-staging build-staging-api build-staging-web build-staging-mobile \
         build-prod    build-prod-api    build-prod-web    build-prod-mobile \
@@ -142,6 +142,9 @@ build-desktop-linux-local: ## Build cluo_desktop for Linux locally (no S3 upload
 	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
 		-ldflags "-X cluo_desktop/updater.Version=$(or $(VERSION),0.0.0-local) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
 	@echo "==> Binary: cluo_desktop/build/bin/cluo_desktop"
+
+install-desktop-linux: ## Install cluo_desktop for current user (binary + icon + .desktop entry for Wofi/launchers)
+	@bash cluo_desktop/build/linux/install.sh
 
 # =============================================================================
 # Build
