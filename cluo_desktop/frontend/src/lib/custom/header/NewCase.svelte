@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { Dialog, Label, Separator } from "bits-ui";
     import { X, Loader2 } from "@lucide/svelte";
     import { createCase, fetchAllClients, fetchAllCaseTypes } from "$lib/services/api";
@@ -10,10 +9,8 @@
 
     const toastState = getToastContext();
 
-    type Props = { children: import("svelte").Snippet };
-    let { children }: Props = $props();
-
-    let open = $state(false);
+    type Props = { children?: import("svelte").Snippet; open?: boolean };
+    let { children, open = $bindable(false) }: Props = $props();
     let loading = $state(false);
 
     // Form state
@@ -26,10 +23,13 @@
     // Reference data
     let clients: Client[] = $state([]);
     let caseTypes: CaseType[] = $state([]);
-    let loadingRefData = $state(true);
+    let loadingRefData = $state(false);
+    let refDataLoaded = $state(false);
 
-    onMount(async () => {
-        await loadReferenceData();
+    $effect(() => {
+        if (open && !refDataLoaded && !loadingRefData) {
+            loadReferenceData();
+        }
     });
 
     async function loadReferenceData() {
@@ -49,6 +49,7 @@
             );
         } finally {
             loadingRefData = false;
+            refDataLoaded = true;
         }
     }
 
@@ -92,9 +93,11 @@
 </script>
 
 <Dialog.Root bind:open>
-    <Dialog.Trigger>
-        {@render children()}
-    </Dialog.Trigger>
+    {#if children}
+        <Dialog.Trigger>
+            {@render children()}
+        </Dialog.Trigger>
+    {/if}
     <Dialog.Portal>
         <Dialog.Overlay
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
@@ -112,7 +115,7 @@
             >
             <Separator.Root class="bg-muted mx-5 !mb-6 !mt-5 block h-px" />
 
-            {#if loadingRefData}
+            {#if loadingRefData || !refDataLoaded}
                 <div class="flex items-center justify-center py-8">
                     <Loader2 class="size-5 animate-spin text-muted-foreground" />
                 </div>
@@ -216,5 +219,4 @@
         </Dialog.Content>
     </Dialog.Portal>
 </Dialog.Root>
-
 
