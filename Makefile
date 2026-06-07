@@ -1,5 +1,6 @@
 .PHONY: help \
         dev dev-down dev-logs \
+        build-desktop-linux-local \
         generate-signing-key \
         build-staging build-staging-api build-staging-web build-staging-mobile \
         build-prod    build-prod-api    build-prod-web    build-prod-mobile \
@@ -95,7 +96,7 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 	@test -n "$(VERSION)" || (echo "ERROR: VERSION is required. Usage: make release-desktop-linux VERSION=1.0.0"; exit 1)
 	@test -f $(SIGNING_KEY_FILE) || (echo "ERROR: Signing key not found. Run 'make generate-signing-key' first."; exit 1)
 	@echo "==> Building cluo_desktop v$(VERSION) for Linux (native)..."
-	cd cluo_desktop && wails build -platform linux/amd64 \
+	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
 		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
 	@set -e; \
 	BINARY=cluo_desktop/build/bin/cluo_desktop; \
@@ -135,6 +136,12 @@ dev-down: ## Stop local services
 
 dev-logs: ## Stream local service logs
 	docker compose logs -f
+
+build-desktop-linux-local: ## Build cluo_desktop for Linux locally (no S3 upload) — VERSION=x.y.z optional
+	@echo "==> Building cluo_desktop for Linux (local, no release)..."
+	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
+		-ldflags "-X cluo_desktop/updater.Version=$(or $(VERSION),0.0.0-local) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
+	@echo "==> Binary: cluo_desktop/build/bin/cluo_desktop"
 
 # =============================================================================
 # Build
