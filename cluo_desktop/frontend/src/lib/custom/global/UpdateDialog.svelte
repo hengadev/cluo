@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { Dialog } from "bits-ui";
+    import { Dialog, Separator } from "bits-ui";
     import { X, Download, RefreshCw, Check, AlertCircle, Loader2 } from "@lucide/svelte";
     import { onMount, onDestroy } from "svelte";
     import { EventsOn, EventsOff } from "$lib/wailsjs/runtime/runtime";
@@ -155,37 +155,44 @@
             class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
         />
         <Dialog.Content
-            class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border p-8 sm:max-w-[480px] md:w-full"
+            class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border flex flex-col sm:max-w-[480px] md:w-full"
         >
-            <Dialog.Title class="flex w-full items-center gap-2 text-lg font-semibold tracking-tight">
-                {#if updateState === "checking"}
-                    <Loader2 class="size-5 animate-spin" />
-                    Checking for updates...
-                {:else if updateState === "available"}
-                    <Download class="size-5" />
-                    Update Available
-                {:else if updateState === "uptodate"}
-                    <Check class="size-5 text-success" />
-                    Up to Date
-                {:else if updateState === "downloading"}
-                    <Loader2 class="size-5 animate-spin" />
-                    Downloading Update...
-                {:else if updateState === "installing"}
-                    <Loader2 class="size-5 animate-spin" />
-                    Installing Update...
-                {:else if updateState === "ready"}
-                    <Check class="size-5 text-success" />
-                    Update Ready
-                {:else if updateState === "error"}
-                    <AlertCircle class="size-5 text-destructive" />
-                    Update Error
-                {:else}
-                    <RefreshCw class="size-5" />
-                    Software Update
-                {/if}
-            </Dialog.Title>
+            <div class="flex-shrink-0 px-8 pt-8 pb-6">
+                <Dialog.Title class="flex items-center gap-2 text-base font-semibold tracking-tight">
+                    {#if updateState === "checking"}
+                        <Loader2 class="size-4 animate-spin" />
+                        Vérification des mises à jour…
+                    {:else if updateState === "available"}
+                        <Download class="size-4" />
+                        Mise à jour disponible
+                    {:else if updateState === "uptodate"}
+                        <Check class="size-4 text-success" />
+                        À jour
+                    {:else if updateState === "downloading"}
+                        <Loader2 class="size-4 animate-spin" />
+                        Téléchargement…
+                    {:else if updateState === "installing"}
+                        <Loader2 class="size-4 animate-spin" />
+                        Installation…
+                    {:else if updateState === "ready"}
+                        <Check class="size-4 text-success" />
+                        Mise à jour prête
+                    {:else if updateState === "error"}
+                        <AlertCircle class="size-4 text-destructive" />
+                        Erreur de mise à jour
+                    {:else}
+                        <RefreshCw class="size-4" />
+                        Mise à jour logicielle
+                    {/if}
+                </Dialog.Title>
+                <Dialog.Description class="text-foreground-alt text-sm mt-1">
+                    {#if currentVersion}Version actuelle : v{currentVersion}{:else}&nbsp;{/if}
+                </Dialog.Description>
+            </div>
 
-            <div class="mt-4 space-y-4">
+            <Separator.Root class="bg-border-input mx-0 !m-0 block h-px flex-shrink-0" />
+
+            <div class="px-8 py-6 space-y-4">
                 {#if updateState === "checking"}
                     <p class="text-foreground-alt text-sm">
                         Checking for updates...
@@ -219,9 +226,9 @@
                             </span>
                             <span class="font-medium">{progress.percent.toFixed(1)}%</span>
                         </div>
-                        <div class="h-2 w-full overflow-hidden rounded-full bg-muted">
+                        <div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                                class="h-full bg-primary transition-all duration-200"
+                                class="h-full bg-dark transition-all duration-200"
                                 style="width: {progress.percent}%"
                             ></div>
                         </div>
@@ -243,54 +250,56 @@
                 {/if}
             </div>
 
-            <div class="mt-6 flex justify-end gap-2">
-                {#if updateState === "checking" || updateState === "installing"}
-                    <!-- No actions during checking/installing -->
-                {:else if updateState === "available"}
-                    <Dialog.Close
-                        class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] dark:text-white dark:hover:bg-white/10 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border-2 border-[#dedede] dark:border-white/20 cursor-pointer"
-                    >
-                        Later
-                    </Dialog.Close>
-                    <button
-                        onclick={downloadAndInstall}
-                        class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
-                    >
-                        Download & Install
-                    </button>
-                {:else if updateState === "downloading"}
-                    <button
-                        onclick={cancelDownload}
-                        class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] dark:text-white dark:hover:bg-white/10 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border-2 border-[#dedede] dark:border-white/20 cursor-pointer"
-                    >
-                        Cancel
-                    </button>
-                {:else if updateState === "ready"}
-                    <Dialog.Close
-                        class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] dark:text-white dark:hover:bg-white/10 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border-2 border-[#dedede] dark:border-white/20 cursor-pointer"
-                    >
-                        Later
-                    </Dialog.Close>
-                    <button
-                        onclick={restartApp}
-                        class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
-                    >
-                        Restart Now
-                    </button>
-                {:else if updateState === "uptodate" || updateState === "error"}
-                    <Dialog.Close
-                        class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/95 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-[15px] font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
-                    >
-                        Close
-                    </Dialog.Close>
-                {/if}
-            </div>
+            {#if updateState !== "checking" && updateState !== "installing"}
+                <Separator.Root class="bg-border-input mx-0 !m-0 block h-px flex-shrink-0" />
+                <div class="flex justify-end gap-2 px-8 py-6">
+                    {#if updateState === "available"}
+                        <Dialog.Close
+                            class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-colors"
+                        >
+                            Plus tard
+                        </Dialog.Close>
+                        <button
+                            onclick={downloadAndInstall}
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                        >
+                            <Download size={14} />
+                            Télécharger et installer
+                        </button>
+                    {:else if updateState === "downloading"}
+                        <button
+                            onclick={cancelDownload}
+                            class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-colors"
+                        >
+                            Annuler
+                        </button>
+                    {:else if updateState === "ready"}
+                        <Dialog.Close
+                            class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-colors"
+                        >
+                            Plus tard
+                        </Dialog.Close>
+                        <button
+                            onclick={restartApp}
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                        >
+                            Redémarrer
+                        </button>
+                    {:else if updateState === "uptodate" || updateState === "error"}
+                        <Dialog.Close
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                        >
+                            Fermer
+                        </Dialog.Close>
+                    {/if}
+                </div>
+            {/if}
 
             <Dialog.Close
-                class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-5 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
+                class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-6 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
             >
                 <div>
-                    <X class="text-foreground size-5" />
+                    <X class="text-foreground-alt size-4" />
                     <span class="sr-only">Close</span>
                 </div>
             </Dialog.Close>
