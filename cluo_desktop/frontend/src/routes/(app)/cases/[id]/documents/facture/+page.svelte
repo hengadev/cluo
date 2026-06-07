@@ -816,7 +816,7 @@
 									min="0.01"
 									step="0.01"
 									placeholder="0.00"
-									class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 								/>
 								<p class="text-xs text-muted-foreground mt-1">
 									Reste : {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}
@@ -826,7 +826,7 @@
 								<label class="text-xs text-muted-foreground mb-1 block">Mode de paiement *</label>
 								<select
 									bind:value={paymentMethod}
-									class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 								>
 									{#each Object.entries(PAYMENT_METHODS) as [value, label]}
 										<option value={value}>{label}</option>
@@ -914,7 +914,7 @@
 						<input
 							type="date"
 							bind:value={formIssueDate}
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 						/>
 					</div>
 					<div>
@@ -922,7 +922,7 @@
 						<input
 							type="date"
 							bind:value={formDueDate}
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 						/>
 					</div>
 				</div>
@@ -949,7 +949,7 @@
 										type="text"
 										bind:value={item.description}
 										placeholder="Description de la prestation"
-										class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+										class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 									/>
 								</div>
 								<div class="w-24">
@@ -959,7 +959,7 @@
 										bind:value={item.quantity}
 										min="1"
 										step="1"
-										class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+										class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 									/>
 								</div>
 								<div class="w-32">
@@ -969,7 +969,7 @@
 										bind:value={item.unit_price}
 										min="0"
 										step="0.01"
-										class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+										class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 									/>
 								</div>
 								<div class="w-28 pt-5 text-right">
@@ -1000,7 +1000,7 @@
 								min="0"
 								max="100"
 								step="0.1"
-								class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-20 px-3 text-sm focus:ring-2 focus:ring-offset-2"
+								class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-20 px-3 text-sm focus:ring-2 focus:ring-offset-2"
 							/>
 						</div>
 						<div class="text-right">
@@ -1018,7 +1018,7 @@
 							type="text"
 							bind:value={formPaymentTerms}
 							placeholder="Ex : Paiement à 30 jours"
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 						/>
 					</div>
 					<div>
@@ -1027,7 +1027,7 @@
 							type="text"
 							bind:value={formNotes}
 							placeholder="Notes internes..."
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 						/>
 					</div>
 				</div>
