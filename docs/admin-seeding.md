@@ -37,21 +37,20 @@ These are the same vars already present in the API container's environment:
 
 ### Current setup (homelab VPS, Docker Compose)
 
-After the API container is up:
+Database migrations run automatically when the API container starts. Once the container is up, seed the admin:
 
 ```bash
-docker exec cluo-api ./seed-admin \
-  --email admin@example.com \
-  --password "changeme123"
-```
-
-Or pass credentials via env to avoid shell history:
-
-```bash
+# Staging
 docker exec \
   -e SEED_ADMIN_EMAIL=admin@example.com \
   -e SEED_ADMIN_PASSWORD=changeme123 \
-  cluo-api ./seed-admin
+  cluo-staging-api ./seed-admin
+
+# Production
+docker exec \
+  -e SEED_ADMIN_EMAIL=admin@example.com \
+  -e SEED_ADMIN_PASSWORD=changeme123 \
+  cluo-prod-api ./seed-admin
 ```
 
 The command inherits all other required env vars from the running container.
