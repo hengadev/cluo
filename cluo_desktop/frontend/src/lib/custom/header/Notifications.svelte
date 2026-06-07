@@ -71,32 +71,28 @@
             sideOffset={8}
             align="end"
         >
-            <div class="flex items-center justify-between p-4">
-                <div class="flex flex-col">
-                    <h4
-                        class="text-[17px] font-semibold leading-5 tracking-[-0.01em]"
-                    >
-                        Notifications
-                    </h4>
-                </div>
+            <div class="flex items-center justify-between px-4 py-3">
+                <h4 class="text-sm font-semibold tracking-tight">
+                    Notifications
+                </h4>
                 <Button.Root
-                    class="border-2 border-muted p-2 rounded-input hover:bg-muted cursor-pointer"
+                    class="text-xs font-medium text-foreground-alt hover:text-foreground border border-border-input rounded-input px-3 h-8 hover:bg-muted cursor-pointer transition-colors"
                 >
                     Marquer comme vus
                 </Button.Root>
             </div>
-            <Separator.Root class="bg-dark-10 -mx-4 block h-px" />
+            <Separator.Root class="bg-border-input block h-px" />
             <div
-                class="overflow-y-scroll max-h-[400px] h-full flex flex-col items-center pb-2"
+                class="overflow-y-auto max-h-[400px] h-full flex flex-col"
             >
                 {#each notifications as notif}
                     {@render notificationButton(notif)}
                 {/each}
             </div>
-            <Separator.Root class="bg-dark-10 -mx-4 block h-px" />
-            <div class="p-4">
+            <Separator.Root class="bg-border-input block h-px" />
+            <div class="p-3">
                 <Button.Root
-                    class="border-2 border-muted p-2 w-full rounded-input hover:bg-muted cursor-pointer"
+                    class="text-sm font-medium w-full rounded-input px-3 h-9 hover:bg-muted cursor-pointer transition-colors text-foreground-alt hover:text-foreground"
                 >
                     Voir toutes les notifications
                 </Button.Root>
@@ -107,12 +103,12 @@
 
 {#snippet notificationButton(notification: Notification)}
     <Button.Root
-        class="grid gap-4 text-xs w-full p-2 bg-transparent hover:bg-muted border border-border-card p-4"
+        class="flex flex-col gap-1 text-left w-full px-4 py-3 bg-transparent hover:bg-muted border-b border-border-input last:border-b-0 cursor-pointer transition-colors"
     >
-        <div class="grid gap-1 text-left">
-            <p class="font-semibold">{notification.title}</p>
-            <p class="">{notification.content}</p>
+        <div class="flex items-start justify-between gap-4">
+            <p class="text-sm font-medium leading-snug">{notification.title}</p>
+            <p class="text-xs text-foreground-alt shrink-0">{notification.sendAt}</p>
         </div>
-        <p class="text-right">{notification.sendAt}</p>
+        <p class="text-xs text-foreground-alt leading-snug">{notification.content}</p>
     </Button.Root>
 {/snippet}

@@ -36,38 +36,28 @@
             sideOffset={8}
             align="end"
         >
-            <div class="flex items-center">
-                <div class="flex flex-col">
-                    <h4
-                        class="text-[17px] font-semibold leading-5 tracking-[-0.01em]"
-                    >
-                        Parametres
-                    </h4>
-                    <p class="text-muted-foreground text-sm font-medium">
-                        Customise ton experience utilisateur
-                    </p>
-                </div>
+            <div class="flex flex-col mb-4">
+                <h4 class="text-sm font-semibold tracking-tight">
+                    Paramètres
+                </h4>
+                <p class="text-foreground-alt text-xs mt-0.5">
+                    Personnalisez votre expérience
+                </p>
             </div>
-            <Separator.Root
-                class="bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
-            />
+            <Separator.Root class="bg-border-input -mx-4 block h-px mb-4" />
             <div class="flex flex-col items-center pb-2 gap-2">
                 {@render switchComponent("Mode sombre")}
                 {@render switchComponent("Notifications")}
                 {@render switchComponent("Compact view")}
-                <Separator.Root
-                    class="w-full bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
-                />
+                <Separator.Root class="w-full bg-border-input -mx-4 block h-px my-4" />
                 <button
                     onclick={() => updateDialogOpen.set(true)}
-                    class="flex items-center gap-2 w-full text-sm font-medium text-dark hover:text-foreground transition-colors py-1"
+                    class="flex items-center gap-2 w-full text-sm font-medium text-foreground-alt hover:text-foreground transition-colors py-1"
                 >
                     <RefreshCw class="size-4" />
                     Rechercher des mises à jour
                 </button>
-                <Separator.Root
-                    class="w-full bg-dark-10 -mx-4 !mb-6 !mt-[17px] block h-px"
-                />
+                <Separator.Root class="w-full bg-border-input -mx-4 block h-px my-4" />
                 {@render selector()}
             </div>
         </Popover.Content>
