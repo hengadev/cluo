@@ -50,33 +50,38 @@
 			isLoading = false;
 		}
 	}
+
+	const inputClass = "h-input w-full rounded-card-sm border border-border-input bg-background px-4 text-sm placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 </script>
 
-<div class="theme-toggle-corner">
+<div class="fixed top-4 right-4 z-10">
 	<ThemeToggle />
 </div>
 
-<div class="login-container">
-	<div class="login-card">
-		<h1>Cluo</h1>
-		<h2>Portail d'investigation</h2>
+<div class="flex items-center justify-center h-screen bg-background">
+	<div class="w-full max-w-[400px] bg-background-alt border border-border-card rounded-card shadow-card p-8">
+		<div class="text-center mb-8">
+			<h1 class="font-serif text-3xl font-normal text-foreground tracking-tight">Cluo</h1>
+			<p class="text-sm text-foreground-alt mt-1">Portail d'investigation</p>
+		</div>
 
-		<form onsubmit={handleLogin}>
-			<div class="form-group">
-				<label for="email">Email</label>
+		<form onsubmit={handleLogin} class="flex flex-col gap-4">
+			<div class="flex flex-col gap-1.5">
+				<label for="email" class="text-sm font-medium">Email</label>
 				<input
 					id="email"
 					type="email"
 					bind:value={email}
-					placeholder="admin@clientvault.fr"
+					placeholder="admin@cluo.fr"
 					required
 					disabled={isLoading}
+					class={inputClass}
 				/>
 			</div>
 
-			<div class="form-group">
-				<label for="password">Mot de passe</label>
-				<div class="password-wrapper">
+			<div class="flex flex-col gap-1.5">
+				<label for="password" class="text-sm font-medium">Mot de passe</label>
+				<div class="relative">
 					<input
 						id="password"
 						type={showPassword ? 'text' : 'password'}
@@ -84,157 +89,34 @@
 						placeholder="••••••••"
 						required
 						disabled={isLoading}
+						class="{inputClass} pr-10"
 					/>
 					<button
 						type="button"
-						class="eye-toggle"
+						class="absolute inset-y-0 right-3 flex items-center text-foreground-alt hover:text-foreground transition-colors cursor-pointer"
 						onclick={() => (showPassword = !showPassword)}
 						aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
 					>
 						{#if showPassword}
-							<EyeOff size={16} />
+							<EyeOff size={14} />
 						{:else}
-							<Eye size={16} />
+							<Eye size={14} />
 						{/if}
 					</button>
 				</div>
 			</div>
 
 			{#if error}
-				<p class="alert-error">{error}</p>
+				<p class="text-sm text-destructive">{error}</p>
 			{/if}
 
-			<button type="submit" disabled={isLoading}>
+			<button
+				type="submit"
+				disabled={isLoading}
+				class="h-input w-full rounded-input bg-dark text-background text-sm font-semibold shadow-mini hover:bg-dark/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer mt-2"
+			>
 				{isLoading ? 'Connexion…' : 'Se connecter'}
 			</button>
 		</form>
 	</div>
 </div>
-
-<style>
-	.theme-toggle-corner {
-		position: fixed;
-		top: 1rem;
-		right: 1rem;
-	}
-
-	.login-container {
-		display: flex;
-		align-items: center;
-		justify-content: center;
-		height: 100vh;
-		background: var(--background);
-	}
-
-	.login-card {
-		width: 100%;
-		max-width: 400px;
-		padding: 2rem;
-		background: var(--background-alt);
-		border: 1px solid var(--border-card);
-		border-radius: var(--radius-card);
-		box-shadow: var(--shadow-card);
-	}
-
-	h1 {
-		font-family: var(--font-serif);
-		font-size: 2rem;
-		font-weight: 400;
-		text-align: center;
-		margin: 0 0 0.25rem 0;
-		color: var(--foreground);
-	}
-
-	h2 {
-		font-size: 1rem;
-		font-weight: 500;
-		text-align: center;
-		margin: 0 0 2rem 0;
-		color: var(--foreground-alt);
-	}
-
-	.form-group {
-		margin-bottom: 1rem;
-	}
-
-	label {
-		display: block;
-		margin-bottom: 0.25rem;
-		font-size: 0.875rem;
-		font-weight: 500;
-		color: var(--foreground);
-	}
-
-	.password-wrapper {
-		position: relative;
-		display: flex;
-		align-items: center;
-	}
-
-	.password-wrapper input {
-		padding-right: 2.25rem;
-	}
-
-	.eye-toggle {
-		position: absolute;
-		right: 0.625rem;
-		width: auto;
-		padding: 0;
-		background: none;
-		border: none;
-		color: var(--foreground-alt);
-		cursor: pointer;
-		display: flex;
-		align-items: center;
-	}
-
-	.eye-toggle:hover:not(:disabled) {
-		opacity: 0.7;
-	}
-
-	input {
-		width: 100%;
-		padding: 0.625rem;
-		border: 1px solid var(--border-input);
-		border-radius: var(--radius-input);
-		font-size: 0.875rem;
-		background: var(--background);
-		color: var(--foreground);
-	}
-
-	input:focus {
-		outline: none;
-		border-color: var(--foreground);
-	}
-
-	input:disabled {
-		opacity: 0.5;
-		cursor: not-allowed;
-	}
-
-	.alert-error {
-		margin: 0 0 1rem 0;
-		font-size: 0.875rem;
-	}
-
-	button {
-		width: 100%;
-		padding: 0.625rem;
-		background: var(--foreground);
-		color: var(--background);
-		border: none;
-		border-radius: var(--radius-button);
-		font-size: 0.875rem;
-		font-weight: 500;
-		cursor: pointer;
-	}
-
-	button:hover:not(:disabled) {
-		opacity: 0.9;
-	}
-
-	button:disabled {
-		opacity: 0.7;
-		cursor: not-allowed;
-	}
-</style>
