@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 
+	authService "github.com/hengadev/cluo_api/internal/application/auth"
 	"github.com/hengadev/cluo_api/internal/common/auth/session"
 	"github.com/hengadev/cluo_api/internal/common/middleware/auth"
 )
@@ -24,6 +25,12 @@ func (c *Container) initAuth(ctx context.Context) error {
 	// Initialize session repository
 	c.sessionRepo = session.NewRedisSessionRepository(c.redisClient)
 	c.logger.InfoContext(ctx, "Session repository initialized")
+
+	// Initialize auth service (requires both sessionRepo and userRepo)
+	if c.userRepo != nil {
+		c.authService = authService.New(c.userRepo, c.sessionRepo, c.crypto)
+		c.logger.InfoContext(ctx, "Auth service initialized")
+	}
 
 	// Initialize auth middleware
 	c.authMiddleware = auth.NewSessionAuthMiddleware(c.sessionRepo, c.crypto, c.vaultClient)

@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	authService "github.com/hengadev/cluo_api/internal/application/auth"
 	caseSubjectService "github.com/hengadev/cluo_api/internal/application/case_subject"
 	caseTypeService "github.com/hengadev/cluo_api/internal/application/case_type"
 	investigationService "github.com/hengadev/cluo_api/internal/application/investigation"
@@ -47,12 +46,6 @@ func (c *Container) initServices(ctx context.Context) error {
 	// Initialize search service
 	c.searchService = searchService.New(c.caseService, c.clientService)
 	c.logger.InfoContext(ctx, "Search service initialized")
-
-	// Initialize auth service
-	if c.sessionRepo != nil && c.userRepo != nil {
-		c.authService = authService.New(c.userRepo, c.sessionRepo, c.crypto)
-		c.logger.InfoContext(ctx, "Auth service initialized")
-	}
 
 	if c.documentRepo != nil && c.documentVersionRepo != nil {
 		c.documentService = documentService.New(
