@@ -4,6 +4,7 @@
     import { goto } from "$app/navigation";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+    import { fetchAllCases } from "$lib/services/api";
 
     type Props = {
         open?: boolean;
@@ -12,6 +13,17 @@
     let { open = $bindable(false), onCreateCase }: Props = $props();
 
     const toastState = getToastContext();
+
+    let hasCases: boolean | null = $state(null);
+
+    $effect(() => {
+        if (open) {
+            hasCases = null;
+            fetchAllCases({ pageSize: 1 })
+                .then(res => { hasCases = res.cases.length > 0; })
+                .catch(() => { hasCases = false; });
+        }
+    });
 
     function handleCreateCase() {
         open = false;
@@ -57,6 +69,7 @@
                 </button>
 
                 <!-- Dossiers existants (secondary card) -->
+                {#if hasCases}
                 <button
                     onclick={handleExistingCases}
                     class="group flex items-center gap-3 rounded-input border-2 border-border-input bg-transparent text-foreground p-4 text-left transition-all duration-200 hover:bg-foreground/5 active:scale-[0.98] cursor-pointer animate-in fade-in slide-in-from-bottom-2 duration-200"
@@ -69,6 +82,7 @@
                     </div>
                     <ArrowRight size={16} class="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity duration-150" />
                 </button>
+                {/if}
             </div>
 
             <Dialog.Close
