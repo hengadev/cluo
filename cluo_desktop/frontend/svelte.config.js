@@ -13,6 +13,7 @@ const config = {
         // See https://svelte.dev/docs/kit/adapters for more information about adapters.
         // For Wails with dynamic routes, use strict: false
         adapter: adapter({
+            fallback: 'index.html',
             strict: false
         }),
         alias: {
