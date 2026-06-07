@@ -13,6 +13,7 @@
 		X,
 		Save,
 	} from "@lucide/svelte";
+	import { Dialog } from "bits-ui";
 	import {
 		fetchCase,
 		fetchClient,
@@ -51,7 +52,8 @@
 
 	// Currently selected contract for viewing
 	let selectedContract: Contract | null = $state(null);
-	let viewMode: "list" | "detail" | "create" = $state("list");
+	let viewMode: "list" | "detail" = $state("list");
+	let showCreateModal = $state(false);
 
 	// Create form state
 	let formStartDate = $state(todayISO());
@@ -190,19 +192,9 @@
 	function showList() {
 		selectedContract = null;
 		viewMode = "list";
-		formScopeOfServices = "";
-		formPaymentTerms = "";
-		formConfidentiality = "";
-		formTerminationClause = "";
-		formStartDate = todayISO();
-		formEndDate = "";
-		formContractValue = "";
-		formCurrency = "EUR";
 	}
 
 	function showCreate() {
-		selectedContract = null;
-		viewMode = "create";
 		formScopeOfServices = "";
 		formPaymentTerms = "";
 		formConfidentiality = "";
@@ -211,6 +203,7 @@
 		formEndDate = "";
 		formContractValue = "";
 		formCurrency = "EUR";
+		showCreateModal = true;
 	}
 
 	function showDetail(c: Contract) {
@@ -248,6 +241,7 @@
 			if (result.data) {
 				contracts = [...contracts, result.data];
 				selectedContract = result.data;
+				showCreateModal = false;
 				viewMode = "detail";
 				toastState.add(TOAST_LEVELS.Info, "Contrat créé", "Le contrat a été créé en brouillon.");
 			}
@@ -415,9 +409,7 @@
 				{/if}
 				<div>
 					<h1 class="text-2xl font-bold text-foreground">
-						{#if viewMode === "create"}
-							Nouveau contrat
-						{:else if viewMode === "detail" && selectedContract}
+						{#if viewMode === "detail" && selectedContract}
 							Contrat {selectedContract.contract_number}
 						{:else}
 							Contrats
@@ -587,111 +579,6 @@
 			{/if}
 
 		<!-- ================================================================ -->
-		<!-- CREATE FORM -->
-		<!-- ================================================================ -->
-		{:else if viewMode === "create"}
-			<div class="border border-border-card rounded-lg p-6 max-w-3xl animate-fade-in">
-				<div class="grid grid-cols-2 gap-4 mb-6">
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Date de début *</label>
-						<input
-							type="date"
-							bind:value={formStartDate}
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Date de fin</label>
-						<input
-							type="date"
-							bind:value={formEndDate}
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Montant du contrat (€)</label>
-						<input
-							type="number"
-							bind:value={formContractValue}
-							min="0"
-							step="0.01"
-							placeholder="0.00"
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Devise</label>
-						<input
-							type="text"
-							bind:value={formCurrency}
-							placeholder="EUR"
-							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
-					</div>
-				</div>
-
-				<div class="mb-4">
-					<label class="text-xs text-muted-foreground mb-1 block">Objet des prestations *</label>
-					<textarea
-						bind:value={formScopeOfServices}
-						placeholder="Décrivez l'objet des prestations..."
-						rows="3"
-						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
-
-				<div class="mb-4">
-					<label class="text-xs text-muted-foreground mb-1 block">Conditions de paiement *</label>
-					<textarea
-						bind:value={formPaymentTerms}
-						placeholder="Ex : Paiement à 30 jours..."
-						rows="2"
-						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
-
-				<div class="mb-4">
-					<label class="text-xs text-muted-foreground mb-1 block">Clause de confidentialité *</label>
-					<textarea
-						bind:value={formConfidentiality}
-						placeholder="Clause de confidentialité..."
-						rows="2"
-						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
-
-				<div class="mb-6">
-					<label class="text-xs text-muted-foreground mb-1 block">Clause de résiliation *</label>
-					<textarea
-						bind:value={formTerminationClause}
-						placeholder="Conditions de résiliation..."
-						rows="2"
-						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
-
-				<div class="flex justify-end gap-2">
-					<button
-						type="button"
-						onclick={showList}
-						class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
-					>
-						<X size={14} class="mr-1" />
-						Annuler
-					</button>
-					<button
-						type="button"
-						onclick={handleCreate}
-						disabled={formSaving}
-						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-					>
-						<Save size={14} class="mr-1" />
-						{formSaving ? "Enregistrement..." : "Créer le contrat"}
-					</button>
-				</div>
-			</div>
-
-		<!-- ================================================================ -->
 		<!-- DETAIL VIEW -->
 		<!-- ================================================================ -->
 		{:else if viewMode === "detail" && selectedContract}
@@ -848,3 +735,130 @@
 		{/if}
 	{/if}
 </div>
+
+<!-- ================================================================ -->
+<!-- CREATE MODAL -->
+<!-- ================================================================ -->
+<Dialog.Root bind:open={showCreateModal}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]"
+		/>
+		<Dialog.Content
+			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
+		>
+			<!-- Modal header -->
+			<div class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
+				<Dialog.Title class="text-lg font-semibold text-foreground">
+					Nouveau contrat
+				</Dialog.Title>
+				<Dialog.Close
+					class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
+				>
+					<X class="text-foreground size-5" />
+					<span class="sr-only">Fermer</span>
+				</Dialog.Close>
+			</div>
+
+			<!-- Modal body (scrollable) -->
+			<div class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
+				<div class="grid grid-cols-2 gap-4">
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date de début *</label>
+						<input
+							type="date"
+							bind:value={formStartDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Date de fin</label>
+						<input
+							type="date"
+							bind:value={formEndDate}
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Montant du contrat (€)</label>
+						<input
+							type="number"
+							bind:value={formContractValue}
+							min="0"
+							step="0.01"
+							placeholder="0.00"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div>
+						<label class="text-xs text-muted-foreground mb-1 block">Devise</label>
+						<input
+							type="text"
+							bind:value={formCurrency}
+							placeholder="EUR"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+				</div>
+
+				<div>
+					<label class="text-xs text-muted-foreground mb-1 block">Objet des prestations *</label>
+					<textarea
+						bind:value={formScopeOfServices}
+						placeholder="Décrivez l'objet des prestations..."
+						rows="3"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div>
+					<label class="text-xs text-muted-foreground mb-1 block">Conditions de paiement *</label>
+					<textarea
+						bind:value={formPaymentTerms}
+						placeholder="Ex : Paiement à 30 jours..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div>
+					<label class="text-xs text-muted-foreground mb-1 block">Clause de confidentialité *</label>
+					<textarea
+						bind:value={formConfidentiality}
+						placeholder="Clause de confidentialité..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+
+				<div>
+					<label class="text-xs text-muted-foreground mb-1 block">Clause de résiliation *</label>
+					<textarea
+						bind:value={formTerminationClause}
+						placeholder="Conditions de résiliation..."
+						rows="2"
+						class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+					></textarea>
+				</div>
+			</div>
+
+			<!-- Modal footer -->
+			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
+				<Dialog.Close
+					class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+				>
+					Annuler
+				</Dialog.Close>
+				<button
+					type="button"
+					onclick={handleCreate}
+					disabled={formSaving}
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+				>
+					<Save size={14} class="mr-1" />
+					{formSaving ? "Enregistrement..." : "Créer le contrat"}
+				</button>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
