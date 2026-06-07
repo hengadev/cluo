@@ -12,7 +12,8 @@ RUN --mount=type=cache,target=/go/pkg/mod \
 
 COPY . .
 
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o cluo ./cmd/cluo/*.go
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o cluo ./cmd/cluo/*.go && \
+    CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o seed-admin ./cmd/seed-admin/*.go
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates
@@ -25,6 +26,7 @@ RUN addgroup -g 1000 runner && \
     chown -R runner:runner /app
 
 COPY --from=builder /app/cluo .
+COPY --from=builder /app/seed-admin .
 COPY --from=builder /app/*.env ./
 
 USER runner
