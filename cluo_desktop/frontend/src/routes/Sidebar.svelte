@@ -1,4 +1,5 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { Home, User, ChevronRight, ChevronLeft } from "@lucide/svelte";
     import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
@@ -13,6 +14,12 @@
 
     let noCaseOpen: boolean = $state(false);
     let newCaseOpen: boolean = $state(false);
+
+    onMount(() => {
+        if (!$currentCase.id) {
+            noCaseOpen = true;
+        }
+    });
 
     let isExpanded: boolean = $state(false);
 
