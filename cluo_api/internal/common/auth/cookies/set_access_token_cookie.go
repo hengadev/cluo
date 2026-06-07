@@ -13,7 +13,7 @@ func SetAccessTokenCookie(w http.ResponseWriter, accessToken string, expiry time
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		Expires:  expiry,
 	})
 }

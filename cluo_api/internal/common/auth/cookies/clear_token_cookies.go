@@ -11,7 +11,7 @@ func ClearTokenCookies(w http.ResponseWriter) {
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1, // Delete immediately
 	})
 
@@ -22,7 +22,7 @@ func ClearTokenCookies(w http.ResponseWriter) {
 		Path:     RefreshEndpoint,
 		HttpOnly: true,
 		Secure:   true,
-		SameSite: http.SameSiteStrictMode,
+		SameSite: http.SameSiteNoneMode,
 		MaxAge:   -1, // Delete immediately
 	})
 }
