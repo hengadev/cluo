@@ -11,10 +11,7 @@ function createThemeStore() {
         const stored = localStorage.getItem('theme') as Theme | null;
         if (stored) return stored;
 
-        // Check system preference
-        return window.matchMedia('(prefers-color-scheme: dark)').matches
-            ? 'dark'
-            : 'light';
+        return 'light';
     };
 
     const { subscribe, set, update } = writable<Theme>(getInitialTheme());
