@@ -6,12 +6,13 @@
     import { currentCase } from "$lib/stores/case";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
+    import NoCaseDialog from "$lib/custom/global/NoCaseDialog.svelte";
+    import NewCase from "$lib/custom/header/NewCase.svelte";
 
     const size: number = 24;
 
-    import { getToastContext } from "$lib/custom/global/toast/state.svelte";
-    import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-    const toastState = getToastContext();
+    let noCaseOpen: boolean = $state(false);
+    let newCaseOpen: boolean = $state(false);
 
     let isExpanded: boolean = $state(false);
 
@@ -36,11 +37,7 @@
     function handleItemClick(item: SidebarItem) {
         const routePath = getRouteForItem(item);
         if (!routePath) {
-            toastState.add(
-                TOAST_LEVELS.Warning,
-                "Aucun dossier sélectionné",
-                "Veuillez d'abord sélectionner un dossier"
-            );
+            noCaseOpen = true;
             return;
         }
         goto(routePath);
@@ -108,6 +105,9 @@
         </ProfilePopover>
     </div>
 </div>
+
+<NoCaseDialog bind:open={noCaseOpen} onCreateCase={() => (newCaseOpen = true)} />
+<NewCase bind:open={newCaseOpen} />
 
 {#snippet button(item: SidebarItem)}
     {@const Icon = item.icon}
