@@ -55,7 +55,18 @@ func (s *AuthService) SignIn(ctx context.Context, req *user.SignInRequest) (*use
 	}
 
 	// Create session
-	return s.createSession(ctx, u.ID, role, session.SessionActive)
+	resp, err := s.createSession(ctx, u.ID, role, session.SessionActive)
+	if err != nil {
+		return nil, err
+	}
+
+	resp.User = &user.CurrentUserResponse{
+		ID:    u.ID.String(),
+		Email: u.Email,
+		Role:  u.Role,
+	}
+
+	return resp, nil
 }
 
 // createSession creates a new session for a user

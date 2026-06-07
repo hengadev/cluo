@@ -59,6 +59,7 @@ type CreateSessionResponse struct {
 	RefreshToken         string
 	AccessTokenExpiry    time.Time
 	RefreshTokenExpiry   time.Time
+	User                 *CurrentUserResponse `json:"user,omitempty"`
 }
 
 // RefreshSessionResponse represents a successful token refresh response
