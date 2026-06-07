@@ -12,6 +12,7 @@ import (
 	"github.com/hengadev/cluo_api/internal/app/container"
 	"github.com/hengadev/cluo_api/internal/app/health"
 	"github.com/hengadev/cluo_api/internal/common/archive"
+	mw "github.com/hengadev/cluo_api/internal/common/middleware"
 	mwRatelimit "github.com/hengadev/cluo_api/internal/common/middleware/ratelimit"
 	"github.com/hengadev/cluo_api/internal/ports"
 	authHandler "github.com/hengadev/cluo_api/internal/interface/auth"
@@ -61,7 +62,7 @@ func (s *Server) Start(ctx context.Context) error {
 	// Create HTTP server
 	s.httpServer = &http.Server{
 		Addr:         s.config.Server.Addr(),
-		Handler:      mux,
+		Handler:      mw.PreflightMiddleware(mux),
 		ReadTimeout:  s.config.Server.ReadTimeout,
 		WriteTimeout: s.config.Server.WriteTimeout,
 		IdleTimeout:  s.config.Server.IdleTimeout,
