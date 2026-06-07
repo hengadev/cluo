@@ -2,12 +2,16 @@
     import { Dialog } from "bits-ui";
     import { X, FolderPlus, FolderSearch, ArrowRight } from "@lucide/svelte";
     import { goto } from "$app/navigation";
+    import { getToastContext } from "$lib/custom/global/toast/state.svelte";
+    import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 
     type Props = {
         open?: boolean;
         onCreateCase: () => void;
     };
     let { open = $bindable(false), onCreateCase }: Props = $props();
+
+    const toastState = getToastContext();
 
     function handleCreateCase() {
         open = false;
@@ -16,6 +20,7 @@
 
     function handleExistingCases() {
         open = false;
+        toastState.add(TOAST_LEVELS.Info, "Dossiers", "Accédez à vos dossiers depuis la page dédiée.");
         goto("/cases");
     }
 </script>
@@ -37,7 +42,7 @@
                 Créer un nouveau dossier ou accéder à vos dossiers existants.
             </Dialog.Description>
 
-            <div class="flex flex-col gap-3 mt-6">
+            <div class="flex flex-col gap-3 mt-10">
                 <!-- Nouveau dossier (primary card) -->
                 <button
                     onclick={handleCreateCase}
