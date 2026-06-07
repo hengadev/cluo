@@ -2,6 +2,7 @@ package container
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"os"
 
@@ -11,12 +12,15 @@ import (
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/hashicorp/vault/api"
 	"github.com/hengadev/cluo_api/internal/common/envmode"
+	migrations "github.com/hengadev/cluo_api/internal/migrations"
 	emailAdapter "github.com/hengadev/cluo_api/internal/infrastructure/email"
 	s3Storage "github.com/hengadev/cluo_api/internal/infrastructure/s3"
 	"github.com/hengadev/encx"
 	hashicorpkeys "github.com/hengadev/encx/providers/keys/hashicorp"
 	hashicorpsecrets "github.com/hengadev/encx/providers/secrets/hashicorp"
+	_ "github.com/jackc/pgx/v5/stdlib"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/pressly/goose/v3"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -24,6 +28,13 @@ func (c *Container) initInfrastructure(ctx context.Context) error {
 	// Initialize database pool
 	if err := c.initDatabase(ctx); err != nil {
 		return fmt.Errorf("database: %w", err)
+	}
+
+	// Run pending database migrations
+	if c.dbPool != nil {
+		if err := c.runMigrations(ctx); err != nil {
+			return fmt.Errorf("migrations: %w", err)
+		}
 	}
 
 	// Initialize Redis client
@@ -100,6 +111,23 @@ func (c *Container) initDatabase(ctx context.Context) error {
 		"max_conns", cfg.MaxOpenConns,
 	)
 
+	return nil
+}
+
+func (c *Container) runMigrations(ctx context.Context) error {
+	goose.SetBaseFS(migrations.FS)
+	if err := goose.SetDialect("pgx"); err != nil {
+		return fmt.Errorf("set dialect: %w", err)
+	}
+	db, err := sql.Open("pgx", c.config.Database.ConnectionString())
+	if err != nil {
+		return fmt.Errorf("open db: %w", err)
+	}
+	defer db.Close()
+	if err := goose.UpContext(ctx, db, "."); err != nil {
+		return fmt.Errorf("apply migrations: %w", err)
+	}
+	c.logger.InfoContext(ctx, "Database migrations applied")
 	return nil
 }
 
