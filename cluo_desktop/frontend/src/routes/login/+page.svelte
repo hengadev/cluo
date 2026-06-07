@@ -4,6 +4,8 @@
 	import { apiPost } from '$lib/services/apiFetch';
 	import { auth } from '$lib/stores/auth';
 	import ThemeToggle from '$lib/components/ThemeToggle.svelte';
+	import Eye from '@lucide/svelte/icons/eye';
+	import EyeOff from '@lucide/svelte/icons/eye-off';
 
 	const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as string | undefined;
 
@@ -18,6 +20,7 @@
 	let password = '';
 	let error = '';
 	let isLoading = false;
+	let showPassword = false;
 
 	async function handleLogin(e: Event) {
 		e.preventDefault();
@@ -73,14 +76,28 @@
 
 			<div class="form-group">
 				<label for="password">Mot de passe</label>
-				<input
-					id="password"
-					type="password"
-					bind:value={password}
-					placeholder="••••••••"
-					required
-					disabled={isLoading}
-				/>
+				<div class="password-wrapper">
+					<input
+						id="password"
+						type={showPassword ? 'text' : 'password'}
+						bind:value={password}
+						placeholder="••••••••"
+						required
+						disabled={isLoading}
+					/>
+					<button
+						type="button"
+						class="eye-toggle"
+						onclick={() => (showPassword = !showPassword)}
+						aria-label={showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}
+					>
+						{#if showPassword}
+							<EyeOff size={16} />
+						{:else}
+							<Eye size={16} />
+						{/if}
+					</button>
+				</div>
 			</div>
 
 			{#if error}
@@ -146,6 +163,33 @@
 		font-size: 0.875rem;
 		font-weight: 500;
 		color: var(--foreground);
+	}
+
+	.password-wrapper {
+		position: relative;
+		display: flex;
+		align-items: center;
+	}
+
+	.password-wrapper input {
+		padding-right: 2.25rem;
+	}
+
+	.eye-toggle {
+		position: absolute;
+		right: 0.625rem;
+		width: auto;
+		padding: 0;
+		background: none;
+		border: none;
+		color: var(--foreground-alt);
+		cursor: pointer;
+		display: flex;
+		align-items: center;
+	}
+
+	.eye-toggle:hover:not(:disabled) {
+		opacity: 0.7;
 	}
 
 	input {
