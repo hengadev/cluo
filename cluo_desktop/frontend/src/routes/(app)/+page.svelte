@@ -20,7 +20,7 @@
 
 	onMount(async () => {
 		try {
-			cases = await fetchAllCases();
+			cases = (await fetchAllCases()).cases;
 		} catch (e) {
 			error = e instanceof Error ? e.message : "Erreur lors du chargement des dossiers";
 		} finally {
