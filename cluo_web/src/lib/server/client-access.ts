@@ -185,18 +185,6 @@ const MOCK_MEDIA: MediaResponse[] = [
 		caption: 'Vidéo de surveillance — entrée',
 		isPublished: true,
 		createdAt: '2026-04-17T00:00:00Z'
-	},
-	{
-		id: 'mock-media-005',
-		caseId: 'mock-case-001',
-		url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3',
-		type: 'audio',
-		mimeType: 'audio/mpeg',
-		fileName: 'enregistrement-audio.mp3',
-		fileSize: 5_200_000,
-		caption: 'Enregistrement audio — témoin A',
-		isPublished: true,
-		createdAt: '2026-04-18T00:00:00Z'
 	}
 ];
 
