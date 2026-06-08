@@ -28,6 +28,7 @@ Thumbs.db
 *.dll
 *.so
 *.dylib
+/cluo_api/seed-admin
 
 # Old version (kept for reference but not tracked)
 old_version/
