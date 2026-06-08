@@ -29,12 +29,12 @@
 		{ value: "released", label: "Clôturé" },
 	];
 
-	let cases: Case[] = [];
-	let loading = true;
-	let error: string | null = null;
-	let statusFilter: StatusFilter = "all";
-	let searchQuery = "";
-	let newCaseOpen = false;
+	let cases: Case[] = $state([]);
+	let loading = $state(true);
+	let error: string | null = $state(null);
+	let statusFilter: StatusFilter = $state("all");
+	let searchQuery = $state("");
+	let newCaseOpen = $state(false);
 
 	onMount(async () => {
 		try {
@@ -137,10 +137,22 @@
 					{error}
 				</div>
 			{:else}
-				<!-- Filters row -->
-				<div class="flex flex-wrap items-center gap-4 mb-4">
+				<div class="flex flex-wrap gap-4 pb-6">
+					<!-- Search input -->
+					<div class="relative max-w-[480px]">
+						<Search
+							class="text-muted-foreground absolute start-3 top-1/2 size-4 -translate-y-1/2 pointer-events-none"
+						/>
+						<input
+							type="text"
+							placeholder="Rechercher par titre ou référence..."
+							bind:value={searchQuery}
+							class="h-9 rounded-input border border-border-input bg-background pl-9 pr-4 text-sm placeholder:text-foreground-alt/40 hover:border-border-input-hover focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 transition-colors w-full"
+						/>
+					</div>
+
 					<!-- Status filter chips -->
-					<div class="flex items-center gap-2">
+					<div class="flex flex-wrap items-center gap-2">
 						{#each STATUS_FILTERS as filter}
 							<button
 								type="button"
@@ -159,19 +171,6 @@
 								</span>
 							</button>
 						{/each}
-					</div>
-
-					<!-- Search input -->
-					<div class="relative flex-1 min-w-[200px] max-w-[400px]">
-						<Search
-							class="text-muted-foreground absolute start-3 top-1/2 size-4 -translate-y-1/2 pointer-events-none"
-						/>
-						<input
-							type="text"
-							placeholder="Rechercher par titre ou référence..."
-							bind:value={searchQuery}
-							class="h-9 rounded-input border border-border-input bg-background pl-9 pr-4 text-sm placeholder:text-foreground-alt/40 hover:border-border-input-hover focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 transition-colors w-full"
-						/>
 					</div>
 				</div>
 
