@@ -27,6 +27,10 @@
 	} from "$lib/services/api";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+	import {
+		documentStatusBadge,
+		documentStatusDot,
+	} from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
 	import type { DocumentSummary, DocumentStatus } from "$lib/types/entities";
 
@@ -103,28 +107,6 @@
 		cancelled: "Annulé",
 		rejected: "Rejeté",
 		expired: "Expiré",
-	};
-
-	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-muted text-muted-foreground",
-		sent: "bg-accent text-accent-foreground",
-		signed: "bg-success/15 text-success",
-		active: "bg-success text-success-foreground",
-		archived: "bg-muted text-muted-foreground",
-		cancelled: "bg-destructive/15 text-destructive",
-		rejected: "bg-destructive/15 text-destructive",
-		expired: "bg-tertiary/15 text-tertiary",
-	};
-
-	const STATUS_DOT_COLORS: Record<string, string> = {
-		draft: "bg-muted-foreground",
-		sent: "bg-accent-foreground",
-		signed: "bg-success",
-		active: "bg-success",
-		archived: "bg-muted-foreground",
-		cancelled: "bg-destructive",
-		rejected: "bg-destructive",
-		expired: "bg-tertiary",
 	};
 
 	// =========================================================================
@@ -477,8 +459,8 @@
 
 							<!-- Status dot/badge -->
 							{#if doc}
-								<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium {STATUS_COLORS[doc.status] || 'bg-muted text-muted-foreground'}">
-									<span class="w-1.5 h-1.5 rounded-full {STATUS_DOT_COLORS[doc.status] || 'bg-muted-foreground'}"></span>
+								<span class="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-xs font-medium {documentStatusBadge(doc.status as DocumentStatus)}">
+									<span class="w-1.5 h-1.5 rounded-full {documentStatusDot(doc.status as DocumentStatus)}"></span>
 									{STATUS_LABELS[doc.status] || doc.status}
 								</span>
 							{:else}

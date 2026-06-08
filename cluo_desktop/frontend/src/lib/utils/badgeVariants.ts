@@ -1,4 +1,4 @@
-import type { CaseStatus, DocumentStatus, PaymentStatus, UserRole } from '$lib/types/entities';
+import type { CaseStatus, ClientType, DocumentStatus, PaymentStatus, UserRole } from '$lib/types/entities';
 
 // ---------------------------------------------------------------------------
 // Case status badges
@@ -62,4 +62,39 @@ const userRoleClasses: Record<UserRole, string> = {
 
 export function userRoleBadge(role: UserRole): string {
 	return userRoleClasses[role];
+}
+
+// ---------------------------------------------------------------------------
+// Client type badges
+// ---------------------------------------------------------------------------
+
+const clientTypeClasses: Record<ClientType, string> = {
+	person: 'bg-tertiary/15 text-tertiary',
+	insurance: 'bg-accent text-accent-foreground',
+	lawyer: 'bg-tertiary/15 text-tertiary',
+	company: 'bg-success/15 text-success',
+	government: 'bg-muted text-foreground',
+};
+
+export function clientTypeBadge(type: ClientType): string {
+	return clientTypeClasses[type];
+}
+
+// ---------------------------------------------------------------------------
+// Document workflow status dot colours
+// ---------------------------------------------------------------------------
+
+const documentStatusDotClasses: Record<DocumentStatus, string> = {
+	draft: 'bg-muted-foreground',
+	sent: 'bg-accent-foreground',
+	signed: 'bg-success',
+	active: 'bg-success',
+	archived: 'bg-muted-foreground',
+	cancelled: 'bg-destructive',
+	rejected: 'bg-destructive',
+	expired: 'bg-tertiary',
+};
+
+export function documentStatusDot(status: DocumentStatus): string {
+	return documentStatusDotClasses[status];
 }

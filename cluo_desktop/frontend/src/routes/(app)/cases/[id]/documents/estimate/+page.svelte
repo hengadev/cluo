@@ -27,6 +27,7 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
 	import type { Case, Client, Estimate, EstimateItem, Mandate, DocumentStatus } from "$lib/types/entities";
 
@@ -75,17 +76,6 @@
 		cancelled: "Annulé",
 		rejected: "Rejeté",
 		expired: "Expiré",
-	};
-
-	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-muted text-muted-foreground",
-		sent: "bg-accent text-accent-foreground",
-		signed: "bg-success/15 text-success",
-		active: "bg-success text-success-foreground",
-		archived: "bg-muted text-muted-foreground",
-		cancelled: "bg-destructive/15 text-destructive",
-		rejected: "bg-destructive/15 text-destructive",
-		expired: "bg-tertiary/15 text-tertiary",
 	};
 
 	interface FormItem {
@@ -450,7 +440,7 @@
 						<button
 							type="button"
 							onclick={() => { if (selectedEstimate) showEdit(selectedEstimate); }}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 						>
 							<Pencil size={14} class="mr-1" />
 							Modifier
@@ -537,7 +527,7 @@
 										<div class="text-sm font-medium text-foreground">{formatCurrency(est.estimated_total)}</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[est.status] || 'bg-muted text-muted-foreground'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(est.status as DocumentStatus)}">
 											{STATUS_LABELS[est.status] || est.status}
 										</span>
 									</td>
@@ -665,7 +655,7 @@
 					<button
 						type="button"
 						onclick={showList}
-						class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+						class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 					>
 						<X size={14} class="mr-1" />
 						Annuler
@@ -689,7 +679,7 @@
 			<div class="max-w-3xl animate-fade-in">
 				<!-- Status banner -->
 				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedEstimate.status] || 'bg-muted text-muted-foreground'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedEstimate.status as DocumentStatus)}">
 						{STATUS_LABELS[selectedEstimate.status] || selectedEstimate.status}
 					</span>
 					{#if selectedEstimate.status !== "draft"}
@@ -920,7 +910,7 @@
 			<!-- Modal footer -->
 			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
 				<Dialog.Close
-					class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 				>
 					Annuler
 				</Dialog.Close>

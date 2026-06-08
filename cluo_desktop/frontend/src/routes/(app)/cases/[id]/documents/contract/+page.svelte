@@ -28,8 +28,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
-	import type { Case, Client, Contract } from "$lib/types/entities";
+	import type { Case, Client, Contract, DocumentStatus } from "$lib/types/entities";
 
 	const toastState = getToastContext();
 
@@ -82,17 +83,6 @@
 		cancelled: "Annulé",
 		rejected: "Rejeté",
 		expired: "Expiré",
-	};
-
-	const STATUS_COLORS: Record<string, string> = {
-		draft: "bg-muted text-muted-foreground",
-		sent: "bg-accent text-accent-foreground",
-		signed: "bg-success/15 text-success",
-		active: "bg-success text-success-foreground",
-		archived: "bg-muted text-muted-foreground",
-		cancelled: "bg-destructive/15 text-destructive",
-		rejected: "bg-destructive/15 text-destructive",
-		expired: "bg-tertiary/15 text-tertiary",
 	};
 
 	function todayISO(): string {
@@ -567,7 +557,7 @@
 										{/if}
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
-										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {STATUS_COLORS[c.status] || 'bg-muted text-muted-foreground'}">
+										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(c.status as DocumentStatus)}">
 											{STATUS_LABELS[c.status] || c.status}
 										</span>
 									</td>
@@ -585,7 +575,7 @@
 			<div class="max-w-3xl animate-fade-in">
 				<!-- Status banner -->
 				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {STATUS_COLORS[selectedContract.status] || 'bg-muted text-muted-foreground'}">
+					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedContract.status as DocumentStatus)}">
 						{STATUS_LABELS[selectedContract.status] || selectedContract.status}
 					</span>
 					{#if selectedContract.status === "active"}
@@ -845,7 +835,7 @@
 			<!-- Modal footer -->
 			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
 				<Dialog.Close
-					class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 				>
 					Annuler
 				</Dialog.Close>

@@ -839,7 +839,7 @@
 							<button
 								type="button"
 								onclick={cancelPayment}
-								class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+								class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 							>
 								<X size={14} class="mr-1" />
 								Annuler
@@ -1036,7 +1036,7 @@
 			<!-- Modal footer -->
 			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
 				<Dialog.Close
-					class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+					class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 				>
 					Annuler
 				</Dialog.Close>
