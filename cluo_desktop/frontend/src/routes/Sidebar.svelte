@@ -32,12 +32,26 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300 animate-fade-in"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300 animate-fade-in overflow-visible"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
 >
-    <div class="flex {isExpanded ? 'justify-between' : 'justify-center'} items-center w-full">
+    <!-- Floating expand/collapse button on the right border -->
+    <button
+        onclick={() => (isExpanded = !isExpanded)}
+        class="absolute right-0 bottom-16 translate-x-1/2 z-10 p-1.5 rounded-full bg-foreground text-background hover:scale-110 active:scale-95 transition-all duration-200 shadow-md cursor-pointer"
+        title={isExpanded ? "Réduire" : "Agrandir"}
+        type="button"
+    >
+        {#if isExpanded}
+            <ChevronLeft size={20} strokeWidth={2} />
+        {:else}
+            <ChevronRight size={20} strokeWidth={2} />
+        {/if}
+    </button>
+
+    <div class="flex {isExpanded ? 'justify-start' : 'justify-center'} items-center w-full">
         <Button.Root
             class="p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 bg-transparent text-foreground hover:bg-foreground/10 {isExpanded
                 ? 'justify-start gap-3 px-4'
@@ -49,31 +63,20 @@
                 <span class="text-sm font-medium">Home</span>
             {/if}
         </Button.Root>
-
-        <button
-            onclick={() => (isExpanded = !isExpanded)}
-            class="p-2 rounded-input text-dark-500 hover:bg-foreground/10 hover:scale-110 active:scale-95 transition-all duration-200 {isExpanded ? '' : '!mt-1'}"
-            title={isExpanded ? "Collapse sidebar" : "Expand sidebar"}
-            type="button"
-        >
-            {#if isExpanded}
-                <ChevronLeft size={24} strokeWidth={1.5} />
-            {:else}
-                <ChevronRight size={24} strokeWidth={1.5} />
-            {/if}
-        </button>
     </div>
 
     <div class="flex flex-col justify-between h-full">
-        <div class="flex flex-col gap-4" style:align-items={isExpanded ? 'stretch' : 'center'}>
+        <div class="flex flex-col gap-6" style:align-items={isExpanded ? 'stretch' : 'center'}>
             {#each groups as group, i}
                 {#if i > 0}
-                    <hr class="border-foreground/10 {isExpanded ? 'mx-2' : 'w-6'}" />
-                {/if}
-                {#if isExpanded && group.label}
-                    <span class="px-4 text-xs font-semibold uppercase tracking-wider text-foreground/40 select-none">
-                        {group.label}
-                    </span>
+                    <div class="flex flex-col {isExpanded ? 'gap-2 px-2' : 'gap-1.5 items-center'}">
+                        {#if group.label}
+                            <span class="font-semibold uppercase tracking-widest text-foreground/35 select-none {isExpanded ? 'text-[10px] px-2' : 'text-[8px]'}">
+                                {isExpanded ? group.label : group.label.slice(0, 3)}
+                            </span>
+                        {/if}
+                        <hr class="border-foreground/20 {isExpanded ? 'w-full' : 'w-6'}" />
+                    </div>
                 {/if}
                 <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
                     {#each group.items as item}
