@@ -23,12 +23,12 @@
 
 <style>
     .image {
-        background-color: #fafafa;
+        background-color: var(--color-muted);
         height: 200px;
         width: 200px;
     }
     .tag {
-        background-color: #dedede;
+        background-color: var(--color-border-input);
         padding: 0.5rem 1rem;
         max-width: 100px;
     }

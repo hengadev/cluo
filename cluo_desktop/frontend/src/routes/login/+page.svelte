@@ -51,7 +51,7 @@
 		}
 	}
 
-	const inputClass = "h-input w-full rounded-card-sm border border-border-input bg-background px-4 text-sm placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
+	const inputClass = "h-input w-full rounded-input border border-border-input bg-background px-4 text-sm placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 transition-colors disabled:opacity-50 disabled:cursor-not-allowed";
 </script>
 
 <div class="fixed top-4 right-4 z-10">
@@ -107,13 +107,13 @@
 			</div>
 
 			{#if error}
-				<p class="text-sm text-destructive">{error}</p>
+				<div class="alert-error text-sm">{error}</div>
 			{/if}
 
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="h-input w-full rounded-input bg-dark text-background text-sm font-semibold shadow-mini hover:bg-dark/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer mt-2"
+				class="h-input w-full rounded-button bg-dark text-background text-sm font-semibold shadow-mini hover:bg-dark/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer mt-2"
 			>
 				{isLoading ? 'Connexion…' : 'Se connecter'}
 			</button>

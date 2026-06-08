@@ -12,7 +12,7 @@
 
 <Button.Root
     class="border-border-input border-1 max-w-120 rounded-input relative {selected
-        ? `border border-red-500`
+        ? `border border-destructive`
         : `border-0`} p-4"
     onclick={() => (selected = !selected)}
 >

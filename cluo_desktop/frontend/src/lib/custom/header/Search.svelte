@@ -64,7 +64,7 @@ const STATUS_LABELS: Record<CaseStatus, string> = {
 		const sorted = [...indices].sort((a, b) => a[0] - b[0]);
 		for (const [start, end] of sorted) {
 			out += escHtml(text.slice(last, start));
-			out += `<mark class="bg-yellow-200 text-yellow-900 rounded-sm not-italic">${escHtml(text.slice(start, end + 1))}</mark>`;
+			out += `<mark class="bg-tertiary/30 text-foreground rounded-sm not-italic">${escHtml(text.slice(start, end + 1))}</mark>`;
 			last = end + 1;
 		}
 		out += escHtml(text.slice(last));

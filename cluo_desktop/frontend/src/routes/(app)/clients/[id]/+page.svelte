@@ -510,7 +510,7 @@
 						<button
 							type="button"
 							onclick={() => { showNewContact = false; resetNewContact(); }}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 						>
 							Annuler
 						</button>
@@ -587,7 +587,7 @@
 										<button
 											type="button"
 											onclick={cancelEditingContact}
-											class="h-input rounded-input bg-transparent text-dark hover:bg-[#fafafa] inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-[#dedede] cursor-pointer"
+											class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 										>
 											Annuler
 										</button>
