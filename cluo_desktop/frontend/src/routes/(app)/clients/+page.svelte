@@ -7,6 +7,7 @@
 	import { fetchAllClients, deleteClient } from "$lib/services/api";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+	import { clientTypeBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
 	import type { Client, ClientType } from "$lib/types/entities";
 
@@ -31,14 +32,6 @@
 		lawyer: Scale,
 		company: Building2,
 		government: Landmark,
-	};
-
-	const TYPE_BADGE: Record<ClientType, string> = {
-		person: "bg-tertiary/15 text-tertiary",
-		insurance: "bg-accent text-accent-foreground",
-		lawyer: "bg-tertiary/15 text-tertiary",
-		company: "bg-success/15 text-success",
-		government: "bg-muted text-foreground",
 	};
 
 	let filteredClients = $derived(
@@ -143,7 +136,7 @@
 		>
 			{#each filteredClients as client, index}
 				{@const Icon = TYPE_ICONS[client.type] || Building2}
-				{@const badge = TYPE_BADGE[client.type] || "bg-muted text-muted-foreground"}
+				{@const badge = clientTypeBadge(client.type)}
 				<div
 					class="border border-border-card rounded-card p-5 bg-background hover:border-border-input-hover hover:shadow-md hover:-translate-y-0.5 transition-all duration-300 animate-fade-in cursor-pointer group"
 					style="animation-delay: {200 + index * 50}ms;"
