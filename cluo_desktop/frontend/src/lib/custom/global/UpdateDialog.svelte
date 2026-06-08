@@ -195,19 +195,19 @@
             <div class="px-8 py-6 space-y-4">
                 {#if updateState === "checking"}
                     <p class="text-foreground-alt text-sm">
-                        Checking for updates...
+                        Vérification des mises à jour en cours…
                     </p>
                 {:else if updateState === "available" && updateInfo}
                     <div class="space-y-2">
                         <p class="text-foreground-alt text-sm">
-                            A new version is available: <strong>v{updateInfo.version}</strong>
+                            Une nouvelle version est disponible : <strong>v{updateInfo.version}</strong>
                         </p>
                         <p class="text-foreground-alt text-sm">
-                            Current version: <strong>v{currentVersion}</strong>
+                            Version actuelle : <strong>v{currentVersion}</strong>
                         </p>
                         {#if updateInfo.release_notes}
                             <div class="mt-3 rounded-md bg-muted p-3">
-                                <p class="text-sm font-medium">Release Notes:</p>
+                                <p class="text-sm font-medium">Notes de version :</p>
                                 <p class="text-foreground-alt mt-1 text-sm whitespace-pre-wrap">
                                     {updateInfo.release_notes}
                                 </p>
@@ -216,7 +216,7 @@
                     </div>
                 {:else if updateState === "uptodate"}
                     <p class="text-foreground-alt text-sm">
-                        You're running the latest version (<strong>v{currentVersion}</strong>).
+                        Vous utilisez la dernière version (<strong>v{currentVersion}</strong>).
                     </p>
                 {:else if updateState === "downloading"}
                     <div class="space-y-2">
@@ -235,16 +235,16 @@
                     </div>
                 {:else if updateState === "installing"}
                     <p class="text-foreground-alt text-sm">
-                        Installing update, please wait...
+                        Installation de la mise à jour, veuillez patienter…
                     </p>
                 {:else if updateState === "ready"}
                     <p class="text-foreground-alt text-sm">
-                        The update has been installed. Restart the application to apply the changes.
+                        La mise à jour a été installée. Redémarrez l'application pour appliquer les modifications.
                     </p>
                 {:else if updateState === "error"}
                     <div class="rounded-md alert-error">
                         <p class="text-sm">
-                            {errorMessage || "An unknown error occurred."}
+                            {errorMessage || "Une erreur inconnue est survenue."}
                         </p>
                     </div>
                 {/if}

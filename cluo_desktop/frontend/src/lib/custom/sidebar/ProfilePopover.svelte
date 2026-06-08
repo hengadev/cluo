@@ -2,8 +2,8 @@
     import { Button, Popover, Separator } from "bits-ui";
     import { User, LogOut, BadgeCheck, Bell, CreditCard, RefreshCw } from "@lucide/svelte";
     import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
-    import UpdateDialog from "$lib/custom/global/UpdateDialog.svelte";
     import { auth } from "$lib/stores/auth";
+    import { updateDialogOpen } from "$lib/stores/update";
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
@@ -18,8 +18,6 @@
         { icon: CreditCard, title: "Billing" },
         { icon: Bell, title: "Notifications" },
     ];
-
-    let updateDialogOpen = $state(false);
 
     async function handleLogout() {
         await auth.logout();
@@ -56,7 +54,7 @@
             <div class="py-1">
                 <Button.Root
                     class="flex items-center gap-2.5 w-full px-4 py-2 text-sm text-foreground-alt hover:text-foreground hover:bg-muted cursor-pointer transition-colors"
-                    onclick={() => (updateDialogOpen = true)}
+                    onclick={() => updateDialogOpen.set(true)}
                 >
                     <RefreshCw size={14} />
                     Vérifier les mises à jour
@@ -75,8 +73,6 @@
         </Popover.Content>
     </Popover.Portal>
 </Popover.Root>
-
-<UpdateDialog bind:open={updateDialogOpen} />
 
 {#snippet separator()}
     <Separator.Root class="bg-border-input block h-px" />
