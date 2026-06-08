@@ -34,6 +34,18 @@
       POSTGRES_USER="{{ postgres_user | default('cluo') }}"
       RETENTION_DAYS={{ backup_retention_days | default(7) }}
       TIMESTAMP=$(date +%Y%m%d_%H%M%S)
+      SENTINEL_FILE="$BACKUP_DIR/.last_success"
+      FAILURE_SENTINEL="$BACKUP_DIR/.last_failure"
+
+      # Write failure sentinel on any unexpected exit
+      write_failure_sentinel() {
+        local exit_code=$?
+        if [ "$exit_code" -ne 0 ]; then
+          mkdir -p "$BACKUP_DIR"
+          printf '%s\n%s\n' "$(date -u +'%Y-%m-%dT%H:%M:%SZ')" "exit_code=$exit_code" > "$FAILURE_SENTINEL"
+        fi
+      }
+      trap write_failure_sentinel EXIT
 
       # Colors for output
       RED='\033[0;31m'
@@ -122,8 +134,10 @@
 
       log "Backup process completed successfully"
 
-      # Write sentinel file for backup-alert check
-      SENTINEL_FILE="$BACKUP_DIR/.last_success"
+      # Remove any stale failure sentinel on success
+      rm -f "$FAILURE_SENTINEL"
+
+      # Write success sentinel file for backup-alert check
       date -u +'%Y-%m-%dT%H:%M:%SZ' > "$SENTINEL_FILE"
       log "Sentinel file updated: $SENTINEL_FILE"
 
@@ -250,10 +264,12 @@
       set -euo pipefail
 
       # Backup alert check — runs daily, 1 hour after the backup cron.
-      # If the sentinel file is missing or stale, sends an alert email.
+      # If the success sentinel is missing or stale, or a failure sentinel exists,
+      # sends an alert email.
 
       BACKUP_DIR="{{ app_dir | default('/opt/cluo') }}/backups"
       SENTINEL_FILE="$BACKUP_DIR/.last_success"
+      FAILURE_SENTINEL="$BACKUP_DIR/.last_failure"
       MAX_AGE_SECONDS=$((25 * 3600))  # 25 hours
       ALERT_EMAIL="{{ admin_email | default('root@localhost') }}"
       HOSTNAME_STR="$(hostname -f 2>/dev/null || hostname)"
@@ -265,38 +281,33 @@
         echo "ALERT: $subject"
       }
 
-      if [ ! -f "$SENTINEL_FILE" ]; then
-        SUBJECT="[CLUO ALERT] Backup sentinel missing on $HOSTNAME_STR"
-        BODY="The backup sentinel file was not found at $SENTINEL_FILE on host $HOSTNAME_STR.
-
-This means either:
-  - No backup has ever completed successfully, or
-  - The sentinel file was deleted.
-
-Please investigate immediately.
-
-Timestamp (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+      # Check for a recent failure sentinel first
+      if [ -f "$FAILURE_SENTINEL" ]; then
+        FAILURE_INFO=$(cat "$FAILURE_SENTINEL")
+        SUBJECT="[CLUO ALERT] Backup failed on $HOSTNAME_STR"
+        BODY=$(printf 'A backup failure was detected on %s.\n\nFailure sentinel: %s\nContents:\n%s\n\nThe last backup run exited with an error. Please investigate.\n\nTimestamp (UTC): %s' \
+          "$HOSTNAME_STR" "$FAILURE_SENTINEL" "$FAILURE_INFO" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
         send_alert "$SUBJECT" "$BODY"
         exit 1
       fi
 
-      SENTINEL_TS=$(cat "$SENTINEL_FILE")
+      if [ ! -f "$SENTINEL_FILE" ]; then
+        SUBJECT="[CLUO ALERT] Backup sentinel missing on $HOSTNAME_STR"
+        BODY=$(printf 'The backup sentinel file was not found at %s on host %s.\n\nThis means either:\n  - No backup has ever completed successfully, or\n  - The sentinel file was deleted.\n\nPlease investigate immediately.\n\nTimestamp (UTC): %s' \
+          "$SENTINEL_FILE" "$HOSTNAME_STR" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
+        send_alert "$SUBJECT" "$BODY"
+        exit 1
+      fi
+
+      SENTINEL_TS=$(head -1 "$SENTINEL_FILE")
       SENTINEL_EPOCH=$(date -d "$SENTINEL_TS" +%s 2>/dev/null || echo 0)
       NOW_EPOCH=$(date +%s)
       AGE_SECONDS=$(( NOW_EPOCH - SENTINEL_EPOCH ))
 
       if [ "$AGE_SECONDS" -gt "$MAX_AGE_SECONDS" ]; then
         SUBJECT="[CLUO ALERT] Backup is stale on $HOSTNAME_STR"
-        BODY="The last successful backup on $HOSTNAME_STR is stale.
-
-Sentinel file : $SENTINEL_FILE
-Last success  : $SENTINEL_TS
-Age           : $(( AGE_SECONDS / 3600 )) hours
-Threshold     : 25 hours
-
-The backup may have failed silently. Please investigate.
-
-Timestamp (UTC): $(date -u +'%Y-%m-%dT%H:%M:%SZ')"
+        BODY=$(printf 'The last successful backup on %s is stale.\n\nSentinel file: %s\nLast success: %s\nAge: %d hours\nThreshold: 25 hours\n\nThe backup may have failed silently. Please investigate.\n\nTimestamp (UTC): %s' \
+          "$HOSTNAME_STR" "$SENTINEL_FILE" "$SENTINEL_TS" "$(( AGE_SECONDS / 3600 ))" "$(date -u +'%Y-%m-%dT%H:%M:%SZ')")
         send_alert "$SUBJECT" "$BODY"
         exit 1
       fi
