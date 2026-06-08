@@ -104,7 +104,7 @@ func (h *TokenHandler) GetDocumentPDFByToken(w http.ResponseWriter, r *http.Requ
 		"pdf_size_bytes", len(pdfBytes))
 
 	w.Header().Set("Content-Type", "application/pdf")
-	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="%s.pdf"`, docTypeStr))
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s.pdf"`, docTypeStr))
 	w.Header().Set("Content-Length", fmt.Sprintf("%d", len(pdfBytes)))
 	_, _ = w.Write(pdfBytes)
 }
