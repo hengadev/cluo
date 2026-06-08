@@ -3,6 +3,25 @@
     import ThemeToggle from "$lib/components/ThemeToggle.svelte";
     import { Button, Tooltip } from "bits-ui";
     import { page } from "$app/stores";
+    import { currentCase, recentCases } from "$lib/stores/case";
+    import { caseStatusBadge } from "$lib/utils/badgeVariants";
+    import type { CaseStatus } from "$lib/types/entities";
+
+    const STATUS_LABELS: Record<CaseStatus, string> = {
+        in_progress: "En cours",
+        ready: "Prêt",
+        released: "Clôturé",
+    };
+
+    const STATUS_DOT: Record<CaseStatus, string> = {
+        in_progress: "bg-accent",
+        ready: "bg-success",
+        released: "bg-dark-400",
+    };
+
+    $: currentCaseInfo = $currentCase.id
+        ? ($recentCases.find(c => c.id === $currentCase.id) ?? null)
+        : null;
 </script>
 
 <div class="header border-1 border-dark-50 animate-fade-in" style="animation-delay: 100ms;">
@@ -19,16 +38,27 @@
             </a>
         {/each}
     </nav>
-    <div class="flex align-center gap-2">
-        <div class="buttons">
-            <ThemeToggle />
-            {#each utilityItems as item}
-                {@const DialogOrPopover = item.uiComponent}
-                <DialogOrPopover>
-                    {@render utilityItem(item)}
-                </DialogOrPopover>
-            {/each}
-        </div>
+
+    <div class="case-banner">
+        {#if currentCaseInfo}
+            <div class="case-chip">
+                <span class="status-dot {STATUS_DOT[currentCaseInfo.status]}"></span>
+                <span class="case-title">{currentCaseInfo.title}</span>
+                <span class="status-label {caseStatusBadge(currentCaseInfo.status)}">
+                    {STATUS_LABELS[currentCaseInfo.status]}
+                </span>
+            </div>
+        {/if}
+    </div>
+
+    <div class="buttons">
+        <ThemeToggle />
+        {#each utilityItems as item}
+            {@const DialogOrPopover = item.uiComponent}
+            <DialogOrPopover>
+                {@render utilityItem(item)}
+            </DialogOrPopover>
+        {/each}
     </div>
 </div>
 
@@ -59,11 +89,11 @@
 <style>
     .header {
         grid-area: header;
-        display: flex;
-        justify-content: space-between;
+        display: grid;
+        grid-template-columns: 1fr auto 1fr;
         align-items: center;
         padding: 0.5rem 2rem;
-        gap: 2rem;
+        gap: 1rem;
     }
     .nav-items {
         display: flex;
@@ -83,7 +113,7 @@
         transition: all 150ms ease;
     }
     .nav-button:hover {
-        background: var(--dark-50);
+        background: var(--dark-10);
         color: var(--foreground);
     }
     .nav-button.active {
@@ -91,11 +121,47 @@
         color: var(--foreground);
         font-weight: 600;
     }
+    .case-banner {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+    }
+    .case-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.625rem;
+        padding: 0.375rem 0.875rem;
+        border-radius: 999px;
+        background: var(--dark-50);
+        border: 1px solid var(--dark-100);
+        max-width: 380px;
+    }
+    .status-dot {
+        flex-shrink: 0;
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+    }
+    .case-title {
+        font-size: 0.8125rem;
+        font-weight: 600;
+        color: var(--foreground);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 240px;
+    }
+    .status-label {
+        flex-shrink: 0;
+        font-size: 0.6875rem;
+        font-weight: 500;
+        padding: 0.125rem 0.5rem;
+        border-radius: 999px;
+        white-space: nowrap;
+    }
     .buttons {
         display: flex;
-        justify-content: right;
+        justify-content: flex-end;
         gap: 0.5rem;
-        margin-left: auto;
-        text-align: right;
     }
 </style>
