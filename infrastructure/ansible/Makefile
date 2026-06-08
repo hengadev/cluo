@@ -9,7 +9,7 @@
 # Variables
 INVENTORY ?= inventory.yml
 PLAYBOOK ?= site.yml
-VAULT_FILE ?= group_vars/vault.yml
+VAULT_FILE ?= group_vars/all/vault.yml
 ASK_VAULT ?= true
 TAGS ?=
 SKIP_TAGS ?=

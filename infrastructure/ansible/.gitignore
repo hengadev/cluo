@@ -4,6 +4,10 @@ terraform-outputs.json
 *.retry
 .vault_pass
 
+# Vault-encrypted secrets
+vault.yml
+secrets.yml
+
 # Group vars with secrets
 group_vars/*/vault.yml
 group_vars/*/secrets.yml
