@@ -2,20 +2,15 @@
     import { Home, User, ChevronRight, ChevronLeft } from "@lucide/svelte";
     import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
-    import { items, type SidebarItem } from "$lib/constructor/sidebar";
+    import { groups, type SidebarItem } from "$lib/constructor/sidebar";
     import { currentCase } from "$lib/stores/case";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
 
     let isExpanded: boolean = $state(false);
 
-    // Centralised: all sidebar items are case-scoped; they're disabled as a group when no case is open
     let noCaseOpen = $derived(!$currentCase.id);
 
-    const regularItems = items.filter(i => !i.disabled);
-    const disabledItems = items.filter(i => i.disabled);
-
-    // Get the current route path for highlighting
     function getRouteForItem(item: SidebarItem): string {
         if (!item.path.includes(':id')) return item.path;
         const caseId = $currentCase.id;
@@ -55,7 +50,6 @@
             {/if}
         </Button.Root>
 
-        <!-- Chevron toggle button -->
         <button
             onclick={() => (isExpanded = !isExpanded)}
             class="p-2 rounded-input text-dark-500 hover:bg-foreground/10 hover:scale-110 active:scale-95 transition-all duration-200 {isExpanded ? '' : '!mt-1'}"
@@ -69,35 +63,39 @@
             {/if}
         </button>
     </div>
+
     <div class="flex flex-col justify-between h-full">
-        <div
-            class="flex flex-col gap-2"
-            style:align-items={isExpanded ? 'stretch' : 'center'}
-        >
-            {#each regularItems as item}
-                {@render button(item, noCaseOpen)}
-            {/each}
-        </div>
-        <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
-            {#if disabledItems.length > 0}
-                <div class="flex flex-col gap-2 mb-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
-                    {#each disabledItems as item}
-                        {@render button(item, true)}
+        <div class="flex flex-col gap-4" style:align-items={isExpanded ? 'stretch' : 'center'}>
+            {#each groups as group, i}
+                {#if i > 0}
+                    <hr class="border-foreground/10 {isExpanded ? 'mx-2' : 'w-6'}" />
+                {/if}
+                {#if isExpanded && group.label}
+                    <span class="px-4 text-xs font-semibold uppercase tracking-wider text-foreground/40 select-none">
+                        {group.label}
+                    </span>
+                {/if}
+                <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
+                    {#each group.items as item}
+                        {@render button(item, noCaseOpen || !!item.disabled)}
                     {/each}
                 </div>
-            {/if}
-        <ProfilePopover>
-            <Button.Root
-                class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
-                    ? 'justify-start gap-3 px-4 py-3 w-full'
-                    : 'justify-center mx-auto size-12'}"
-            >
-                <User size={24} />
-                {#if isExpanded}
-                    <span class="text-sm font-medium">Profile</span>
-                {/if}
-            </Button.Root>
-        </ProfilePopover>
+            {/each}
+        </div>
+
+        <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
+            <ProfilePopover>
+                <Button.Root
+                    class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
+                        ? 'justify-start gap-3 px-4 py-3 w-full'
+                        : 'justify-center mx-auto size-12'}"
+                >
+                    <User size={24} />
+                    {#if isExpanded}
+                        <span class="text-sm font-medium">Profile</span>
+                    {/if}
+                </Button.Root>
+            </ProfilePopover>
         </div>
     </div>
 </div>
