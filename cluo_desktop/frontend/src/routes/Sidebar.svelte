@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { Home, User, ChevronRight, ChevronLeft } from "@lucide/svelte";
     import { Button, Tooltip } from "bits-ui";
     import ProfilePopover from "$lib/custom/sidebar/ProfilePopover.svelte";
@@ -7,28 +6,17 @@
     import { currentCase } from "$lib/stores/case";
     import { goto } from "$app/navigation";
     import { page } from "$app/stores";
-    import NoCaseDialog from "$lib/custom/global/NoCaseDialog.svelte";
-    import NewCase from "$lib/custom/header/NewCase.svelte";
-
-    const size: number = 24;
-
-    let noCaseOpen: boolean = $state(false);
-    let newCaseOpen: boolean = $state(false);
-
-    onMount(() => {
-        if (!$currentCase.id) {
-            noCaseOpen = true;
-        }
-    });
 
     let isExpanded: boolean = $state(false);
+
+    // Centralised: all sidebar items are case-scoped; they're disabled as a group when no case is open
+    let noCaseOpen = $derived(!$currentCase.id);
 
     const regularItems = items.filter(i => !i.disabled);
     const disabledItems = items.filter(i => i.disabled);
 
     // Get the current route path for highlighting
     function getRouteForItem(item: SidebarItem): string {
-        // Routes without :id are used as-is
         if (!item.path.includes(':id')) return item.path;
         const caseId = $currentCase.id;
         if (!caseId) return '';
@@ -43,10 +31,7 @@
 
     function handleItemClick(item: SidebarItem) {
         const routePath = getRouteForItem(item);
-        if (!routePath) {
-            noCaseOpen = true;
-            return;
-        }
+        if (!routePath) return;
         goto(routePath);
     }
 </script>
@@ -64,7 +49,7 @@
                 : 'justify-center'}"
             onclick={() => goto("/")}
         >
-            <Home {size} strokeWidth={1.5} />
+            <Home size={24} strokeWidth={1.5} />
             {#if isExpanded}
                 <span class="text-sm font-medium">Home</span>
             {/if}
@@ -90,40 +75,40 @@
             style:align-items={isExpanded ? 'stretch' : 'center'}
         >
             {#each regularItems as item}
-                {@render button(item)}
+                {@render button(item, noCaseOpen)}
             {/each}
         </div>
-        <div class="flex flex-col gap-2 mb-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
-            {#each disabledItems as item}
-                {@render button(item)}
-            {/each}
-        </div>
+        <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
+            {#if disabledItems.length > 0}
+                <div class="flex flex-col gap-2 mb-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
+                    {#each disabledItems as item}
+                        {@render button(item, true)}
+                    {/each}
+                </div>
+            {/if}
         <ProfilePopover>
             <Button.Root
                 class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
                     ? 'justify-start gap-3 px-4 py-3 w-full'
                     : 'justify-center mx-auto size-12'}"
             >
-                <User {size} />
+                <User size={24} />
                 {#if isExpanded}
                     <span class="text-sm font-medium">Profile</span>
                 {/if}
             </Button.Root>
         </ProfilePopover>
+        </div>
     </div>
 </div>
 
-<NoCaseDialog bind:open={noCaseOpen} onCreateCase={() => (newCaseOpen = true)} />
-<NewCase bind:open={newCaseOpen} />
-
-{#snippet button(item: SidebarItem)}
+{#snippet button(item: SidebarItem, disabled: boolean)}
     {@const Icon = item.icon}
-    {@const active = isActive(item)}
-    {@const disabled = item.disabled ?? false}
+    {@const active = !disabled && isActive(item)}
     {#if isExpanded}
         <button
             class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
+	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
                 ? 'bg-foreground text-background'
                 : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
             onclick={disabled ? undefined : () => handleItemClick(item)}
@@ -139,7 +124,7 @@
             <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
                     class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background
-		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
+	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
                         ? 'bg-foreground text-background'
                         : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all'}"
                     onclick={disabled ? undefined : () => handleItemClick(item)}

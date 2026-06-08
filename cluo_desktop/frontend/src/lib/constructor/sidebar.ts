@@ -8,8 +8,6 @@ import {
     UserPen,
     Paperclip,
     Mic,
-    Briefcase,
-    Settings,
     ShieldCheck,
 } from "@lucide/svelte";
 
@@ -32,7 +30,5 @@ export const items: SidebarItem[] = [
     { icon: Handshake, title: SIDEBAR_STATES.Mandat, path: "/cases/:id/documents/mandate" },
     { icon: ShieldCheck, title: SIDEBAR_STATES.Contrat, path: "/cases/:id/documents/contract" },
     { icon: ReceiptEuro, title: SIDEBAR_STATES.Facture, path: "/cases/:id/documents/facture" },
-    { icon: Briefcase, title: SIDEBAR_STATES.Clients, path: "/clients" },
-    { icon: Settings, title: SIDEBAR_STATES.Paramètres, path: "/settings" },
     { icon: Globe, title: SIDEBAR_STATES.Reseaux, path: "/cases/:id/reseaux", disabled: true },
 ]
