@@ -175,7 +175,7 @@
 				"Client supprimé",
 				`${client.name} a été supprimé.`,
 			);
-			goto("/clients");
+			goto("/people");
 		} catch (e) {
 			toastState.add(
 				TOAST_LEVELS.Error,
@@ -318,10 +318,10 @@
 <div class="p-8 flex flex-col gap-6">
 	<button
 		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-		onclick={() => goto("/clients")}
+		onclick={() => goto("/people")}
 	>
 		<ArrowLeft size={18} />
-		<span class="text-sm font-medium">Retour aux clients</span>
+		<span class="text-sm font-medium">Retour aux personnes</span>
 	</button>
 
 	{#if loading}
