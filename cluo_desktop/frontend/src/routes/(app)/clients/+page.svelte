@@ -9,9 +9,12 @@
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import { clientTypeBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import NewClientDialog from "$lib/custom/global/NewClientDialog.svelte";
 	import type { Client, ClientType } from "$lib/types/entities";
 
 	const toastState = getToastContext();
+
+	let newClientOpen = $state(false);
 
 	let clients: Client[] = $state([]);
 	let loading = $state(true);
@@ -83,13 +86,14 @@
 <div class="p-8 flex flex-col gap-6">
 	<div class="flex items-center justify-between animate-fade-in">
 		<h1 class="text-3xl font-bold">Clients</h1>
-		<button
-			class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
-			onclick={() => goto("/clients/new")}
-		>
-			<Plus size={18} />
-			Nouveau client
-		</button>
+		<NewClientDialog bind:open={newClientOpen}>
+			<button
+				class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
+			>
+				<Plus size={18} />
+				Nouveau client
+			</button>
+		</NewClientDialog>
 	</div>
 
 	<!-- Search bar -->
@@ -123,7 +127,7 @@
 			<EmptyState icon={Building2} message="Aucun client enregistré.">
 				<button
 					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
-					onclick={() => goto("/clients/new")}
+					onclick={() => (newClientOpen = true)}
 				>
 					<Plus size={18} />
 					Nouveau client
