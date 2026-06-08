@@ -1,77 +1,38 @@
 <script lang="ts">
-    import { Folder } from "@lucide/svelte";
-    import Search from "$lib/custom/header/Search.svelte";
-    import { items, type HeaderItem } from "$lib/constructor/header";
+    import { navItems, utilityItems, type UtilityItem } from "$lib/constructor/header";
     import ThemeToggle from "$lib/components/ThemeToggle.svelte";
-    // TODO: pour la partie client ou type d'enquete, il faut un select avec tous les anciens clients + un bouton plus pour ajouter un nouvel element
     import { Button, Tooltip } from "bits-ui";
-    import { currentCase } from "$lib/stores/case";
-    import { fetchCase, fetchClient } from "$lib/services/api";
-    import type { Case, Client, CaseStatus } from "$lib/types/entities";
-    import { caseStatusBadge } from "$lib/utils/badgeVariants";
-
-    const STATUS_LABELS: Record<CaseStatus, string> = {
-        in_progress: "En cours",
-        ready: "Prêt",
-        released: "Clôturé",
-    };
-
-    let caseData: Case | null = $state(null);
-    let clientData: Client | null = $state(null);
-
-    $effect(() => {
-        const caseId = $currentCase.id;
-        if (!caseId) {
-            caseData = null;
-            clientData = null;
-            return;
-        }
-        fetchCase(caseId).then(async (c) => {
-            caseData = c;
-            const client = await fetchClient(c.clientId);
-            clientData = client;
-        });
-    });
+    import { page } from "$app/stores";
 </script>
 
 <div class="header border-1 border-dark-50 animate-fade-in" style="animation-delay: 100ms;">
-    <div class="grid">
-        <div class="left">
-            {#if caseData}
-                <div class="current-case">
-                    <div class="p-2 rounded-input bg-foreground">
-                        <Folder size={16} class="text-background" />
-                    </div>
-                    <p>{clientData?.name ?? '…'}</p>
-                </div>
-                <p>&bull;</p>
-                <p>{caseData.title}</p>
-                <span class="status-badge {caseStatusBadge(caseData.status)}">
-                    {STATUS_LABELS[caseData.status]}
-                </span>
-            {:else}
-                <div class="no-case">
-                    <Folder size={16} />
-                    <p>Aucune affaire ouverte</p>
-                </div>
-            {/if}
-        </div>
-    </div>
-    <Search />
+    <nav class="nav-items">
+        {#each navItems as item}
+            {@const Icon = item.icon}
+            {@const isActive = $page.url.pathname === item.href || $page.url.pathname.startsWith(item.href + "/")}
+            <a
+                href={item.href}
+                class="nav-button {isActive ? 'active' : ''}"
+            >
+                <Icon size={18} strokeWidth={1.75} />
+                <span>{item.label}</span>
+            </a>
+        {/each}
+    </nav>
     <div class="flex align-center gap-2">
         <div class="buttons">
             <ThemeToggle />
-            {#each items as item}
+            {#each utilityItems as item}
                 {@const DialogOrPopover = item.uiComponent}
                 <DialogOrPopover>
-                    {@render headerItem(item)}
+                    {@render utilityItem(item)}
                 </DialogOrPopover>
             {/each}
         </div>
     </div>
 </div>
 
-{#snippet headerItem(item: HeaderItem)}
+{#snippet utilityItem(item: UtilityItem)}
     {@const Icon = item.icon}
     <Tooltip.Provider>
         <Tooltip.Root delayDuration={100}>
@@ -104,34 +65,31 @@
         padding: 0.5rem 2rem;
         gap: 2rem;
     }
-    .left,
-    .buttons {
-        flex: 1;
-    }
-    .left {
+    .nav-items {
         display: flex;
-        gap: 0.5rem;
+        gap: 0.25rem;
         align-items: center;
+    }
+    .nav-button {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 0.5rem 1rem;
+        border-radius: 10px;
+        font-size: 0.875rem;
         font-weight: 500;
-    }
-    .current-case {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
-    }
-    .status-badge {
-        display: inline-block;
-        padding: 0.125rem 0.5rem;
-        border-radius: 9999px;
-        font-size: 0.75rem;
-        font-weight: 500;
-    }
-    .no-case {
-        display: flex;
-        gap: 0.5rem;
-        align-items: center;
         color: var(--foreground-alt);
-        font-weight: 400;
+        text-decoration: none;
+        transition: all 150ms ease;
+    }
+    .nav-button:hover {
+        background: var(--dark-50);
+        color: var(--foreground);
+    }
+    .nav-button.active {
+        background: var(--dark-50);
+        color: var(--foreground);
+        font-weight: 600;
     }
     .buttons {
         display: flex;
