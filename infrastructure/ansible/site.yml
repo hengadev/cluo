@@ -79,6 +79,12 @@
         - backup
       when: enable_backups | default(false)
 
+    # 11. Uptime monitoring (UptimeRobot)
+    - role: uptime_monitoring
+      tags:
+        - uptime
+      when: enable_uptime_monitoring | default(false)
+
   post_tasks:
     - name: Display deployment summary
       ansible.builtin.debug:

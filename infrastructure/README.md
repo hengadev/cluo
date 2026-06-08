@@ -47,6 +47,7 @@ infrastructure/
 │   │   │   └── files/
 │   │   │       └── docker-compose.yml  # Multi-environment setup
 │   │   ├── monitoring/
+│   │   ├── uptime_monitoring/  # UptimeRobot /health check
 │   │   ├── automatic_updates/
 │   │   └── backup/
 │   └── README.md
@@ -160,8 +161,33 @@ All traffic flows through Cloudflare to the single VPS:
 - [ ] Log rotation configured
 - [ ] Container health checks enabled
 - [ ] Systemd service for auto-start
+- [ ] External uptime monitoring configured (UptimeRobot)
 
 ## Maintenance
+
+### Uptime Monitoring
+
+The production API `/health` endpoint is monitored by [UptimeRobot](https://uptimerobot.com) (free tier).
+
+| Setting | Value |
+|---|---|
+| Monitor type | HTTP(S) |
+| URL | `https://api.clientvault.fr/health` |
+| Check interval | 5 minutes |
+| Alert channel | Email to developer |
+| Documentation | `/opt/cluo/UPTIME_MONITOR.txt` on the VPS |
+
+**Setup:**
+```bash
+cd infrastructure
+# Set in inventory.yml:
+#   enable_uptime_monitoring: true
+#   uptimerobot_api_key: "your-api-key"
+make configure -- --tags uptime
+```
+
+**Recovery:** If the UptimeRobot account is lost, create a new free account and re-run the Ansible role.
+The monitor ID and configuration are recorded in `/opt/cluo/UPTIME_MONITOR.txt`.
 
 ### Daily
 - Monitor application logs
