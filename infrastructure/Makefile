@@ -155,7 +155,17 @@ lint: ## Lint both Terraform and Ansible
 audit: ## Audit for plaintext secrets in Ansible/Terraform files and git history
 	@./scripts/audit-secrets.sh
 
-ci: validate lint audit ## Run all CI checks
+test: ## Run shell tests (Bats)
+	@echo "$(BLUE)Running infrastructure tests...$(NC)"
+	@if command -v bats >/dev/null 2>&1; then \
+		bats tests/; \
+	else \
+		echo "$(RED)bats not found. Install: git clone https://github.com/bats-core/bats-core && ./install.sh ~/.local$(NC)"; \
+		exit 1; \
+	fi
+	@echo "$(GREEN)✓ All tests passed$(NC)"
+
+ci: validate lint audit test ## Run all CI checks
 
 # ============================================================================
 # INIT & CLEANUP
