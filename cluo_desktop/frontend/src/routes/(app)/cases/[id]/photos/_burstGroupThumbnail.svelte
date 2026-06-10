@@ -86,7 +86,7 @@
 
     <!-- Count Badge -->
     <div
-        class="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-sm z-10"
+        class="absolute bottom-2 left-2 bg-background/90 backdrop-blur-sm rounded-full px-2.5 py-1 flex items-center gap-1.5 shadow-mini z-10"
     >
         <Layers size={12} class="text-foreground" />
         <span class="text-xs font-semibold text-foreground">{count}</span>

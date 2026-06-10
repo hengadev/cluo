@@ -30,7 +30,7 @@
 </script>
 
 <div
-    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover hover:shadow-md transition-all duration-300 cursor-pointer aspect-square {selectMode
+    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover hover:shadow-popover transition-all duration-300 cursor-pointer aspect-square {selectMode
         ? 'select-none'
         : ''} {isSelected ? 'ring-2 ring-primary ring-offset-2' : ''}"
     onclick={handleClick}
@@ -45,7 +45,7 @@
     {#if selectMode}
         <!-- Selection Checkbox Overlay -->
         <div
-            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-sm {isSelected
+            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-mini {isSelected
                 ? 'bg-foreground border-foreground'
                 : 'bg-background border-dark'}"
         >

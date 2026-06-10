@@ -41,7 +41,7 @@
 
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
     <div
-        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-lg hover:shadow-xl transition-shadow duration-300"
+        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-popover hover:shadow-popover transition-shadow duration-300"
     >
         <!-- Import -->
         <button
@@ -90,7 +90,7 @@
 
             {#if showSortMenu}
                 <div
-                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-lg py-1 min-w-[150px]"
+                    class="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 bg-background border border-border-card rounded-lg shadow-popover py-1 min-w-[150px]"
                 >
                     <button
                         class="w-full px-4 py-2 text-left text-sm hover:bg-muted {sortMode ===
@@ -139,7 +139,7 @@
             <button
                 class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
                 'library'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("library")}
                 title="Bibliothèque uniquement"
@@ -149,7 +149,7 @@
             <button
                 class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
                 'split'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("split")}
                 title="Vue partagée"
@@ -159,7 +159,7 @@
             <button
                 class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
                 'report'
-                    ? 'bg-background text-foreground shadow-sm'
+                    ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"
                 onclick={() => onLayoutModeChange("report")}
                 title="Rapport uniquement"

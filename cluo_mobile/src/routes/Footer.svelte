@@ -336,7 +336,7 @@
         aria-modal="true"
         aria-label="Confirmation"
     >
-        <div class="bg-dark-800 rounded-2xl p-6 mx-4 max-w-sm w-full shadow-xl">
+        <div class="bg-dark-800 rounded-2xl p-6 mx-4 max-w-sm w-full shadow-popover">
             <p class="text-foreground text-base mb-6">Cette affaire est clôturée. Continuer quand même ?</p>
             <div class="flex gap-3">
                 <button

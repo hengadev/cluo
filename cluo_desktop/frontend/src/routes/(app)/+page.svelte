@@ -44,7 +44,7 @@
 				<div class="flex flex-col gap-3">
 					{#each $recentCases.slice(0, 3) as entry, index}
 						<button
-							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-md transition-all duration-300 text-left animate-fade-in cursor-pointer group"
+							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-popover transition-all duration-300 text-left animate-fade-in cursor-pointer group"
 							style="animation-delay: {200 + index * 100}ms;"
 							onclick={() => resumeCase(entry)}
 						>

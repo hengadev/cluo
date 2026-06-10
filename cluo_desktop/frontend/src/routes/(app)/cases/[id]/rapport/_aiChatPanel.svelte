@@ -244,7 +244,7 @@
 				<button
 					onclick={handleSend}
 					disabled={!inputMessage.trim() || isSending || !caseId}
-					class="p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-sm"
+					class="p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-mini"
 					type="button"
 				>
 					{#if isSending}

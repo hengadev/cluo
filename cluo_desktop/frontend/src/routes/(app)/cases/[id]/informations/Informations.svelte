@@ -429,7 +429,7 @@
 		<div class="flex gap-8">
 			<!-- Case Header -->
 			<div
-				class="grid gap-5 p-6 border border-border-card rounded-card flex-1 animate-fade-in hover:shadow-md transition-shadow duration-300"
+				class="grid gap-5 p-6 border border-border-card rounded-card flex-1 animate-fade-in hover:shadow-popover transition-shadow duration-300"
 				style="animation-delay: 100ms;"
 			>
 				<div class="flex gap-4 items-center">
@@ -470,7 +470,7 @@
 			<div class="flex flex-col gap-6">
 				<!-- Client Details -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-md transition-shadow duration-300 w-80"
+					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-popover transition-shadow duration-300 w-80"
 					style="animation-delay: 200ms;"
 				>
 					<div class="flex justify-between items-center">
@@ -592,7 +592,7 @@
 
 				<!-- Location -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-md transition-shadow duration-300 w-80"
+					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-popover transition-shadow duration-300 w-80"
 					style="animation-delay: 300ms;"
 				>
 					<div class="flex justify-between items-center">
@@ -623,7 +623,7 @@
 
 				<!-- Case Type -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-md transition-shadow duration-300 w-80"
+					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-popover transition-shadow duration-300 w-80"
 					style="animation-delay: 350ms;"
 				>
 					<div class="flex justify-between items-center">

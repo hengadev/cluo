@@ -71,7 +71,7 @@
     <Dialog.Portal>
         <Dialog.Overlay class="fixed inset-0 bg-black/40 z-40" />
         <Dialog.Content
-            class="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl px-4 pt-4 pb-8 max-h-[80vh] flex flex-col gap-4 shadow-xl"
+            class="fixed bottom-0 left-0 right-0 z-50 bg-background rounded-t-2xl px-4 pt-4 pb-8 max-h-[80vh] flex flex-col gap-4 shadow-popover"
         >
             <div class="flex items-center justify-between">
                 <Dialog.Title class="font-extrabold text-lg text-dark-900">

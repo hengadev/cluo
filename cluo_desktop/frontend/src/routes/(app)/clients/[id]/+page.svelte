@@ -337,7 +337,7 @@
 	{:else if client}
 		<!-- Client header -->
 		<div
-			class="border border-border-card rounded-card p-6 animate-fade-in hover:shadow-md transition-shadow duration-300"
+			class="border border-border-card rounded-card p-6 animate-fade-in hover:shadow-popover transition-shadow duration-300"
 		>
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
@@ -535,7 +535,7 @@
 				<div class="grid gap-3">
 					{#each contacts as contact}
 						<div
-							class="border border-border-card rounded-card p-4 bg-background hover:shadow-sm transition-shadow duration-200"
+							class="border border-border-card rounded-card p-4 bg-background hover:shadow-mini transition-shadow duration-200"
 						>
 							{#if editingContactId === contact.id}
 								<!-- Inline edit form -->

@@ -22,7 +22,7 @@
         class="fixed bottom-24 left-4 right-4 z-50"
         transition:fly={{ y: 50, duration: 200 }}
     >
-        <div class="flex items-center gap-3 px-4 py-3 bg-red-600 text-white rounded-xl shadow-lg">
+        <div class="flex items-center gap-3 px-4 py-3 bg-red-600 text-white rounded-xl shadow-popover">
             <p class="flex-1 text-sm font-medium">{current.message}</p>
             {#if current.action}
                 <button

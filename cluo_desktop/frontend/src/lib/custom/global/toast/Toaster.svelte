@@ -5,7 +5,7 @@
     let toastState = getToastContext();
 </script>
 
-<div class="absolute bottom-4 right-8 flex flex-col-reverse gap-2 shadow-sm">
+<div class="absolute bottom-4 right-8 flex flex-col-reverse gap-2 shadow-mini">
     {#each toastState.toasts as toast}
         <Toast {toast} />
     {/each}

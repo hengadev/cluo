@@ -51,7 +51,7 @@
     class="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
     onclick={handleBackdropClick}
 >
-    <div class="bg-background rounded-card shadow-lg max-w-4xl w-full max-h-[80vh] flex flex-col">
+    <div class="bg-background rounded-card shadow-popover max-w-4xl w-full max-h-[80vh] flex flex-col">
         <!-- Header -->
         <div class="flex items-center justify-between p-4 border-b border-border-card">
             <div>
@@ -95,7 +95,7 @@
 
                         <!-- Checkbox -->
                         <div
-                            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-sm {selectedImageIds.has(
+                            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-mini {selectedImageIds.has(
                                 image.id,
                             )
                                 ? 'bg-foreground border-foreground'

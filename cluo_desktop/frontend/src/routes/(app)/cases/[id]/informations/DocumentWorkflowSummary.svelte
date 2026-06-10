@@ -437,7 +437,7 @@
 					{@const isActing = actionInProgress === doc?.id || (docDef.type === "invoice" && creatingInvoice)}
 
 					<div
-						class="border border-border-card rounded-lg p-4 bg-background hover:shadow-md transition-all duration-300 flex flex-col min-h-[180px]"
+						class="border border-border-card rounded-lg p-4 bg-background hover:shadow-popover transition-all duration-300 flex flex-col min-h-[180px]"
 					>
 						<!-- Header: icon + status -->
 						<div class="flex items-start justify-between mb-3">
@@ -489,7 +489,7 @@
 											<button
 												type="button"
 												disabled={isActing}
-												class="h-8 rounded-md {action.color} shadow-sm hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
+												class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
 											>
 												{#if isActing}
 													<Loader2 size={12} class="mr-1 animate-spin" />
@@ -504,7 +504,7 @@
 											type="button"
 											onclick={() => executeAction(doc)}
 											disabled={isActing}
-											class="h-8 rounded-md {action.color} shadow-sm hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
+											class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
 										>
 											{#if isActing}
 												<Loader2 size={12} class="mr-1 animate-spin" />
@@ -545,7 +545,7 @@
 									<button
 										type="button"
 										disabled={creatingInvoice}
-										class="h-8 rounded-md {createInvoiceAction.color} shadow-sm hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 w-full mt-2"
+										class="h-8 rounded-md {createInvoiceAction.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 w-full mt-2"
 									>
 										{#if creatingInvoice}
 											<Loader2 size={12} class="mr-1 animate-spin" />
