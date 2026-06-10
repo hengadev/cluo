@@ -33,7 +33,7 @@
                 href={item.href}
                 class="nav-button {isActive ? 'active' : ''}"
             >
-                <Icon size={18} strokeWidth={1.75} />
+                <Icon size={16} strokeWidth={1.75} />
                 <span>{item.label}</span>
             </a>
         {/each}
@@ -105,21 +105,24 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        border-radius: var(--radius-card-sm);
+        border-radius: 0;
+        border-bottom: 2px solid transparent;
         font-size: 0.875rem;
-        font-weight: 500;
+        font-weight: 400;
         color: var(--foreground-alt);
         text-decoration: none;
+        background: transparent;
         transition: all 150ms ease;
     }
     .nav-button:hover {
-        background: var(--dark-10);
+        background: transparent;
         color: var(--foreground);
     }
     .nav-button.active {
-        background: var(--surface);
+        border-bottom-color: var(--accent);
+        background: transparent;
         color: var(--foreground);
-        font-weight: 600;
+        font-weight: 500;
     }
     .case-banner {
         display: flex;
