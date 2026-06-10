@@ -32,7 +32,7 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-5 bg-sidebar border border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
@@ -70,9 +70,11 @@
                 {#if i > 0}
                     <div class="flex flex-col {isExpanded ? 'gap-2 px-2' : 'gap-1.5 items-center'}">
                         {#if group.label}
-                            <span class="font-semibold uppercase tracking-widest text-foreground/35 select-none {isExpanded ? 'text-[10px] px-2' : 'text-[8px]'}">
-                                {isExpanded ? group.label : group.label.slice(0, 3)}
-                            </span>
+                            {#if isExpanded}
+                                <span class="font-semibold uppercase tracking-widest text-foreground/35 select-none text-[10px] px-2">
+                                    {group.label}
+                                </span>
+                            {/if}
                         {/if}
                         <hr class="border-foreground/20 {isExpanded ? 'w-full' : 'w-6'}" />
                     </div>
@@ -107,9 +109,9 @@
     {@const active = !disabled && isActive(item)}
     {#if isExpanded}
         <button
-            class="align-center border-border-input rounded-card-sm bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
+            class="align-center border-border-input rounded-card-sm ring-offset-background transition-all active:scale-[0.98]
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
-                ? 'bg-surface-hover text-foreground hover:bg-surface-active'
+                ? 'border-l-2 border-accent bg-accent-subtle text-accent-subtle-foreground'
                 : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
             onclick={disabled ? undefined : () => handleItemClick(item)}
             disabled={disabled}
@@ -123,10 +125,10 @@
         <Tooltip.Provider>
             <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
-                    class="align-center border-border-input rounded-card-sm bg-background-alt ring-offset-background
+                    class="align-center border-border-input rounded-card-sm ring-offset-background transition-all
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
-                        ? 'bg-surface-hover text-foreground hover:bg-surface-active'
-                        : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all'}"
+                        ? 'bg-accent-subtle text-accent-subtle-foreground'
+                        : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98]'}"
                     onclick={disabled ? undefined : () => handleItemClick(item)}
                     disabled={disabled}
                 >
