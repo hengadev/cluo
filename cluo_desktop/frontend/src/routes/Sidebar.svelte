@@ -32,7 +32,7 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-dark-50 relative transition-all duration-300 animate-fade-in overflow-visible"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
@@ -40,7 +40,7 @@
     <!-- Floating expand/collapse button on the right border -->
     <button
         onclick={() => (isExpanded = !isExpanded)}
-        class="absolute right-0 bottom-16 translate-x-1/2 z-10 p-1.5 rounded-full bg-foreground text-background hover:scale-110 active:scale-95 transition-all duration-200 shadow-md cursor-pointer"
+        class="absolute right-0 bottom-16 translate-x-1/2 z-10 p-1.5 rounded-full bg-foreground text-background hover:scale-110 active:scale-95 transition-all duration-200 shadow-popover cursor-pointer"
         title={isExpanded ? "Réduire" : "Agrandir"}
         type="button"
     >
@@ -89,7 +89,7 @@
         <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
             <ProfilePopover>
                 <Button.Root
-                    class="rounded-10px flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
+                    class="rounded-card-sm flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
                         ? 'justify-start gap-3 px-4 py-3 w-full'
                         : 'justify-center mx-auto size-12'}"
                 >
@@ -108,10 +108,10 @@
     {@const active = !disabled && isActive(item)}
     {#if isExpanded}
         <button
-            class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
+            class="align-center border-border-input rounded-card-sm bg-background-alt ring-offset-background active:scale-[0.98] active:transition:all
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
-                ? 'bg-foreground text-background'
-                : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
+                ? 'bg-surface-hover text-foreground hover:bg-surface-active'
+                : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
             onclick={disabled ? undefined : () => handleItemClick(item)}
             disabled={disabled}
         >
@@ -124,10 +124,10 @@
         <Tooltip.Provider>
             <Tooltip.Root delayDuration={300}>
                 <Tooltip.Trigger
-                    class="align-center border-border-input rounded-10px bg-background-alt ring-offset-background
+                    class="align-center border-border-input rounded-card-sm bg-background-alt ring-offset-background
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
-                        ? 'bg-foreground text-background'
-                        : 'bg-transparent text-foreground hover:bg-foreground/10'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all'}"
+                        ? 'bg-surface-hover text-foreground hover:bg-surface-active'
+                        : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98] active:transition:all'}"
                     onclick={disabled ? undefined : () => handleItemClick(item)}
                     disabled={disabled}
                 >

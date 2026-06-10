@@ -16,7 +16,7 @@
     const STATUS_DOT: Record<CaseStatus, string> = {
         in_progress: "bg-accent",
         ready: "bg-success",
-        released: "bg-dark-400",
+        released: "bg-muted-foreground",
     };
 
     $: currentCaseInfo = $currentCase.id
@@ -24,7 +24,7 @@
         : null;
 </script>
 
-<div class="header border-1 border-dark-50 animate-fade-in" style="animation-delay: 100ms;">
+<div class="header border-1 border-border-input animate-fade-in" style="animation-delay: 100ms;">
     <nav class="nav-items">
         {#each navItems as item}
             {@const Icon = item.icon}
@@ -67,9 +67,9 @@
     <Tooltip.Provider>
         <Tooltip.Root delayDuration={100}>
             <Tooltip.Trigger
-                class="rounded-10px p-3 bg-dark-50 ring-offset-background active:scale-[0.98] active:transition:all
+                class="rounded-card-sm p-3 bg-surface ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2
-                    hover:bg-dark-100/50 hover:scale-105 transition-all duration-200 {item.bg} text-{item.fg}"
+                    hover:bg-surface-hover hover:scale-105 transition-all duration-200 {item.bg} text-{item.fg}"
             >
                 <Button.Root class="cursor-pointer">
                     <Icon size={24} strokeWidth={1.75} />
@@ -105,7 +105,7 @@
         align-items: center;
         gap: 0.5rem;
         padding: 0.5rem 1rem;
-        border-radius: 10px;
+        border-radius: var(--radius-card-sm);
         font-size: 0.875rem;
         font-weight: 500;
         color: var(--foreground-alt);
@@ -117,7 +117,7 @@
         color: var(--foreground);
     }
     .nav-button.active {
-        background: var(--dark-50);
+        background: var(--surface);
         color: var(--foreground);
         font-weight: 600;
     }
@@ -132,8 +132,8 @@
         gap: 0.625rem;
         padding: 0.375rem 0.875rem;
         border-radius: 999px;
-        background: var(--dark-50);
-        border: 1px solid var(--dark-100);
+        background: var(--surface);
+        border: 1px solid var(--border-input);
         max-width: 380px;
     }
     .status-dot {

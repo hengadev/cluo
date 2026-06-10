@@ -88,7 +88,7 @@
         items={languages}
     >
         <Select.Trigger
-            class="h-input rounded-9px border-border-input bg-background data-placeholder:text-foreground-alt/50 inline-flex justify-between w-[296px] select-none items-center border px-[11px] text-sm transition-colors"
+            class="h-input rounded-input border-border-input bg-background data-placeholder:text-foreground-alt/50 inline-flex justify-between w-[296px] select-none items-center border px-[11px] text-sm transition-colors"
             aria-label="Select a language"
         >
             <div class="flex gap-2">

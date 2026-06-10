@@ -7,9 +7,9 @@
 <Tooltip.Provider>
     <Tooltip.Root delayDuration={100}>
         <Tooltip.Trigger
-            class="rounded-10px p-3 bg-dark-50 ring-offset-background active:scale-[0.98] active:transition:all
+            class="rounded-card-sm p-3 bg-surface ring-offset-background active:scale-[0.98] active:transition:all
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2
-                    hover:bg-dark-100/50 transition-colors"
+                    hover:bg-surface-hover transition-colors"
         >
             <Button.Root class="cursor-pointer" onclick={() => theme.toggle()}>
                 {#if $theme === "dark"}
