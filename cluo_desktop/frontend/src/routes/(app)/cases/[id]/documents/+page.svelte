@@ -97,7 +97,7 @@
 		<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 			{#each documentTypes as doc}
 				<button
-					class="border border-border-card rounded-card p-6 bg-background hover:border-border-input-hover hover:shadow-popover hover:-translate-y-1 transition-all duration-300 text-left"
+					class="border border-border-card rounded-card p-6 bg-background hover:border-border-input-hover hover:shadow-card hover:-translate-y-1 transition-all duration-300 text-left"
 					onclick={() => goto(`/cases/${caseId}/documents/${doc.type}`)}
 				>
 					<div class="flex items-start justify-between mb-4">

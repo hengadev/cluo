@@ -45,7 +45,7 @@
 </script>
 
 <div
-    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover hover:shadow-popover transition-all duration-300 cursor-pointer aspect-square {selectMode
+    class="relative group border border-border-card rounded-card overflow-hidden bg-background hover:border-border-input-hover hover:shadow-card transition-all duration-300 cursor-pointer aspect-square {selectMode
         ? 'select-none'
         : ''} {isSelected ? 'ring-2 ring-foreground ring-offset-2 ring-offset-background' : ''} {image.isPublished ? '' : 'opacity-80'}"
     onclick={handleClick}

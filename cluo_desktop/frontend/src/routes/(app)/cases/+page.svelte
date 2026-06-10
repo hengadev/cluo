@@ -90,7 +90,7 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col gap-6 flex-1">
+<div class="page-content">
 	<!-- Header row -->
 	<div
 		class="flex items-center justify-between animate-fade-in"
@@ -188,7 +188,7 @@
 					>
 						{#each filteredCases as caseItem, index}
 							<button
-								class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-popover hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in cursor-pointer"
+								class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-card hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in cursor-pointer"
 								style="animation-delay: {200 + index * 50}ms;"
 								onclick={() => selectCase(caseItem.id)}
 							>

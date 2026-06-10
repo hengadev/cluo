@@ -197,7 +197,7 @@
     }
 </script>
 
-<div class="p-8 flex flex-col flex-1 min-h-0 gap-6">
+<div class="page-content flex-1 min-h-0">
     <div>
         <h1 class="text-2xl font-bold text-foreground">Enregistrements</h1>
         <p class="text-sm text-muted-foreground">
@@ -222,7 +222,7 @@
             <div class="flex flex-col gap-3">
                 {#each recordings as rec, index (rec.media.id)}
                     <div
-                        class="border border-border-card rounded-card p-5 bg-background hover:shadow-popover transition-shadow animate-fade-in"
+                        class="border border-border-card rounded-card p-5 bg-background hover:shadow-card transition-shadow animate-fade-in"
                         style="animation-delay: {index * 50}ms;"
                     >
                         <div class="flex items-start gap-4">

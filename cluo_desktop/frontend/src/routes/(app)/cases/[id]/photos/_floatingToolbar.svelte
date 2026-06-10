@@ -41,7 +41,7 @@
 
 <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-in">
     <div
-        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-popover hover:shadow-popover transition-shadow duration-300"
+        class="flex items-center gap-2 bg-background/95 backdrop-blur-sm border border-border-card rounded-full px-3 py-2 shadow-popover transition-shadow duration-300"
     >
         <!-- Import -->
         <button

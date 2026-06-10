@@ -49,7 +49,7 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col gap-6 flex-1">
+<div class="page-content">
 	<div class="animate-fade-in">
 		<h1 class="text-3xl font-bold">Tableau de bord</h1>
 		<p class="text-sm text-muted-foreground mt-1">Vue d'ensemble de l'activité</p>
@@ -57,22 +57,22 @@
 
 	<!-- Stat strip -->
 	{#if !loading}
-		<div class="grid grid-cols-3 gap-4 max-w-xl animate-fade-in" style="animation-delay: 100ms;">
-			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-popover transition-shadow">
+		<div class="grid grid-cols-3 gap-4 animate-fade-in" style="animation-delay: 100ms;">
+			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-shadow">
 				<p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</p>
 				<p class="text-2xl font-bold text-foreground mt-1">{stats.total}</p>
 			</div>
-			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-popover transition-shadow">
+			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-shadow">
 				<p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">En cours</p>
 				<p class="text-2xl font-bold text-foreground mt-1">{stats.inProgress}</p>
 			</div>
-			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-popover transition-shadow">
+			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-shadow">
 				<p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Prêt</p>
 				<p class="text-2xl font-bold text-foreground mt-1">{stats.ready}</p>
 			</div>
 		</div>
 	{:else}
-		<div class="grid grid-cols-3 gap-4 max-w-xl">
+		<div class="grid grid-cols-3 gap-4">
 			{#each { length: 3 } as _}
 				<div class="border border-border-card rounded-card p-4 bg-background h-[72px] flex items-center justify-center">
 					<Spinner size="sm" />
@@ -81,7 +81,7 @@
 		</div>
 	{/if}
 
-	<div class="flex flex-col gap-6 max-w-2xl">
+	<div class="flex flex-col gap-6">
 		<!-- Quick resume section -->
 		{#if $recentCases.length > 0}
 			<section>
@@ -91,7 +91,7 @@
 				<div class="flex flex-col gap-3">
 					{#each $recentCases.slice(0, 3) as entry, index}
 						<button
-							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-popover transition-all duration-300 text-left animate-fade-in cursor-pointer group"
+							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-card transition-all duration-300 text-left animate-fade-in cursor-pointer group"
 							style="animation-delay: {300 + index * 100}ms;"
 							onclick={() => resumeCase(entry)}
 						>

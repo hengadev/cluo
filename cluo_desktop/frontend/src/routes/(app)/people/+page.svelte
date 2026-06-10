@@ -168,7 +168,7 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col gap-6">
+<div class="page-content">
 	<div class="flex items-center justify-between animate-fade-in">
 		<h1 class="text-3xl font-bold">Personnes</h1>
 		<NewClientDialog bind:open={newClientOpen}>
@@ -244,7 +244,7 @@
 				{#if person.kind === "client"}
 					<!-- Client card — clickable, navigates to detail -->
 					<button
-						class="border border-border-card rounded-card p-5 bg-background hover:border-border-input-hover hover:shadow-popover hover:-translate-y-0.5 transition-all duration-300 animate-fade-in cursor-pointer group text-left"
+						class="border border-border-card rounded-card p-5 bg-background hover:border-border-input-hover hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 animate-fade-in cursor-pointer group text-left"
 						style="animation-delay: {200 + index * 50}ms;"
 						onclick={() => handleClick(person)}
 					>

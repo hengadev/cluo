@@ -40,7 +40,7 @@
 </script>
 
 <div
-    class="flex gap-4 border rounded-card p-3 bg-muted/30 hover:shadow-popover hover:-translate-y-0.5 transition-all duration-200 {isDragging
+    class="flex gap-4 border rounded-card p-3 bg-muted/30 hover:shadow-card hover:-translate-y-0.5 transition-all duration-200 {isDragging
         ? 'opacity-50'
         : ''} {isDragOver
         ? 'border-accent bg-accent/50'

@@ -111,7 +111,7 @@
     }
 </script>
 
-<div class="p-8 flex flex-col flex-1 min-h-0 gap-6">
+<div class="page-content flex-1 min-h-0">
     <!-- Hidden File Input -->
     <input
         type="file"

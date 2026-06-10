@@ -315,7 +315,7 @@
 	}
 </script>
 
-<div class="p-8 flex flex-col gap-6">
+<div class="page-content">
 	<button
 		class="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 		onclick={() => goto("/people")}
@@ -337,7 +337,7 @@
 	{:else if client}
 		<!-- Client header -->
 		<div
-			class="border border-border-card rounded-card p-6 animate-fade-in hover:shadow-popover transition-shadow duration-300"
+			class="border border-border-card rounded-card p-6 animate-fade-in hover:shadow-card transition-shadow duration-300"
 		>
 			<div class="flex items-start justify-between">
 				<div class="flex-1">
@@ -392,7 +392,7 @@
 						<div class="flex items-center gap-4">
 							<h1 class="text-3xl font-bold">{client.name}</h1>
 							<span
-								class="px-2 py-0.5 text-xs rounded-full bg-accent text-accent-foreground"
+								class="px-2 py-0.5 text-xs rounded-full bg-accent-subtle text-accent-subtle-foreground"
 							>
 								{TYPE_LABELS[client.type] || client.type}
 							</span>
