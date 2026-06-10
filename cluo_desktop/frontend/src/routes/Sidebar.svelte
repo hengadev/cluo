@@ -32,26 +32,13 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border-1 border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-10 bg-background-alt border border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
 >
-    <!-- Floating expand/collapse button on the right border -->
-    <button
-        onclick={() => (isExpanded = !isExpanded)}
-        class="absolute right-0 bottom-16 translate-x-1/2 z-10 p-1.5 rounded-full bg-foreground text-background hover:scale-110 active:scale-95 transition-all duration-200 shadow-popover cursor-pointer"
-        title={isExpanded ? "Réduire" : "Agrandir"}
-        type="button"
-    >
-        {#if isExpanded}
-            <ChevronLeft size={20} strokeWidth={2} />
-        {:else}
-            <ChevronRight size={20} strokeWidth={2} />
-        {/if}
-    </button>
-
-    <div class="flex {isExpanded ? 'justify-start' : 'justify-center'} items-center w-full">
+    <!-- Home row with inline collapse toggle -->
+    <div class="flex {isExpanded ? 'justify-between' : 'justify-center'} items-center w-full">
         <Button.Root
             class="p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 bg-transparent text-foreground hover:bg-foreground/10 {isExpanded
                 ? 'justify-start gap-3 px-4'
@@ -63,6 +50,18 @@
                 <span class="text-sm font-medium">Home</span>
             {/if}
         </Button.Root>
+        <button
+            onclick={() => (isExpanded = !isExpanded)}
+            class="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 active:scale-95 transition-all duration-200 cursor-pointer {isExpanded ? 'mr-2' : ''}"
+            title={isExpanded ? "Réduire" : "Agrandir"}
+            type="button"
+        >
+            {#if isExpanded}
+                <ChevronLeft size={18} strokeWidth={2} />
+            {:else}
+                <ChevronRight size={18} strokeWidth={2} />
+            {/if}
+        </button>
     </div>
 
     <div class="flex flex-col justify-between h-full">
