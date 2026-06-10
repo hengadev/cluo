@@ -28,14 +28,22 @@ import type {
 	Estimate,
 	EstimateItem,
 	Invoice,
+	JobStatus,
 	ListCasesResponse,
+	ListMediaResponse,
+	ListPiecesResponse,
+	ListTranscriptionsResponse,
 	Mandate,
+	MediaFile,
 	OverdueInvoicesResponse,
 	PaymentRequest,
+	Piece,
 	ReleaseResponse,
 	SearchResult,
 	SendDocumentRequest,
 	SignDocumentRequest,
+	Transcription,
+	TranscriptionJob,
 	UpdateDocumentRequest,
 } from '../types/entities';
 
@@ -1016,36 +1024,201 @@ export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoi
 }
 
 // =============================================================================
+// MEDIA
+// =============================================================================
+
+/**
+ * Fetch media files for a specific case, optionally filtered by type.
+ */
+export async function fetchCaseMedia(caseId: string, type?: string): Promise<ListMediaResponse> {
+	if (MOCK) return mock.fetchCaseMedia(caseId, type);
+	const url = new URL(`${BASE_URL}/case/${caseId}/media`);
+	if (type) url.searchParams.set('type', type);
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch case media: ${response.status}`);
+	}
+
+	return response.json();
+}
+
+/**
+ * Upload a media file to a case (multipart form).
+ */
+export async function uploadMedia(caseId: string, file: File, caption?: string): Promise<MediaFile> {
+	if (MOCK) return mock.uploadMedia(caseId, file, caption);
+	const formData = new FormData();
+	formData.append('file', file);
+	formData.append('caseId', caseId);
+	formData.append('fileName', file.name);
+	formData.append('mimeType', file.type);
+	formData.append('fileSize', file.size.toString());
+	if (caption) formData.append('caption', caption);
+
+	const response = await fetch(`${BASE_URL}/media`, {
+		method: 'POST',
+		credentials: 'include',
+		body: formData,
+	});
+	if (!response.ok) {
+		const errBody = await response.json().catch(() => null);
+		throw new Error(errBody?.error || `Failed to upload media: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Update a media file (caption, isPublished).
+ */
+export async function updateMedia(mediaId: string, data: { caption?: string; isPublished?: boolean }): Promise<MediaFile> {
+	if (MOCK) return mock.updateMedia(mediaId, data);
+	const response = await apiFetch(`${BASE_URL}/media/${mediaId}`, {
+		method: 'PATCH',
+		body: JSON.stringify(data),
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to update media: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Delete a media file.
+ */
+export async function deleteMedia(mediaId: string): Promise<void> {
+	if (MOCK) return mock.deleteMedia(mediaId);
+	const response = await apiFetch(`${BASE_URL}/media/${mediaId}`, {
+		method: 'DELETE',
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to delete media: ${response.status}`);
+	}
+}
+
+// =============================================================================
+// PIECES
+// =============================================================================
+
+/**
+ * List pieces for a case.
+ */
+export async function fetchCasePieces(caseId: string, page = 1, pageSize = 50): Promise<ListPiecesResponse> {
+	if (MOCK) return mock.fetchCasePieces(caseId, page, pageSize);
+	const url = new URL(`${BASE_URL}/cases/${caseId}/pieces`);
+	url.searchParams.set('page', page.toString());
+	url.searchParams.set('pageSize', pageSize.toString());
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to fetch pieces: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Upload a piece (multipart form).
+ */
+export async function uploadPiece(caseId: string, file: File, notes?: string): Promise<Piece> {
+	if (MOCK) return mock.uploadPiece(caseId, file, notes);
+	const formData = new FormData();
+	formData.append('file', file);
+	if (notes) formData.append('notes', notes);
+
+	const response = await fetch(`${BASE_URL}/cases/${caseId}/pieces`, {
+		method: 'POST',
+		credentials: 'include',
+		body: formData,
+	});
+	if (!response.ok) {
+		const errBody = await response.json().catch(() => null);
+		throw new Error(errBody?.error || `Failed to upload piece: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Get the download URL for a piece.
+ */
+export function getPieceDownloadUrl(caseId: string, pieceId: string): string {
+	return `${BASE_URL}/cases/${caseId}/pieces/${pieceId}`;
+}
+
+/**
+ * Delete a piece.
+ */
+export async function deletePiece(caseId: string, pieceId: string): Promise<void> {
+	if (MOCK) return mock.deletePiece(caseId, pieceId);
+	const response = await apiFetch(`${BASE_URL}/cases/${caseId}/pieces/${pieceId}`, {
+		method: 'DELETE',
+	});
+	if (!response.ok) {
+		throw new Error(`Failed to delete piece: ${response.status}`);
+	}
+}
+
+// =============================================================================
+// TRANSCRIPTIONS / AI SPEECH-TO-TEXT
+// =============================================================================
+
+/**
+ * Submit a transcription job for a media file.
+ */
+export async function submitTranscriptionJob(mediaFileId: string): Promise<TranscriptionJob> {
+	if (MOCK) return mock.submitTranscriptionJob(mediaFileId);
+	const response = await apiFetch(`${BASE_URL}/ai/speech/jobs`, {
+		method: 'POST',
+		body: JSON.stringify({ mediaFileId }),
+	});
+	if (!response.ok) {
+		const errBody = await response.json().catch(() => null);
+		throw new Error(errBody?.error || `Failed to submit transcription: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Get the status of a transcription job.
+ */
+export async function getTranscriptionJobStatus(jobId: string): Promise<TranscriptionJob> {
+	if (MOCK) return mock.getTranscriptionJobStatus(jobId);
+	const response = await apiFetch(`${BASE_URL}/ai/speech/jobs/${jobId}`);
+	if (!response.ok) {
+		throw new Error(`Failed to get job status: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Get the transcription for a media file.
+ */
+export async function getTranscriptionByMediaFile(mediaFileId: string): Promise<ListTranscriptionsResponse> {
+	if (MOCK) return mock.getTranscriptionByMediaFile(mediaFileId);
+	const url = new URL(`${BASE_URL}/ai/speech/transcriptions`);
+	url.searchParams.set('mediaFileId', mediaFileId);
+
+	const response = await apiFetch(url.toString());
+	if (!response.ok) {
+		throw new Error(`Failed to get transcription: ${response.status}`);
+	}
+	return response.json();
+}
+
+// =============================================================================
 // IMAGES (Legacy - from existing implementation)
 // =============================================================================
 
 export interface ApiImage {
 	id: string;
 	url: string;
-	// Add other image fields as needed
 }
 
 /**
- * Fetch images for a specific case.
- * Calls GET /case/{caseId}/media?type=image and maps the response to ApiImage.
+ * @deprecated Use fetchCaseMedia instead.
  */
 export async function fetchCaseImages(caseId: string): Promise<ApiImage[]> {
-	if (MOCK) return mock.fetchCaseImages(caseId);
-	const url = new URL(`${BASE_URL}/case/${caseId}/media`);
-	url.searchParams.set('type', 'image');
-
-	const response = await apiFetch(url.toString());
-	if (!response.ok) {
-		throw new Error(`Failed to fetch case images: ${response.status}`);
-	}
-
-	const data = await response.json();
-	const mediaItems = data.media ?? data;
-
-	return mediaItems.map((item: any) => ({
-		id: item.id,
-		url: item.url,
-	}));
+	const result = await fetchCaseMedia(caseId, 'image');
+	return result.media.map((m) => ({ id: m.id, url: m.url }));
 }
 
 // =============================================================================

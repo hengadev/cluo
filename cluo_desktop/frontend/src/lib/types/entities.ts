@@ -300,6 +300,98 @@ export interface Invoice {
 }
 
 // =============================================================================
+// MEDIA TYPES
+// =============================================================================
+
+export type MediaType = 'image' | 'video' | 'audio';
+
+export interface MediaFile {
+	id: string;
+	caseId: string;
+	url: string;
+	type: MediaType;
+	mimeType: string;
+	fileName: string;
+	fileSize: number;
+	caption: string;
+	isPublished: boolean;
+	createdAt: string;
+}
+
+export interface ListMediaResponse {
+	media: MediaFile[];
+	pagination: {
+		page: number;
+		pageSize: number;
+		totalItems: number;
+		totalPages: number;
+	};
+}
+
+// =============================================================================
+// PIECE TYPES
+// =============================================================================
+
+export interface Piece {
+	id: string;
+	caseId: string;
+	filename: string;
+	storageKey: string;
+	mimeType: string;
+	sizeBytes: number;
+	notes: string;
+	createdAt: string;
+	updatedAt: string;
+}
+
+export interface ListPiecesResponse {
+	pieces: Piece[];
+	pagination: {
+		page: number;
+		pageSize: number;
+		totalItems: number;
+		totalPages: number;
+	};
+}
+
+// =============================================================================
+// TRANSCRIPTION / AI JOB TYPES
+// =============================================================================
+
+export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'cancelled';
+
+export interface TranscriptionJob {
+	jobId: string;
+	mediaFileId: string;
+	status: JobStatus;
+	progress: number;
+	errorMessage?: string;
+	transcriptionId?: string;
+	createdAt: string;
+	startedAt?: string;
+	completedAt?: string;
+}
+
+export interface Transcription {
+	id: string;
+	jobId: string;
+	mediaFileId: string;
+	audioUrl: string;
+	transcript: string;
+	confidenceScore: number;
+	language: string;
+	duration: number;
+	modelName: string;
+	processingTimeMs: number;
+	createdAt: string;
+}
+
+export interface ListTranscriptionsResponse {
+	transcriptions: Transcription[];
+	total: number;
+}
+
+// =============================================================================
 // LEGACY/COMPATIBILITY TYPES
 // =============================================================================
 

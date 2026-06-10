@@ -15,13 +15,19 @@ import type {
 	EstimateItem,
 	Invoice,
 	ListCasesResponse,
+	ListMediaResponse,
+	ListPiecesResponse,
+	ListTranscriptionsResponse,
 	Mandate,
+	MediaFile,
 	OverdueInvoicesResponse,
 	PaymentRequest,
+	Piece,
 	ReleaseResponse,
 	SearchResult,
 	SendDocumentRequest,
 	SignDocumentRequest,
+	TranscriptionJob,
 	UpdateDocumentRequest,
 	CreateDocumentRequest,
 } from '../types/entities';
@@ -420,8 +426,52 @@ export async function voidInvoice(_id: string): Promise<DocumentAPIResponse<Invo
 // IMAGES — stub
 // =============================================================================
 
-export async function fetchCaseImages(_caseId: string): Promise<ApiImage[]> {
-	return [];
+// =============================================================================
+// MEDIA — stub
+// =============================================================================
+
+export async function fetchCaseMedia(_caseId: string, _type?: string): Promise<ListMediaResponse> {
+	return { media: [], pagination: { page: 1, pageSize: 50, totalItems: 0, totalPages: 1 } };
+}
+
+export async function uploadMedia(_caseId: string, _file: File, _caption?: string): Promise<MediaFile> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function updateMedia(_mediaId: string, _data: { caption?: string; isPublished?: boolean }): Promise<MediaFile> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function deleteMedia(_mediaId: string): Promise<void> {}
+
+// =============================================================================
+// PIECES — stub
+// =============================================================================
+
+export async function fetchCasePieces(_caseId: string, _page = 1, _pageSize = 50): Promise<ListPiecesResponse> {
+	return { pieces: [], pagination: { page: 1, pageSize: 50, totalItems: 0, totalPages: 1 } };
+}
+
+export async function uploadPiece(_caseId: string, _file: File, _notes?: string): Promise<Piece> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function deletePiece(_caseId: string, _pieceId: string): Promise<void> {}
+
+// =============================================================================
+// TRANSCRIPTIONS — stub
+// =============================================================================
+
+export async function submitTranscriptionJob(_mediaFileId: string): Promise<TranscriptionJob> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function getTranscriptionJobStatus(_jobId: string): Promise<TranscriptionJob> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function getTranscriptionByMediaFile(_mediaFileId: string): Promise<ListTranscriptionsResponse> {
+	return { transcriptions: [], total: 0 };
 }
 
 // =============================================================================
