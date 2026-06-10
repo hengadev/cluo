@@ -13,6 +13,8 @@
         onSelectionChange: (id: string) => void;
         onAdd: (image: Image) => void;
         onImport?: () => void;
+        onTogglePublish?: (image: Image) => void;
+        onDelete?: (image: Image) => void;
     }
 
     let {
@@ -24,6 +26,8 @@
         onSelectionChange,
         onAdd,
         onImport,
+        onTogglePublish,
+        onDelete,
     }: Props = $props();
 
     let openBurstGroupId = $state<string | null>(null);
@@ -100,6 +104,8 @@
                         isSelected={selectedIds.has(image.id)}
                         onSelectionChange={() => onSelectionChange(image.id)}
                         onAdd={() => onAdd(image)}
+                        onTogglePublish={() => onTogglePublish?.(image)}
+                        onDelete={() => onDelete?.(image)}
                     />
                 {/each}
             </div>

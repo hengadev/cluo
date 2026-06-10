@@ -6,28 +6,50 @@
         type LayoutMode,
     } from "./_floatingToolbar.svelte";
 
-    import { fetchCaseImages } from "$lib/services/api";
+    import { fetchCaseMedia, uploadMedia, updateMedia, deleteMedia } from "$lib/services/api";
     import type { Image, ReportImage, BurstGroup } from "./types";
+    import type { MediaFile } from "$lib/types/entities";
     import { onMount } from "svelte";
     import { page } from "$app/stores";
+    import { getToastContext } from "$lib/custom/global/toast/state.svelte";
+    import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
+    import Spinner from "$lib/components/Spinner.svelte";
+
+    const toastState = getToastContext();
 
     let allImages = $state<Image[]>([]);
-    let loading = $state(false);
+    let loading = $state(true);
+    let uploading = $state(false);
+
+    function mediaToImage(m: MediaFile): Image {
+        return {
+            id: m.id,
+            caseId: m.caseId,
+            url: m.url,
+            filename: m.fileName,
+            filesize: m.fileSize,
+            caption: m.caption,
+            isPublished: m.isPublished,
+            createdAt: m.createdAt,
+        };
+    }
 
     // Load images from the API on mount
     onMount(async () => {
         loading = true;
         try {
             const caseId = $page.params.id;
-            const apiImages = await fetchCaseImages(caseId);
-            allImages = apiImages as Image[];
+            const response = await fetchCaseMedia(caseId, 'image');
+            allImages = response.media.map(mediaToImage);
         } catch (error) {
             console.error("Failed to fetch images:", error);
+            toastState.add(TOAST_LEVELS.Error, "Erreur", "Impossible de charger les photos.");
             allImages = [];
         } finally {
             loading = false;
         }
     });
+
     let reportImages = $state<ReportImage[]>([]);
     let reportedIds = $derived(new Set(reportImages.map((img) => img.id)));
 
@@ -35,13 +57,12 @@
     let selectMode = $state(false);
     let sortMode = $state<SortMode>("newest");
     let layoutMode = $state<LayoutMode>("split");
-    // let layoutMode = $state<LayoutMode>("library");
     let burstGroupsEnabled = $state(true);
     let selectedIds = $state<Set<string>>(new Set());
     let fileInput = $state<HTMLInputElement>();
 
     // Sorted and filtered images for library panel
-    let displayImages = $derived(() => {
+    let displayImages = $derived.by(() => {
         let sorted = [...allImages];
         switch (sortMode) {
             case "newest":
@@ -66,13 +87,12 @@
     });
 
     // Burst group detection
-    let burstGroups = $derived<BurstGroup[]>(() => {
+    let burstGroups = $derived.by<BurstGroup[]>(() => {
         if (!burstGroupsEnabled) return [];
 
-        const BURST_TIME_WINDOW_MS = 2000; // 2 seconds
+        const BURST_TIME_WINDOW_MS = 2000;
         const MIN_GROUP_SIZE = 3;
 
-        // Sort by timestamp
         const sorted = [...allImages].sort(
             (a, b) =>
                 new Date(a.createdAt).getTime() -
@@ -98,7 +118,6 @@
         }
         groups.push(currentGroup);
 
-        // Filter to only actual bursts and convert to BurstGroup type
         return groups
             .filter((g) => g.length >= MIN_GROUP_SIZE)
             .map((groupImages, index) => ({
@@ -150,29 +169,59 @@
         const files = target.files;
         if (!files || files.length === 0) return;
 
-        const newImages: Image[] = [];
+        const caseId = $page.params.id;
+        uploading = true;
 
         for (const file of Array.from(files)) {
             if (!file.type.startsWith("image/")) continue;
 
-            const url = URL.createObjectURL(file);
-            const newImage: Image = {
-                id: `img-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-                caseId: $page.params.id,
-                url,
-                filename: file.name,
-                filesize: file.size,
-                caption: "",
-                isPublished: false,
-                createdAt: new Date().toISOString(),
-            };
-            newImages.push(newImage);
+            try {
+                const media = await uploadMedia(caseId, file);
+                const image = mediaToImage(media);
+                allImages = [...allImages, image];
+            } catch (err) {
+                console.error("Failed to upload:", file.name, err);
+                toastState.add(
+                    TOAST_LEVELS.Error,
+                    "Erreur d'import",
+                    `Impossible d'importer ${file.name}.`,
+                );
+            }
         }
 
-        allImages = [...allImages, ...newImages];
-
-        // Reset the input so the same files can be selected again if needed
+        uploading = false;
         target.value = "";
+    }
+
+    async function handleTogglePublish(image: Image): Promise<void> {
+        try {
+            await updateMedia(image.id, { isPublished: !image.isPublished });
+            allImages = allImages.map((img) =>
+                img.id === image.id
+                    ? { ...img, isPublished: !img.isPublished }
+                    : img,
+            );
+        } catch (err) {
+            toastState.add(
+                TOAST_LEVELS.Error,
+                "Erreur",
+                "Impossible de modifier la publication.",
+            );
+        }
+    }
+
+    async function handleDelete(image: Image): Promise<void> {
+        try {
+            await deleteMedia(image.id);
+            allImages = allImages.filter((img) => img.id !== image.id);
+            removeFromReport(image.id);
+        } catch (err) {
+            toastState.add(
+                TOAST_LEVELS.Error,
+                "Erreur",
+                "Impossible de supprimer la photo.",
+            );
+        }
     }
 
     function handleSelectModeToggle(): void {
@@ -206,15 +255,18 @@
     <div class="flex items-center justify-between">
         <div>
             <h1 class="text-2xl font-bold text-foreground">Photos</h1>
-            <p class="text-sm text-muted-foreground">Photos du dossier</p>
+            <p class="text-sm text-muted-foreground">
+                {allImages.length} photo{allImages.length !== 1 ? "s" : ""} · {allImages.filter(i => i.isPublished).length} publiée{allImages.filter(i => i.isPublished).length !== 1 ? "s" : ""}
+            </p>
         </div>
-        {#if allImages.length > 0}
+        {#if allImages.length > 0 || uploading}
             <button
                 type="button"
                 onclick={handleImport}
-                class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+                disabled={uploading}
+                class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
             >
-                Importer des photos
+                {uploading ? "Import en cours…" : "Importer des photos"}
             </button>
         {/if}
     </div>
@@ -223,7 +275,7 @@
     <div class="flex-1 min-h-0 overflow-hidden">
         {#if loading}
             <div class="flex items-center justify-center h-full">
-                <p class="text-muted-foreground">Chargement des photos...</p>
+                <Spinner size="lg" />
             </div>
         {:else if allImages.length === 0}
             <div class="border border-dashed border-border rounded-lg bg-muted/20 flex flex-col items-center justify-center h-full gap-4">
@@ -237,10 +289,9 @@
                 </button>
             </div>
         {:else if layoutMode === "library"}
-            <!-- Library Only -->
             <LibraryPanel
-                images={displayImages()}
-                burstGroups={burstGroups()}
+                images={displayImages}
+                burstGroups={burstGroups}
                 {reportedIds}
                 {selectMode}
                 {selectedIds}
@@ -255,14 +306,14 @@
                 }}
                 onAdd={addToReport}
                 onImport={handleImport}
+                onTogglePublish={handleTogglePublish}
+                onDelete={handleDelete}
             />
         {:else if layoutMode === "split"}
-            <!-- Split View -->
-            <!-- <div class="grid grid-cols-2 gap-6 h-full overflow-y-auto"> -->
             <div class="flex items-center gap-6 h-full overflow-y-auto">
                 <LibraryPanel
-                    images={displayImages()}
-                    burstGroups={burstGroups()}
+                    images={displayImages}
+                    burstGroups={burstGroups}
                     {reportedIds}
                     {selectMode}
                     {selectedIds}
@@ -276,6 +327,8 @@
                         }
                     }}
                     onAdd={addToReport}
+                    onTogglePublish={handleTogglePublish}
+                    onDelete={handleDelete}
                 />
                 <ReportPanel
                     images={reportImages}
@@ -285,7 +338,6 @@
                 />
             </div>
         {:else}
-            <!-- Report Only -->
             <ReportPanel
                 images={reportImages}
                 onRemove={removeFromReport}
