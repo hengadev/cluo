@@ -51,7 +51,16 @@
 	/* black */
 	--contrast: hsl(0 0% 0%);
 
-	/* Shadows */
+	/* Shadows
+	 *
+	 * Elevation tier → design-system token mapping:
+	 *   surface (none)  → no shadow
+	 *   low             → shadow-mini    (buttons, badges, chips)
+	 *   mid             → shadow-card    (cards, list items)
+	 *   high            → shadow-popover (modals, dropdowns, floating panels)
+	 *
+	 * Do NOT use shadow-sm / shadow-md / shadow-lg / shadow-xl.
+	 */
 	--shadow-mini: 0px 1px 0px 1px rgba(0, 0, 0, 0.04);
 	--shadow-mini-inset: 0px 1px 0px 0px rgba(0, 0, 0, 0.04) inset;
 	--shadow-popover: 0px 7px 12px 3px hsla(var(--dark-10));
