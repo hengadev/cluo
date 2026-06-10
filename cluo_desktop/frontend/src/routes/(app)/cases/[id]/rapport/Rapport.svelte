@@ -124,7 +124,7 @@
 
     <!-- Draggable divider -->
     <div
-        class="w-1 cursor-col-resize hover:bg-dark-300 transition-colors relative group"
+        class="w-1 cursor-col-resize hover:bg-surface-active transition-colors relative group"
         onmousedown={handleMouseDown}
         role="separator"
         aria-orientation="vertical"

@@ -7,7 +7,7 @@ import type { CaseStatus, ClientType, DocumentStatus, PaymentStatus, UserRole } 
 const caseStatusClasses: Record<CaseStatus, string> = {
 	in_progress: 'bg-accent text-accent-foreground',
 	ready: 'bg-success text-success-foreground',
-	released: 'bg-dark-50 text-dark-700'
+	released: 'bg-surface text-foreground-alt'
 };
 
 export function caseStatusBadge(status: CaseStatus): string {
@@ -19,11 +19,11 @@ export function caseStatusBadge(status: CaseStatus): string {
 // ---------------------------------------------------------------------------
 
 const documentStatusClasses: Record<DocumentStatus, string> = {
-	draft: 'bg-dark-50 text-dark-700',
+	draft: 'bg-surface text-foreground-alt',
 	sent: 'bg-accent text-accent-foreground',
 	signed: 'bg-success text-success-foreground',
 	active: 'bg-success text-success-foreground',
-	archived: 'bg-dark-50 text-dark-700',
+	archived: 'bg-surface text-foreground-alt',
 	cancelled: 'bg-destructive/10 text-destructive',
 	rejected: 'bg-destructive/10 text-destructive',
 	expired: 'bg-tertiary/20 text-foreground'
@@ -38,11 +38,11 @@ export function documentStatusBadge(status: DocumentStatus): string {
 // ---------------------------------------------------------------------------
 
 const paymentStatusClasses: Record<PaymentStatus, string> = {
-	unpaid: 'bg-dark-50 text-dark-700',
+	unpaid: 'bg-surface text-foreground-alt',
 	paid: 'bg-success text-success-foreground',
 	partially_paid: 'bg-tertiary/20 text-foreground',
 	overdue: 'bg-destructive/10 text-destructive',
-	refunded: 'bg-dark-50 text-dark-700',
+	refunded: 'bg-surface text-foreground-alt',
 	void: 'bg-destructive/10 text-destructive'
 };
 
@@ -57,7 +57,7 @@ export function paymentStatusBadge(status: PaymentStatus): string {
 const userRoleClasses: Record<UserRole, string> = {
 	admin: 'bg-destructive/10 text-destructive',
 	investigator: 'bg-accent text-accent-foreground',
-	viewer: 'bg-dark-50 text-dark-700'
+	viewer: 'bg-surface text-foreground-alt'
 };
 
 export function userRoleBadge(role: UserRole): string {

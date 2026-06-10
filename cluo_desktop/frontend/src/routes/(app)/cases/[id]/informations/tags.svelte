@@ -22,14 +22,14 @@
     {#each tags as tag}
         {@const Icon = tag.icon}
         <div
-            class="flex gap-8 items-center px-6 py-3 rounded-input border-1 border-dark-50"
+            class="flex gap-8 items-center px-6 py-3 rounded-input border-1 border-border-input"
         >
-            <div class="p-3 bg-dark-50 rounded-input">
+            <div class="p-3 bg-surface rounded-input">
                 <Icon size={24} />
             </div>
             <div class="grid">
-                <p class="text-dark-900 font-extrabold text-2xl">{tag.count}</p>
-                <p class="text-dark-700 text-xl">{tag.title}</p>
+                <p class="text-foreground font-extrabold text-2xl">{tag.count}</p>
+                <p class="text-foreground-alt text-xl">{tag.title}</p>
             </div>
         </div>
     {/each}

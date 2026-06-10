@@ -17,7 +17,7 @@
     onclick={() => (selected = !selected)}
 >
     <div>here goes the caption if there is any</div>
-    <div class="aspect-square bg-dark-50 w-full overflow-hidden"></div>
+    <div class="aspect-square bg-surface w-full overflow-hidden"></div>
     <Button.Root
         class="absolute top-4 right-4 w-6 aspect-square bg-background"
         onclick={() => (selected = !selected)}
