@@ -5,7 +5,7 @@ import type { CaseStatus, DocumentStatus, PaymentStatus, UserRole } from '$lib/t
 // ---------------------------------------------------------------------------
 
 const caseStatusClasses: Record<CaseStatus, string> = {
-	in_progress: 'bg-accent text-accent-foreground',
+	in_progress: 'bg-accent-subtle text-accent-subtle-foreground',
 	ready: 'bg-success text-success-foreground',
 	released: 'bg-dark-50 text-dark-700'
 };
@@ -20,7 +20,7 @@ export function caseStatusBadge(status: CaseStatus): string {
 
 const documentStatusClasses: Record<DocumentStatus, string> = {
 	draft: 'bg-dark-50 text-dark-700',
-	sent: 'bg-accent text-accent-foreground',
+	sent: 'bg-accent-subtle text-accent-subtle-foreground',
 	signed: 'bg-success text-success-foreground',
 	active: 'bg-success text-success-foreground',
 	archived: 'bg-dark-50 text-dark-700',
@@ -56,7 +56,7 @@ export function paymentStatusBadge(status: PaymentStatus): string {
 
 const userRoleClasses: Record<UserRole, string> = {
 	admin: 'bg-destructive/10 text-destructive',
-	investigator: 'bg-accent text-accent-foreground',
+	investigator: 'bg-accent-subtle text-accent-subtle-foreground',
 	viewer: 'bg-dark-50 text-dark-700'
 };
 

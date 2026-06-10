@@ -5,7 +5,7 @@ import type { CaseStatus, ClientType, DocumentStatus, PaymentStatus, UserRole } 
 // ---------------------------------------------------------------------------
 
 const caseStatusClasses: Record<CaseStatus, string> = {
-	in_progress: 'bg-accent text-accent-foreground',
+	in_progress: 'bg-accent-subtle text-accent-subtle-foreground',
 	ready: 'bg-success text-success-foreground',
 	released: 'bg-surface text-foreground-alt'
 };
@@ -20,7 +20,7 @@ export function caseStatusBadge(status: CaseStatus): string {
 
 const documentStatusClasses: Record<DocumentStatus, string> = {
 	draft: 'bg-surface text-foreground-alt',
-	sent: 'bg-accent text-accent-foreground',
+	sent: 'bg-accent-subtle text-accent-subtle-foreground',
 	signed: 'bg-success text-success-foreground',
 	active: 'bg-success text-success-foreground',
 	archived: 'bg-surface text-foreground-alt',
@@ -56,7 +56,7 @@ export function paymentStatusBadge(status: PaymentStatus): string {
 
 const userRoleClasses: Record<UserRole, string> = {
 	admin: 'bg-destructive/10 text-destructive',
-	investigator: 'bg-accent text-accent-foreground',
+	investigator: 'bg-accent-subtle text-accent-subtle-foreground',
 	viewer: 'bg-surface text-foreground-alt'
 };
 
@@ -70,7 +70,7 @@ export function userRoleBadge(role: UserRole): string {
 
 const clientTypeClasses: Record<ClientType, string> = {
 	person: 'bg-tertiary/15 text-tertiary',
-	insurance: 'bg-accent text-accent-foreground',
+	insurance: 'bg-accent-subtle text-accent-subtle-foreground',
 	lawyer: 'bg-tertiary/15 text-tertiary',
 	company: 'bg-success/15 text-success',
 	government: 'bg-muted text-foreground',
@@ -86,7 +86,7 @@ export function clientTypeBadge(type: ClientType): string {
 
 const documentStatusDotClasses: Record<DocumentStatus, string> = {
 	draft: 'bg-muted-foreground',
-	sent: 'bg-accent-foreground',
+	sent: 'bg-accent',
 	signed: 'bg-success',
 	active: 'bg-success',
 	archived: 'bg-muted-foreground',

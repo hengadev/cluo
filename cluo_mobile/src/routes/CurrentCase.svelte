@@ -14,7 +14,7 @@
     };
 
     const statusBadgeClasses: Record<CaseStatus, string> = {
-        in_progress: "bg-accent text-accent-foreground",
+        in_progress: "bg-accent-subtle text-accent-subtle-foreground",
         ready: "bg-success text-success-foreground",
         released: "bg-muted text-muted-foreground",
     };

@@ -510,7 +510,7 @@
 							Signé — en attente d'activation.
 						</span>
 					{:else if selectedMandate.status === "sent"}
-						<span class="text-sm text-accent-foreground">
+						<span class="text-sm text-accent-subtle-foreground">
 							Envoyé au client — en attente de signature.
 						</span>
 					{:else if selectedMandate.status === "draft"}

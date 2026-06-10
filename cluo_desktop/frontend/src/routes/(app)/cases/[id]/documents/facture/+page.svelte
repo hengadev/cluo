@@ -646,7 +646,7 @@
 							Paiement partiel — reste {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}.
 						</span>
 					{:else if selectedInvoice.status === "sent"}
-						<span class="text-sm text-accent-foreground">
+						<span class="text-sm text-accent-subtle-foreground">
 							Envoyée au client — en attente de paiement.
 						</span>
 					{:else if selectedInvoice.status === "draft"}
@@ -765,7 +765,7 @@
 							</div>
 							<div class="w-full bg-muted rounded-full h-2.5">
 								<div
-									class="h-2.5 rounded-full transition-all duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent-foreground'}"
+									class="h-2.5 rounded-full transition-all duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent'}"
 									style="width: {paymentProgress(selectedInvoice)}%"
 								></div>
 							</div>
