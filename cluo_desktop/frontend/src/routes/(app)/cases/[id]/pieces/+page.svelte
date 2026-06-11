@@ -24,6 +24,7 @@
     let fileInput = $state<HTMLInputElement>();
     let notesInput = $state("");
     let showUploadModal = $state(false);
+    let isDragging = $state(false);
 
     $effect(() => {
         const caseId = $page.params.id;
@@ -48,31 +49,46 @@
         }
     }
 
-    async function handleUpload() {
-        const target = fileInput;
-        const files = target?.files;
-        if (!files || files.length === 0) return;
-
+    async function uploadFiles(files: FileList) {
         const caseId = $page.params.id;
         uploading = true;
-
         for (const file of Array.from(files)) {
             try {
                 await uploadPiece(caseId, file, notesInput || undefined);
             } catch (err) {
-                toastState.add(
-                    TOAST_LEVELS.Error,
-                    "Erreur",
-                    `Impossible d'ajouter ${file.name}.`,
-                );
+                toastState.add(TOAST_LEVELS.Error, "Erreur", `Impossible d'ajouter ${file.name}.`);
             }
         }
-
         notesInput = "";
         showUploadModal = false;
-        if (target) target.value = "";
         uploading = false;
         await loadPieces();
+    }
+
+    async function handleUpload() {
+        const target = fileInput;
+        const files = target?.files;
+        if (!files || files.length === 0) return;
+        await uploadFiles(files);
+        if (target) target.value = "";
+    }
+
+    function handleDragOver(e: DragEvent) {
+        e.preventDefault();
+        isDragging = true;
+    }
+
+    function handleDragLeave(e: DragEvent) {
+        if (!(e.currentTarget as HTMLElement).contains(e.relatedTarget as Node)) {
+            isDragging = false;
+        }
+    }
+
+    async function handleDrop(e: DragEvent) {
+        e.preventDefault();
+        isDragging = false;
+        const files = e.dataTransfer?.files;
+        if (files && files.length > 0) await uploadFiles(files);
     }
 
     async function handleDelete(piece: Piece) {
@@ -144,32 +160,48 @@
 
                 <div class="px-8 py-6">
                     <div class="flex flex-col gap-4">
+                        <!-- Drop zone -->
+                        <div
+                            role="button"
+                            tabindex="0"
+                            ondragover={handleDragOver}
+                            ondragleave={handleDragLeave}
+                            ondrop={handleDrop}
+                            onclick={() => !uploading && fileInput?.click()}
+                            onkeydown={(e) => e.key === "Enter" && !uploading && fileInput?.click()}
+                            class="rounded-card border-2 border-dashed flex flex-col items-center justify-center gap-2 py-8 transition-colors {isDragging ? 'border-dark bg-dark/5 cursor-copy' : 'border-border-input hover:border-dark-40 hover:bg-muted/30 cursor-pointer'} {uploading ? 'pointer-events-none' : ''}"
+                        >
+                            {#if uploading}
+                                <Loader2 size={24} class="animate-spin text-muted-foreground" />
+                                <p class="text-sm text-muted-foreground">Envoi en cours…</p>
+                            {:else if isDragging}
+                                <Upload size={24} class="text-foreground" />
+                                <p class="text-sm font-medium text-foreground">Déposez les fichiers ici</p>
+                            {:else}
+                                <Upload size={24} class="text-muted-foreground" />
+                                <p class="text-sm text-muted-foreground">
+                                    Glissez-déposez ou <span class="text-foreground font-medium underline underline-offset-2">parcourez</span>
+                                </p>
+                            {/if}
+                        </div>
+
+                        <!-- Notes -->
                         <textarea
                             bind:value={notesInput}
                             placeholder="Notes (optionnel)…"
-                            rows="3"
-                            class="rounded-card-sm border border-border-input bg-background placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 w-full px-4 py-3 text-sm transition-colors resize-none"
+                            rows="2"
+                            disabled={uploading}
+                            class="rounded-card-sm border border-border-input bg-background placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 w-full px-4 py-3 text-sm transition-colors resize-none disabled:opacity-50"
                         ></textarea>
-                        <div class="flex justify-end gap-2">
+
+                        <div class="flex justify-end">
                             <Dialog.Close
                                 onclick={() => { notesInput = ""; }}
-                                class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted inline-flex items-center justify-center px-5 text-sm font-semibold active:scale-[0.98] cursor-pointer transition-colors"
+                                disabled={uploading}
+                                class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted inline-flex items-center justify-center px-5 text-sm font-semibold active:scale-[0.98] cursor-pointer transition-colors disabled:opacity-40 disabled:cursor-not-allowed"
                             >
                                 Annuler
                             </Dialog.Close>
-                            <button
-                                type="button"
-                                onclick={() => fileInput?.click()}
-                                disabled={uploading}
-                                class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-interactive"
-                            >
-                                {#if uploading}
-                                    <Loader2 size={14} class="animate-spin" />
-                                {:else}
-                                    <Upload size={14} />
-                                {/if}
-                                {uploading ? "Envoi en cours…" : "Choisir des fichiers"}
-                            </button>
                         </div>
                     </div>
                 </div>
