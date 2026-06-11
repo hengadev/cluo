@@ -52,16 +52,20 @@
     async function uploadFiles(files: FileList) {
         const caseId = $page.params.id;
         uploading = true;
+        let hasError = false;
         for (const file of Array.from(files)) {
             try {
                 await uploadPiece(caseId, file, notesInput || undefined);
             } catch (err) {
+                hasError = true;
                 toastState.add(TOAST_LEVELS.Error, "Erreur", `Impossible d'ajouter ${file.name}.`);
             }
         }
-        notesInput = "";
-        showUploadModal = false;
         uploading = false;
+        if (!hasError) {
+            notesInput = "";
+            showUploadModal = false;
+        }
         await loadPieces();
     }
 
