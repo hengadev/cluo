@@ -50,14 +50,14 @@
 </script>
 
 <div class="page-content">
-	<div class="animate-fade-in">
+	<div>
 		<h1 class="text-3xl font-bold">Tableau de bord</h1>
 		<p class="text-sm text-muted-foreground mt-1">Vue d'ensemble de l'activité</p>
 	</div>
 
 	<!-- Stat strip -->
 	{#if !loading}
-		<div class="grid grid-cols-3 gap-4 animate-fade-in" style="animation-delay: 100ms;">
+		<div class="grid grid-cols-3 gap-4">
 			<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-shadow">
 				<p class="text-xs text-muted-foreground font-medium uppercase tracking-wider">Total</p>
 				<p class="text-2xl font-bold text-foreground mt-1">{stats.total}</p>
@@ -81,18 +81,17 @@
 		</div>
 	{/if}
 
-	<div class="flex flex-col gap-6">
+	<div class="flex flex-col gap-8">
 		<!-- Quick resume section -->
 		{#if $recentCases.length > 0}
-			<section>
-				<h2 class="text-xl font-semibold mb-4 animate-fade-in" style="animation-delay: 200ms;">
+			<section class="flex flex-col gap-4">
+				<h2 class="text-xl font-semibold">
 					Reprendre
 				</h2>
-				<div class="flex flex-col gap-3">
+				<div class="flex flex-col gap-4">
 					{#each $recentCases.slice(0, 3) as entry, index}
 						<button
-							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-card transition-all duration-300 text-left animate-fade-in cursor-pointer group"
-							style="animation-delay: {300 + index * 100}ms;"
+							class="flex items-center gap-4 border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 text-left cursor-pointer group"
 							onclick={() => resumeCase(entry)}
 						>
 							<div class="p-2 rounded-input bg-foreground/10">
@@ -108,7 +107,7 @@
 							</div>
 							<ArrowRight
 								size={18}
-								class="text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all"
+								class="text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-interactive"
 							/>
 						</button>
 					{/each}
@@ -117,7 +116,7 @@
 		{/if}
 
 		<!-- Link to full cases page -->
-		<section class="animate-fade-in" style="animation-delay: 400ms;">
+		<section>
 			<button
 				type="button"
 				onclick={goToCases}

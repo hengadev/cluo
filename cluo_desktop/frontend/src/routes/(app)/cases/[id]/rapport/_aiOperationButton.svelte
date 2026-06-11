@@ -48,7 +48,7 @@
 		border-radius: 0.5rem;
 		font-size: 0.875rem;
 		font-weight: 500;
-		transition: all 0.2s ease;
+		transition: background-color 0.2s var(--ease-out), color 0.2s var(--ease-out), border-color 0.2s var(--ease-out), transform 0.2s var(--ease-out), opacity 0.2s var(--ease-out);
 		cursor: pointer;
 		border: none;
 		background: transparent;

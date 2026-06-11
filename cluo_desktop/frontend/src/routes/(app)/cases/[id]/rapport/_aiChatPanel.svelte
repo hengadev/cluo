@@ -158,7 +158,7 @@
 							deleteConversation(conv.id);
 						}}
 						disabled={isDeleting === conv.id}
-						class="p-1 rounded-lg hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
+						class="p-1.5 rounded-lg hover:bg-destructive/10 text-destructive opacity-0 group-hover:opacity-100 transition-opacity"
 					>
 						{#if isDeleting === conv.id}
 							<Loader2 class="w-3.5 h-3.5 animate-spin" />
@@ -244,7 +244,7 @@
 				<button
 					onclick={handleSend}
 					disabled={!inputMessage.trim() || isSending || !caseId}
-					class="p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-all shadow-mini"
+					class="p-3 rounded-xl bg-primary text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed transition-interactive shadow-mini"
 					type="button"
 				>
 					{#if isSending}

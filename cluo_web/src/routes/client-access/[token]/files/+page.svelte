@@ -186,7 +186,7 @@
 						<div class="rounded-card border border-border-card bg-background shadow-card overflow-hidden">
 							<!-- Header row -->
 							<button
-								class="w-full text-left flex items-center justify-between p-5"
+								class="w-full text-left flex items-center justify-between p-4"
 								onclick={() => toggleDoc(doc.id)}
 							>
 								<div class="flex items-center gap-3">
@@ -208,7 +208,7 @@
 
 							<!-- Expanded detail -->
 							{#if expandedDocs.has(doc.id)}
-								<div class="border-t border-border-card px-5 py-4">
+								<div class="border-t border-border-card px-4 py-4">
 									<div class="grid grid-cols-2 gap-4 mb-4">
 										<div>
 											<p class="text-xs tracking-widest uppercase text-foreground-alt mb-1">Référence</p>

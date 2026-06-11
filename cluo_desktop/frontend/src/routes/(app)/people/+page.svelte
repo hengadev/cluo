@@ -169,11 +169,11 @@
 </script>
 
 <div class="page-content">
-	<div class="flex items-center justify-between animate-fade-in">
+	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Personnes</h1>
 		<NewClientDialog bind:open={newClientOpen}>
 			<button
-				class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
+				class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-interactive duration-200"
 			>
 				<Plus size={18} />
 				Nouvelle personne
@@ -182,7 +182,7 @@
 	</div>
 
 	<!-- Search bar -->
-	<div class="relative animate-fade-in" style="animation-delay: 100ms;">
+	<div class="relative">
 		<Search
 			size={18}
 			class="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground"
@@ -197,12 +197,11 @@
 
 	<!-- Filter chips -->
 	<div
-		class="flex flex-wrap gap-2 animate-fade-in"
-		style="animation-delay: 150ms;"
+		class="flex flex-wrap gap-2"
 	>
 		{#each FILTER_CHIPS as chip}
 			<button
-				class="px-3 py-1.5 text-xs font-medium rounded-full border transition-all duration-200 cursor-pointer {activeFilter === chip.value
+				class="px-3 py-1.5 text-xs font-medium rounded-full border transition-interactive duration-200 cursor-pointer {activeFilter === chip.value
 					? 'bg-foreground text-background border-foreground'
 					: 'bg-background text-muted-foreground border-border-card hover:border-border-input-hover hover:text-foreground'}"
 				onclick={() => (activeFilter = chip.value)}
@@ -227,7 +226,7 @@
 		{:else}
 			<EmptyState icon={Users} message="Aucune personne enregistrée.">
 				<button
-					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200"
+					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-interactive duration-200"
 					onclick={() => (newClientOpen = true)}
 				>
 					<Plus size={18} />
@@ -244,8 +243,7 @@
 				{#if person.kind === "client"}
 					<!-- Client card — clickable, navigates to detail -->
 					<button
-						class="border border-border-card rounded-card p-5 bg-background hover:border-border-input-hover hover:shadow-card hover:-translate-y-0.5 transition-all duration-300 animate-fade-in cursor-pointer group text-left"
-						style="animation-delay: {200 + index * 50}ms;"
+						class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 cursor-pointer group text-left"
 						onclick={() => handleClick(person)}
 					>
 						{@render cardContent(person, Icon, badge, badgeLabel, true)}
@@ -253,8 +251,7 @@
 				{:else}
 					<!-- User card — non-interactive display -->
 					<div
-						class="border border-border-card rounded-card p-5 bg-background transition-all duration-300 animate-fade-in"
-						style="animation-delay: {200 + index * 50}ms;"
+						class="border border-border-card rounded-card p-4 bg-background transition-interactive duration-300"
 					>
 						{@render cardContent(person, Icon, badge, badgeLabel, false)}
 					</div>

@@ -93,13 +93,13 @@
 <div class="page-content">
 	<!-- Header row -->
 	<div
-		class="flex items-center justify-between animate-fade-in"
+		class="flex items-center justify-between"
 	>
 		<h1 class="text-3xl font-bold">Affaires</h1>
 		<button
 			type="button"
 			onclick={() => (newCaseOpen = true)}
-			class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] cursor-pointer transition-all"
+			class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] cursor-pointer transition-interactive"
 		>
 			<Plus size={18} strokeWidth={2} />
 			Nouvelle affaire
@@ -157,7 +157,7 @@
 							<button
 								type="button"
 								onclick={() => (statusFilter = filter.value)}
-								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-all cursor-pointer {statusFilter === filter.value
+								class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium transition-interactive cursor-pointer {statusFilter === filter.value
 									? 'bg-foreground text-background'
 									: 'bg-muted text-muted-foreground hover:bg-foreground/10'}"
 							>
@@ -188,8 +188,7 @@
 					>
 						{#each filteredCases as caseItem, index}
 							<button
-								class="border border-border-card rounded-card p-4 bg-background hover:border-border-input-hover hover:shadow-card hover:-translate-y-1 transition-all duration-300 text-left animate-fade-in cursor-pointer"
-								style="animation-delay: {200 + index * 50}ms;"
+								class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 text-left cursor-pointer"
 								onclick={() => selectCase(caseItem.id)}
 							>
 								<h3

@@ -437,7 +437,7 @@
 					{@const isActing = actionInProgress === doc?.id || (docDef.type === "invoice" && creatingInvoice)}
 
 					<div
-						class="border border-border-card rounded-lg p-4 bg-background hover:shadow-card transition-all duration-300 flex flex-col min-h-[180px]"
+						class="border border-border-card rounded-lg p-4 bg-background hover:shadow-card transition-interactive duration-300 flex flex-col min-h-[180px]"
 					>
 						<!-- Header: icon + status -->
 						<div class="flex items-start justify-between mb-3">

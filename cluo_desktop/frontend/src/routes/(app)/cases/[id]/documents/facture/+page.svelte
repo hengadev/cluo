@@ -765,7 +765,7 @@
 							</div>
 							<div class="w-full bg-muted rounded-full h-2.5">
 								<div
-									class="h-2.5 rounded-full transition-all duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent'}"
+									class="h-2.5 rounded-full transition-interactive duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent'}"
 									style="width: {paymentProgress(selectedInvoice)}%"
 								></div>
 							</div>

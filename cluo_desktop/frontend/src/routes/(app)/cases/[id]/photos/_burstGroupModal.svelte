@@ -63,7 +63,7 @@
                 </p>
             </div>
             <button
-                class="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-all"
+                class="w-8 h-8 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted transition-interactive"
                 onclick={onClose}
             >
                 <X size={20} />
@@ -75,7 +75,7 @@
             <div class="grid grid-cols-4 gap-4">
                 {#each images as image (image.id)}
                     <div
-                        class="relative group aspect-square rounded-card overflow-hidden border-2 cursor-pointer transition-all {selectedImageIds.has(
+                        class="relative group aspect-square rounded-card overflow-hidden border-2 cursor-pointer transition-interactive {selectedImageIds.has(
                             image.id,
                         )
                             ? 'border-primary ring-2 ring-primary ring-offset-2'
@@ -90,12 +90,12 @@
 
                         <!-- Selection Overlay -->
                         <div
-                            class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-all"
+                            class="absolute inset-0 bg-black/0 group-hover:bg-black/10 transition-interactive"
                         ></div>
 
                         <!-- Checkbox -->
                         <div
-                            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-all shadow-mini {selectedImageIds.has(
+                            class="absolute top-2 left-2 w-7 h-7 rounded-md border-2 flex items-center justify-center transition-interactive shadow-mini {selectedImageIds.has(
                                 image.id,
                             )
                                 ? 'bg-foreground border-foreground'
@@ -128,19 +128,19 @@
             </p>
             <div class="flex gap-2">
                 <button
-                    class="px-4 py-2 rounded-full text-foreground hover:bg-muted transition-all font-medium"
+                    class="px-4 py-2 rounded-full text-foreground hover:bg-muted transition-interactive font-medium"
                     onclick={onClose}
                 >
                     Annuler
                 </button>
                 <button
-                    class="px-4 py-2 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-all font-medium"
+                    class="px-4 py-2 rounded-full bg-muted text-foreground hover:bg-muted/80 transition-interactive font-medium"
                     onclick={addAllImages}
                 >
                     Tout ajouter
                 </button>
                 <button
-                    class="px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-all font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    class="px-4 py-2 rounded-full bg-primary text-primary-foreground hover:bg-primary/90 transition-interactive font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                     onclick={addSelectedImages}
                     disabled={selectedImageIds.size === 0}
                 >

@@ -429,8 +429,7 @@
 		<div class="flex gap-8">
 			<!-- Case Header -->
 			<div
-				class="grid gap-5 p-6 border border-border-card rounded-card flex-1 animate-fade-in hover:shadow-card transition-shadow duration-300"
-				style="animation-delay: 100ms;"
+				class="grid gap-4 p-6 border border-border-card rounded-card flex-1 hover:shadow-card transition-shadow duration-300"
 			>
 				<div class="flex gap-4 items-center">
 					<span
@@ -460,18 +459,17 @@
 					</div>
 				{/if}
 				{#if caseData.description}
-					<div class="mt-4">
+					<div>
 						<p class="text-sm text-muted-foreground mb-1">Description</p>
 						<p class="text-foreground">{caseData.description}</p>
 					</div>
 				{/if}
 			</div>
 
-			<div class="flex flex-col gap-6">
+			<div class="flex flex-col gap-4">
 				<!-- Client Details -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-card transition-shadow duration-300 w-80"
-					style="animation-delay: 200ms;"
+					class="border border-border-card rounded-card p-6 grid gap-4 hover:shadow-card transition-shadow duration-300 w-80"
 				>
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">CLIENT</p>
@@ -479,7 +477,7 @@
 							{#if !editingClient}
 								<button
 									onclick={startClientEdit}
-									class="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+									class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 									title="Modifier le client"
 								>
 									<Pencil size={14} />
@@ -558,7 +556,7 @@
 								<p class="font-semibold text-foreground">{client.name}</p>
 							</div>
 							{#if contact}
-								<div class="border-t border-border pt-4 mt-2">
+								<div class="border-t border-border pt-4">
 									<p class="text-sm text-muted-foreground mb-2"
 										>Contact principal</p
 									>
@@ -592,8 +590,7 @@
 
 				<!-- Location -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-card transition-shadow duration-300 w-80"
-					style="animation-delay: 300ms;"
+					class="border border-border-card rounded-card p-6 grid gap-4 hover:shadow-card transition-shadow duration-300 w-80"
 				>
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">LIEU</p>
@@ -615,7 +612,7 @@
 						{/if}
 					{/if}
 					{#if caseData.locationNotes}
-						<p class="text-sm text-muted-foreground mt-2 italic">
+						<p class="text-sm text-muted-foreground italic">
 							{caseData.locationNotes}
 						</p>
 					{/if}
@@ -623,8 +620,7 @@
 
 				<!-- Case Type -->
 				<div
-					class="border border-border-card rounded-card p-6 grid gap-4 animate-fade-in hover:shadow-card transition-shadow duration-300 w-80"
-					style="animation-delay: 350ms;"
+					class="border border-border-card rounded-card p-6 grid gap-4 hover:shadow-card transition-shadow duration-300 w-80"
 				>
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">TYPE D'AFFAIRE</p>
@@ -632,7 +628,7 @@
 							{#if !editingCaseType}
 								<button
 									onclick={startCaseTypeEdit}
-									class="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+									class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 									title="Modifier le type"
 								>
 									<Pencil size={14} />
@@ -684,10 +680,9 @@
 
 		<!-- Case Subject -->
 		<div
-			class="border border-border-card rounded-card p-6 animate-fade-in"
-			style="animation-delay: 400ms;"
+			class="border border-border-card rounded-card p-6 grid gap-4"
 		>
-			<div class="flex justify-between items-center mb-4">
+			<div class="flex justify-between items-center">
 				<h3 class="text-lg font-semibold text-foreground">
 					Personne impliquée
 				</h3>
@@ -695,7 +690,7 @@
 					<div class="flex items-center gap-2">
 						<button
 							onclick={startEditSubject}
-							class="p-1 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+							class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 							title="Modifier la personne"
 						>
 							<Pencil size={14} />
@@ -706,7 +701,7 @@
 							onConfirm={detachSubject}
 						>
 							<button
-								class="p-1 rounded btn-ghost-destructive cursor-pointer"
+								class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
 								title="Détacher la personne"
 							>
 								<Trash2 size={14} />
@@ -718,7 +713,7 @@
 
 			{#if showSubjectForm}
 				<!-- Creation / Edit form -->
-				<div class="border border-border rounded-lg p-5 bg-muted/30 max-w-2xl grid gap-4">
+				<div class="border border-border rounded-lg p-6 bg-muted/30 max-w-2xl grid gap-4">
 					<p class="text-sm font-medium text-muted-foreground col-span-2">
 						{editingSubject ? "Modifier la personne" : "Ajouter une personne"}
 					</p>
@@ -817,7 +812,7 @@
 							class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
 						></textarea>
 					</div>
-					<div class="flex justify-end gap-2 mt-2">
+					<div class="flex justify-end gap-2">
 						<button
 							type="button"
 							onclick={cancelSubjectForm}

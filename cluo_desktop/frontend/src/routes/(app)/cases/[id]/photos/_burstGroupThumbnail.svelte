@@ -95,7 +95,7 @@
     {#if selectMode}
         <!-- Selection Checkbox Overlay -->
         <div
-            class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-all z-10 {isSelected
+            class="absolute top-2 left-2 w-6 h-6 rounded-md border-2 flex items-center justify-center transition-interactive z-10 {isSelected
                 ? 'bg-primary border-primary'
                 : 'bg-background/80 border-background'}}"
         >
@@ -162,7 +162,7 @@
         height: 100%;
         border-radius: 0.25rem;
         box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-        transition: transform 0.2s ease;
+        transition: transform 0.2s var(--ease-out);
         overflow: hidden;
     }
 

@@ -254,7 +254,7 @@
 					type="button"
 					onclick={handleCreate}
 					disabled={creating || !newName.trim()}
-					class="h-9 px-4 rounded-input bg-foreground text-background text-sm font-semibold hover:opacity-90 active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-all inline-flex items-center gap-2"
+					class="h-9 px-4 rounded-input bg-foreground text-background text-sm font-semibold hover:opacity-90 active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive inline-flex items-center gap-2"
 				>
 					{#if creating}
 						<Loader2 size={14} class="animate-spin" />

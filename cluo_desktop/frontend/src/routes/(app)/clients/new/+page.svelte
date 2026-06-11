@@ -107,7 +107,7 @@
 			<button
 				type="submit"
 				disabled={saving}
-				class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-8 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+				class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-8 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-interactive duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
 			>
 				{saving ? "Création..." : "Créer le client"}
 			</button>

@@ -196,8 +196,7 @@
             <div class="flex flex-col divide-y divide-border-input">
                 {#each pieces as piece, index (piece.id)}
                     <div
-                        class="flex items-center gap-4 py-3 px-2 hover:bg-surface/50 transition-colors animate-fade-in group"
-                        style="animation-delay: {index * 30}ms;"
+                        class="flex items-center gap-4 py-3 px-2 hover:bg-surface/50 transition-colors group"
                     >
                         <!-- File icon -->
                         <div class="p-2 rounded-input bg-muted">

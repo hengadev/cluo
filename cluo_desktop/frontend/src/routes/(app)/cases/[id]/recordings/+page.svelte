@@ -222,15 +222,14 @@
             <div class="flex flex-col gap-3">
                 {#each recordings as rec, index (rec.media.id)}
                     <div
-                        class="border border-border-card rounded-card p-5 bg-background hover:shadow-card transition-shadow animate-fade-in"
-                        style="animation-delay: {index * 50}ms;"
+                        class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-shadow"
                     >
                         <div class="flex items-start gap-4">
                             <!-- Play button -->
                             <button
                                 type="button"
                                 onclick={() => togglePlayback(rec)}
-                                class="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 hover:opacity-90 active:scale-95 transition-all shadow-mini cursor-pointer"
+                                class="w-12 h-12 rounded-full bg-foreground text-background flex items-center justify-center flex-shrink-0 hover:opacity-90 active:scale-95 transition-interactive shadow-mini cursor-pointer"
                                 title={rec.isPlaying ? "Arrêter" : "Écouter"}
                             >
                                 {#if rec.isPlaying}
@@ -290,7 +289,7 @@
                                         <button
                                             type="button"
                                             onclick={() => handleTranscribe(rec)}
-                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-input border border-border-input text-xs font-medium text-foreground hover:bg-muted active:scale-[0.98] transition-all cursor-pointer"
+                                            class="inline-flex items-center gap-1.5 px-3 py-1 rounded-input border border-border-input text-xs font-medium text-foreground hover:bg-muted active:scale-[0.98] transition-interactive cursor-pointer"
                                         >
                                             <FileText size={12} />
                                             Lancer la transcription

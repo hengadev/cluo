@@ -45,7 +45,7 @@
     >
         <!-- Import -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
+            class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-interactive duration-200"
             onclick={onImport}
             title="Importer depuis la caméra"
         >
@@ -56,7 +56,7 @@
 
         <!-- Select Mode -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 {selectMode
+            class="w-10 h-10 rounded-full flex items-center justify-center transition-interactive hover:scale-110 active:scale-95 {selectMode
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
             onclick={onSelectModeToggle}
@@ -67,7 +67,7 @@
 
         <!-- Burst Group -->
         <button
-            class="w-10 h-10 rounded-full flex items-center justify-center transition-all hover:scale-110 active:scale-95 {hasBurstGroups
+            class="w-10 h-10 rounded-full flex items-center justify-center transition-interactive hover:scale-110 active:scale-95 {hasBurstGroups
                 ? 'bg-primary text-primary-foreground'
                 : 'text-muted-foreground hover:text-foreground hover:bg-muted'}"
             onclick={onBurstGroupToggle}
@@ -81,7 +81,7 @@
         <!-- Sort Mode -->
         <div class="relative">
             <button
-                class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-all duration-200"
+                class="w-10 h-10 rounded-full flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-muted hover:scale-110 active:scale-95 transition-interactive duration-200"
                 onclick={() => (showSortMenu = !showSortMenu)}
                 title="Trier par"
             >
@@ -137,7 +137,7 @@
         <!-- Layout Mode Toggle -->
         <div class="flex bg-muted rounded-full p-1">
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-interactive {layoutMode ===
                 'library'
                     ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"
@@ -147,7 +147,7 @@
                 <Grid3x3 size={20} />
             </button>
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-interactive {layoutMode ===
                 'split'
                     ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"
@@ -157,7 +157,7 @@
                 <Columns size={20} />
             </button>
             <button
-                class="w-9 h-9 rounded-full flex items-center justify-center transition-all {layoutMode ===
+                class="w-9 h-9 rounded-full flex items-center justify-center transition-interactive {layoutMode ===
                 'report'
                     ? 'bg-background text-foreground shadow-mini'
                     : 'text-muted-foreground hover:text-foreground'}"

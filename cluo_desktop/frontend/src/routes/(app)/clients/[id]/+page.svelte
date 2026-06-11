@@ -440,7 +440,7 @@
 				{#if !showNewContact}
 					<button
 						onclick={() => (showNewContact = true)}
-						class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-input border border-border-input bg-background hover:bg-muted active:scale-[0.98] cursor-pointer transition-all duration-200"
+						class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-input border border-border-input bg-background hover:bg-muted active:scale-[0.98] cursor-pointer transition-interactive duration-200"
 					>
 						<Plus size={16} />
 						Ajouter un contact

@@ -85,7 +85,7 @@
 	{@const isSelected = index === selected}
 	{@const isCompact = width <= minWidth}
 	<button
-		class="flex items-center gap-2 transition-all relative"
+		class="flex items-center gap-2 transition-interactive relative"
 		class:opacity-60={!isSelected}
 		style="padding: {isCompact ? '0.75rem 0.5rem' : '1rem'};"
 		onclick={() => (selected = index)}
