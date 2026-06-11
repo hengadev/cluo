@@ -630,7 +630,8 @@
 									<button
 										type="button"
 										onclick={() => goto(`/cases/${linkedCase.id}`)}
-										class="mt-4 w-full flex items-center gap-2 px-3 py-2.5 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left"
+										class="w-full flex items-center gap-2 px-3 py-2.5 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left border-t border-border-card"
+											style="margin-top: 1.5rem; padding-top: 1rem;"
 									>
 										<span class="text-foreground-alt font-medium flex-shrink-0">Affaire</span>
 										<span class="truncate text-foreground font-medium flex-1">{linkedCase.title}</span>
