@@ -778,6 +778,10 @@
 
 <!-- ================================================================ -->
 <!-- CREATE MODAL -->
+<!-- Hallmark · component: modal · genre: modern-minimal · theme: system
+ * states: default · hover · focus · active · disabled · saving
+ * contrast: pass
+ -->
 <!-- ================================================================ -->
 <Dialog.Root bind:open={showCreateModal}>
 	<Dialog.Portal>
@@ -788,87 +792,103 @@
 			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
 		>
 			<!-- Modal header -->
-			<div class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-				<Dialog.Title class="text-lg font-semibold text-foreground">
-					Nouveau devis
-				</Dialog.Title>
+			<div class="flex items-start justify-between px-6 py-5 border-b border-border-card shrink-0">
+				<div>
+					<Dialog.Title class="text-base font-semibold text-foreground">
+						Nouveau devis
+					</Dialog.Title>
+					{#if client}
+						<p class="text-xs text-muted-foreground mt-0.5">{client.name}</p>
+					{/if}
+				</div>
 				<Dialog.Close
-					class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
+					class="rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer mt-0.5 p-0.5"
 				>
-					<X class="text-foreground size-5" />
+					<X class="size-4" />
 					<span class="sr-only">Fermer</span>
 				</Dialog.Close>
 			</div>
 
 			<!-- Modal body (scrollable) -->
-			<div class="px-6 py-5 overflow-y-auto flex-1">
-				<!-- Dates row -->
-				<div class="grid grid-cols-2 gap-4 mb-6">
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Date d'émission *</label>
-						<input
-							type="date"
-							bind:value={formIssueDate}
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
-					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Valide jusqu'au</label>
-						<input
-							type="date"
-							bind:value={formValidUntil}
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
+			<div class="px-6 py-5 overflow-y-auto flex-1 space-y-5">
+
+				<!-- Section: Informations -->
+				<div class="space-y-3">
+					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Informations</p>
+					<div class="grid grid-cols-2 gap-3">
+						<div class="space-y-1.5">
+							<label class="text-xs font-medium text-foreground block">Date d'émission</label>
+							<input
+								type="date"
+								bind:value={formIssueDate}
+								class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							/>
+						</div>
+						<div class="space-y-1.5">
+							<label class="text-xs font-medium text-foreground block">
+								Valide jusqu'au
+								<span class="font-normal text-muted-foreground">(optionnel)</span>
+							</label>
+							<input
+								type="date"
+								bind:value={formValidUntil}
+								class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							/>
+						</div>
 					</div>
 				</div>
 
-				<!-- Line items -->
-				<div class="mb-6">
-					<div class="flex items-center justify-between mb-3">
-						<label class="text-sm font-medium text-foreground">Lignes de devis</label>
+				<hr class="border-border-card" />
+
+				<!-- Section: Prestations -->
+				<div class="space-y-3">
+					<div class="flex items-center justify-between">
+						<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Prestations</p>
 						<button
 							type="button"
 							onclick={addLineItem}
-							class="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+							class="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/70 transition-interactive duration-150 cursor-pointer"
 						>
-							<Plus size={14} />
+							<Plus size={12} />
 							Ajouter une ligne
 						</button>
 					</div>
 
-					<div class="space-y-3">
+					<!-- Column headers -->
+					<div class="grid items-center gap-2 px-0.5" style="grid-template-columns: 1fr 4.5rem 7.5rem 6.5rem 1.75rem">
+						<span class="text-xs text-muted-foreground">Description</span>
+						<span class="text-xs text-muted-foreground text-right">Qté</span>
+						<span class="text-xs text-muted-foreground text-right">Prix unit. (€)</span>
+						<span class="text-xs text-muted-foreground text-right">Sous-total</span>
+						<span></span>
+					</div>
+
+					<!-- Line item rows -->
+					<div class="space-y-2">
 						{#each formLineItems as item, i (i)}
-							<div class="flex items-start gap-3 border border-border rounded-lg p-3 bg-muted/30">
-								<div class="flex-1">
-									<input
-										type="text"
-										bind:value={item.description}
-										placeholder="Description de la prestation"
-										class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-									/>
-								</div>
-								<div class="w-24">
-									<label class="text-xs text-muted-foreground mb-1 block">Quantité</label>
-									<input
-										type="number"
-										bind:value={item.quantity}
-										min="1"
-										step="1"
-										class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-									/>
-								</div>
-								<div class="w-32">
-									<label class="text-xs text-muted-foreground mb-1 block">Prix unitaire (€)</label>
-									<input
-										type="number"
-										bind:value={item.unit_price}
-										min="0"
-										step="0.01"
-										class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-									/>
-								</div>
-								<div class="w-28 pt-5 text-right">
-									<span class="text-sm font-medium text-foreground">
+							<div class="grid items-center gap-2" style="grid-template-columns: 1fr 4.5rem 7.5rem 6.5rem 1.75rem">
+								<input
+									type="text"
+									bind:value={item.description}
+									placeholder="Description de la prestation"
+									class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+								/>
+								<input
+									type="number"
+									bind:value={item.quantity}
+									min="1"
+									step="1"
+									class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-2 text-sm text-right tabular-nums focus:ring-2 focus:ring-offset-2"
+								/>
+								<input
+									type="number"
+									bind:value={item.unit_price}
+									min="0"
+									step="0.01"
+									class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-2 text-sm text-right tabular-nums focus:ring-2 focus:ring-offset-2"
+								/>
+								<div class="h-input flex items-center justify-end pr-1">
+									<span class="text-sm font-medium text-foreground tabular-nums">
 										{formatCurrency(item.quantity * item.unit_price)}
 									</span>
 								</div>
@@ -876,53 +896,63 @@
 									<button
 										type="button"
 										onclick={() => removeLineItem(i)}
-										class="p-2 mt-3 rounded btn-ghost-destructive cursor-pointer"
+										class="size-7 rounded flex items-center justify-center btn-ghost-destructive cursor-pointer"
 										title="Supprimer la ligne"
 									>
-										<Trash2 size={14} />
+										<Trash2 size={13} />
 									</button>
+								{:else}
+									<div class="size-7"></div>
 								{/if}
 							</div>
 						{/each}
 					</div>
 
 					<!-- Total -->
-					<div class="flex justify-end mt-4 pt-4 border-t border-border">
-						<div class="text-right">
-							<p class="text-sm text-muted-foreground">Total estimé</p>
-							<p class="text-2xl font-bold text-foreground">{formatCurrency(formTotal())}</p>
-						</div>
+					<div class="flex items-center justify-between pt-3 mt-1 border-t border-border-card">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total estimé</span>
+						<span class="text-xl font-semibold text-foreground tabular-nums" style="font-family: var(--font-display)">
+							{formatCurrency(formTotal())}
+						</span>
 					</div>
 				</div>
 
-				<!-- Notes -->
-				<div>
-					<label class="text-xs text-muted-foreground mb-1 block">Notes</label>
+				<hr class="border-border-card" />
+
+				<!-- Section: Notes -->
+				<div class="space-y-3">
+					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+						Notes <span class="normal-case font-normal">(optionnel)</span>
+					</p>
 					<textarea
 						bind:value={formNotes}
-						placeholder="Notes internes ou conditions..."
+						placeholder="Conditions particulières, délais, modalités de paiement..."
 						rows="3"
-						class="rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+						class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2.5 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
 					></textarea>
 				</div>
+
 			</div>
 
 			<!-- Modal footer -->
-			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
-				<Dialog.Close
-					class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
-				>
-					Annuler
-				</Dialog.Close>
-				<button
-					type="button"
-					onclick={handleCreate}
-					disabled={formSaving}
-					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-				>
-					<Save size={14} class="mr-1" />
-					{formSaving ? "Enregistrement..." : "Créer le devis"}
-				</button>
+			<div class="flex items-center justify-between px-6 py-4 border-t border-border-card shrink-0">
+				<p class="text-xs text-muted-foreground">Le devis sera créé en brouillon.</p>
+				<div class="flex items-center gap-2">
+					<Dialog.Close
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+					>
+						Annuler
+					</Dialog.Close>
+					<button
+						type="button"
+						onclick={handleCreate}
+						disabled={formSaving}
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+					>
+						<Save size={14} class="mr-1.5" />
+						{formSaving ? "Enregistrement..." : "Créer le devis"}
+					</button>
+				</div>
 			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
