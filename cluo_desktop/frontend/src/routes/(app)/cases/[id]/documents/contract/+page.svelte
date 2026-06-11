@@ -738,116 +738,86 @@
 			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
 		>
 			<!-- Modal header -->
-			<div class="flex items-center justify-between px-6 py-4 border-b border-border shrink-0">
-				<Dialog.Title class="text-lg font-semibold text-foreground">
+			<div class="flex-shrink-0 px-8 pt-7 pb-5 border-b border-border-card relative">
+				<Dialog.Title class="text-base font-semibold tracking-tight text-foreground">
 					Nouveau contrat
 				</Dialog.Title>
-				<Dialog.Close
-					class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
-				>
-					<X class="text-foreground size-5" />
+				{#if client}
+					<p class="text-sm text-muted-foreground mt-0.5">{client.name}</p>
+				{/if}
+				<Dialog.Close class="absolute right-5 top-6 rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer p-0.5">
+					<X class="size-4" />
 					<span class="sr-only">Fermer</span>
 				</Dialog.Close>
 			</div>
 
-			<!-- Modal body (scrollable) -->
-			<div class="px-6 py-5 overflow-y-auto flex-1 space-y-4">
+			<!-- Modal body -->
+			<div class="flex-1 min-h-0 overflow-y-auto px-8 py-6 flex flex-col gap-5">
+
+				<!-- Dates + financials -->
 				<div class="grid grid-cols-2 gap-4">
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Date de début *</label>
-						<input
-							type="date"
-							bind:value={formStartDate}
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date de début</label>
+						<input type="date" bind:value={formStartDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
 					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Date de fin</label>
-						<input
-							type="date"
-							bind:value={formEndDate}
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date de fin <span class="font-normal text-muted-foreground">(optionnel)</span></label>
+						<input type="date" bind:value={formEndDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
 					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Montant du contrat (€)</label>
-						<input
-							type="number"
-							bind:value={formContractValue}
-							min="0"
-							step="0.01"
-							placeholder="0.00"
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Montant <span class="font-normal text-muted-foreground">(€, optionnel)</span></label>
+						<input type="number" bind:value={formContractValue} min="0" step="0.01" placeholder="0.00" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
 					</div>
-					<div>
-						<label class="text-xs text-muted-foreground mb-1 block">Devise</label>
-						<input
-							type="text"
-							bind:value={formCurrency}
-							placeholder="EUR"
-							class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-						/>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Devise</label>
+						<input type="text" bind:value={formCurrency} placeholder="EUR" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
 					</div>
 				</div>
 
-				<div>
-					<label class="text-xs text-muted-foreground mb-1 block">Objet des prestations *</label>
-					<textarea
-						bind:value={formScopeOfServices}
-						placeholder="Décrivez l'objet des prestations..."
-						rows="3"
-						class="rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
+				<!-- Objet section -->
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Objet</span>
+						<div class="h-px flex-1 bg-border-input"></div>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Objet des prestations</label>
+						<textarea bind:value={formScopeOfServices} placeholder="Décrivez l'objet des prestations..." rows="3" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+					</div>
 				</div>
 
-				<div>
-					<label class="text-xs text-muted-foreground mb-1 block">Conditions de paiement *</label>
-					<textarea
-						bind:value={formPaymentTerms}
-						placeholder="Ex : Paiement à 30 jours..."
-						rows="2"
-						class="rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
+				<!-- Clauses section -->
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Clauses</span>
+						<div class="h-px flex-1 bg-border-input"></div>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Conditions de paiement</label>
+						<textarea bind:value={formPaymentTerms} placeholder="Ex : Paiement à 30 jours..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Clause de confidentialité</label>
+						<textarea bind:value={formConfidentiality} placeholder="Clause de confidentialité..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Clause de résiliation</label>
+						<textarea bind:value={formTerminationClause} placeholder="Conditions de résiliation..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+					</div>
 				</div>
 
-				<div>
-					<label class="text-xs text-muted-foreground mb-1 block">Clause de confidentialité *</label>
-					<textarea
-						bind:value={formConfidentiality}
-						placeholder="Clause de confidentialité..."
-						rows="2"
-						class="rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
-
-				<div>
-					<label class="text-xs text-muted-foreground mb-1 block">Clause de résiliation *</label>
-					<textarea
-						bind:value={formTerminationClause}
-						placeholder="Conditions de résiliation..."
-						rows="2"
-						class="rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-					></textarea>
-				</div>
 			</div>
 
 			<!-- Modal footer -->
-			<div class="flex justify-end gap-2 px-6 py-4 border-t border-border shrink-0">
-				<Dialog.Close
-					class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
-				>
-					Annuler
-				</Dialog.Close>
-				<button
-					type="button"
-					onclick={handleCreate}
-					disabled={formSaving}
-					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-				>
-					<Save size={14} class="mr-1" />
-					{formSaving ? "Enregistrement..." : "Créer le contrat"}
-				</button>
+			<div class="flex items-center justify-between px-8 py-4 border-t border-border-card shrink-0">
+				<p class="text-xs text-muted-foreground">Le contrat sera créé en brouillon.</p>
+				<div class="flex items-center gap-2">
+					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
+					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} class="mr-1.5" />
+						{formSaving ? "Enregistrement..." : "Créer le contrat"}
+					</button>
+				</div>
 			</div>
 		</Dialog.Content>
 	</Dialog.Portal>
