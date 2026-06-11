@@ -792,17 +792,15 @@
 			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
 		>
 			<!-- Modal header -->
-			<div class="flex items-start justify-between px-6 py-5 border-b border-border-card shrink-0">
-				<div>
-					<Dialog.Title class="text-base font-semibold text-foreground">
-						Nouveau devis
-					</Dialog.Title>
-					{#if client}
-						<p class="text-xs text-muted-foreground mt-0.5">{client.name}</p>
-					{/if}
-				</div>
+			<div class="flex-shrink-0 px-8 pt-7 pb-5 border-b border-border-card">
+				<Dialog.Title class="text-base font-semibold tracking-tight text-foreground">
+					Nouveau devis
+				</Dialog.Title>
+				{#if client}
+					<p class="text-sm text-muted-foreground mt-0.5">{client.name}</p>
+				{/if}
 				<Dialog.Close
-					class="rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer mt-0.5 p-0.5"
+					class="absolute right-5 top-6 rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer p-0.5"
 				>
 					<X class="size-4" />
 					<span class="sr-only">Fermer</span>
@@ -810,44 +808,41 @@
 			</div>
 
 			<!-- Modal body (scrollable) -->
-			<div class="px-6 py-6 overflow-y-auto flex-1 space-y-6">
+			<div class="flex-1 min-h-0 overflow-y-auto px-8 py-6 flex flex-col gap-5">
 
-				<!-- Section: Informations -->
-				<div class="space-y-4">
-					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Informations</p>
-					<div class="grid grid-cols-2 gap-4">
-						<div class="space-y-1.5">
-							<label class="text-xs font-medium text-foreground block">Date d'émission</label>
-							<input
-								type="date"
-								bind:value={formIssueDate}
-								class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-							/>
-						</div>
-						<div class="space-y-1.5">
-							<label class="text-xs font-medium text-foreground block">
-								Valide jusqu'au
-								<span class="font-normal text-muted-foreground">(optionnel)</span>
-							</label>
-							<input
-								type="date"
-								bind:value={formValidUntil}
-								class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-							/>
-						</div>
+				<!-- Dates -->
+				<div class="grid grid-cols-2 gap-4">
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date d'émission</label>
+						<input
+							type="date"
+							bind:value={formIssueDate}
+							class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">
+							Valide jusqu'au
+							<span class="font-normal text-muted-foreground">(optionnel)</span>
+						</label>
+						<input
+							type="date"
+							bind:value={formValidUntil}
+							class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2"
+						/>
 					</div>
 				</div>
 
-				<hr class="border-border-input" />
-
-				<!-- Section: Prestations -->
-				<div class="space-y-4">
-					<div class="flex items-center justify-between">
-						<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Prestations</p>
+				<!-- Prestations block -->
+				<div class="flex flex-col gap-3">
+					<!-- Inline section separator -->
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Prestations</span>
+						<div class="h-px flex-1 bg-border-input"></div>
 						<button
 							type="button"
 							onclick={addLineItem}
-							class="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/70 transition-interactive duration-150 cursor-pointer"
+							class="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/70 transition-interactive duration-150 cursor-pointer shrink-0"
 						>
 							<Plus size={12} />
 							Ajouter une ligne
@@ -864,14 +859,14 @@
 					</div>
 
 					<!-- Line item rows -->
-					<div class="space-y-2">
+					<div class="flex flex-col gap-2">
 						{#each formLineItems as item, i (i)}
 							<div class="grid items-center gap-2" style="grid-template-columns: 1fr 4.5rem 7.5rem 6.5rem 1.75rem">
 								<input
 									type="text"
 									bind:value={item.description}
 									placeholder="Description de la prestation"
-									class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2"
 								/>
 								<input
 									type="number"
@@ -909,7 +904,7 @@
 					</div>
 
 					<!-- Total -->
-					<div class="flex items-center justify-between pt-4 mt-2 border-t border-border-input">
+					<div class="flex items-center justify-between pt-3 border-t border-border-input">
 						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total estimé</span>
 						<span class="text-xl font-semibold text-foreground tabular-nums" style="font-family: var(--font-display)">
 							{formatCurrency(formTotal())}
@@ -917,29 +912,31 @@
 					</div>
 				</div>
 
-				<hr class="border-border-input" />
+				<!-- Notes block -->
+				<div class="flex flex-col gap-3">
+					<!-- Inline section separator -->
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Notes</span>
+						<div class="h-px flex-1 bg-border-input"></div>
+						<span class="text-xs text-muted-foreground">(optionnel)</span>
+					</div>
 
-				<!-- Section: Notes -->
-				<div class="space-y-4">
-					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-						Notes <span class="normal-case font-normal">(optionnel)</span>
-					</p>
 					<textarea
 						bind:value={formNotes}
 						placeholder="Conditions particulières, délais, modalités de paiement..."
 						rows="3"
-						class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2.5 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
+						class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
 					></textarea>
 				</div>
 
 			</div>
 
 			<!-- Modal footer -->
-			<div class="flex items-center justify-between px-6 py-4 border-t border-border-card shrink-0">
+			<div class="flex items-center justify-between px-8 py-4 border-t border-border-card shrink-0">
 				<p class="text-xs text-muted-foreground">Le devis sera créé en brouillon.</p>
 				<div class="flex items-center gap-2">
 					<Dialog.Close
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none"
 					>
 						Annuler
 					</Dialog.Close>
