@@ -220,7 +220,7 @@
                     <Loader2 class="size-5 animate-spin text-muted-foreground" />
                 </div>
             {:else}
-                <form class="flex flex-col gap-5" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
+                <form class="flex flex-col gap-4" onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}>
 
                     <!-- Title -->
                     <div class="flex flex-col gap-1.5">
@@ -483,7 +483,7 @@
                         <button
                             type="submit"
                             disabled={loading || !title.trim() || !clientId}
-                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-10 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-10 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-interactive"
                         >
                             {#if loading}
                                 <Loader2 size={14} class="animate-spin" />

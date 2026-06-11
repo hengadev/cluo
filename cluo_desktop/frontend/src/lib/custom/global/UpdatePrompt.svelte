@@ -170,7 +170,7 @@
                         </div>
                         <div class="h-1 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                                class="h-full bg-dark transition-all duration-200 rounded-full"
+                                class="h-full bg-dark transition-interactive duration-200 rounded-full"
                                 style="width: {progress.percent}%"
                             ></div>
                         </div>
@@ -201,7 +201,7 @@
                     </button>
                     <button
                         onclick={installAndRestart}
-                        class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold cursor-pointer transition-all"
+                        class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold cursor-pointer transition-interactive"
                     >
                         <Download size={14} />
                         Installer et redémarrer

@@ -228,7 +228,7 @@
                         </div>
                         <div class="h-1.5 w-full overflow-hidden rounded-full bg-muted">
                             <div
-                                class="h-full bg-dark transition-all duration-200"
+                                class="h-full bg-dark transition-interactive duration-200"
                                 style="width: {progress.percent}%"
                             ></div>
                         </div>
@@ -261,7 +261,7 @@
                         </Dialog.Close>
                         <button
                             onclick={downloadAndInstall}
-                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-interactive"
                         >
                             <Download size={14} />
                             Télécharger et installer
@@ -281,13 +281,13 @@
                         </Dialog.Close>
                         <button
                             onclick={restartApp}
-                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-interactive"
                         >
                             Redémarrer
                         </button>
                     {:else if updateState === "uptodate" || updateState === "error"}
                         <Dialog.Close
-                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-interactive"
                         >
                             Fermer
                         </Dialog.Close>

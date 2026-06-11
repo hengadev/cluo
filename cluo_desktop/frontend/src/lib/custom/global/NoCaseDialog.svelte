@@ -59,7 +59,7 @@
             <div class="flex flex-col gap-2.5 p-8 pt-6">
                 <button
                     onclick={handleCreateCase}
-                    class="group flex items-center gap-3.5 rounded-input bg-dark text-background p-4 text-left transition-all duration-200 hover:bg-dark/90 active:scale-[0.98] cursor-pointer shadow-mini"
+                    class="group flex items-center gap-3.5 rounded-input bg-dark text-background p-4 text-left transition-interactive duration-200 hover:bg-dark/90 active:scale-[0.98] cursor-pointer shadow-mini"
                 >
                     <div class="flex items-center justify-center size-8 rounded-[6px] bg-background/[0.08] shrink-0">
                         <FolderPlus size={16} strokeWidth={1.75} />
@@ -68,13 +68,13 @@
                         <p class="text-sm font-semibold">Nouveau dossier</p>
                         <p class="text-xs text-background/60 mt-0.5">Créer un dossier depuis zéro</p>
                     </div>
-                    <ArrowRight size={14} class="shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
+                    <ArrowRight size={14} class="shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-interactive duration-200" />
                 </button>
 
                 {#if hasCases}
                 <button
                     onclick={handleExistingCases}
-                    class="group flex items-center gap-3.5 rounded-input border border-border-input bg-transparent text-foreground p-4 text-left transition-all duration-200 hover:bg-foreground/[0.04] active:scale-[0.98] cursor-pointer"
+                    class="group flex items-center gap-3.5 rounded-input border border-border-input bg-transparent text-foreground p-4 text-left transition-interactive duration-200 hover:bg-foreground/[0.04] active:scale-[0.98] cursor-pointer"
                 >
                     <div class="flex items-center justify-center size-8 rounded-[6px] bg-foreground/[0.06] shrink-0">
                         <FolderSearch size={16} strokeWidth={1.75} />
@@ -83,7 +83,7 @@
                         <p class="text-sm font-semibold">Dossiers existants</p>
                         <p class="text-xs text-foreground-alt mt-0.5">Ouvrir un dossier déjà créé</p>
                     </div>
-                    <ArrowRight size={14} class="shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-all duration-200" />
+                    <ArrowRight size={14} class="shrink-0 opacity-0 group-hover:opacity-100 group-hover:translate-x-0.5 transition-interactive duration-200" />
                 </button>
                 {/if}
             </div>

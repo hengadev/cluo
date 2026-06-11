@@ -49,7 +49,7 @@
                 </Dialog.Close>
                 <Dialog.Close
                     onclick={handleConfirm}
-                    class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-all"
+                    class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-interactive"
                 >
                     {confirmLabel}
                 </Dialog.Close>

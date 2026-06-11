@@ -82,7 +82,7 @@
 
             <div class="px-8 py-6">
                 <form
-                    class="flex flex-col gap-5"
+                    class="flex flex-col gap-4"
                     onsubmit={(e) => { e.preventDefault(); handleSubmit(); }}
                 >
                     <div class="flex flex-col gap-1.5">
@@ -119,7 +119,7 @@
                         <button
                             type="submit"
                             disabled={saving || !name.trim()}
-                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-all"
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-interactive"
                         >
                             {#if saving}
                                 <Loader2 size={14} class="animate-spin" />
