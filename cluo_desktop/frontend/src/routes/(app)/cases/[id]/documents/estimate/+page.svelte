@@ -810,12 +810,12 @@
 			</div>
 
 			<!-- Modal body (scrollable) -->
-			<div class="px-6 py-5 overflow-y-auto flex-1 space-y-5">
+			<div class="px-6 py-6 overflow-y-auto flex-1 space-y-6">
 
 				<!-- Section: Informations -->
-				<div class="space-y-3">
+				<div class="space-y-4">
 					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Informations</p>
-					<div class="grid grid-cols-2 gap-3">
+					<div class="grid grid-cols-2 gap-4">
 						<div class="space-y-1.5">
 							<label class="text-xs font-medium text-foreground block">Date d'émission</label>
 							<input
@@ -838,10 +838,10 @@
 					</div>
 				</div>
 
-				<hr class="border-border-card" />
+				<hr class="border-border-input" />
 
 				<!-- Section: Prestations -->
-				<div class="space-y-3">
+				<div class="space-y-4">
 					<div class="flex items-center justify-between">
 						<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Prestations</p>
 						<button
@@ -909,7 +909,7 @@
 					</div>
 
 					<!-- Total -->
-					<div class="flex items-center justify-between pt-3 mt-1 border-t border-border-card">
+					<div class="flex items-center justify-between pt-4 mt-2 border-t border-border-input">
 						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total estimé</span>
 						<span class="text-xl font-semibold text-foreground tabular-nums" style="font-family: var(--font-display)">
 							{formatCurrency(formTotal())}
@@ -917,10 +917,10 @@
 					</div>
 				</div>
 
-				<hr class="border-border-card" />
+				<hr class="border-border-input" />
 
 				<!-- Section: Notes -->
-				<div class="space-y-3">
+				<div class="space-y-4">
 					<p class="text-xs font-medium text-muted-foreground uppercase tracking-wider">
 						Notes <span class="normal-case font-normal">(optionnel)</span>
 					</p>
