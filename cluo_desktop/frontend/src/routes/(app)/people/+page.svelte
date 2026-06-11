@@ -13,9 +13,9 @@
 		Users,
 		Mail,
 		Phone,
-		Check,
-		X,
 		Trash2,
+		X,
+		Check,
 		Pencil,
 		UserPlus,
 		ExternalLink,
@@ -29,7 +29,6 @@
 		deleteClient,
 		fetchAllUsers,
 		fetchAllCaseSubjects,
-		createCaseSubject,
 		updateCaseSubject,
 		deleteCaseSubject,
 		fetchAllCases,
@@ -39,6 +38,7 @@
 	import { clientTypeBadge, userRoleBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
 	import NewClientDialog from "$lib/custom/global/NewClientDialog.svelte";
+	import NewSubjectDialog from "$lib/custom/global/NewSubjectDialog.svelte";
 	import type { Client, ClientType, AuthUser, CaseSubject, Case } from "$lib/types/entities";
 
 	const toastState = getToastContext();
@@ -129,7 +129,7 @@
 	let subjectsLoaded = $state(false);
 	let subjectSearchQuery = $state("");
 
-	let showSubjectForm = $state(false);
+	let newSubjectOpen = $state(false);
 	let editingSubjectId: string | null = $state(null);
 	let savingSubject = $state(false);
 
@@ -186,24 +186,14 @@
 	}
 
 	function startCreateSubject() {
-		editingSubjectId = null;
-		subjectForm = {
-			firstname: "",
-			lastname: "",
-			email: "",
-			phone: "",
-			address1: "",
-			address2: "",
-			city: "",
-			postalCode: "",
-			occupation: "",
-			notes: "",
-		};
-		showSubjectForm = true;
+		newSubjectOpen = true;
+	}
+
+	function handleSubjectCreated(created: CaseSubject) {
+		subjects = [...subjects, created];
 	}
 
 	function startEditSubject(s: CaseSubject) {
-		showSubjectForm = false;
 		editingSubjectId = s.id;
 		subjectForm = {
 			firstname: s.firstname,
@@ -220,46 +210,10 @@
 	}
 
 	function cancelSubjectForm() {
-		showSubjectForm = false;
 		editingSubjectId = null;
 	}
 
-	async function saveSubjectCreate() {
-		if (!subjectForm.lastname.trim() || !subjectForm.firstname.trim()) {
-			toastState.add(TOAST_LEVELS.Error, "Erreur", "Le nom et le prénom sont requis.");
-			return;
-		}
-		savingSubject = true;
-		try {
-			const created = await createCaseSubject({
-				firstname: subjectForm.firstname.trim(),
-				lastname: subjectForm.lastname.trim(),
-				email: subjectForm.email.trim() || undefined,
-				phone: subjectForm.phone.trim() || undefined,
-				address1: subjectForm.address1.trim() || undefined,
-				address2: subjectForm.address2.trim() || undefined,
-				city: subjectForm.city.trim() || undefined,
-				postalCode: subjectForm.postalCode.trim() || undefined,
-				occupation: subjectForm.occupation.trim() || undefined,
-				notes: subjectForm.notes.trim() || undefined,
-			});
-			subjects = [...subjects, created];
-			showSubjectForm = false;
-			toastState.add(
-				TOAST_LEVELS.Info,
-				"Personne ajoutée",
-				`${created.firstname} ${created.lastname} a été créée.`,
-			);
-		} catch (e) {
-			toastState.add(
-				TOAST_LEVELS.Error,
-				"Erreur",
-				e instanceof Error ? e.message : "Impossible de créer la personne.",
-			);
-		} finally {
-			savingSubject = false;
-		}
-	}
+
 
 	async function saveSubjectEdit() {
 		if (!editingSubjectId) return;
@@ -363,7 +317,7 @@
 					Nouveau client
 				</button>
 			</NewClientDialog>
-		{:else if activeTab === "subjects" && !showSubjectForm}
+		{:else if activeTab === "subjects"}
 			<button
 				type="button"
 				onclick={startCreateSubject}
@@ -528,32 +482,7 @@
 				/>
 			</div>
 
-			{#if showSubjectForm}
-				<div class="border border-accent/50 rounded-card p-5 bg-accent/10">
-					<p class="text-sm font-medium text-muted-foreground mb-4">Nouvelle personne impliquée</p>
-					{@render subjectFormFields()}
-					<div class="flex justify-end gap-2 mt-4">
-						<button
-							type="button"
-							onclick={cancelSubjectForm}
-							class="h-input rounded-input bg-transparent hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
-						>
-							<X size={14} class="mr-1" /> Annuler
-						</button>
-						<button
-							type="button"
-							onclick={saveSubjectCreate}
-							disabled={savingSubject}
-							class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-						>
-							<Check size={14} class="mr-1" />
-							{savingSubject ? "Enregistrement..." : "Ajouter"}
-						</button>
-					</div>
-				</div>
-			{/if}
-
-			{#if filteredSubjects.length === 0 && !showSubjectForm}
+			{#if filteredSubjects.length === 0}
 				{#if subjectSearchQuery}
 					<EmptyState icon={Search} message="Aucune personne trouvée pour cette recherche." />
 				{:else}
@@ -574,7 +503,48 @@
 						{#if editingSubjectId === subject.id}
 							<div class="border border-border-card rounded-card p-5 bg-background">
 								<p class="text-sm font-medium text-muted-foreground mb-4">Modifier la personne</p>
-								{@render subjectFormFields()}
+								<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Prénom *</label>
+									<input type="text" bind:value={subjectForm.firstname} placeholder="Prénom" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Nom *</label>
+									<input type="text" bind:value={subjectForm.lastname} placeholder="Nom" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Email</label>
+									<input type="email" bind:value={subjectForm.email} placeholder="email@example.com" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Téléphone</label>
+									<input type="tel" bind:value={subjectForm.phone} placeholder="+33 6 00 00 00 00" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Adresse</label>
+									<input type="text" bind:value={subjectForm.address1} placeholder="Adresse ligne 1" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Adresse (suite)</label>
+									<input type="text" bind:value={subjectForm.address2} placeholder="Adresse ligne 2" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Code postal</label>
+									<input type="text" bind:value={subjectForm.postalCode} placeholder="75001" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Ville</label>
+									<input type="text" bind:value={subjectForm.city} placeholder="Paris" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div class="md:col-span-2">
+									<label class="text-xs text-muted-foreground mb-1 block">Profession</label>
+									<input type="text" bind:value={subjectForm.occupation} placeholder="Profession" class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2" />
+								</div>
+								<div class="md:col-span-2">
+									<label class="text-xs text-muted-foreground mb-1 block">Notes</label>
+									<textarea bind:value={subjectForm.notes} placeholder="Notes..." rows="2" class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+								</div>
+							</div>
 								<div class="flex justify-end gap-2 mt-4">
 									<button
 										type="button"
@@ -710,97 +680,4 @@
 	{/if}
 </div>
 
-{#snippet subjectFormFields()}
-	<div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Prénom *</label>
-			<input
-				type="text"
-				bind:value={subjectForm.firstname}
-				placeholder="Prénom"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Nom *</label>
-			<input
-				type="text"
-				bind:value={subjectForm.lastname}
-				placeholder="Nom"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Email</label>
-			<input
-				type="email"
-				bind:value={subjectForm.email}
-				placeholder="email@example.com"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Téléphone</label>
-			<input
-				type="tel"
-				bind:value={subjectForm.phone}
-				placeholder="+33 6 00 00 00 00"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Adresse</label>
-			<input
-				type="text"
-				bind:value={subjectForm.address1}
-				placeholder="Adresse ligne 1"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Adresse (suite)</label>
-			<input
-				type="text"
-				bind:value={subjectForm.address2}
-				placeholder="Adresse ligne 2"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Code postal</label>
-			<input
-				type="text"
-				bind:value={subjectForm.postalCode}
-				placeholder="75001"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div>
-			<label class="text-xs text-muted-foreground mb-1 block">Ville</label>
-			<input
-				type="text"
-				bind:value={subjectForm.city}
-				placeholder="Paris"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div class="md:col-span-2">
-			<label class="text-xs text-muted-foreground mb-1 block">Profession</label>
-			<input
-				type="text"
-				bind:value={subjectForm.occupation}
-				placeholder="Profession"
-				class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-			/>
-		</div>
-		<div class="md:col-span-2">
-			<label class="text-xs text-muted-foreground mb-1 block">Notes</label>
-			<textarea
-				bind:value={subjectForm.notes}
-				placeholder="Notes..."
-				rows="2"
-				class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-			></textarea>
-		</div>
-	</div>
-{/snippet}
+<NewSubjectDialog bind:open={newSubjectOpen} onCreated={handleSubjectCreated} />
