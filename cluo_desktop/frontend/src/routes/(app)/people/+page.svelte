@@ -569,7 +569,7 @@
 					</EmptyState>
 				{/if}
 			{:else}
-				<div class="grid gap-3">
+				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 					{#each filteredSubjects as subject}
 						{#if editingSubjectId === subject.id}
 							<div class="border border-border-card rounded-card p-5 bg-background">
@@ -595,67 +595,27 @@
 								</div>
 							</div>
 						{:else}
-							<div
-								class="border border-border-card rounded-card p-4 bg-background hover:shadow-mini transition-shadow duration-200"
-							>
-								<div class="flex items-start justify-between">
-									<div class="flex items-start gap-4 min-w-0">
-										<div
-											class="w-10 h-10 rounded-full bg-muted flex items-center justify-center flex-shrink-0"
-										>
-											<User size={18} class="text-muted-foreground" />
-										</div>
-										<div class="min-w-0 flex-1">
-											<p class="font-semibold text-foreground">
-												{subject.firstname}
-												{subject.lastname}
-											</p>
-											{#if subject.occupation}
-												<p class="text-sm text-muted-foreground">{subject.occupation}</p>
-											{/if}
-											<div class="flex flex-wrap gap-x-4 gap-y-1 mt-1">
-												{#if subject.email}
-													<span
-														class="text-sm text-muted-foreground inline-flex items-center gap-1"
-													>
-														<Mail size={12} />{subject.email}
-													</span>
-												{/if}
-												{#if subject.phone}
-													<span
-														class="text-sm text-muted-foreground inline-flex items-center gap-1"
-													>
-														<Phone size={12} />{subject.phone}
-													</span>
-												{/if}
-												{#if subject.city}
-													<span
-														class="text-sm text-muted-foreground inline-flex items-center gap-1"
-													>
-														<MapPin size={12} />{subject.city}
-													</span>
-												{/if}
-											</div>
-											{#if casesBySubjectId[subject.id]}
-												{@const linkedCase = casesBySubjectId[subject.id]}
-												<button
-													type="button"
-													onclick={() => goto(`/cases/${linkedCase.id}`)}
-													class="mt-2 inline-flex items-center gap-1 text-xs text-accent-foreground bg-accent-subtle px-2 py-0.5 rounded-full hover:opacity-80 transition-opacity cursor-pointer"
-												>
-													<ExternalLink size={10} />
-													{linkedCase.title}
-												</button>
-											{/if}
-										</div>
+							<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-200 group flex flex-col">
+								<!-- Zone 1 · Identity -->
+								<div class="flex items-start gap-3">
+									<div class="w-9 h-9 rounded-full bg-accent-subtle flex items-center justify-center flex-shrink-0 text-xs font-semibold text-accent-subtle-foreground select-none">
+										{(subject.firstname?.[0] ?? '').toUpperCase()}{(subject.lastname?.[0] ?? '').toUpperCase()}
 									</div>
-									<div class="flex gap-1 flex-shrink-0 ml-2">
+									<div class="min-w-0 flex-1">
+										<p class="font-semibold text-foreground text-sm leading-snug">
+											{subject.firstname} {subject.lastname}
+										</p>
+										{#if subject.occupation}
+											<p class="text-xs text-muted-foreground mt-0.5 leading-snug">{subject.occupation}</p>
+										{/if}
+									</div>
+									<div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0 -mt-0.5">
 										<button
 											onclick={() => startEditSubject(subject)}
 											class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 											title="Modifier"
 										>
-											<Pencil size={14} />
+											<Pencil size={13} />
 										</button>
 										<ConfirmDialog
 											title="Supprimer la personne"
@@ -666,11 +626,47 @@
 												class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
 												title="Supprimer"
 											>
-												<Trash2 size={14} />
+												<Trash2 size={13} />
 											</button>
 										</ConfirmDialog>
 									</div>
 								</div>
+
+								<!-- Zone 2 · Contact details -->
+								{#if subject.email || subject.phone || subject.city}
+									<div class="mt-3 pt-3 border-t border-border-card flex flex-col gap-1.5">
+										{#if subject.email}
+											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5 min-w-0">
+												<Mail size={11} class="flex-shrink-0" />
+												<span class="truncate">{subject.email}</span>
+											</span>
+										{/if}
+										{#if subject.phone}
+											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+												<Phone size={11} class="flex-shrink-0" />{subject.phone}
+											</span>
+										{/if}
+										{#if subject.city}
+											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5">
+												<MapPin size={11} class="flex-shrink-0" />{subject.city}
+											</span>
+										{/if}
+									</div>
+								{/if}
+
+								<!-- Zone 3 · Case link -->
+								{#if casesBySubjectId[subject.id]}
+									{@const linkedCase = casesBySubjectId[subject.id]}
+									<button
+										type="button"
+										onclick={() => goto(`/cases/${linkedCase.id}`)}
+										class="mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left"
+									>
+										<span class="text-muted-foreground font-medium flex-shrink-0">Affaire</span>
+										<span class="truncate text-foreground font-medium flex-1">{linkedCase.title}</span>
+										<ExternalLink size={10} class="flex-shrink-0 text-muted-foreground" />
+									</button>
+								{/if}
 							</div>
 						{/if}
 					{/each}
