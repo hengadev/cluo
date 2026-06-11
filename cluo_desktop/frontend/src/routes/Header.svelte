@@ -76,9 +76,7 @@
                 </Button.Root>
             </Tooltip.Trigger>
             <Tooltip.Content sideOffset={8} side="bottom">
-                <div
-                    class="rounded-input text-[1rem] align-center bg-foreground text-background font-medium border-dark-10 shadow-popover outline-hidden z-0 flex items-center justify-center border p-2"
-                >
+                <div class="rounded-button bg-foreground text-background text-xs font-medium shadow-popover px-2.5 py-1.5">
                     {item.title}
                 </div>
             </Tooltip.Content>
