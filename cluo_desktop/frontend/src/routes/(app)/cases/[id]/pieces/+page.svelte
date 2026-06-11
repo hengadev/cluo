@@ -13,7 +13,8 @@
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
     import Spinner from "$lib/components/Spinner.svelte";
     import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
-    import { FileText, Upload, Trash2, Download, File } from "@lucide/svelte";
+    import { Dialog, Separator } from "bits-ui";
+    import { FileText, Upload, Trash2, Download, X, Loader2 } from "@lucide/svelte";
 
     const toastState = getToastContext();
 
@@ -22,7 +23,7 @@
     let uploading = $state(false);
     let fileInput = $state<HTMLInputElement>();
     let notesInput = $state("");
-    let showUploadForm = $state(false);
+    let showUploadModal = $state(false);
 
     $effect(() => {
         const caseId = $page.params.id;
@@ -68,7 +69,7 @@
         }
 
         notesInput = "";
-        showUploadForm = false;
+        showUploadModal = false;
         if (target) target.value = "";
         uploading = false;
         await loadPieces();
@@ -121,6 +122,71 @@
         class="hidden"
     />
 
+    <!-- Upload Modal -->
+    <Dialog.Root bind:open={showUploadModal}>
+        <Dialog.Portal>
+            <Dialog.Overlay
+                class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/80"
+            />
+            <Dialog.Content
+                class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] border flex flex-col sm:max-w-[480px] md:w-full"
+            >
+                <div class="flex-shrink-0 px-8 pt-8 pb-6">
+                    <Dialog.Title class="text-base font-semibold tracking-tight">
+                        Ajouter des pièces
+                    </Dialog.Title>
+                    <Dialog.Description class="text-foreground-alt text-sm mt-1">
+                        Ajoutez une note optionnelle, puis sélectionnez les fichiers à joindre.
+                    </Dialog.Description>
+                </div>
+
+                <Separator.Root class="bg-border-input mx-0 !m-0 block h-px flex-shrink-0" />
+
+                <div class="px-8 py-6">
+                    <div class="flex flex-col gap-4">
+                        <textarea
+                            bind:value={notesInput}
+                            placeholder="Notes (optionnel)…"
+                            rows="3"
+                            class="rounded-card-sm border border-border-input bg-background placeholder:text-foreground-alt/40 hover:border-dark-40 focus:border-dark focus:outline-none focus:ring-2 focus:ring-foreground/10 focus:ring-offset-0 w-full px-4 py-3 text-sm transition-colors resize-none"
+                        ></textarea>
+                        <div class="flex justify-end gap-2">
+                            <Dialog.Close
+                                onclick={() => { notesInput = ""; }}
+                                class="h-input rounded-input bg-transparent text-foreground border border-border-input hover:bg-muted inline-flex items-center justify-center px-5 text-sm font-semibold active:scale-[0.98] cursor-pointer transition-colors"
+                            >
+                                Annuler
+                            </Dialog.Close>
+                            <button
+                                type="button"
+                                onclick={() => fileInput?.click()}
+                                disabled={uploading}
+                                class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-6 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-interactive"
+                            >
+                                {#if uploading}
+                                    <Loader2 size={14} class="animate-spin" />
+                                {:else}
+                                    <Upload size={14} />
+                                {/if}
+                                {uploading ? "Envoi en cours…" : "Choisir des fichiers"}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <Dialog.Close
+                    onclick={() => { notesInput = ""; }}
+                    class="focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden absolute right-5 top-6 rounded-md focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer"
+                >
+                    <div>
+                        <X class="text-foreground-alt size-4" />
+                        <span class="sr-only">Fermer</span>
+                    </div>
+                </Dialog.Close>
+            </Dialog.Content>
+        </Dialog.Portal>
+    </Dialog.Root>
+
     <!-- Header -->
     <div class="flex items-center justify-between">
         <div>
@@ -131,47 +197,13 @@
         </div>
         <button
             type="button"
-            onclick={() => {
-                showUploadForm = !showUploadForm;
-            }}
+            onclick={() => { showUploadModal = true; }}
             class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
         >
             <Upload size={16} class="mr-2" />
             Ajouter des pièces
         </button>
     </div>
-
-    <!-- Upload form -->
-    {#if showUploadForm}
-        <div class="border border-border-card rounded-card p-4 bg-background-alt animate-fade-in">
-            <p class="text-sm font-medium text-foreground mb-3">Ajouter des fichiers</p>
-            <div class="flex flex-col gap-3">
-                <textarea
-                    bind:value={notesInput}
-                    placeholder="Notes (optionnel)…"
-                    rows="2"
-                    class="rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 py-2 text-sm focus:ring-2 focus:ring-offset-2 resize-none"
-                ></textarea>
-                <div class="flex justify-end gap-2">
-                    <button
-                        type="button"
-                        onclick={() => { showUploadForm = false; notesInput = ""; }}
-                        class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
-                    >
-                        Annuler
-                    </button>
-                    <button
-                        type="button"
-                        onclick={() => fileInput?.click()}
-                        disabled={uploading}
-                        class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-                    >
-                        {uploading ? "Envoi en cours…" : "Choisir des fichiers"}
-                    </button>
-                </div>
-            </div>
-        </div>
-    {/if}
 
     <!-- Content -->
     {#if loading}
@@ -184,7 +216,7 @@
             <p class="text-muted-foreground">Aucune pièce jointe pour ce dossier.</p>
             <button
                 type="button"
-                onclick={() => { showUploadForm = true; }}
+                onclick={() => { showUploadModal = true; }}
                 class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
             >
                 <Upload size={16} class="mr-2" />
