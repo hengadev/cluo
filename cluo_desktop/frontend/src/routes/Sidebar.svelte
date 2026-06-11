@@ -32,7 +32,7 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-5 bg-sidebar border border-border-input relative transition-all duration-300 animate-fade-in overflow-visible"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-4 bg-sidebar border border-border-input relative animate-fade-in overflow-visible"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
@@ -40,7 +40,7 @@
     <!-- Home row with inline collapse toggle -->
     <div class="flex {isExpanded ? 'justify-between' : 'justify-center'} items-center w-full">
         <Button.Root
-            class="p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-all duration-300 bg-transparent text-foreground hover:bg-foreground/10 {isExpanded
+            class="p-2 !mt-1 rounded-input flex items-center cursor-pointer transition-interactive duration-300 bg-transparent text-foreground hover:bg-foreground/10 {isExpanded
                 ? 'justify-start gap-3 px-4'
                 : 'justify-center'}"
             onclick={() => goto("/")}
@@ -52,7 +52,7 @@
         </Button.Root>
         <button
             onclick={() => (isExpanded = !isExpanded)}
-            class="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 active:scale-95 transition-all duration-200 cursor-pointer {isExpanded ? 'mr-2' : ''}"
+            class="p-1.5 rounded-full text-muted-foreground hover:text-foreground hover:bg-foreground/10 active:scale-95 transition-interactive duration-200 cursor-pointer {isExpanded ? 'mr-2' : ''}"
             title={isExpanded ? "Réduire" : "Agrandir"}
             type="button"
         >
@@ -65,7 +65,7 @@
     </div>
 
     <div class="flex flex-col justify-between h-full">
-        <div class="flex flex-col gap-6" style:align-items={isExpanded ? 'stretch' : 'center'}>
+        <div class="flex flex-col gap-4" style:align-items={isExpanded ? 'stretch' : 'center'}>
             {#each groups as group, i}
                 {#if i > 0}
                     <div class="flex flex-col {isExpanded ? 'gap-2 px-2' : 'gap-1.5 items-center'}">
@@ -90,7 +90,7 @@
         <div class="flex flex-col gap-2" style:align-items={isExpanded ? 'stretch' : 'center'}>
             <ProfilePopover>
                 <Button.Root
-                    class="rounded-card-sm flex items-center border-1 border-border-input bg-background cursor-pointer transition-all duration-300 {isExpanded
+                    class="rounded-card-sm flex items-center border-1 border-border-input bg-background cursor-pointer transition-interactive duration-300 {isExpanded
                         ? 'justify-start gap-3 px-4 py-3 w-full'
                         : 'justify-center mx-auto size-12'}"
                 >
@@ -109,7 +109,7 @@
     {@const active = !disabled && isActive(item)}
     {#if isExpanded}
         <button
-            class="align-center border-border-input rounded-card-sm ring-offset-background transition-all active:scale-[0.98]
+            class="align-center border-border-input rounded-card-sm ring-offset-background transition-interactive active:scale-[0.98]
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden flex items-center gap-3 px-4 py-3 focus-visible:ring-2 focus-visible:ring-offset-2 {active
                 ? 'border-l-2 border-accent bg-accent-subtle text-accent-subtle-foreground'
                 : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : ''}"
@@ -123,9 +123,9 @@
         </button>
     {:else}
         <Tooltip.Provider>
-            <Tooltip.Root delayDuration={300}>
+            <Tooltip.Root delayDuration={800}>
                 <Tooltip.Trigger
-                    class="align-center border-border-input rounded-card-sm ring-offset-background transition-all
+                    class="align-center border-border-input rounded-card-sm ring-offset-background transition-interactive
 	focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex size-12 items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2 {active
                         ? 'bg-accent-subtle text-accent-subtle-foreground'
                         : 'bg-transparent text-foreground hover:bg-surface'} {disabled ? 'opacity-35 cursor-not-allowed' : 'active:scale-[0.98]'}"
@@ -151,5 +151,8 @@
 <style>
     .grid-area-sidebar {
         grid-area: sidebar;
+        transition-property: width, background-color, border-color;
+        transition-timing-function: var(--ease-out);
+        transition-duration: 300ms;
     }
 </style>

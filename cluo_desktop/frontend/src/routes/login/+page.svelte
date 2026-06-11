@@ -113,7 +113,7 @@
 			<button
 				type="submit"
 				disabled={isLoading}
-				class="h-input w-full rounded-button bg-dark text-background text-sm font-semibold shadow-mini hover:bg-dark/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer mt-2"
+				class="h-input w-full rounded-button bg-dark text-background text-sm font-semibold shadow-mini hover:bg-dark/90 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed transition-interactive cursor-pointer mt-2"
 			>
 				{isLoading ? 'Connexion…' : 'Se connecter'}
 			</button>

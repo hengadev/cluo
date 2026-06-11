@@ -5,11 +5,11 @@
 </script>
 
 <Tooltip.Provider>
-    <Tooltip.Root delayDuration={100}>
+    <Tooltip.Root delayDuration={800}>
         <Tooltip.Trigger
-            class="rounded-card-sm p-3 bg-surface ring-offset-background active:scale-[0.98] active:transition:all
+            class="rounded-card-sm p-3 bg-surface ring-offset-background active:scale-[0.98]
 		focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center focus-visible:ring-2 focus-visible:ring-offset-2
-                    hover:bg-surface-hover transition-colors"
+                    hover:bg-surface-hover transition-interactive duration-200"
         >
             <Button.Root class="cursor-pointer" onclick={() => theme.toggle()}>
                 {#if $theme === "dark"}
