@@ -597,8 +597,8 @@
 						{:else}
 							<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-200 group flex flex-col">
 								<!-- Zone 1 · Identity -->
-								<div class="flex items-start gap-3">
-									<div class="w-9 h-9 rounded-full bg-accent-subtle flex items-center justify-center flex-shrink-0 text-xs font-semibold text-accent-subtle-foreground select-none">
+								<div class="flex items-start gap-3.5">
+									<div class="w-10 h-10 rounded-full bg-accent-subtle flex items-center justify-center flex-shrink-0 text-xs font-semibold text-accent-subtle-foreground select-none">
 										{(subject.firstname?.[0] ?? '').toUpperCase()}{(subject.lastname?.[0] ?? '').toUpperCase()}
 									</div>
 									<div class="min-w-0 flex-1">
@@ -606,7 +606,7 @@
 											{subject.firstname} {subject.lastname}
 										</p>
 										{#if subject.occupation}
-											<p class="text-xs text-muted-foreground mt-0.5 leading-snug">{subject.occupation}</p>
+											<p class="text-xs text-foreground-alt mt-0.5 leading-snug">{subject.occupation}</p>
 										{/if}
 									</div>
 									<div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0 -mt-0.5">
@@ -634,21 +634,21 @@
 
 								<!-- Zone 2 · Contact details -->
 								{#if subject.email || subject.phone || subject.city}
-									<div class="mt-3 pt-3 border-t border-border-card flex flex-col gap-1.5">
+									<div class="mt-4 pt-3 border-t border-border-card flex flex-col gap-2">
 										{#if subject.email}
-											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5 min-w-0">
-												<Mail size={11} class="flex-shrink-0" />
+											<span class="text-xs text-foreground-alt inline-flex items-center gap-2 min-w-0">
+												<Mail size={12} class="flex-shrink-0 opacity-50" />
 												<span class="truncate">{subject.email}</span>
 											</span>
 										{/if}
 										{#if subject.phone}
-											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5">
-												<Phone size={11} class="flex-shrink-0" />{subject.phone}
+											<span class="text-xs text-foreground-alt inline-flex items-center gap-2">
+												<Phone size={12} class="flex-shrink-0 opacity-50" />{subject.phone}
 											</span>
 										{/if}
 										{#if subject.city}
-											<span class="text-xs text-muted-foreground inline-flex items-center gap-1.5">
-												<MapPin size={11} class="flex-shrink-0" />{subject.city}
+											<span class="text-xs text-foreground-alt inline-flex items-center gap-2">
+												<MapPin size={12} class="flex-shrink-0 opacity-50" />{subject.city}
 											</span>
 										{/if}
 									</div>
@@ -660,11 +660,11 @@
 									<button
 										type="button"
 										onclick={() => goto(`/cases/${linkedCase.id}`)}
-										class="mt-3 w-full flex items-center gap-2 px-3 py-2 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left"
+										class="mt-4 w-full flex items-center gap-2 px-3 py-2.5 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left"
 									>
-										<span class="text-muted-foreground font-medium flex-shrink-0">Affaire</span>
+										<span class="text-foreground-alt font-medium flex-shrink-0">Affaire</span>
 										<span class="truncate text-foreground font-medium flex-1">{linkedCase.title}</span>
-										<ExternalLink size={10} class="flex-shrink-0 text-muted-foreground" />
+										<ExternalLink size={11} class="flex-shrink-0 opacity-50" />
 									</button>
 								{/if}
 							</div>
