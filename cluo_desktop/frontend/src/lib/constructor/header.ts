@@ -21,7 +21,7 @@ export type UtilityItem = {
     fg: string
 }
 
-import SettingsPopover from "$lib/custom/header/SettingsPopover.svelte"
+import SettingsModal from "$lib/custom/header/SettingsModal.svelte"
 import Notifications from "$lib/custom/header/Notifications.svelte"
 
 export const navItems: NavItem[] = [
@@ -31,5 +31,5 @@ export const navItems: NavItem[] = [
 
 export const utilityItems: UtilityItem[] = [
     { icon: Bell, title: "Voir notifications", uiComponent: Notifications, bg: "background-alt", fg: "dark" },
-    { icon: Settings, title: "Paramètres", uiComponent: SettingsPopover, bg: "background-alt", fg: "dark" },
+    { icon: Settings, title: "Paramètres", uiComponent: SettingsModal, bg: "background-alt", fg: "dark" },
 ]
