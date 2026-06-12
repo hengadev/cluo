@@ -51,13 +51,17 @@ func (r *CreateContactRequest) Valid(ctx context.Context) error {
 		errs.Set("firstname", fmt.Errorf("firstname is required"))
 	}
 
-	// Use validation utilities for complex fields
-	if err := validation.ValidateEmail(r.Email); err != nil {
-		errs.Set("email", err)
+	// Use validation utilities for complex fields (both are optional)
+	if r.Email != "" {
+		if err := validation.ValidateEmail(r.Email); err != nil {
+			errs.Set("email", err)
+		}
 	}
 
-	if err := validation.ValidatePhone(r.Phone); err != nil {
-		errs.Set("phone", err)
+	if r.Phone != "" {
+		if err := validation.ValidatePhone(r.Phone); err != nil {
+			errs.Set("phone", err)
+		}
 	}
 
 	return errs.AsError()
