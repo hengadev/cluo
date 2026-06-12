@@ -204,7 +204,7 @@
 			toastState.add(
 				TOAST_LEVELS.Warning,
 				"Champs requis",
-				"Le nom et le prénom du contact sont obligatoires.",
+				"Le nom et le prénom de l'interlocuteur sont obligatoires.",
 			);
 			return;
 		}
@@ -223,14 +223,14 @@
 			resetNewContact();
 			toastState.add(
 				TOAST_LEVELS.Info,
-				"Contact ajouté",
+				"Interlocuteur ajouté",
 				`« ${trimmedFirst} ${trimmedLast} » a été ajouté.`,
 			);
 		} catch (e) {
 			toastState.add(
 				TOAST_LEVELS.Error,
 				"Erreur",
-				e instanceof Error ? e.message : "Impossible d'ajouter le contact",
+				e instanceof Error ? e.message : "Impossible d'ajouter l'interlocuteur",
 			);
 		} finally {
 			saving = false;
@@ -274,7 +274,7 @@
 			editingContactId = null;
 			toastState.add(
 				TOAST_LEVELS.Info,
-				"Contact mis à jour",
+				"Interlocuteur mis à jour",
 				"Les modifications ont été enregistrées.",
 			);
 		} catch (e) {
@@ -294,8 +294,8 @@
 			contacts = contacts.filter((c) => c.id !== contactId);
 			toastState.add(
 				TOAST_LEVELS.Info,
-				"Contact supprimé",
-				"Le contact a été supprimé.",
+				"Interlocuteur supprimé",
+				"L'interlocuteur a été supprimé.",
 			);
 		} catch (e) {
 			toastState.add(
@@ -306,13 +306,6 @@
 		}
 	}
 
-	function formatDate(dateStr: string): string {
-		return new Date(dateStr).toLocaleDateString("fr-FR", {
-			day: "2-digit",
-			month: "short",
-			year: "numeric",
-		});
-	}
 </script>
 
 <div class="page-content">
@@ -432,7 +425,7 @@
 		<div class="animate-fade-in" style="animation-delay: 150ms;">
 			<div class="flex items-center justify-between mb-4">
 				<h2 class="text-xl font-semibold">
-					Contacts
+					Interlocuteurs
 					<span class="text-muted-foreground text-base font-normal ml-2"
 						>({contacts.length})</span
 					>
@@ -443,7 +436,7 @@
 						class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-input border border-border-input bg-background hover:bg-muted active:scale-[0.98] cursor-pointer transition-interactive duration-200"
 					>
 						<Plus size={16} />
-						Ajouter un contact
+						Ajouter un interlocuteur
 					</button>
 				{/if}
 			</div>
@@ -454,7 +447,7 @@
 					onsubmit={handleCreateContact}
 					class="border border-accent/50 rounded-card p-5 mb-4 bg-accent/30"
 				>
-					<h3 class="text-sm font-semibold mb-4">Nouveau contact</h3>
+					<h3 class="text-sm font-semibold mb-4">Nouvel interlocuteur</h3>
 					<div
 						class="grid grid-cols-1 md:grid-cols-2 gap-4"
 					>
@@ -510,7 +503,7 @@
 						<button
 							type="button"
 							onclick={() => { showNewContact = false; resetNewContact(); }}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 						>
 							Annuler
 						</button>
@@ -529,7 +522,7 @@
 			{#if contacts.length === 0 && !showNewContact}
 				<div class="text-center py-8 text-muted-foreground">
 					<User size={32} class="mx-auto mb-2 opacity-50" />
-					<p>Aucun contact enregistré pour ce client.</p>
+					<p>Aucun interlocuteur enregistré pour ce client.</p>
 				</div>
 			{:else}
 				<div class="grid gap-3">
@@ -587,7 +580,7 @@
 										<button
 											type="button"
 											onclick={cancelEditingContact}
-											class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
+											class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 										>
 											Annuler
 										</button>
@@ -650,7 +643,7 @@
 											<Pencil size={14} />
 										</button>
 										<ConfirmDialog
-											title="Supprimer le contact"
+											title="Supprimer l'interlocuteur"
 											description="Voulez-vous vraiment supprimer {contact.firstname} {contact.lastname} ?"
 											onConfirm={() => handleDeleteContact(contact.id)}
 										>
