@@ -81,6 +81,7 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 	@echo "==> [$(ENV)] Step 2/5: Building cluo_desktop v$(VERSION) for Windows (mingw cross-compile)..."
 	cd cluo_desktop && CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64 \
 		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
+	@test -f cluo_desktop/build/bin/cluo_desktop.exe || (echo "ERROR: wails build did not produce binary"; exit 1)
 	@set -e; \
 	BINARY=cluo_desktop/build/bin/cluo_desktop.exe; \
 	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
@@ -124,6 +125,7 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 	@echo "==> [$(ENV)] Step 2/5: Building cluo_desktop v$(VERSION) for Linux (native)..."
 	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
 		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
+	@test -f cluo_desktop/build/bin/cluo_desktop || (echo "ERROR: wails build did not produce binary"; exit 1)
 	@set -e; \
 	BINARY=cluo_desktop/build/bin/cluo_desktop; \
 	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
