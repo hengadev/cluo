@@ -1,11 +1,11 @@
 <script lang="ts">
     import { Dialog, Label, Separator, Collapsible } from "bits-ui";
     import { X, Loader2, ChevronDown, MapPin, SlidersHorizontal } from "@lucide/svelte";
-    import { createCase, fetchAllClients, fetchAllCaseTypes, fetchClientContacts, fetchAllCaseSubjects } from "$lib/services/api";
+    import { createCase, createClient, fetchAllClients, fetchAllCaseTypes, fetchClientContacts, fetchAllCaseSubjects, ConflictError } from "$lib/services/api";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
     import { goto } from "$app/navigation";
-    import type { CaseStatus, CaseType, CaseSubject, Client, Contact, LocationType } from "$lib/types/entities";
+    import type { CaseStatus, CaseType, CaseSubject, Client, ClientType, Contact, LocationType } from "$lib/types/entities";
 
     const toastState = getToastContext();
 
@@ -13,10 +13,20 @@
     let { children, open = $bindable(false) }: Props = $props();
     let loading = $state(false);
 
+    const CLIENT_TYPE_OPTIONS: { value: ClientType; label: string }[] = [
+        { value: "person", label: "Particulier" },
+        { value: "company", label: "Entreprise" },
+        { value: "lawyer", label: "Cabinet juridique" },
+        { value: "insurance", label: "Assurance" },
+        { value: "government", label: "Administration" },
+    ];
+
     // Form state
     let title = $state("");
     let description = $state("");
     let clientId = $state("");
+    let newClientName = $state("");
+    let newClientType = $state<ClientType>("company");
     let caseTypeId = $state("");
     let status: CaseStatus = $state("in_progress");
     let isHistorical = $state(false);
@@ -48,6 +58,8 @@
     let loadingRefData = $state(false);
     let refDataLoaded = $state(false);
     let loadingContacts = $state(false);
+
+    let isNewClient = $state(false);
 
     let additionalFilledCount = $derived(
         (assignedContactId ? 1 : 0) +
@@ -118,13 +130,31 @@
     }
 
     async function handleSubmit() {
-        if (!title.trim() || !clientId) return;
+        if (!title.trim()) return;
+        if (!isNewClient && !clientId) return;
+        if (isNewClient && !newClientName.trim()) return;
         loading = true;
         try {
+            let resolvedClientId = clientId;
+            if (isNewClient) {
+                try {
+                    const created = await createClient({ name: newClientName.trim(), type: newClientType });
+                    resolvedClientId = created.id;
+                    clients = [...clients, created];
+                } catch (e) {
+                    if (e instanceof ConflictError) {
+                        toastState.add(TOAST_LEVELS.Error, "Conflit", "Un client avec ce nom existe déjà.");
+                    } else {
+                        toastState.add(TOAST_LEVELS.Error, "Erreur", e instanceof Error ? e.message : "Impossible de créer le client.");
+                    }
+                    loading = false;
+                    return;
+                }
+            }
             const newCase = await createCase({
                 title: title.trim(),
                 description: description.trim(),
-                clientId,
+                clientId: resolvedClientId,
                 status,
                 caseTypeId: caseTypeId || undefined,
                 assignedContactID: assignedContactId || undefined,
@@ -164,6 +194,9 @@
         title = "";
         description = "";
         clientId = "";
+        isNewClient = false;
+        newClientName = "";
+        newClientType = "company";
         caseTypeId = "";
         status = "in_progress";
         isHistorical = false;
@@ -250,29 +283,66 @@
                         ></textarea>
                     </div>
 
-                    <!-- Client + Case type -->
-                    <div class="grid grid-cols-2 gap-4">
-                        <div class="flex flex-col gap-1.5">
+                    <!-- Client -->
+                    <div class="flex flex-col gap-1.5">
+                        <div class="flex items-center justify-between">
                             <Label.Root for="clientId" class="text-sm font-medium">
                                 Client <span class="text-foreground-alt font-normal">*</span>
                             </Label.Root>
-                            <select id="clientId" bind:value={clientId} required class={selectClass}>
+                            <label class="flex items-center gap-2 cursor-pointer">
+                                <div class="relative flex items-center">
+                                    <input
+                                        id="isNewClient"
+                                        type="checkbox"
+                                        bind:checked={isNewClient}
+                                        onchange={() => { clientId = ""; newClientName = ""; newClientType = "company"; assignedContactId = ""; clientContacts = []; }}
+                                        class="peer size-4 cursor-pointer appearance-none rounded border border-border-input bg-background checked:bg-dark checked:border-dark transition-colors"
+                                    />
+                                    <svg
+                                        class="pointer-events-none absolute inset-0 m-auto size-2.5 text-background opacity-0 peer-checked:opacity-100 transition-opacity"
+                                        viewBox="0 0 10 8" fill="none"
+                                    >
+                                        <path d="M1 4L3.5 6.5L9 1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+                                    </svg>
+                                </div>
+                                <span class="text-sm text-foreground-alt select-none">Nouveau client</span>
+                            </label>
+                        </div>
+
+                        {#if isNewClient}
+                            <div class="grid grid-cols-2 gap-4">
+                                <input
+                                    id="newClientName"
+                                    type="text"
+                                    bind:value={newClientName}
+                                    placeholder="Nom du client"
+                                    class={inputClass}
+                                />
+                                <select id="newClientType" bind:value={newClientType} class={selectClass}>
+                                    {#each CLIENT_TYPE_OPTIONS as opt}
+                                        <option value={opt.value}>{opt.label}</option>
+                                    {/each}
+                                </select>
+                            </div>
+                        {:else}
+                            <select id="clientId" bind:value={clientId} class={selectClass}>
                                 <option value="">Sélectionner un client</option>
                                 {#each clients as c}
                                     <option value={c.id}>{c.name}</option>
                                 {/each}
                             </select>
-                        </div>
+                        {/if}
+                    </div>
 
-                        <div class="flex flex-col gap-1.5">
-                            <Label.Root for="caseTypeId" class="text-sm font-medium text-foreground-alt">Type d'affaire</Label.Root>
-                            <select id="caseTypeId" bind:value={caseTypeId} class={selectClass}>
-                                <option value="">Aucun type</option>
-                                {#each caseTypes as ct}
-                                    <option value={ct.id}>{ct.name}</option>
-                                {/each}
-                            </select>
-                        </div>
+                    <!-- Case type -->
+                    <div class="flex flex-col gap-1.5">
+                        <Label.Root for="caseTypeId" class="text-sm font-medium text-foreground-alt">Type d'affaire</Label.Root>
+                        <select id="caseTypeId" bind:value={caseTypeId} class={selectClass}>
+                            <option value="">Aucun type</option>
+                            {#each caseTypes as ct}
+                                <option value={ct.id}>{ct.name}</option>
+                            {/each}
+                        </select>
                     </div>
 
                     <!-- Historical toggle -->
@@ -482,7 +552,7 @@
                     <div class="flex w-full justify-end pt-2">
                         <button
                             type="submit"
-                            disabled={loading || !title.trim() || !clientId}
+                            disabled={loading || !title.trim() || (!isNewClient && !clientId) || (isNewClient && !newClientName.trim())}
                             class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 inline-flex items-center justify-center gap-2 px-10 text-sm font-semibold active:scale-[0.98] disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition-interactive"
                         >
                             {#if loading}
