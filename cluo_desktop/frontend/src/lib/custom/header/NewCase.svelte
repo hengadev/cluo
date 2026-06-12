@@ -146,7 +146,7 @@
             toastState.add(
                 TOAST_LEVELS.Info,
                 "Dossier créé",
-                `"${newCase.title}" a été créé avec succès.`,
+                `« ${newCase.title} » a été créé avec succès.`,
             );
             goto(`/cases/${newCase.id}`);
         } catch (e) {

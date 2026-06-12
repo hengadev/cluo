@@ -173,7 +173,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Client supprimé",
-				`${client.name} a été supprimé.`,
+				`« ${client.name} » a été supprimé.`,
 			);
 			goto("/people");
 		} catch (e) {
@@ -224,7 +224,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Contact ajouté",
-				`${trimmedFirst} ${trimmedLast} a été ajouté.`,
+				`« ${trimmedFirst} ${trimmedLast} » a été ajouté.`,
 			);
 		} catch (e) {
 			toastState.add(

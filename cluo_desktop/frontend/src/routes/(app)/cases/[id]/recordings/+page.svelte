@@ -106,7 +106,7 @@
                     rec.loadingJob = false;
                     // Load the transcription
                     await loadTranscriptionStatus(rec);
-                    toastState.add(TOAST_LEVELS.Info, "Transcription terminée", `"${rec.media.fileName}" a été transcrit.`);
+                    toastState.add(TOAST_LEVELS.Info, "Transcription terminée", `« ${rec.media.fileName} » a été transcrit.`);
                 } else if (job.status === "failed" || job.status === "cancelled") {
                     clearInterval(interval);
                     rec.loadingJob = false;

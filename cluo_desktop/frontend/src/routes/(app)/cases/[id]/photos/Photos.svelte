@@ -184,7 +184,7 @@
                 toastState.add(
                     TOAST_LEVELS.Error,
                     "Erreur d'import",
-                    `Impossible d'importer ${file.name}.`,
+                    `Impossible d'importer « ${file.name} ».`,
                 );
             }
         }

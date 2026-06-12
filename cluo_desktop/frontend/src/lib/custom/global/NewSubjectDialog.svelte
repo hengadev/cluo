@@ -47,7 +47,7 @@
             toastState.add(
                 TOAST_LEVELS.Info,
                 "Personne ajoutée",
-                `${created.firstname} ${created.lastname} a été créée.`,
+                `« ${created.firstname} ${created.lastname} » a été créée.`,
             );
             onCreated?.(created);
         } catch (e) {

@@ -35,7 +35,7 @@
     function save() {
         const label = SAVE_LABELS[activeTab];
         if (label) {
-            toastState.add(TOAST_LEVELS.Info, "Paramètres enregistrés", `Les paramètres de ${label} ont été sauvegardés.`);
+            toastState.add(TOAST_LEVELS.Info, "Paramètres enregistrés", `Les paramètres de « ${label} » ont été sauvegardés.`);
         }
     }
 

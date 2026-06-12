@@ -77,7 +77,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Type mis à jour",
-				`"${updated.name}" a été renommé.`,
+				`« ${updated.name} » a été renommé.`,
 			);
 			cancelRename();
 		} catch (e) {
@@ -107,7 +107,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Type créé",
-				`"${created.name}" a été ajouté.`,
+				`« ${created.name} » a été ajouté.`,
 			);
 		} catch (e) {
 			toastState.add(
@@ -134,7 +134,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Type supprimé",
-				`"${name}" a été supprimé.`,
+				`« ${name} » a été supprimé.`,
 			);
 		} catch (e) {
 			toastState.add(

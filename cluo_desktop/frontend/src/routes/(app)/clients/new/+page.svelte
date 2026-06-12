@@ -40,7 +40,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Client créé",
-				`${trimmed} a été ajouté.`,
+				`« ${trimmed} » a été ajouté.`,
 			);
 			goto(`/clients/${client.id}`);
 		} catch (e) {

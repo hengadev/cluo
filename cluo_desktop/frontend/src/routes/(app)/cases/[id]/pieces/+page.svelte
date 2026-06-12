@@ -58,7 +58,7 @@
                 await uploadPiece(caseId, file, notesInput || undefined);
             } catch (err) {
                 hasError = true;
-                toastState.add(TOAST_LEVELS.Error, "Erreur", `Impossible d'ajouter ${file.name}.`);
+                toastState.add(TOAST_LEVELS.Error, "Erreur", `Impossible d'ajouter « ${file.name} ».`);
             }
         }
         uploading = false;
