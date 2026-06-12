@@ -1,20 +1,33 @@
 <script lang="ts">
     import { Dialog, Label, Separator } from "bits-ui";
     import { X, Loader2 } from "@lucide/svelte";
-    import { createClient } from "$lib/services/api";
+    import { createClient, updateClient, ConflictError } from "$lib/services/api";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-    import { goto } from "$app/navigation";
-    import type { ClientType } from "$lib/types/entities";
+    import type { Client, ClientType } from "$lib/types/entities";
 
     const toastState = getToastContext();
 
-    type Props = { children?: import("svelte").Snippet; open?: boolean };
-    let { children, open = $bindable(false) }: Props = $props();
+    type Props = {
+        children?: import("svelte").Snippet;
+        open?: boolean;
+        client?: Client;
+        onSaved?: (client: Client) => void;
+    };
+    let { children, open = $bindable(false), client, onSaved }: Props = $props();
 
-    let name = $state("");
-    let type = $state<ClientType>("company");
+    const isEdit = $derived(!!client);
+
+    let name = $state(client?.name ?? "");
+    let type = $state<ClientType>(client?.type ?? "company");
     let saving = $state(false);
+
+    $effect(() => {
+        if (open) {
+            name = client?.name ?? "";
+            type = client?.type ?? "company";
+        }
+    });
 
     const TYPE_OPTIONS: { value: ClientType; label: string }[] = [
         { value: "person", label: "Particulier" },
@@ -33,26 +46,26 @@
 
         saving = true;
         try {
-            const client = await createClient({ name: trimmed, type });
+            let saved: Client;
+            if (isEdit && client) {
+                saved = await updateClient(client.id, { name: trimmed, type });
+                toastState.add(TOAST_LEVELS.Info, "Client mis à jour", "Les modifications ont été enregistrées.");
+            } else {
+                saved = await createClient({ name: trimmed, type });
+                toastState.add(TOAST_LEVELS.Info, "Client créé", `« ${trimmed} » a été ajouté.`);
+            }
             open = false;
-            resetForm();
-            toastState.add(TOAST_LEVELS.Info, "Client créé", `${trimmed} a été ajouté.`);
-            goto(`/clients/${client.id}`);
+            onSaved?.(saved);
         } catch (e) {
-            const msg = e instanceof Error ? e.message : "Erreur lors de la création";
-            if (msg.includes("409")) {
+            if (e instanceof ConflictError) {
                 toastState.add(TOAST_LEVELS.Error, "Conflit", "Un client avec ce nom existe déjà.");
             } else {
+                const msg = e instanceof Error ? e.message : "Une erreur est survenue";
                 toastState.add(TOAST_LEVELS.Error, "Erreur", msg);
             }
         } finally {
             saving = false;
         }
-    }
-
-    function resetForm() {
-        name = "";
-        type = "company";
     }
 </script>
 
@@ -71,7 +84,7 @@
         >
             <div class="flex-shrink-0 px-8 pt-8 pb-6">
                 <Dialog.Title class="text-base font-semibold tracking-tight">
-                    Nouveau client
+                    {isEdit ? "Modifier le client" : "Nouveau client"}
                 </Dialog.Title>
                 <Dialog.Description class="text-foreground-alt text-sm mt-1">
                     Les champs marqués d'un <span class="text-foreground font-medium">*</span> sont obligatoires.
@@ -124,7 +137,7 @@
                             {#if saving}
                                 <Loader2 size={14} class="animate-spin" />
                             {/if}
-                            Créer le client
+                            {isEdit ? "Enregistrer" : "Créer le client"}
                         </button>
                     </div>
                 </form>

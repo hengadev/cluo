@@ -67,6 +67,14 @@
 	let clientSearchQuery = $state("");
 	let activeClientFilter = $state<ClientType | "all">("all");
 
+	let clientBeingEdited: Client | null = $state(null);
+	let editClientOpen = $state(false);
+
+	function startEditClient(c: Client) {
+		clientBeingEdited = c;
+		editClientOpen = true;
+	}
+
 	const CLIENT_TYPE_LABELS: Record<ClientType, string> = {
 		person: "Particulier",
 		insurance: "Assurance",
@@ -108,7 +116,7 @@
 		try {
 			await deleteClient(client.id);
 			clients = clients.filter((c) => c.id !== client.id);
-			toastState.add(TOAST_LEVELS.Info, "Client supprimé", `${client.name} a été supprimé.`);
+			toastState.add(TOAST_LEVELS.Info, "Client supprimé", `« ${client.name} » a été supprimé.`);
 		} catch (e) {
 			toastState.add(
 				TOAST_LEVELS.Error,
@@ -259,7 +267,7 @@
 			toastState.add(
 				TOAST_LEVELS.Info,
 				"Personne supprimée",
-				`${subject.firstname} ${subject.lastname} a été supprimée.`,
+				`« ${subject.firstname} ${subject.lastname} » a été supprimée.`,
 			);
 		} catch (e) {
 			toastState.add(
@@ -309,7 +317,7 @@
 	<div class="flex items-center justify-between">
 		<h1 class="text-3xl font-bold">Personnes</h1>
 		{#if activeTab === "clients"}
-			<NewClientDialog bind:open={newClientOpen}>
+			<NewClientDialog bind:open={newClientOpen} onSaved={(c) => { clients = [...clients, c]; }}>
 				<button
 					class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-5 text-[15px] font-semibold active:scale-[0.98] cursor-pointer transition-interactive duration-200"
 				>
@@ -403,20 +411,15 @@
 					</EmptyState>
 				{/if}
 			{:else}
-				<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+				<div class="grid grid-cols-2 lg:grid-cols-3 gap-4">
 					{#each filteredClients as client}
 						{@const Icon = CLIENT_TYPE_ICONS[client.type] || User}
 						{@const badge = clientTypeBadge(client.type)}
 						{@const label = CLIENT_TYPE_LABELS[client.type] || client.type}
-						<button
-							class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 cursor-pointer group text-left"
-							onclick={() => goto(`/clients/${client.id}`)}
-						>
+						<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 group">
 							<div class="flex items-start justify-between">
 								<div class="flex items-center gap-3 min-w-0">
-									<div
-										class="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center"
-									>
+									<div class="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
 										<Icon size={20} class="text-muted-foreground" />
 									</div>
 									<div class="min-w-0">
@@ -426,23 +429,26 @@
 										</span>
 									</div>
 								</div>
-								<div class="opacity-0 group-hover:opacity-100 transition-opacity">
+								<div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0">
+									<button
+										onclick={() => startEditClient(client)}
+										class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+										title="Modifier"
+									>
+										<Pencil size={13} />
+									</button>
 									<ConfirmDialog
 										title="Supprimer le client"
 										description="Voulez-vous vraiment supprimer {client.name} ? Cette action est irréversible."
 										onConfirm={() => handleDeleteClient(client)}
 									>
-										<button
-											class="p-1.5 rounded btn-ghost-destructive"
-											onclick={(e: MouseEvent) => e.stopPropagation()}
-											type="button"
-										>
-											✕
+										<button class="p-1.5 rounded btn-ghost-destructive cursor-pointer" title="Supprimer">
+											<Trash2 size={13} />
 										</button>
 									</ConfirmDialog>
 								</div>
 							</div>
-						</button>
+						</div>
 					{/each}
 				</div>
 			{/if}
@@ -682,3 +688,8 @@
 </div>
 
 <NewSubjectDialog bind:open={newSubjectOpen} onCreated={handleSubjectCreated} />
+<NewClientDialog
+	bind:open={editClientOpen}
+	client={clientBeingEdited ?? undefined}
+	onSaved={(updated) => { clients = clients.map((c) => (c.id === updated.id ? updated : c)); }}
+/>
