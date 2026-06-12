@@ -607,7 +607,7 @@
 											{subject.firstname} {subject.lastname}
 										</p>
 										{#if subject.occupation}
-											<p class="text-xs text-foreground-alt mt-0.5 leading-snug">{subject.occupation}</p>
+											<p class="text-xs text-foreground-alt mt-1.5 leading-snug">{subject.occupation}</p>
 										{/if}
 									</div>
 									<div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0 -mt-0.5">
@@ -635,7 +635,7 @@
 
 								<!-- Zone 2 · Contact details -->
 								{#if subject.email || subject.phone || subject.city}
-									<div class="mt-4 pt-3 border-t border-border-card flex flex-col gap-2">
+									<div class="mt-6 pt-4 border-t border-border-card flex flex-col gap-3">
 										{#if subject.email}
 											<span class="text-xs text-foreground-alt inline-flex items-center gap-2 min-w-0">
 												<Mail size={12} class="flex-shrink-0 opacity-50" />
@@ -661,8 +661,7 @@
 									<button
 										type="button"
 										onclick={() => goto(`/cases/${linkedCase.id}`)}
-										class="w-full flex items-center gap-2 px-3 py-2.5 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left border-t border-border-card"
-											style="margin-top: 1.5rem; padding-top: 1rem;"
+										class="w-full flex items-center gap-2 px-3 pt-4 pb-2.5 rounded-input bg-muted hover:bg-surface text-xs transition-interactive duration-150 cursor-pointer text-left mt-6 border-t border-border-card"
 									>
 										<span class="text-foreground-alt font-medium flex-shrink-0">Affaire</span>
 										<span class="truncate text-foreground font-medium flex-1">{linkedCase.title}</span>
