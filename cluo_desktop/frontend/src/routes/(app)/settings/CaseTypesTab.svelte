@@ -149,70 +149,71 @@
 	}
 </script>
 
-<div class="max-w-2xl">
-	<p class="text-sm text-muted-foreground mb-4">
-		Gérer les catégories de dossiers disponibles lors de la création et l'édition d'affaires.
-	</p>
-
+<div>
 	{#if loading}
-		<div class="flex items-center justify-center py-12">
-			<p class="text-muted-foreground">Chargement...</p>
+		<div class="flex items-center gap-4 py-16">
+			<div class="h-px flex-1 bg-border-card"></div>
+			<span class="text-[10px] font-mono uppercase tracking-[0.2em] text-muted-foreground">Chargement</span>
+			<div class="h-px flex-1 bg-border-card"></div>
 		</div>
 	{:else if error}
-		<div class="alert-error">
-			{error}
-		</div>
+		<div class="alert-error">{error}</div>
 	{:else}
-		<div class="border border-border-card rounded-card overflow-hidden animate-fade-in">
-			{#each caseTypes as ct, index}
+		<div class="grid grid-cols-2 md:grid-cols-3 gap-3">
+			{#each caseTypes as ct, i (ct.id)}
 				<div
-					class="flex items-center gap-3 px-5 py-3 hover:bg-muted/50 transition-colors {index > 0
-						? 'border-t border-border'
-						: ''}"
+					class="group relative border border-border-card rounded-card-lg overflow-hidden bg-background hover:bg-foreground hover:border-foreground transition-all duration-300 cursor-default opacity-0 animate-fade-in"
+					style="animation-delay: {i * 55}ms; animation-fill-mode: forwards;"
 				>
 					{#if editingId === ct.id}
-						<div class="flex items-center gap-2 flex-1">
+						<div class="p-5 flex flex-col gap-2 min-h-[130px]">
+							<span class="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Renommer</span>
 							<input
 								type="text"
 								bind:value={editingName}
 								onkeydown={handleRenameKeydown}
 								disabled={savingRename}
-								class="h-9 flex-1 rounded-input border-border-input bg-background px-3 text-sm focus:ring-foreground focus:ring-offset-background focus:outline-hidden focus:ring-2 focus:ring-offset-2"
+								class="font-display text-base font-semibold bg-transparent border-b border-foreground/20 focus:border-foreground pb-1 text-foreground outline-none w-full mt-1"
 								autofocus
 							/>
-							<button
-								type="button"
-								onclick={saveRename}
-								disabled={savingRename || !editingName.trim()}
-								class="p-1.5 rounded hover:bg-success/10 text-muted-foreground hover:text-success transition-colors cursor-pointer disabled:opacity-50"
-							>
-								{#if savingRename}
-									<Loader2 size={16} class="animate-spin" />
-								{:else}
-									<Check size={16} />
-								{/if}
-							</button>
-							<button
-								type="button"
-								onclick={cancelRename}
-								disabled={savingRename}
-								class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
-							>
-								<X size={16} />
-							</button>
+							<div class="flex gap-1 mt-auto pt-2">
+								<button
+									type="button"
+									onclick={saveRename}
+									disabled={savingRename || !editingName.trim()}
+									class="p-1.5 rounded hover:bg-success/10 text-muted-foreground hover:text-success transition-colors cursor-pointer disabled:opacity-40"
+								>
+									{#if savingRename}
+										<Loader2 size={14} class="animate-spin" />
+									{:else}
+										<Check size={14} />
+									{/if}
+								</button>
+								<button
+									type="button"
+									onclick={cancelRename}
+									disabled={savingRename}
+									class="p-1.5 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors cursor-pointer"
+								>
+									<X size={14} />
+								</button>
+							</div>
 						</div>
 					{:else}
-						<span class="flex-1 text-sm text-foreground">{ct.name}</span>
-						<div class="flex items-center gap-1">
+						<div class="p-5 min-h-[130px] flex flex-col justify-end select-none">
+							<p class="font-display font-semibold text-foreground group-hover:text-background transition-colors duration-300 leading-snug">
+								{ct.name}
+							</p>
+						</div>
+						<div class="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
 							<button
 								type="button"
 								onclick={() => startRename(ct)}
-								class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+								class="p-1.5 rounded-md hover:bg-background/15 text-background/50 hover:text-background transition-colors cursor-pointer"
 								title="Renommer"
 							>
-								<Pencil size={14} />
+								<Pencil size={13} />
 							</button>
-
 							<ConfirmDialog
 								title="Supprimer le type"
 								description="Voulez-vous vraiment supprimer « {ct.name} » ? Les dossiers utilisant ce type ne seront pas affectés."
@@ -221,10 +222,10 @@
 								<button
 									type="button"
 									onclick={() => (deletingId = ct.id)}
-									class="p-1.5 rounded btn-ghost-destructive cursor-pointer"
+									class="p-1.5 rounded-md hover:bg-background/10 text-background/50 hover:text-destructive transition-colors cursor-pointer"
 									title="Supprimer"
 								>
-									<Trash2 size={14} />
+									<Trash2 size={13} />
 								</button>
 							</ConfirmDialog>
 						</div>
@@ -232,36 +233,43 @@
 				</div>
 			{/each}
 
-			{#if caseTypes.length === 0}
-				<div class="px-5 py-8 text-center">
-					<p class="text-sm text-muted-foreground">
-						Aucun type d'affaire enregistré. Ajoutez-en un ci-dessous.
-					</p>
+			<!-- New type card — always last in grid -->
+			<div
+				class="border-2 border-dashed border-border-card rounded-card-lg p-5 flex flex-col gap-2 hover:border-foreground/20 transition-colors duration-200 opacity-0 animate-fade-in min-h-[130px]"
+				style="animation-delay: {caseTypes.length * 55}ms; animation-fill-mode: forwards;"
+			>
+				<div class="flex items-center gap-1.5">
+					<Plus size={12} class="text-muted-foreground" />
+					<span class="text-[10px] font-mono uppercase tracking-[0.18em] text-muted-foreground">Nouveau type</span>
 				</div>
-			{/if}
-
-			<div class="flex items-center gap-3 px-5 py-3 border-t border-border bg-muted/30">
-				<Plus size={16} class="text-muted-foreground flex-shrink-0" />
 				<input
 					type="text"
-					placeholder="Nouveau type d'affaire..."
+					placeholder="Nom..."
 					bind:value={newName}
 					onkeydown={handleCreateKeydown}
 					disabled={creating}
-					class="h-9 flex-1 rounded-input border-transparent bg-transparent px-2 text-sm placeholder:text-muted-foreground focus:border-border-input focus:bg-background focus:ring-foreground focus:ring-offset-background focus:outline-none focus:ring-2 focus:ring-offset-2 transition-colors"
+					class="font-display font-semibold text-sm bg-transparent border-b border-transparent focus:border-foreground/25 pb-1 text-foreground placeholder:text-muted-foreground/30 outline-none flex-1 w-full transition-colors"
 				/>
 				<button
 					type="button"
 					onclick={handleCreate}
 					disabled={creating || !newName.trim()}
-					class="h-9 px-4 rounded-input bg-foreground text-background text-sm font-semibold hover:opacity-90 active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive inline-flex items-center gap-2"
+					class="mt-auto self-start h-8 px-3.5 rounded-input bg-foreground text-background text-xs font-semibold hover:opacity-90 active:scale-[0.97] cursor-pointer disabled:opacity-40 transition-interactive inline-flex items-center gap-1.5"
 				>
 					{#if creating}
-						<Loader2 size={14} class="animate-spin" />
+						<Loader2 size={12} class="animate-spin" />
+					{:else}
+						<Plus size={12} />
 					{/if}
-					Ajouter
+					Créer
 				</button>
 			</div>
 		</div>
+
+		{#if caseTypes.length === 0}
+			<p class="text-sm text-muted-foreground/50 mt-4 text-center">
+				Commencez par créer votre premier type d'affaire.
+			</p>
+		{/if}
 	{/if}
 </div>
