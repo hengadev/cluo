@@ -834,12 +834,12 @@
 				</div>
 			{:else if subject}
 				<!-- Display mode: existing subject -->
-				<div class="border border-border rounded-lg p-4 bg-muted/30 max-w-2xl">
+				<div class="border border-border rounded-lg p-5 bg-muted/30 max-w-2xl flex flex-col gap-5">
 					<div class="flex items-start gap-4">
 						<div class="w-10 h-10 rounded-full bg-accent text-accent-foreground flex items-center justify-center flex-shrink-0">
 							<User size={20} />
 						</div>
-						<div class="flex-1">
+						<div class="flex-1 flex flex-col gap-1">
 							<p class="text-sm font-semibold text-foreground">
 								{subject.firstname} {subject.lastname}
 							</p>
@@ -848,22 +848,24 @@
 							{/if}
 						</div>
 					</div>
-					<div class="grid grid-cols-2 gap-x-8 gap-y-2 mt-4">
-						{#if subject.email}
-							<div>
-								<p class="text-xs text-muted-foreground">Email</p>
-								<p class="text-sm text-foreground">{subject.email}</p>
-							</div>
-						{/if}
-						{#if subject.phone}
-							<div>
-								<p class="text-xs text-muted-foreground">Téléphone</p>
-								<p class="text-sm text-foreground">{subject.phone}</p>
-							</div>
-						{/if}
-					</div>
+					{#if subject.email || subject.phone}
+						<div class="grid grid-cols-2 gap-x-8 gap-y-4">
+							{#if subject.email}
+								<div class="flex flex-col gap-1">
+									<p class="text-xs text-muted-foreground">Email</p>
+									<p class="text-sm text-foreground">{subject.email}</p>
+								</div>
+							{/if}
+							{#if subject.phone}
+								<div class="flex flex-col gap-1">
+									<p class="text-xs text-muted-foreground">Téléphone</p>
+									<p class="text-sm text-foreground">{subject.phone}</p>
+								</div>
+							{/if}
+						</div>
+					{/if}
 					{#if subject.address1 || subject.city}
-						<div class="mt-3">
+						<div class="flex flex-col gap-1">
 							<p class="text-xs text-muted-foreground">Adresse</p>
 							<p class="text-sm text-foreground">
 								{subject.address1}{#if subject.address2}<br />{subject.address2}{/if}
@@ -876,7 +878,7 @@
 						</div>
 					{/if}
 					{#if subject.notes}
-						<div class="mt-3">
+						<div class="flex flex-col gap-1">
 							<p class="text-xs text-muted-foreground">Notes</p>
 							<p class="text-sm text-muted-foreground italic">{subject.notes}</p>
 						</div>
