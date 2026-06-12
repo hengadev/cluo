@@ -30,7 +30,12 @@ export async function apiFetch(
 		},
 	};
 
-	let response = await fetch(url, options);
+	let response: Response;
+	try {
+		response = await fetch(url, options);
+	} catch {
+		throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+	}
 
 	// If we get a 401 and we're not already refreshing, try to refresh
 	if (response.status === 401 && !init.skipRefresh) {
@@ -45,9 +50,13 @@ export async function apiFetch(
 
 		if (refreshed) {
 			// Retry the original request with new credentials
-			response = await fetch(url, options);
+			try {
+				response = await fetch(url, options);
+			} catch {
+				throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+			}
 		} else {
-			throw new Error('Session expired. Please log in again.');
+			throw new Error('Session expirée. Veuillez vous reconnecter.');
 		}
 	}
 
