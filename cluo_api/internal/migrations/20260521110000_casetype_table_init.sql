@@ -7,14 +7,6 @@ CREATE TABLE IF NOT EXISTS cases.case_types (
     CONSTRAINT uq_case_types_name UNIQUE (name)
 );
 
--- Seed common investigation types
-INSERT INTO cases.case_types (id, name, created_at, updated_at) VALUES
-    (gen_random_uuid(), 'surveillance', NOW(), NOW()),
-    (gen_random_uuid(), 'insurance fraud', NOW(), NOW()),
-    (gen_random_uuid(), 'arson investigation', NOW(), NOW()),
-    (gen_random_uuid(), 'background check', NOW(), NOW()),
-    (gen_random_uuid(), 'missing person', NOW(), NOW());
-
 -- Add new FK column (nullable)
 ALTER TABLE cases.cases ADD COLUMN case_type_id UUID NULL
     REFERENCES cases.case_types(id) ON DELETE RESTRICT;
