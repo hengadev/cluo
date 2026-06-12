@@ -15,9 +15,29 @@
         Check,
     } from "@lucide/svelte";
     import { updateDialogOpen } from "$lib/stores/update";
+    import { getToastContext } from "$lib/custom/global/toast/state.svelte";
+    import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 
     type Props = { children: import("svelte").Snippet };
     let { children }: Props = $props();
+
+    const toastState = getToastContext();
+
+    const SAVE_LABELS: Record<string, string> = {
+        agence: "l'agence",
+        apparence: "l'apparence",
+        ia: "l'intelligence artificielle",
+        messagerie: "la messagerie",
+        documents: "les documents",
+        confidentialite: "la confidentialité",
+    };
+
+    function save() {
+        const label = SAVE_LABELS[activeTab];
+        if (label) {
+            toastState.add(TOAST_LEVELS.Info, "Paramètres enregistrés", `Les paramètres de ${label} ont été sauvegardés.`);
+        }
+    }
 
     let open = $state(false);
     let activeTab = $state("agence");
@@ -410,6 +430,18 @@
                     {/if}
 
                 </div>
+
+                {#if activeTab !== "application"}
+                    <div class="flex-shrink-0 border-t border-border-input px-8 py-4 flex justify-end">
+                        <button
+                            type="button"
+                            onclick={save}
+                            class="h-input rounded-input bg-dark text-background shadow-mini hover:bg-dark/90 focus-visible:ring-dark focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-5 text-sm font-semibold focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] cursor-pointer transition-interactive"
+                        >
+                            Enregistrer
+                        </button>
+                    </div>
+                {/if}
             </div>
 
             <Dialog.Close
