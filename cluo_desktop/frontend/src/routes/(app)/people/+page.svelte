@@ -32,6 +32,7 @@
 		updateCaseSubject,
 		deleteCaseSubject,
 		fetchAllCases,
+		fetchClientContacts,
 	} from "$lib/services/api";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
@@ -63,6 +64,7 @@
 	// =========================================================================
 
 	let clients: Client[] = $state([]);
+	let contactCounts: Record<string, number> = $state({});
 	let newClientOpen = $state(false);
 	let clientSearchQuery = $state("");
 	let activeClientFilter = $state<ClientType | "all">("all");
@@ -309,6 +311,20 @@
 		} finally {
 			loading = false;
 		}
+
+		// Fire contact count fetches after the client list is already rendered
+		Promise.all(
+			clients.map(async (c) => {
+				try {
+					const contacts = await fetchClientContacts(c.id);
+					return [c.id, contacts.length] as const;
+				} catch {
+					return [c.id, 0] as const;
+				}
+			}),
+		).then((entries) => {
+			contactCounts = Object.fromEntries(entries);
+		});
 	});
 </script>
 
@@ -416,7 +432,9 @@
 						{@const Icon = CLIENT_TYPE_ICONS[client.type] || User}
 						{@const badge = clientTypeBadge(client.type)}
 						{@const label = CLIENT_TYPE_LABELS[client.type] || client.type}
-						<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 group">
+						<div class="border border-border-card rounded-card p-4 bg-background hover:shadow-card transition-interactive duration-300 group cursor-pointer"
+							onclick={() => goto(`/clients/${client.id}`)}
+						>
 							<div class="flex items-start justify-between">
 								<div class="flex items-center gap-3 min-w-0">
 									<div class="flex-shrink-0 w-10 h-10 rounded-full bg-muted flex items-center justify-center">
@@ -424,14 +442,21 @@
 									</div>
 									<div class="min-w-0">
 										<h3 class="font-semibold text-foreground truncate">{client.name}</h3>
-										<span class="inline-block mt-1 px-2 py-0.5 text-xs rounded-full {badge}">
-											{label}
-										</span>
+										<div class="flex items-center gap-2 mt-1">
+											<span class="inline-block px-2 py-0.5 text-xs rounded-full {badge}">
+												{label}
+											</span>
+											{#if contactCounts[client.id]}
+												<span class="inline-block px-2 py-0.5 text-xs rounded-full bg-muted text-muted-foreground">
+													{contactCounts[client.id]} {contactCounts[client.id] === 1 ? 'interlocuteur' : 'interlocuteurs'}
+												</span>
+											{/if}
+										</div>
 									</div>
 								</div>
 								<div class="flex gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-150 flex-shrink-0">
 									<button
-										onclick={() => startEditClient(client)}
+										onclick={(e) => { e.stopPropagation(); startEditClient(client); }}
 										class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
 										title="Modifier"
 									>
@@ -442,7 +467,7 @@
 										description="Voulez-vous vraiment supprimer {client.name} ? Cette action est irréversible."
 										onConfirm={() => handleDeleteClient(client)}
 									>
-										<button class="p-1.5 rounded btn-ghost-destructive cursor-pointer" title="Supprimer">
+										<button onclick={(e) => e.stopPropagation()} class="p-1.5 rounded btn-ghost-destructive cursor-pointer" title="Supprimer">
 											<Trash2 size={13} />
 										</button>
 									</ConfirmDialog>
