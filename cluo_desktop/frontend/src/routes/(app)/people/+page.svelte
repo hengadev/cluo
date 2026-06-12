@@ -350,6 +350,8 @@
 				<Plus size={18} />
 				Nouvelle personne
 			</button>
+		{:else}
+			<div class="h-input"></div>
 		{/if}
 	</div>
 
