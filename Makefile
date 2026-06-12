@@ -90,7 +90,7 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 	printf '{\n  "version": "%s",\n  "release_notes": "%s",\n  "downloads": {\n    "windows_amd64": "%s"\n  },\n  "checksums": {\n    "windows_amd64": "%s"\n  }\n}\n' \
 		"$(VERSION)" "$(RELEASE_NOTES)" "$$DOWNLOAD_URL" "$$CHECKSUM" \
 		> /tmp/cluo_desktop_manifest.json; \
-	$(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE); \
+	($(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE)); \
 	if [ "$(DRY_RUN)" = "1" ]; then \
 		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_windows_amd64.exe"; \
 		echo "[DRY RUN] Step 5/5: Skipping manifest upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json"; \
@@ -141,7 +141,7 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 		--arg url "$$DOWNLOAD_URL" --arg cs "$$CHECKSUM" \
 		'.version = $$ver | .release_notes = $$notes | .downloads.linux_amd64 = $$url | .checksums.linux_amd64 = $$cs | del(.signature)' \
 		/tmp/cluo_current_manifest.json > /tmp/cluo_desktop_manifest.json; \
-	$(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE); \
+	($(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE)); \
 	if [ "$(DRY_RUN)" = "1" ]; then \
 		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_linux_amd64"; \
 		echo "[DRY RUN] Step 5/5: Skipping manifest upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json"; \
