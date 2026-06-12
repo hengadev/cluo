@@ -106,7 +106,7 @@
 		</button>
 	</div>
 
-	<Tabs.Root value="cases">
+	<Tabs.Root value="cases" class="flex flex-col flex-1">
 		<div class="overflow-x-auto w-full border-b border-border">
 			<Tabs.List
 				class="inline-flex items-center gap-0 text-sm font-medium bg-transparent p-0 h-auto rounded-none"
@@ -127,7 +127,7 @@
 		</div>
 
 		<!-- Cases tab -->
-		<Tabs.Content value="cases" class="pt-6">
+		<Tabs.Content value="cases" class="pt-6 flex flex-col flex-1">
 			{#if loading}
 				<div class="flex flex-1 items-center justify-center py-16">
 					<Spinner size="lg" />
