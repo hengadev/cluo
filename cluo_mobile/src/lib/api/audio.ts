@@ -19,6 +19,7 @@ import type {
 	RecordingStatus,
 } from "../types/recording";
 import type { Case, CaseStatus } from "../types/case";
+import { apiFetch, fetchWithRetry } from "./apiFetch";
 
 const API_URL = import.meta.env.VITE_API_URL ?? "";
 
@@ -71,21 +72,6 @@ function clearChain(mediaId: string): void {
 // HTTP helper
 // ---------------------------------------------------------------------------
 
-async function apiFetch<T>(path: string, options?: RequestInit): Promise<T> {
-	const response = await fetch(`${API_URL}${path}`, {
-		credentials: "include",
-		headers: {
-			"Content-Type": "application/json",
-			...options?.headers,
-		},
-		...options,
-	});
-	if (!response.ok) {
-		const errorText = await response.text().catch(() => "Unknown error");
-		throw new Error(`API error (${response.status}): ${errorText}`);
-	}
-	return response.json() as Promise<T>;
-}
 
 // ---------------------------------------------------------------------------
 // Backend response types (Go handler shapes)
@@ -236,7 +222,7 @@ export async function uploadRecording(
 		uploadForm.append("caption", metadata.title);
 	}
 
-	const uploadRes = await fetch(`${API_URL}/media`, {
+	const uploadRes = await fetchWithRetry(`${API_URL}/media`, {
 		method: "POST",
 		credentials: "include",
 		body: uploadForm,
@@ -257,7 +243,7 @@ export async function uploadRecording(
 	jobForm.append("file", blob, "recording.webm");
 	jobForm.append("mediaFileId", media.id);
 
-	const jobRes = await fetch(`${API_URL}/ai/speech/jobs`, {
+	const jobRes = await fetchWithRetry(`${API_URL}/ai/speech/jobs`, {
 		method: "POST",
 		credentials: "include",
 		body: jobForm,

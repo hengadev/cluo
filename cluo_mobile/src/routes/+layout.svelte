@@ -10,8 +10,7 @@
     import Snackbar from "$lib/components/Snackbar.svelte";
     import { auth } from "$lib/stores/auth";
     import { currentCase } from "$lib/stores/current-case";
-
-    const API_URL = import.meta.env.VITE_API_URL ?? "";
+    import { apiFetchRaw } from "$lib/api/apiFetch";
     const MOCK_MODE = import.meta.env.VITE_MOCK_MODE === "true";
     const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as
         | string
@@ -43,9 +42,7 @@
         if (page.url.pathname.startsWith("/auth")) return;
 
         try {
-            const res = await fetch(`${API_URL}/auth/me`, {
-                credentials: "include",
-            });
+            const res = await apiFetchRaw("/auth/me");
             if (res.ok) {
                 const user = (await res.json()) as {
                     id: string;

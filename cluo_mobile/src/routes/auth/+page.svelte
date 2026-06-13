@@ -3,9 +3,9 @@
     import { goto } from '$app/navigation';
     import { auth } from '$lib/stores/auth';
     import { Button, Input } from "$lib/components/ui";
+    import { apiFetchRaw } from '$lib/api/apiFetch';
 
     const MOCK_USER_ROLE = import.meta.env.VITE_MOCK_USER_ROLE as string | undefined;
-    const API_URL = import.meta.env.VITE_API_URL ?? '';
 
     let loginError = $state<string | null>(null);
     let isLoading = $state(false);
@@ -28,11 +28,8 @@
         const password = (data.get('password') as string) ?? '';
 
         try {
-            // Authenticate and get session cookies
-            const loginRes = await fetch(`${API_URL}/auth/login`, {
+            const loginRes = await apiFetchRaw('/auth/login', {
                 method: 'POST',
-                credentials: 'include',
-                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
 
@@ -41,8 +38,7 @@
                 throw new Error(text);
             }
 
-            // Fetch user identity with the newly issued session cookie
-            const meRes = await fetch(`${API_URL}/auth/me`, { credentials: 'include' });
+            const meRes = await apiFetchRaw('/auth/me');
             if (!meRes.ok) throw new Error('Failed to fetch user profile');
 
             const user = await meRes.json() as { id: string; email: string; role: string };
