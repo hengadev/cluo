@@ -6,9 +6,6 @@ RUN npm install -g pnpm@9
 COPY package.json pnpm-lock.yaml .npmrc* ./
 
 FROM base AS build
-ARG PUBLIC_APP_ENV
-ENV PUBLIC_APP_ENV=$PUBLIC_APP_ENV
-
 RUN --mount=type=cache,id=pnpm-mobile,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .

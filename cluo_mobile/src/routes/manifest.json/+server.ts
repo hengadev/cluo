@@ -1,4 +1,6 @@
-import { PUBLIC_APP_ENV } from '$env/static/public';
+import { env } from '$env/dynamic/public';
+
+const { PUBLIC_APP_ENV } = env;
 import { json } from '@sveltejs/kit';
 
 const isStaging = PUBLIC_APP_ENV === 'staging';
