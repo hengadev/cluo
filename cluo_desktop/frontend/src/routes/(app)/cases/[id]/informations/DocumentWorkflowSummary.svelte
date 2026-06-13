@@ -403,7 +403,7 @@
 <div class="animate-fade-in flex flex-col gap-4" style="animation-delay: 500ms;">
 	<div class="flex items-center justify-between">
 		<h3 class="text-lg font-semibold text-foreground">Workflow des documents</h3>
-		{#if !loading && !error}
+		{#if !loading}
 			<button
 				type="button"
 				onclick={loadWorkflow}

@@ -48,6 +48,18 @@ func PreflightMiddleware(next http.Handler) http.Handler {
 	})
 }
 
+// GlobalCORSMiddleware adds CORS headers to every response, including 404s
+// from unregistered routes. Apply it between PreflightMiddleware and the mux
+// so that routes which aren't registered (because an optional service is
+// disabled) still return a readable response instead of being CORS-blocked.
+func GlobalCORSMiddleware(next http.Handler) http.Handler {
+	origins := allowedOrigins()
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		setCORSHeaders(w, r, origins)
+		next.ServeHTTP(w, r)
+	})
+}
+
 func setCORSHeaders(w http.ResponseWriter, r *http.Request, origins map[string]struct{}) {
 	origin := r.Header.Get("Origin")
 	if _, ok := origins[origin]; ok {

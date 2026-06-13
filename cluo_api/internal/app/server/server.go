@@ -62,7 +62,7 @@ func (s *Server) Start(ctx context.Context) error {
 	// Create HTTP server
 	s.httpServer = &http.Server{
 		Addr:         s.config.Server.Addr(),
-		Handler:      mw.PreflightMiddleware(mw.AttachLogger(s.config.Environment, s.logger)(mux)),
+		Handler:      mw.PreflightMiddleware(mw.GlobalCORSMiddleware(mw.AttachLogger(s.config.Environment, s.logger)(mux))),
 		ReadTimeout:  s.config.Server.ReadTimeout,
 		WriteTimeout: s.config.Server.WriteTimeout,
 		IdleTimeout:  s.config.Server.IdleTimeout,
