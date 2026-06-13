@@ -1,3 +1,5 @@
+import { goto } from '$app/navigation';
+import { browser } from '$app/environment';
 import { API_BASE_URL } from '../config';
 
 let isRefreshing = false;
@@ -64,6 +66,9 @@ export async function apiFetch(
 				}
 			}
 		} else {
+			if (browser) {
+				goto('/login');
+			}
 			throw new Error('Session expirée. Veuillez vous reconnecter.');
 		}
 	}
@@ -71,19 +76,19 @@ export async function apiFetch(
 	return response;
 }
 
-/**
- * Attempt to refresh the access token using the refresh token cookie.
- */
 async function attemptRefresh(): Promise<boolean> {
+	const opts: RequestInit = { method: 'POST', credentials: 'include' };
 	try {
-		const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-			method: 'POST',
-			credentials: 'include',
-		});
-
+		const response = await fetch(`${API_BASE_URL}/auth/refresh`, opts);
 		return response.ok;
 	} catch {
-		return false;
+		// WebKitGTK stale-connection — retry once on a fresh connection
+		try {
+			const response = await fetch(`${API_BASE_URL}/auth/refresh`, opts);
+			return response.ok;
+		} catch {
+			return false;
+		}
 	}
 }
 
