@@ -34,7 +34,12 @@ export async function apiFetch(
 	try {
 		response = await fetch(url, options);
 	} catch {
-		throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+		// WebKitGTK may fail on stale connections after idle — retry once on a fresh connection
+		try {
+			response = await fetch(url, options);
+		} catch {
+			throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+		}
 	}
 
 	// If we get a 401 and we're not already refreshing, try to refresh
@@ -49,11 +54,14 @@ export async function apiFetch(
 		refreshPromise = null;
 
 		if (refreshed) {
-			// Retry the original request with new credentials
 			try {
 				response = await fetch(url, options);
 			} catch {
-				throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+				try {
+					response = await fetch(url, options);
+				} catch {
+					throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
+				}
 			}
 		} else {
 			throw new Error('Session expirée. Veuillez vous reconnecter.');
