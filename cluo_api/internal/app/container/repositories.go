@@ -13,8 +13,7 @@ import (
 	rapportRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/rapport"
 	tokenRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/token"
 	userRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/user"
-	// NOTE: documentRepository is excluded due to existing compilation errors
-	// documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
+	documentRepository "github.com/hengadev/cluo_api/internal/infrastructure/postgres/document"
 )
 
 func (c *Container) initRepositories(ctx context.Context) error {
@@ -36,11 +35,11 @@ func (c *Container) initRepositories(ctx context.Context) error {
 	c.clientRepo = clientRepository.New(ctx, c.dbPool)
 	c.logger.InfoContext(ctx, "Client repository initialized")
 
-	// NOTE: Document repositories are commented out due to existing compilation errors
-	// c.documentRepo = documentRepository.New(c.dbPool)
-	// c.logger.InfoContext(ctx, "Document repository initialized")
-	// c.documentVersionRepo = documentRepository.NewVersionRepository(c.dbPool)
-	// c.logger.InfoContext(ctx, "Document version repository initialized")
+	// Initialize document repositories
+	c.documentRepo = documentRepository.New(c.dbPool)
+	c.logger.InfoContext(ctx, "Document repository initialized")
+	c.documentVersionRepo = documentRepository.NewVersionRepository(c.dbPool)
+	c.logger.InfoContext(ctx, "Document version repository initialized")
 
 	// Initialize media repository
 	c.mediaRepo = mediaRepository.New(ctx, c.dbPool)
