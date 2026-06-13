@@ -294,10 +294,24 @@ func (c *Container) initStorage(ctx context.Context) error {
 		return fmt.Errorf("load AWS config: %w", err)
 	}
 
-	// Create S3 client
-	s3Client := s3.NewFromConfig(awsCfg)
+	// Path-style addressing + custom endpoint are required for MinIO.
+	var clientOpts []func(*s3.Options)
+	if cfg.Endpoint != "" {
+		clientOpts = append(clientOpts, func(o *s3.Options) {
+			o.BaseEndpoint = aws.String(cfg.Endpoint)
+			o.UsePathStyle = true
+		})
+	}
+	s3Client := s3.NewFromConfig(awsCfg, clientOpts...)
 
-	// Create storage service
+	// Auto-create the bucket if it doesn't exist (idempotent on MinIO and AWS).
+	if _, headErr := s3Client.HeadBucket(ctx, &s3.HeadBucketInput{Bucket: aws.String(cfg.BucketName)}); headErr != nil {
+		if _, createErr := s3Client.CreateBucket(ctx, &s3.CreateBucketInput{Bucket: aws.String(cfg.BucketName)}); createErr != nil {
+			return fmt.Errorf("bucket %q not found and could not be created: %w", cfg.BucketName, createErr)
+		}
+		c.logger.InfoContext(ctx, "S3 bucket created", "bucket", cfg.BucketName)
+	}
+
 	c.storage = s3Storage.New(s3Storage.Config{
 		Client:     s3Client,
 		BucketName: cfg.BucketName,
@@ -308,6 +322,7 @@ func (c *Container) initStorage(ctx context.Context) error {
 	c.logger.InfoContext(ctx, "S3 storage initialized",
 		"bucket", cfg.BucketName,
 		"region", cfg.Region,
+		"endpoint", cfg.Endpoint,
 	)
 
 	return nil

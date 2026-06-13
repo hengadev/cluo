@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
+	"github.com/aws/aws-sdk-go-v2/service/s3/types"
 	"github.com/google/uuid"
 	"github.com/hengadev/cluo_api/internal/ports"
 )
@@ -50,16 +51,13 @@ func (s *S3Storage) UploadFile(ctx context.Context, file io.Reader, fileName str
 	// Generate unique key for the file
 	key := s.generateFileKey(fileName)
 
-	// Upload to S3
 	_, err := s.client.PutObject(ctx, &s3.PutObjectInput{
-		Bucket:        aws.String(s.bucketName),
-		Key:           aws.String(key),
-		Body:          file,
-		ContentType:   aws.String(contentType),
-		ContentLength: aws.Int64(fileSize),
-		// Optional: Set ACL to public-read if you want files to be publicly accessible
-		// ACL: types.ObjectCannedACLPublicRead,
-		// Or keep private and use presigned URLs
+		Bucket:               aws.String(s.bucketName),
+		Key:                  aws.String(key),
+		Body:                 file,
+		ContentType:          aws.String(contentType),
+		ContentLength:        aws.Int64(fileSize),
+		ServerSideEncryption: types.ServerSideEncryptionAes256,
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to upload file to S3: %w", err)
