@@ -9,6 +9,7 @@ FROM base AS build
 RUN --mount=type=cache,id=pnpm-mobile,target=/pnpm/store pnpm install --frozen-lockfile
 
 COPY . .
+ARG PUBLIC_APP_ENV
 RUN pnpm run build
 
 FROM node:20.11.1-alpine AS runtime

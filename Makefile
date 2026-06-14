@@ -199,7 +199,7 @@ install-desktop-linux: ## Install cluo_desktop for current user (binary + icon +
 build-staging: ## Build all images tagged :staging
 	docker build -t $(API_IMAGE):staging    ./cluo_api
 	docker build -t $(WEB_IMAGE):staging    ./cluo_web
-	docker build -t $(MOBILE_IMAGE):staging ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=staging -t $(MOBILE_IMAGE):staging ./cluo_mobile
 
 build-staging-api: ## Build cluo-api image tagged :staging
 	docker build -t $(API_IMAGE):staging ./cluo_api
@@ -208,12 +208,12 @@ build-staging-web: ## Build cluo-web image tagged :staging
 	docker build -t $(WEB_IMAGE):staging ./cluo_web
 
 build-staging-mobile: ## Build cluo-mobile image tagged :staging
-	docker build -t $(MOBILE_IMAGE):staging ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=staging -t $(MOBILE_IMAGE):staging ./cluo_mobile
 
 build-prod: ## Build all images tagged :latest
 	docker build -t $(API_IMAGE):latest    ./cluo_api
 	docker build -t $(WEB_IMAGE):latest    ./cluo_web
-	docker build -t $(MOBILE_IMAGE):latest ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=production -t $(MOBILE_IMAGE):latest ./cluo_mobile
 
 build-prod-api: ## Build cluo-api image tagged :latest
 	docker build -t $(API_IMAGE):latest ./cluo_api
@@ -222,7 +222,7 @@ build-prod-web: ## Build cluo-web image tagged :latest
 	docker build -t $(WEB_IMAGE):latest ./cluo_web
 
 build-prod-mobile: ## Build cluo-mobile image tagged :latest
-	docker build -t $(MOBILE_IMAGE):latest ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=production -t $(MOBILE_IMAGE):latest ./cluo_mobile
 
 # =============================================================================
 # Push to Docker Hub (henga/*)
