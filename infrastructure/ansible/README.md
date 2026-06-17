@@ -154,7 +154,7 @@ Two environment files are created:
 **.env.production:**
 - Database: `cluo_production`
 - API URL: `https://api.clientvault.fr`
-- Assets bucket: `cluo-assets-production`
+- Assets bucket: `cluo-assets-prod`
 
 ## Security Features
 
@@ -197,7 +197,7 @@ Two environment files are created:
 | `staging_postgres_db` | Staging database name | `cluo_staging` |
 | `production_postgres_db` | Production database name | `cluo_production` |
 | `staging_assets_bucket` | Staging S3 bucket | `cluo-assets-staging` |
-| `production_assets_bucket` | Production S3 bucket | `cluo-assets-production` |
+| `production_assets_bucket` | Production S3 bucket | `cluo-assets-prod` |
 
 ## Post-Deployment Checklist
 

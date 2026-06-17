@@ -47,7 +47,7 @@ resource "hcloud_server" "main" {
     production_api_domain    = "api.${var.domain_name}"
     production_web_domain    = var.domain_name
     production_mobile_domain = "mobile.${var.domain_name}"
-    production_assets_bucket = "cluo-assets-production"
+    production_assets_bucket = "cluo-assets-prod"
     production_db_name       = "cluo_production"
     production_db_password   = var.production_db_password
 

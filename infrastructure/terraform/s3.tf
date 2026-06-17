@@ -60,7 +60,7 @@ resource "aws_s3_bucket_acl" "assets_staging" {
 # =============================================================================
 
 resource "aws_s3_bucket" "assets_production" {
-  bucket = "cluo-assets-production"
+  bucket = "cluo-assets-prod"
 }
 
 resource "aws_s3_bucket_versioning" "assets_production" {

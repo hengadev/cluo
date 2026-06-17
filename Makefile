@@ -19,7 +19,7 @@ ENV ?= production
 # Dry-run mode: validates version bump, build, and signing without uploading to S3.
 DRY_RUN ?=
 
-DESKTOP_S3_BUCKET := cluo-assets-production-970547355404
+DESKTOP_S3_BUCKET := cluo-assets-prod
 
 ifeq ($(ENV),staging)
 DESKTOP_S3_PREFIX := staging/desktop

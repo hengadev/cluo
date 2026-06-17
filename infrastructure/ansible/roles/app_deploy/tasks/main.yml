@@ -94,7 +94,7 @@
       PUBLIC_API_URL=https://{{ production_api_domain | default('api.' + domain) }}
       PUBLIC_WEB_URL=https://{{ production_web_domain | default(domain) }}
       PUBLIC_MOBILE_URL=https://{{ production_mobile_domain | default('mobile.' + domain) }}
-      ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-production') }}
+      ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-prod') }}
       AWS_REGION={{ aws_region | default('eu-central-1') }}
       AWS_ACCESS_KEY_ID={{ production_s3_access_key_id | default('') }}
       AWS_SECRET_ACCESS_KEY={{ production_s3_secret_access_key | default('') }}
@@ -146,7 +146,7 @@
 
       # S3 buckets
       STAGING_ASSETS_BUCKET={{ staging_assets_bucket | default('cluo-assets-staging') }}
-      PRODUCTION_ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-production') }}
+      PRODUCTION_ASSETS_BUCKET={{ production_assets_bucket | default('cluo-assets-prod') }}
 
       # AWS region
       AWS_REGION={{ aws_region | default('eu-central-1') }}

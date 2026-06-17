@@ -46,7 +46,7 @@
 #   # Origin: S3 bucket
 #   origin {
 #     domain_name = aws_s3_bucket.assets_production.bucket_regional_domain_name
-#     origin_id   = "S3-cluo-assets-production"
+#     origin_id   = "S3-cluo-assets-prod"
 #
 #     s3_origin_config {
 #       origin_access_identity = ""  # Using OAC instead
@@ -59,7 +59,7 @@
 #   default_cache_behavior {
 #     allowed_methods  = ["GET", "HEAD", "OPTIONS"]
 #     cached_methods   = ["GET", "HEAD"]
-#     target_origin_id = "S3-cluo-assets-production"
+#     target_origin_id = "S3-cluo-assets-prod"
 #
 #     forwarded_values {
 #       query_string = false

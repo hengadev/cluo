@@ -85,7 +85,7 @@ resource "cloudflare_dns_record" "production_assets" {
   zone_id = var.zone_id
   name    = "assets"
   type    = "CNAME"
-  content = "cluo-assets-production.s3.amazonaws.com"
+  content = "cluo-assets-prod.s3.amazonaws.com"
   proxied = false
   ttl     = 3600
 }
