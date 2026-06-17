@@ -34,6 +34,8 @@
         "s3:PutEncryptionConfiguration",
         "s3:PutBucketPolicy",
         "s3:PutPublicAccessBlock",
+        "s3:PutBucketPublicAccessBlock",
+        "s3:GetBucketPublicAccessBlock",
         "s3:DeletePublicAccessBlock",
         "s3:PutBucketAcl",
         "s3:PutBucketOwnershipControls",
@@ -41,7 +43,21 @@
         "s3:GetBucketAcl",
         "s3:GetBucketLocation",
         "s3:ListAllMyBuckets",
-        "s3:PutLifecycleConfiguration"
+        "s3:PutLifecycleConfiguration",
+        "s3:GetBucketCors",
+        "s3:PutBucketCors",
+        "s3:GetEncryptionConfiguration",
+        "s3:GetBucketOwnershipControls",
+        "s3:GetPublicAccessBlock",
+        "s3:GetBucketTagging",
+        "s3:PutBucketTagging",
+        "s3:GetBucketWebsite",
+        "s3:GetBucketLogging",
+        "s3:GetBucketRequestPayment",
+        "s3:GetReplicationConfiguration",
+        "s3:GetLifecycleConfiguration",
+        "s3:GetAccelerateConfiguration",
+        "s3:GetBucketObjectLockConfiguration"
       ],
       "Resource": [
         "arn:aws:s3:::cluo-*",
@@ -91,7 +107,7 @@
       ],
       "Resource": [
         "arn:aws:kms:*:*:key/*",
-        "arn:aws:kms:*.*:alias/*"
+        "arn:aws:kms:*:*:alias/*"
       ]
     },
     {
@@ -117,6 +133,9 @@
         "iam:DeleteUser",
         "iam:GetUser",
         "iam:ListUsers",
+        "iam:TagUser",
+        "iam:UntagUser",
+        "iam:ListUserTags",
         "iam:CreateAccessKey",
         "iam:DeleteAccessKey",
         "iam:ListAccessKeys",
@@ -124,6 +143,13 @@
         "iam:DeletePolicy",
         "iam:GetPolicy",
         "iam:ListPolicies",
+        "iam:TagPolicy",
+        "iam:UntagPolicy",
+        "iam:ListPolicyTags",
+        "iam:CreatePolicyVersion",
+        "iam:DeletePolicyVersion",
+        "iam:GetPolicyVersion",
+        "iam:ListPolicyVersions",
         "iam:AttachUserPolicy",
         "iam:DetachUserPolicy",
         "iam:ListAttachedUserPolicies",
