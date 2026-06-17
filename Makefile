@@ -20,6 +20,8 @@ ENV ?= production
 DRY_RUN ?=
 
 DESKTOP_S3_BUCKET := cluo-assets-prod
+# Least-privilege AWS profile scoped to cluo-assets-prod only (see infrastructure/terraform/iam-app.tf)
+AWS_S3_PROFILE := cluo-app
 
 ifeq ($(ENV),staging)
 DESKTOP_S3_PREFIX := staging/desktop
@@ -99,12 +101,14 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 		echo "==> [$(ENV)] Step 4/5: Uploading binary to S3..."; \
 		aws s3 cp $$BINARY \
 			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_windows_amd64.exe \
-			--content-type application/octet-stream; \
+			--content-type application/octet-stream \
+			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Step 5/5: Uploading signed manifest to S3..."; \
 		aws s3 cp /tmp/cluo_desktop_manifest.json \
 			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json \
 			--content-type application/json \
-			--cache-control "no-cache,no-store,must-revalidate"; \
+			--cache-control "no-cache,no-store,must-revalidate" \
+			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Released v$(VERSION). Manifest: $(DESKTOP_MANIFEST_URL)"; \
 	fi
 
@@ -134,7 +138,7 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 	if [ "$(DRY_RUN)" = "1" ]; then \
 		printf '{"downloads":{},"checksums":{}}' > /tmp/cluo_current_manifest.json; \
 	else \
-		aws s3 cp s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json /tmp/cluo_current_manifest.json 2>/dev/null \
+		aws s3 cp s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json /tmp/cluo_current_manifest.json --profile $(AWS_S3_PROFILE) 2>/dev/null \
 			|| printf '{"downloads":{},"checksums":{}}' > /tmp/cluo_current_manifest.json; \
 	fi; \
 	jq --arg ver "$(VERSION)" --arg notes "$(RELEASE_NOTES)" \
@@ -150,12 +154,14 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 		echo "==> [$(ENV)] Step 4/5: Uploading binary to S3..."; \
 		aws s3 cp $$BINARY \
 			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_linux_amd64 \
-			--content-type application/octet-stream; \
+			--content-type application/octet-stream \
+			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Step 5/5: Uploading signed manifest to S3..."; \
 		aws s3 cp /tmp/cluo_desktop_manifest.json \
 			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json \
 			--content-type application/json \
-			--cache-control "no-cache,no-store,must-revalidate"; \
+			--cache-control "no-cache,no-store,must-revalidate" \
+			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Released v$(VERSION) for linux/amd64. Manifest: $(DESKTOP_MANIFEST_URL)"; \
 	fi
 

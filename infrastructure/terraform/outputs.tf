@@ -95,6 +95,18 @@ output "production_assets_iam_secret_key" {
   sensitive   = true
 }
 
+output "cluo_app_access_key_id" {
+  description = "IAM access key ID for cluo-app (least-privilege, cluo-assets-prod only)"
+  value       = aws_iam_access_key.cluo_app.id
+  sensitive   = true
+}
+
+output "cluo_app_secret_access_key" {
+  description = "IAM secret access key for cluo-app (least-privilege, cluo-assets-prod only)"
+  value       = aws_iam_access_key.cluo_app.secret
+  sensitive   = true
+}
+
 # -----------------------------------------------------------------------------
 # SES Email
 # -----------------------------------------------------------------------------
