@@ -117,6 +117,24 @@ resource "aws_s3_bucket_acl" "assets_production" {
   acl        = "public-read"
 }
 
+resource "aws_s3_bucket_policy" "assets_production" {
+  depends_on = [aws_s3_bucket_public_access_block.assets_production]
+  bucket     = aws_s3_bucket.assets_production.id
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid       = "PublicReadForReleases"
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.assets_production.arn}/staging/desktop/*"
+      }
+    ]
+  })
+}
+
 # =============================================================================
 # Staging PostgreSQL Backup Bucket
 # =============================================================================
