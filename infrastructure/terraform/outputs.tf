@@ -67,6 +67,11 @@ output "vault_storage_bucket" {
   value       = aws_s3_bucket.vault.id
 }
 
+output "minio_backup_staging_bucket" {
+  description = "S3 bucket for staging MinIO backups"
+  value       = aws_s3_bucket.minio_backups_staging.id
+}
+
 # -----------------------------------------------------------------------------
 # IAM Access Keys for Ansible/Application
 # -----------------------------------------------------------------------------
@@ -104,6 +109,18 @@ output "cluo_app_access_key_id" {
 output "cluo_app_secret_access_key" {
   description = "IAM secret access key for cluo-app (least-privilege, cluo-assets-prod only)"
   value       = aws_iam_access_key.cluo_app.secret
+  sensitive   = true
+}
+
+output "minio_backup_staging_access_key_id" {
+  description = "IAM access key ID for cluo-minio-backup-staging-user (least-privilege, cluo-minio-backups-staging only)"
+  value       = aws_iam_access_key.minio_backup_staging.id
+  sensitive   = true
+}
+
+output "minio_backup_staging_secret_access_key" {
+  description = "IAM secret access key for cluo-minio-backup-staging-user (least-privilege, cluo-minio-backups-staging only)"
+  value       = aws_iam_access_key.minio_backup_staging.secret
   sensitive   = true
 }
 
