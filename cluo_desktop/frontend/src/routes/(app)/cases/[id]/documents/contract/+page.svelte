@@ -600,10 +600,10 @@
 							<button
 								type="button"
 								disabled={deletingContractId === selectedContract.id}
-								title="Supprimer"
-								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+								class="h-input rounded-input inline-flex items-center justify-center gap-1.5 px-3 text-sm font-medium btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 							>
-								<Trash2 size={16} />
+								<Trash2 size={14} />
+								Supprimer
 							</button>
 						</ConfirmDialog>
 					{/if}
