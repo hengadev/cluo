@@ -49,37 +49,25 @@
       tags:
         - docker
 
-    # 6. Application user setup
-    - role: app_user
-      tags:
-        - app
-        - user
-
-    # 7. Application deployment
+    # 6. Application deployment
     - role: app_deploy
       tags:
         - app
         - deploy
 
-    # 8. Monitoring setup
+    # 7. Monitoring setup
     - role: monitoring
       tags:
         - monitoring
       when: enable_monitoring | default(false)
 
-    # 9. Automatic security updates
+    # 8. Automatic security updates
     - role: automatic_updates
       tags:
         - updates
       when: enable_automatic_updates | default(true)
 
-    # 10. Backup setup
-    - role: backup
-      tags:
-        - backup
-      when: enable_backups | default(false)
-
-    # 11. Uptime monitoring (UptimeRobot)
+    # 9. Uptime monitoring (UptimeRobot)
     - role: uptime_monitoring
       tags:
         - uptime
