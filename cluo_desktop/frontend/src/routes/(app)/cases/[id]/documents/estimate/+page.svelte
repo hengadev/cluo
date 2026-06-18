@@ -30,8 +30,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import DocumentLifecycleStepper from "$lib/custom/documents/DocumentLifecycleStepper.svelte";
+	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import type { Case, Client, Estimate, EstimateItem, Mandate, DocumentStatus } from "$lib/types/entities";
 
 	const toastState = getToastContext();
@@ -82,6 +83,17 @@
 		rejected: "Rejeté",
 		expired: "Expiré",
 	};
+
+	const ESTIMATE_STEPS = [
+		{ key: "draft", label: "Brouillon" },
+		{ key: "sent", label: "Envoyé" },
+		{ key: "signed", label: "Accepté" },
+	];
+
+	function statusNote(est: Estimate): string {
+		if (est.status !== "draft") return "Ce devis ne peut plus être modifié.";
+		return "";
+	}
 
 	interface FormItem {
 		description: string;
@@ -479,25 +491,32 @@
 
 			{#if viewMode === "detail" && selectedEstimate}
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						onclick={() => selectedEstimate && handlePreview(selectedEstimate)}
-						disabled={previewingEstimateId === selectedEstimate.id}
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
-					>
-						<Printer size={14} class="mr-1" />
-						Aperçu
-					</button>
-					{#if isDraft(selectedEstimate)}
+					<div class="flex items-center gap-1">
 						<button
 							type="button"
-							onclick={() => { if (selectedEstimate) showEdit(selectedEstimate); }}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
+							onclick={() => selectedEstimate && handlePreview(selectedEstimate)}
+							disabled={previewingEstimateId === selectedEstimate.id}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Pencil size={14} class="mr-1" />
-							Modifier
+							<Printer size={14} class="mr-1" />
+							Aperçu
 						</button>
+						{#if isDraft(selectedEstimate)}
+							<button
+								type="button"
+								onclick={() => { if (selectedEstimate) showEdit(selectedEstimate); }}
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+							>
+								<Pencil size={14} class="mr-1" />
+								Modifier
+							</button>
+						{/if}
+					</div>
+
+					{#if canDelete(selectedEstimate) || canSend(selectedEstimate) || canAccept(selectedEstimate)}
+						<div class="w-px h-5 bg-border"></div>
 					{/if}
+
 					{#if canDelete(selectedEstimate)}
 						<ConfirmDialog
 							title="Supprimer le devis"
@@ -508,10 +527,10 @@
 							<button
 								type="button"
 								disabled={deletingEstimateId === selectedEstimate.id}
-								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								title="Supprimer"
+								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 							>
-								<Trash2 size={14} class="mr-1" />
-								Supprimer
+								<Trash2 size={16} />
 							</button>
 						</ConfirmDialog>
 					{/if}
@@ -576,7 +595,7 @@
 							<tr>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Référence</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date d'émission</th>
-								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
+								<th class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
 								<th class="px-6 py-3 w-12"></th>
 							</tr>
@@ -584,7 +603,7 @@
 						<tbody class="bg-background divide-y divide-border">
 							{#each estimates as est (est.id)}
 								<tr
-									class="hover:bg-muted/50 transition-colors cursor-pointer"
+									class="hover:shadow-mini hover:relative transition-interactive duration-150 cursor-pointer"
 									onclick={() => showDetail(est)}
 								>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -593,7 +612,7 @@
 									<td class="px-6 py-4 whitespace-nowrap">
 										<div class="text-sm text-foreground">{formatDate(est.issue_date)}</div>
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
+									<td class="px-6 py-4 whitespace-nowrap text-right">
 										<div class="text-sm font-medium text-foreground">{formatCurrency(est.estimated_total)}</div>
 									</td>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -787,101 +806,106 @@
 		<!-- DETAIL VIEW -->
 		<!-- ================================================================ -->
 		{:else if viewMode === "detail" && selectedEstimate}
-			<div class="max-w-3xl animate-fade-in">
-				<!-- Status banner -->
-				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedEstimate.status as DocumentStatus)}">
-						{STATUS_LABELS[selectedEstimate.status] || selectedEstimate.status}
-					</span>
-					{#if selectedEstimate.status !== "draft"}
-						<span class="text-sm text-muted-foreground">
-							Ce devis ne peut plus être modifié.
-						</span>
-					{/if}
+			<div class="max-w-5xl animate-fade-in flex flex-col gap-6">
+				<DocumentLifecycleStepper
+					steps={ESTIMATE_STEPS}
+					status={selectedEstimate.status}
+					statusLabel={STATUS_LABELS[selectedEstimate.status] || selectedEstimate.status}
+					note={statusNote(selectedEstimate)}
+				/>
+
+				<div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+					<!-- Primary content -->
+					<div class="flex flex-col gap-6 min-w-0">
+						<div class="border border-border-card rounded-lg p-6">
+							{#if selectedEstimate.notes}
+								<div class="mb-4">
+									<p class="text-xs text-muted-foreground mb-1">Notes</p>
+									<p class="text-sm text-muted-foreground italic">{selectedEstimate.notes}</p>
+								</div>
+							{/if}
+
+							<!-- Line items table -->
+							<div class="border border-border rounded-lg overflow-hidden">
+								<table class="w-full">
+									<thead class="bg-muted">
+										<tr>
+											<th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Description</th>
+											<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-20">Qté</th>
+											<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-28">Prix unit.</th>
+											<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-28">Sous-total</th>
+										</tr>
+									</thead>
+									<tbody class="divide-y divide-border">
+										{#each selectedEstimate.line_items as item, i (i)}
+											<tr>
+												<td class="px-4 py-3 text-sm text-foreground">{item.description}</td>
+												<td class="px-4 py-3 text-sm text-foreground text-right">{item.quantity}</td>
+												<td class="px-4 py-3 text-sm text-foreground text-right">{formatCurrency(item.unit_price)}</td>
+												<td class="px-4 py-3 text-sm font-medium text-foreground text-right">{formatCurrency(item.subtotal)}</td>
+											</tr>
+										{/each}
+									</tbody>
+									<tfoot class="bg-muted/50 border-t border-border">
+										<tr>
+											<td colspan="3" class="px-4 py-3 text-sm font-semibold text-foreground text-right">Total</td>
+											<td class="px-4 py-3 text-lg font-bold text-foreground text-right">
+												{formatCurrency(selectedEstimate.estimated_total)}
+											</td>
+										</tr>
+									</tfoot>
+								</table>
+							</div>
+						</div>
+
+						<!-- Lifecycle warning for non-actionable states -->
+						{#if !canSend(selectedEstimate) && !canAccept(selectedEstimate) && !isDraft(selectedEstimate)}
+							<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
+								<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
+								<p>
+									Ce devis est dans l'état <strong>{STATUS_LABELS[selectedEstimate.status]}</strong>.
+									Aucune action n'est disponible pour le moment.
+								</p>
+							</div>
+						{/if}
+					</div>
+
+					<!-- Metadata rail -->
+					<div class="flex flex-col gap-6">
+						<div class="border border-border-card rounded-lg p-6">
+							<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Détails</p>
+							<div class="flex flex-col gap-4">
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Référence</p>
+									<p class="text-sm font-semibold text-foreground">{selectedEstimate.estimate_number}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Devise</p>
+									<p class="text-sm text-foreground">EUR (€)</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
+									<p class="text-sm text-foreground">{formatDate(selectedEstimate.issue_date)}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Valide jusqu'au</p>
+									<p class="text-sm text-foreground">
+										{selectedEstimate.valid_until ? formatDate(selectedEstimate.valid_until) : "—"}
+									</p>
+								</div>
+							</div>
+						</div>
+
+						{#if selectedEstimate.accepted && selectedEstimate.accepted_at}
+							<div class="bg-success/10 border border-success/30 rounded-lg p-3 flex items-center gap-2">
+								<CheckCircle size={16} class="text-success flex-shrink-0" />
+								<p class="text-sm text-success">
+									Accepté le {formatDate(selectedEstimate.accepted_at)}
+								</p>
+							</div>
+						{/if}
+					</div>
 				</div>
-
-				<!-- Estimate info card -->
-				<div class="border border-border-card rounded-lg p-6 mb-6">
-					<div class="grid grid-cols-2 gap-4 mb-6">
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Référence</p>
-							<p class="text-sm font-semibold text-foreground">{selectedEstimate.estimate_number}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Devise</p>
-							<p class="text-sm text-foreground">EUR (€)</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
-							<p class="text-sm text-foreground">{formatDate(selectedEstimate.issue_date)}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Valide jusqu'au</p>
-							<p class="text-sm text-foreground">
-								{selectedEstimate.valid_until ? formatDate(selectedEstimate.valid_until) : "—"}
-							</p>
-						</div>
-					</div>
-
-					{#if selectedEstimate.accepted && selectedEstimate.accepted_at}
-						<div class="bg-success/10 border border-success/30 rounded-lg p-3 mb-4 flex items-center gap-2">
-							<CheckCircle size={16} class="text-success flex-shrink-0" />
-							<p class="text-sm text-success">
-								Accepté le {formatDate(selectedEstimate.accepted_at)}
-							</p>
-						</div>
-					{/if}
-
-					{#if selectedEstimate.notes}
-						<div class="mb-4">
-							<p class="text-xs text-muted-foreground mb-1">Notes</p>
-							<p class="text-sm text-muted-foreground italic">{selectedEstimate.notes}</p>
-						</div>
-					{/if}
-
-					<!-- Line items table -->
-					<div class="border border-border rounded-lg overflow-hidden">
-						<table class="w-full">
-							<thead class="bg-muted">
-								<tr>
-									<th class="px-4 py-2 text-left text-xs font-medium text-muted-foreground uppercase">Description</th>
-									<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-20">Qté</th>
-									<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-28">Prix unit.</th>
-									<th class="px-4 py-2 text-right text-xs font-medium text-muted-foreground uppercase w-28">Sous-total</th>
-								</tr>
-							</thead>
-							<tbody class="divide-y divide-border">
-								{#each selectedEstimate.line_items as item, i (i)}
-									<tr>
-										<td class="px-4 py-3 text-sm text-foreground">{item.description}</td>
-										<td class="px-4 py-3 text-sm text-foreground text-right">{item.quantity}</td>
-										<td class="px-4 py-3 text-sm text-foreground text-right">{formatCurrency(item.unit_price)}</td>
-										<td class="px-4 py-3 text-sm font-medium text-foreground text-right">{formatCurrency(item.subtotal)}</td>
-									</tr>
-								{/each}
-							</tbody>
-							<tfoot class="bg-muted/50 border-t border-border">
-								<tr>
-									<td colspan="3" class="px-4 py-3 text-sm font-semibold text-foreground text-right">Total</td>
-									<td class="px-4 py-3 text-lg font-bold text-foreground text-right">
-										{formatCurrency(selectedEstimate.estimated_total)}
-									</td>
-								</tr>
-							</tfoot>
-						</table>
-					</div>
-				</div>
-
-				<!-- Lifecycle warning for non-actionable states -->
-				{#if !canSend(selectedEstimate) && !canAccept(selectedEstimate) && !isDraft(selectedEstimate)}
-					<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
-						<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
-						<p>
-							Ce devis est dans l'état <strong>{STATUS_LABELS[selectedEstimate.status]}</strong>.
-							Aucune action n'est disponible pour le moment.
-						</p>
-					</div>
-				{/if}
 			</div>
 		{/if}
 	{/if}
