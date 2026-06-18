@@ -5,9 +5,19 @@ import { API_BASE_URL } from '../config';
 let isRefreshing = false;
 let refreshPromise: Promise<boolean> | null = null;
 
+// WebKitGTK can silently hang forever on a stale keep-alive connection instead
+// of throwing — without this, a hung request leaves callers stuck loading.
+const REQUEST_TIMEOUT_MS = 15_000;
+
 interface ApiFetchOptions extends RequestInit {
 	// Allow skipping refresh for the refresh endpoint itself
 	skipRefresh?: boolean;
+}
+
+function fetchWithTimeout(url: RequestInfo | URL, options: RequestInit): Promise<Response> {
+	const controller = new AbortController();
+	const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+	return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
 }
 
 /**
@@ -34,11 +44,11 @@ export async function apiFetch(
 
 	let response: Response;
 	try {
-		response = await fetch(url, options);
+		response = await fetchWithTimeout(url, options);
 	} catch {
-		// WebKitGTK may fail on stale connections after idle — retry once on a fresh connection
+		// WebKitGTK may fail or hang on stale connections after idle — retry once on a fresh connection
 		try {
-			response = await fetch(url, options);
+			response = await fetchWithTimeout(url, options);
 		} catch {
 			throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
 		}
@@ -57,10 +67,10 @@ export async function apiFetch(
 
 		if (refreshed) {
 			try {
-				response = await fetch(url, options);
+				response = await fetchWithTimeout(url, options);
 			} catch {
 				try {
-					response = await fetch(url, options);
+					response = await fetchWithTimeout(url, options);
 				} catch {
 					throw new Error('Impossible de joindre le serveur. Vérifiez votre connexion réseau.');
 				}
@@ -79,12 +89,12 @@ export async function apiFetch(
 async function attemptRefresh(): Promise<boolean> {
 	const opts: RequestInit = { method: 'POST', credentials: 'include' };
 	try {
-		const response = await fetch(`${API_BASE_URL}/auth/refresh`, opts);
+		const response = await fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, opts);
 		return response.ok;
 	} catch {
 		// WebKitGTK stale-connection — retry once on a fresh connection
 		try {
-			const response = await fetch(`${API_BASE_URL}/auth/refresh`, opts);
+			const response = await fetchWithTimeout(`${API_BASE_URL}/auth/refresh`, opts);
 			return response.ok;
 		} catch {
 			return false;
