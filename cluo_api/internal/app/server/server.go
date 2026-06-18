@@ -297,7 +297,14 @@ func (s *Server) registerAIRoutes(mux *http.ServeMux) {
 
 	// Register chat routes
 	if s.container.ChatService() != nil {
-		handler := aiChatHandler.New(s.container.ChatService(), authMW)
+		handler := aiChatHandler.New(
+			s.container.ChatService(),
+			s.container.CaseService(),
+			s.container.ClientService(),
+			s.container.CaseTypeService(),
+			s.container.CaseSubjectService(),
+			authMW,
+		)
 		handler.RegisterRoutes(mux)
 		s.logger.Info("Chat routes registered")
 	}
