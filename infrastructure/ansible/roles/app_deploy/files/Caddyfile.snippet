@@ -1,0 +1,64 @@
+# Cluo's reverse-proxy block as it actually runs today: spliced into
+# homelab's shared Caddyfile (homelab/docker/Caddyfile), not a standalone
+# Caddy instance. Source: homelab/docker/Caddyfile.
+{$CLUO_DOMAIN} {
+    reverse_proxy cluo-prod-web:3000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+}
+
+api.{$CLUO_DOMAIN} {
+    reverse_proxy cluo-prod-api:8080
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+    }
+}
+
+mobile.{$CLUO_DOMAIN} {
+    reverse_proxy cluo-prod-mobile:3000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+}
+
+staging.{$CLUO_DOMAIN} {
+    reverse_proxy cluo-staging-web:3000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+}
+
+staging-api.{$CLUO_DOMAIN} {
+    reverse_proxy cluo-staging-api:8080
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        Referrer-Policy no-referrer
+    }
+}
+
+staging-mobile.{$CLUO_DOMAIN} {
+    reverse_proxy cluo-staging-mobile:3000
+    header {
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options nosniff
+        X-Frame-Options DENY
+        Referrer-Policy no-referrer
+        Permissions-Policy "geolocation=(), microphone=(), camera=()"
+    }
+}
