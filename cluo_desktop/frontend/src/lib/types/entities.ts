@@ -424,6 +424,7 @@ export interface CreateDocumentRequest {
 }
 
 export interface UpdateDocumentRequest {
+	type: string;
 	data: any;
 	reason?: string;
 }

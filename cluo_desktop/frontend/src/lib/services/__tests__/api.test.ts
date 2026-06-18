@@ -286,7 +286,7 @@ describe('Document endpoint URLs', () => {
 			jsonResponse({ success: true, data: { id: 'd-1' } }),
 		);
 
-		await api.updateDocument('d-1', 'mandate', { data: { notes: 'updated' } });
+		await api.updateDocument('d-1', 'mandate', { type: 'mandate', data: { notes: 'updated' } });
 
 		expect(mockApiFetch).toHaveBeenCalledWith(
 			`${BASE}/documents/d-1/mandate`,
