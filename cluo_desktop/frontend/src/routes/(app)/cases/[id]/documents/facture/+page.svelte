@@ -12,6 +12,8 @@
 		X,
 		Save,
 		Trash2,
+		Printer,
+		Pencil,
 	} from "@lucide/svelte";
 	import { Dialog } from "bits-ui";
 	import {
@@ -19,9 +21,12 @@
 		fetchClient,
 		fetchCaseInvoices,
 		createInvoice,
+		updateDocument,
+		deleteDocument,
 		sendDocument,
 		processPayment,
 		voidInvoice,
+		openDocumentPDF,
 		ConflictError,
 	} from "$lib/services/api";
 	import { currentCase } from "$lib/stores/case";
@@ -54,6 +59,7 @@
 	let selectedInvoice: Invoice | null = $state(null);
 	let viewMode: "list" | "detail" = $state("list");
 	let showCreateModal = $state(false);
+	let showEditModal = $state(false);
 
 	// Create form state
 	interface FormItem {
@@ -72,6 +78,8 @@
 	// Lifecycle action state
 	let sendingInvoice = $state(false);
 	let voidingInvoice = $state(false);
+	let previewingInvoiceId: string | null = $state(null);
+	let deletingInvoiceId: string | null = $state(null);
 
 	// Payment form state
 	let showPaymentForm = $state(false);
@@ -153,6 +161,14 @@
 			inv.status !== "cancelled" &&
 			inv.status !== "archived"
 		);
+	}
+
+	function canEdit(inv: Invoice): boolean {
+		return inv.status === "draft";
+	}
+
+	function canDelete(inv: Invoice): boolean {
+		return inv.status === "draft";
 	}
 
 	function hasNoActions(inv: Invoice): boolean {
@@ -298,12 +314,125 @@
 		}
 	}
 
+	// =========================================================================
+	// Edit Invoice (draft only)
+	// =========================================================================
+
+	function showEdit(inv: Invoice) {
+		if (!canEdit(inv)) return;
+		selectedInvoice = inv;
+		formIssueDate = inv.issue_date ? inv.issue_date.split("T")[0] : todayISO();
+		formDueDate = inv.due_date ? inv.due_date.split("T")[0] : "";
+		formTaxRate = inv.tax_rate || 0;
+		formNotes = inv.notes || "";
+		formPaymentTerms = inv.payment_terms || "";
+		formLineItems = (inv.line_items || []).map((li) => ({
+			description: li.description,
+			quantity: li.quantity,
+			unit_price: li.unit_price,
+		}));
+		if (formLineItems.length === 0) {
+			formLineItems = [{ description: "", quantity: 1, unit_price: 0 }];
+		}
+		showEditModal = true;
+	}
+
+	async function handleEditSave() {
+		if (!selectedInvoice || !canEdit(selectedInvoice)) return;
+		if (formLineItems.some((li) => !li.description.trim())) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Toutes les lignes doivent avoir une description.");
+			return;
+		}
+		if (!formDueDate) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "La date d'échéance est obligatoire.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const subtotal = formLineItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+			const taxAmount = subtotal * (formTaxRate / 100);
+			const totalAmount = subtotal + taxAmount;
+
+			const data = {
+				issue_date: new Date(formIssueDate).toISOString(),
+				due_date: new Date(formDueDate).toISOString(),
+				line_items: formLineItems.map((li) => ({
+					description: li.description.trim(),
+					quantity: li.quantity,
+					unit_price: li.unit_price,
+					subtotal: li.quantity * li.unit_price,
+				})),
+				total_amount: totalAmount,
+				tax_rate: formTaxRate,
+				tax_amount: taxAmount,
+				notes: formNotes.trim() || undefined,
+				payment_terms: formPaymentTerms.trim() || undefined,
+			};
+
+			const result = await updateDocument(selectedInvoice.id, "invoice", { type: "invoice", data });
+			if (result.data) {
+				const updated = { ...selectedInvoice, ...data } as Invoice;
+				invoices = invoices.map((inv) => (inv.id === updated.id ? updated : inv));
+				selectedInvoice = updated;
+				showEditModal = false;
+				toastState.add(TOAST_LEVELS.Info, "Facture modifiée", "Les modifications ont été enregistrées.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de modifier la facture.",
+			);
+		} finally {
+			formSaving = false;
+		}
+	}
+
+	// =========================================================================
+	// Delete Invoice (draft only)
+	// =========================================================================
+
+	async function handleDelete(inv: Invoice) {
+		if (!canDelete(inv)) return;
+		deletingInvoiceId = inv.id;
+		try {
+			await deleteDocument(inv.id, "invoice");
+			invoices = invoices.filter((x) => x.id !== inv.id);
+			if (selectedInvoice?.id === inv.id) showList();
+			toastState.add(TOAST_LEVELS.Info, "Facture supprimée", "La facture a été supprimée.");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de supprimer la facture.",
+			);
+		} finally {
+			deletingInvoiceId = null;
+		}
+	}
+
 	function showDetail(inv: Invoice) {
 		selectedInvoice = inv;
 		viewMode = "detail";
 		showPaymentForm = false;
 		paymentAmount = "";
 		paymentMethod = "bank_transfer";
+	}
+
+	async function handlePreview(inv: Invoice) {
+		previewingInvoiceId = inv.id;
+		try {
+			await openDocumentPDF(inv.id, "invoice");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible d'afficher l'aperçu de la facture.",
+			);
+		} finally {
+			previewingInvoiceId = null;
+		}
 	}
 
 	// =========================================================================
@@ -501,6 +630,42 @@
 
 			{#if viewMode === "detail" && selectedInvoice}
 				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => selectedInvoice && handlePreview(selectedInvoice)}
+						disabled={previewingInvoiceId === selectedInvoice.id}
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
+					>
+						<Printer size={14} class="mr-1" />
+						Aperçu
+					</button>
+					{#if canEdit(selectedInvoice)}
+						<button
+							type="button"
+							onclick={() => selectedInvoice && showEdit(selectedInvoice)}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+						>
+							<Pencil size={14} class="mr-1" />
+							Modifier
+						</button>
+					{/if}
+					{#if canDelete(selectedInvoice)}
+						<ConfirmDialog
+							title="Supprimer la facture"
+							description="La facture sera définitivement supprimée. Cette action est irréversible."
+							confirmLabel="Supprimer"
+							onConfirm={() => { if (selectedInvoice) return handleDelete(selectedInvoice); }}
+						>
+							<button
+								type="button"
+								disabled={deletingInvoiceId === selectedInvoice.id}
+								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							>
+								<Trash2 size={14} class="mr-1" />
+								Supprimer
+							</button>
+						</ConfirmDialog>
+					{/if}
 					{#if canSend(selectedInvoice)}
 						<ConfirmDialog
 							title="Envoyer la facture"
@@ -579,6 +744,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Paiement</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
+								<th class="px-6 py-3 w-12"></th>
 							</tr>
 						</thead>
 						<tbody class="bg-background divide-y divide-border">
@@ -612,6 +778,47 @@
 										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(inv.status as DocumentStatus)}">
 											{STATUS_LABELS[inv.status] || inv.status}
 										</span>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap text-right">
+										<div class="flex items-center justify-end gap-1">
+											<button
+												type="button"
+												onclick={(e) => { e.stopPropagation(); handlePreview(inv); }}
+												disabled={previewingInvoiceId === inv.id}
+												class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+												title="Aperçu / Imprimer"
+											>
+												<Printer size={16} />
+											</button>
+											{#if canEdit(inv)}
+												<button
+													type="button"
+													onclick={(e) => { e.stopPropagation(); showEdit(inv); }}
+													class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+													title="Modifier"
+												>
+													<Pencil size={16} />
+												</button>
+											{/if}
+											{#if canDelete(inv)}
+												<ConfirmDialog
+													title="Supprimer la facture"
+													description="La facture sera définitivement supprimée. Cette action est irréversible."
+													confirmLabel="Supprimer"
+													onConfirm={() => handleDelete(inv)}
+												>
+													<button
+														type="button"
+														onclick={(e) => e.stopPropagation()}
+														disabled={deletingInvoiceId === inv.id}
+														class="p-1.5 rounded btn-ghost-destructive cursor-pointer disabled:opacity-50"
+														title="Supprimer"
+													>
+														<Trash2 size={16} />
+													</button>
+												</ConfirmDialog>
+											{/if}
+										</div>
 									</td>
 								</tr>
 							{/each}
@@ -997,6 +1204,129 @@
 					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
 						<Save size={14} class="mr-1.5" />
 						{formSaving ? "Enregistrement..." : "Créer la facture"}
+					</button>
+				</div>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
+
+<!-- ================================================================ -->
+<!-- EDIT MODAL -->
+<!-- ================================================================ -->
+<Dialog.Root bind:open={showEditModal}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]"
+		/>
+		<Dialog.Content
+			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
+		>
+			<!-- Modal header -->
+			<div class="flex-shrink-0 px-8 pt-7 pb-5 border-b border-border-card relative">
+				<Dialog.Title class="text-base font-semibold tracking-tight text-foreground">
+					Modifier la facture
+				</Dialog.Title>
+				{#if selectedInvoice}
+					<p class="text-sm text-muted-foreground mt-0.5">{selectedInvoice.invoice_number}</p>
+				{/if}
+				<Dialog.Close class="absolute right-5 top-6 rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer p-0.5">
+					<X class="size-4" />
+					<span class="sr-only">Fermer</span>
+				</Dialog.Close>
+			</div>
+
+			<!-- Modal body -->
+			<div class="flex-1 min-h-0 overflow-y-auto px-8 py-6 flex flex-col gap-5">
+
+				<!-- Dates -->
+				<div class="grid grid-cols-2 gap-4">
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date d'émission</label>
+						<input type="date" bind:value={formIssueDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date d'échéance</label>
+						<input type="date" bind:value={formDueDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+				</div>
+
+				<!-- Lignes de facturation -->
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Lignes de facturation</span>
+						<div class="h-px flex-1 bg-border-input"></div>
+						<button type="button" onclick={addLineItem} class="inline-flex items-center gap-1 text-xs font-medium text-accent hover:text-accent/70 transition-interactive duration-150 cursor-pointer shrink-0">
+							<Plus size={12} />
+							Ajouter une ligne
+						</button>
+					</div>
+					<div class="grid items-center gap-2 px-0.5" style="grid-template-columns: 1fr 4.5rem 7.5rem 6.5rem 1.75rem">
+						<span class="text-xs text-muted-foreground">Description</span>
+						<span class="text-xs text-muted-foreground text-right">Qté</span>
+						<span class="text-xs text-muted-foreground text-right">Prix unit. (€)</span>
+						<span class="text-xs text-muted-foreground text-right">Sous-total</span>
+						<span></span>
+					</div>
+					<div class="flex flex-col gap-2">
+						{#each formLineItems as item, i (i)}
+							<div class="grid items-center gap-2" style="grid-template-columns: 1fr 4.5rem 7.5rem 6.5rem 1.75rem">
+								<input type="text" bind:value={item.description} placeholder="Description de la prestation" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+								<input type="number" bind:value={item.quantity} min="1" step="1" class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-2 text-sm text-right tabular-nums focus:ring-2 focus:ring-offset-2" />
+								<input type="number" bind:value={item.unit_price} min="0" step="0.01" class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-2 text-sm text-right tabular-nums focus:ring-2 focus:ring-offset-2" />
+								<div class="h-input flex items-center justify-end pr-1">
+									<span class="text-sm font-medium text-foreground tabular-nums">{formatCurrency(item.quantity * item.unit_price)}</span>
+								</div>
+								{#if formLineItems.length > 1}
+									<button type="button" onclick={() => removeLineItem(i)} class="size-7 rounded flex items-center justify-center btn-ghost-destructive cursor-pointer" title="Supprimer la ligne"><Trash2 size={13} /></button>
+								{:else}
+									<div class="size-7"></div>
+								{/if}
+							</div>
+						{/each}
+					</div>
+					<div class="flex items-center justify-between pt-3 border-t border-border-input">
+						<div class="flex items-center gap-2">
+							<span class="text-xs text-muted-foreground uppercase tracking-wider">TVA</span>
+							<input type="number" bind:value={formTaxRate} min="0" max="100" step="0.1" class="h-8 w-16 rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden px-2 text-sm text-right tabular-nums focus:ring-2 focus:ring-offset-2" />
+							<span class="text-xs text-muted-foreground">%</span>
+						</div>
+						<div class="flex items-center gap-3">
+							<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total TTC</span>
+							<span class="text-xl font-semibold text-foreground tabular-nums" style="font-family: var(--font-display)">{formatCurrency(formTotal())}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Conditions -->
+				<div class="flex flex-col gap-3">
+					<div class="flex items-center gap-3">
+						<span class="text-xs font-medium text-muted-foreground uppercase tracking-wider whitespace-nowrap">Conditions</span>
+						<div class="h-px flex-1 bg-border-input"></div>
+						<span class="text-xs text-muted-foreground">(optionnel)</span>
+					</div>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="flex flex-col gap-1.5">
+							<label class="text-sm font-medium text-foreground">Conditions de paiement</label>
+							<input type="text" bind:value={formPaymentTerms} placeholder="Ex : Paiement à 30 jours" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+						</div>
+						<div class="flex flex-col gap-1.5">
+							<label class="text-sm font-medium text-foreground">Notes</label>
+							<input type="text" bind:value={formNotes} placeholder="Notes internes..." class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+						</div>
+					</div>
+				</div>
+
+			</div>
+
+			<!-- Modal footer -->
+			<div class="flex items-center justify-between px-8 py-4 border-t border-border-card shrink-0">
+				<p class="text-xs text-muted-foreground">Seules les factures en brouillon peuvent être modifiées.</p>
+				<div class="flex items-center gap-2">
+					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
+					<button type="button" onclick={handleEditSave} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} class="mr-1.5" />
+						{formSaving ? "Enregistrement..." : "Enregistrer"}
 					</button>
 				</div>
 			</div>
