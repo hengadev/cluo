@@ -24,6 +24,8 @@ CASE CONTEXT:
 - Status: %s
 - Client: %s
 - Location: %s
+- Subjects:
+%s
 
 IMPORTANT: You are discussing this specific case. Be helpful but concise. If you don't know something, say so. Keep responses focused on the case at hand.
 
@@ -234,12 +236,16 @@ func (s *Service) buildSystemPrompt(caseCtx *ai.ChatContext, caseID uuid.UUID) s
 		return "You are an AI assistant helping with an investigation case."
 	}
 
-	var subjects strings.Builder
-	for _, sub := range caseCtx.Subjects {
-		subjects.WriteString(fmt.Sprintf("- %s: %s\n", sub.Role, sub.Name))
+	subjects := "(none recorded)"
+	if len(caseCtx.Subjects) > 0 {
+		var b strings.Builder
+		for _, sub := range caseCtx.Subjects {
+			b.WriteString(fmt.Sprintf("- %s: %s\n", sub.Role, sub.Name))
+		}
+		subjects = strings.TrimRight(b.String(), "\n")
 	}
 
-	var notes string
+	notes := "(none)"
 	if len(caseCtx.RecentNotes) > 0 {
 		notes = strings.Join(caseCtx.RecentNotes, "\n")
 	}
@@ -251,6 +257,7 @@ func (s *Service) buildSystemPrompt(caseCtx *ai.ChatContext, caseID uuid.UUID) s
 		caseCtx.Status,
 		caseCtx.ClientName,
 		caseCtx.Location,
+		subjects,
 		notes,
 	)
 }
