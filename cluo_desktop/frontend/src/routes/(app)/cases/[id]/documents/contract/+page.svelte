@@ -34,8 +34,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import DocumentLifecycleStepper from "$lib/custom/documents/DocumentLifecycleStepper.svelte";
+	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import type { Case, Client, Contract, DocumentStatus } from "$lib/types/entities";
 
 	const toastState = getToastContext();
@@ -93,6 +94,30 @@
 		rejected: "Rejeté",
 		expired: "Expiré",
 	};
+
+	const CONTRACT_STEPS = [
+		{ key: "draft", label: "Brouillon" },
+		{ key: "sent", label: "Envoyé" },
+		{ key: "signed", label: "Signé" },
+		{ key: "active", label: "Actif" },
+	];
+
+	function statusNote(c: Contract): string {
+		switch (c.status) {
+			case "active":
+				return "Accord commercial en vigueur.";
+			case "signed":
+				return "Signé — en attente d'activation.";
+			case "sent":
+				return "Envoyé au client — en attente de signature.";
+			case "draft":
+				return "Brouillon — à envoyer pour signature.";
+			case "archived":
+				return "Archivé — ce contrat n'est plus actif.";
+			default:
+				return "";
+		}
+	}
 
 	function todayISO(): string {
 		return new Date().toISOString().split("T")[0];
@@ -539,25 +564,32 @@
 
 			{#if viewMode === "detail" && selectedContract}
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						onclick={() => selectedContract && handlePreview(selectedContract)}
-						disabled={previewingContractId === selectedContract.id}
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
-					>
-						<Printer size={14} class="mr-1" />
-						Aperçu
-					</button>
-					{#if canEdit(selectedContract)}
+					<div class="flex items-center gap-1">
 						<button
 							type="button"
-							onclick={() => selectedContract && showEdit(selectedContract)}
-							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+							onclick={() => selectedContract && handlePreview(selectedContract)}
+							disabled={previewingContractId === selectedContract.id}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Pencil size={14} class="mr-1" />
-							Modifier
+							<Printer size={14} class="mr-1" />
+							Aperçu
 						</button>
+						{#if canEdit(selectedContract)}
+							<button
+								type="button"
+								onclick={() => selectedContract && showEdit(selectedContract)}
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+							>
+								<Pencil size={14} class="mr-1" />
+								Modifier
+							</button>
+						{/if}
+					</div>
+
+					{#if canDelete(selectedContract) || canSend(selectedContract) || canSign(selectedContract) || canActivate(selectedContract) || canCreateInvoice(selectedContract)}
+						<div class="w-px h-5 bg-border"></div>
 					{/if}
+
 					{#if canDelete(selectedContract)}
 						<ConfirmDialog
 							title="Supprimer le contrat"
@@ -568,10 +600,10 @@
 							<button
 								type="button"
 								disabled={deletingContractId === selectedContract.id}
-								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								title="Supprimer"
+								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 							>
-								<Trash2 size={14} class="mr-1" />
-								Supprimer
+								<Trash2 size={16} />
 							</button>
 						</ConfirmDialog>
 					{/if}
@@ -674,7 +706,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Référence</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Début</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Fin</th>
-								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
+								<th class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
 								<th class="px-6 py-3 w-12"></th>
 							</tr>
@@ -682,7 +714,7 @@
 						<tbody class="bg-background divide-y divide-border">
 							{#each contracts as c (c.id)}
 								<tr
-									class="hover:bg-muted/50 transition-colors cursor-pointer"
+									class="hover:shadow-mini hover:relative transition-interactive duration-150 cursor-pointer"
 									onclick={() => showDetail(c)}
 								>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -696,7 +728,7 @@
 											{c.end_date ? formatDate(c.end_date) : "—"}
 										</div>
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
+									<td class="px-6 py-4 whitespace-nowrap text-right">
 										{#if c.contract_value}
 											<div class="text-sm font-medium text-foreground">
 												{formatCurrency(c.contract_value, c.currency)}
@@ -762,75 +794,18 @@
 		<!-- DETAIL VIEW -->
 		<!-- ================================================================ -->
 		{:else if viewMode === "detail" && selectedContract}
-			<div class="max-w-3xl animate-fade-in">
-				<!-- Status banner -->
-				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedContract.status as DocumentStatus)}">
-						{STATUS_LABELS[selectedContract.status] || selectedContract.status}
-					</span>
-					{#if selectedContract.status === "active"}
-						<span class="text-sm text-success">
-							Accord commercial en vigueur.
-						</span>
-					{:else if selectedContract.status === "signed"}
-						<span class="text-sm text-success">
-							Signé — en attente d'activation.
-						</span>
-					{:else if selectedContract.status === "sent"}
-						<span class="text-sm text-accent-subtle-foreground">
-							Envoyé au client — en attente de signature.
-						</span>
-					{:else if selectedContract.status === "draft"}
-						<span class="text-sm text-muted-foreground">
-							Brouillon — à envoyer pour signature.
-						</span>
-					{:else if selectedContract.status === "archived"}
-						<span class="text-sm text-muted-foreground">
-							Archivé — ce contrat n'est plus actif.
-						</span>
-					{/if}
-				</div>
+			<div class="max-w-5xl animate-fade-in flex flex-col gap-6">
+				<DocumentLifecycleStepper
+					steps={CONTRACT_STEPS}
+					status={selectedContract.status}
+					statusLabel={STATUS_LABELS[selectedContract.status] || selectedContract.status}
+					note={statusNote(selectedContract)}
+				/>
 
-				<!-- Contract info card -->
-				<div class="border border-border-card rounded-lg p-6 mb-6">
-					<!-- Reference and dates -->
-					<div class="grid grid-cols-2 gap-4 mb-6">
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Référence</p>
-							<p class="text-sm font-semibold text-foreground">{selectedContract.contract_number}</p>
-						</div>
-						{#if selectedContract.currency}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Devise</p>
-								<p class="text-sm text-foreground">{selectedContract.currency}</p>
-							</div>
-						{/if}
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date de début</p>
-							<p class="text-sm text-foreground">{formatDate(selectedContract.start_date)}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date de fin</p>
-							<p class="text-sm text-foreground">
-								{selectedContract.end_date ? formatDate(selectedContract.end_date) : "—"}
-							</p>
-						</div>
-						{#if selectedContract.contract_value}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Montant du contrat</p>
-								<p class="text-lg font-bold text-foreground">
-									{formatCurrency(selectedContract.contract_value, selectedContract.currency)}
-								</p>
-							</div>
-						{/if}
-						{#if selectedContract.linked_mandate_id}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Mandat lié</p>
-								<p class="text-sm text-foreground">{selectedContract.linked_mandate_id}</p>
-							</div>
-						{/if}
-					</div>
-
+				<div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+				<!-- Primary content -->
+				<div class="flex flex-col gap-6 min-w-0">
+				<div class="border border-border-card rounded-lg p-6">
 					<!-- Scope of services -->
 					<div class="mb-4">
 						<p class="text-xs text-muted-foreground mb-1">Objet des prestations</p>
@@ -869,11 +844,70 @@
 						</div>
 					{/if}
 
-					<!-- Signatures section -->
-					<div class="mt-6 pt-4 border-t border-border">
+				</div>
+
+				<!-- Lifecycle info for non-actionable states -->
+				{#if hasNoActions(selectedContract)}
+					<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
+						<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
+						<p>
+							Ce contrat est dans l'état <strong>{STATUS_LABELS[selectedContract.status]}</strong>.
+							{#if selectedContract.status === "archived"}
+								Ce contrat a été archivé et n'est plus modifiable.
+							{:else}
+								Aucune action n'est disponible pour le moment.
+							{/if}
+						</p>
+					</div>
+				{/if}
+				</div>
+
+				<!-- Metadata + signatures rail -->
+				<div class="flex flex-col gap-6">
+					<div class="border border-border-card rounded-lg p-6">
+						<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Détails</p>
+						<div class="flex flex-col gap-4">
+							<div>
+								<p class="text-xs text-muted-foreground mb-1">Référence</p>
+								<p class="text-sm font-semibold text-foreground">{selectedContract.contract_number}</p>
+							</div>
+							{#if selectedContract.currency}
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Devise</p>
+									<p class="text-sm text-foreground">{selectedContract.currency}</p>
+								</div>
+							{/if}
+							<div>
+								<p class="text-xs text-muted-foreground mb-1">Date de début</p>
+								<p class="text-sm text-foreground">{formatDate(selectedContract.start_date)}</p>
+							</div>
+							<div>
+								<p class="text-xs text-muted-foreground mb-1">Date de fin</p>
+								<p class="text-sm text-foreground">
+									{selectedContract.end_date ? formatDate(selectedContract.end_date) : "—"}
+								</p>
+							</div>
+							{#if selectedContract.contract_value}
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Montant du contrat</p>
+									<p class="text-lg font-bold text-foreground">
+										{formatCurrency(selectedContract.contract_value, selectedContract.currency)}
+									</p>
+								</div>
+							{/if}
+							{#if selectedContract.linked_mandate_id}
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Mandat lié</p>
+									<p class="text-sm text-foreground">{selectedContract.linked_mandate_id}</p>
+								</div>
+							{/if}
+						</div>
+					</div>
+
+					<div class="border border-border-card rounded-lg p-6">
 						<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Signatures</p>
 						{#if selectedContract.signatures && selectedContract.signatures.length > 0}
-							<div class="grid grid-cols-2 gap-4">
+							<div class="flex flex-col gap-3">
 								{#each selectedContract.signatures as sig, i (i)}
 									<div class="border border-border rounded-lg p-4">
 										<p class="text-xs text-muted-foreground mb-2">
@@ -896,21 +930,7 @@
 						{/if}
 					</div>
 				</div>
-
-				<!-- Lifecycle info for non-actionable states -->
-				{#if hasNoActions(selectedContract)}
-					<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
-						<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
-						<p>
-							Ce contrat est dans l'état <strong>{STATUS_LABELS[selectedContract.status]}</strong>.
-							{#if selectedContract.status === "archived"}
-								Ce contrat a été archivé et n'est plus modifiable.
-							{:else}
-								Aucune action n'est disponible pour le moment.
-							{/if}
-						</p>
-					</div>
-				{/if}
+				</div>
 			</div>
 		{/if}
 	{/if}
