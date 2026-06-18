@@ -12,6 +12,9 @@
 		FileText,
 		X,
 		Save,
+		Printer,
+		Pencil,
+		Trash2,
 	} from "@lucide/svelte";
 	import { Dialog } from "bits-ui";
 	import {
@@ -19,10 +22,13 @@
 		fetchClient,
 		fetchCaseContracts,
 		createContract,
+		updateDocument,
+		deleteDocument,
 		sendDocument,
 		signContract,
 		activateContract,
 		createInvoiceFromContract,
+		openDocumentPDF,
 		ConflictError,
 	} from "$lib/services/api";
 	import { currentCase } from "$lib/stores/case";
@@ -55,6 +61,7 @@
 	let selectedContract: Contract | null = $state(null);
 	let viewMode: "list" | "detail" = $state("list");
 	let showCreateModal = $state(false);
+	let showEditModal = $state(false);
 
 	// Create form state
 	let formStartDate = $state(todayISO());
@@ -72,6 +79,8 @@
 	let signingContract = $state(false);
 	let activatingContract = $state(false);
 	let creatingInvoice = $state(false);
+	let previewingContractId: string | null = $state(null);
+	let deletingContractId: string | null = $state(null);
 
 	// Status labels and colors
 	const STATUS_LABELS: Record<string, string> = {
@@ -123,6 +132,14 @@
 
 	function canCreateInvoice(c: Contract): boolean {
 		return c.status === "active";
+	}
+
+	function canEdit(c: Contract): boolean {
+		return c.status === "draft";
+	}
+
+	function canDelete(c: Contract): boolean {
+		return c.status === "draft";
 	}
 
 	function hasNoActions(c: Contract): boolean {
@@ -201,6 +218,21 @@
 		viewMode = "detail";
 	}
 
+	async function handlePreview(c: Contract) {
+		previewingContractId = c.id;
+		try {
+			await openDocumentPDF(c.id, "contract");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible d'afficher l'aperçu du contrat.",
+			);
+		} finally {
+			previewingContractId = null;
+		}
+	}
+
 	async function handleCreate() {
 		if (!caseData) return;
 		if (!formScopeOfServices.trim() || !formPaymentTerms.trim() || !formConfidentiality.trim() || !formTerminationClause.trim() || !formStartDate) {
@@ -243,6 +275,86 @@
 			);
 		} finally {
 			formSaving = false;
+		}
+	}
+
+	// =========================================================================
+	// Edit Contract (draft only)
+	// =========================================================================
+
+	function showEdit(c: Contract) {
+		if (!canEdit(c)) return;
+		selectedContract = c;
+		formStartDate = c.start_date ? c.start_date.split("T")[0] : todayISO();
+		formEndDate = c.end_date ? c.end_date.split("T")[0] : "";
+		formScopeOfServices = c.scope_of_services || "";
+		formPaymentTerms = c.payment_terms || "";
+		formConfidentiality = c.confidentiality || "";
+		formTerminationClause = c.termination_clause || "";
+		formContractValue = c.contract_value != null ? String(c.contract_value) : "";
+		formCurrency = c.currency || "EUR";
+		showEditModal = true;
+	}
+
+	async function handleEditSave() {
+		if (!selectedContract || !canEdit(selectedContract)) return;
+		if (!formScopeOfServices.trim() || !formPaymentTerms.trim() || !formConfidentiality.trim() || !formTerminationClause.trim() || !formStartDate) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Veuillez remplir tous les champs obligatoires.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const data = {
+				start_date: new Date(formStartDate).toISOString(),
+				end_date: formEndDate ? new Date(formEndDate).toISOString() : undefined,
+				scope_of_services: formScopeOfServices.trim(),
+				payment_terms: formPaymentTerms.trim(),
+				confidentiality: formConfidentiality.trim(),
+				termination_clause: formTerminationClause.trim(),
+				contract_value: formContractValue ? parseFloat(formContractValue) : undefined,
+				currency: formCurrency || "EUR",
+			};
+
+			const result = await updateDocument(selectedContract.id, "contract", { type: "contract", data });
+			if (result.data) {
+				const updated = { ...selectedContract, ...data } as Contract;
+				contracts = contracts.map((c) => (c.id === updated.id ? updated : c));
+				selectedContract = updated;
+				showEditModal = false;
+				toastState.add(TOAST_LEVELS.Info, "Contrat modifié", "Les modifications ont été enregistrées.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de modifier le contrat.",
+			);
+		} finally {
+			formSaving = false;
+		}
+	}
+
+	// =========================================================================
+	// Delete Contract (draft only)
+	// =========================================================================
+
+	async function handleDelete(c: Contract) {
+		if (!canDelete(c)) return;
+		deletingContractId = c.id;
+		try {
+			await deleteDocument(c.id, "contract");
+			contracts = contracts.filter((x) => x.id !== c.id);
+			if (selectedContract?.id === c.id) showList();
+			toastState.add(TOAST_LEVELS.Info, "Contrat supprimé", "Le contrat a été supprimé.");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de supprimer le contrat.",
+			);
+		} finally {
+			deletingContractId = null;
 		}
 	}
 
@@ -427,6 +539,42 @@
 
 			{#if viewMode === "detail" && selectedContract}
 				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => selectedContract && handlePreview(selectedContract)}
+						disabled={previewingContractId === selectedContract.id}
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
+					>
+						<Printer size={14} class="mr-1" />
+						Aperçu
+					</button>
+					{#if canEdit(selectedContract)}
+						<button
+							type="button"
+							onclick={() => selectedContract && showEdit(selectedContract)}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+						>
+							<Pencil size={14} class="mr-1" />
+							Modifier
+						</button>
+					{/if}
+					{#if canDelete(selectedContract)}
+						<ConfirmDialog
+							title="Supprimer le contrat"
+							description="Le contrat sera définitivement supprimé. Cette action est irréversible."
+							confirmLabel="Supprimer"
+							onConfirm={() => { if (selectedContract) return handleDelete(selectedContract); }}
+						>
+							<button
+								type="button"
+								disabled={deletingContractId === selectedContract.id}
+								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							>
+								<Trash2 size={14} class="mr-1" />
+								Supprimer
+							</button>
+						</ConfirmDialog>
+					{/if}
 					{#if canSend(selectedContract)}
 						<ConfirmDialog
 							title="Envoyer le contrat"
@@ -528,6 +676,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Fin</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
+								<th class="px-6 py-3 w-12"></th>
 							</tr>
 						</thead>
 						<tbody class="bg-background divide-y divide-border">
@@ -560,6 +709,47 @@
 										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(c.status as DocumentStatus)}">
 											{STATUS_LABELS[c.status] || c.status}
 										</span>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap text-right">
+										<div class="flex items-center justify-end gap-1">
+											<button
+												type="button"
+												onclick={(e) => { e.stopPropagation(); handlePreview(c); }}
+												disabled={previewingContractId === c.id}
+												class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+												title="Aperçu / Imprimer"
+											>
+												<Printer size={16} />
+											</button>
+											{#if canEdit(c)}
+												<button
+													type="button"
+													onclick={(e) => { e.stopPropagation(); showEdit(c); }}
+													class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+													title="Modifier"
+												>
+													<Pencil size={16} />
+												</button>
+											{/if}
+											{#if canDelete(c)}
+												<ConfirmDialog
+													title="Supprimer le contrat"
+													description="Le contrat sera définitivement supprimé. Cette action est irréversible."
+													confirmLabel="Supprimer"
+													onConfirm={() => handleDelete(c)}
+												>
+													<button
+														type="button"
+														onclick={(e) => e.stopPropagation()}
+														disabled={deletingContractId === c.id}
+														class="p-1.5 rounded btn-ghost-destructive cursor-pointer disabled:opacity-50"
+														title="Supprimer"
+													>
+														<Trash2 size={16} />
+													</button>
+												</ConfirmDialog>
+											{/if}
+										</div>
 									</td>
 								</tr>
 							{/each}
@@ -816,6 +1006,90 @@
 					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
 						<Save size={14} class="mr-1.5" />
 						{formSaving ? "Enregistrement..." : "Créer le contrat"}
+					</button>
+				</div>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
+
+<!-- ================================================================ -->
+<!-- EDIT MODAL -->
+<!-- ================================================================ -->
+<Dialog.Root bind:open={showEditModal}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]"
+		/>
+		<Dialog.Content
+			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
+		>
+			<!-- Modal header -->
+			<div class="flex-shrink-0 px-8 pt-7 pb-5 border-b border-border-card relative">
+				<Dialog.Title class="text-base font-semibold tracking-tight text-foreground">
+					Modifier le contrat
+				</Dialog.Title>
+				{#if selectedContract}
+					<p class="text-sm text-muted-foreground mt-0.5">{selectedContract.contract_number}</p>
+				{/if}
+				<Dialog.Close class="absolute right-5 top-6 rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer p-0.5">
+					<X class="size-4" />
+					<span class="sr-only">Fermer</span>
+				</Dialog.Close>
+			</div>
+
+			<!-- Modal body -->
+			<div class="flex-1 min-h-0 overflow-y-auto px-8 py-6 flex flex-col gap-5">
+
+				<div class="grid grid-cols-2 gap-4">
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date de début</label>
+						<input type="date" bind:value={formStartDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Date de fin <span class="font-normal text-muted-foreground">(optionnel)</span></label>
+						<input type="date" bind:value={formEndDate} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Montant <span class="font-normal text-muted-foreground">(€, optionnel)</span></label>
+						<input type="number" bind:value={formContractValue} min="0" step="0.01" placeholder="0.00" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Devise</label>
+						<input type="text" bind:value={formCurrency} placeholder="EUR" class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Objet des prestations</label>
+					<textarea bind:value={formScopeOfServices} placeholder="Décrivez l'objet des prestations..." rows="3" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Conditions de paiement</label>
+					<textarea bind:value={formPaymentTerms} placeholder="Ex : Paiement à 30 jours..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Clause de confidentialité</label>
+					<textarea bind:value={formConfidentiality} placeholder="Clause de confidentialité..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Clause de résiliation</label>
+					<textarea bind:value={formTerminationClause} placeholder="Conditions de résiliation..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+			</div>
+
+			<!-- Modal footer -->
+			<div class="flex items-center justify-between px-8 py-4 border-t border-border-card shrink-0">
+				<p class="text-xs text-muted-foreground">Seuls les contrats en brouillon peuvent être modifiés.</p>
+				<div class="flex items-center gap-2">
+					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
+					<button type="button" onclick={handleEditSave} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} class="mr-1.5" />
+						{formSaving ? "Enregistrement..." : "Enregistrer"}
 					</button>
 				</div>
 			</div>
