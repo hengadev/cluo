@@ -515,18 +515,18 @@
 							type="button"
 							onclick={() => selectedMandate && handlePreview(selectedMandate)}
 							disabled={previewingMandateId === selectedMandate.id}
-							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Printer size={14} class="mr-1" />
+							<Printer size={14} />
 							Aperçu
 						</button>
 						{#if canEdit(selectedMandate)}
 							<button
 								type="button"
 								onclick={() => selectedMandate && showEdit(selectedMandate)}
-								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
 							>
-								<Pencil size={14} class="mr-1" />
+								<Pencil size={14} />
 								Modifier
 							</button>
 						{/if}
@@ -563,9 +563,9 @@
 							<button
 								type="button"
 								disabled={sendingMandate}
-								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<Send size={14} class="mr-1" />
+								<Send size={14} />
 								{sendingMandate ? "Envoi..." : "Envoyer"}
 							</button>
 						</ConfirmDialog>
@@ -580,9 +580,9 @@
 							<button
 								type="button"
 								disabled={signingMandate}
-								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<CheckCircle size={14} class="mr-1" />
+								<CheckCircle size={14} />
 								{signingMandate ? "Signature..." : "Signer"}
 							</button>
 						</ConfirmDialog>
@@ -597,9 +597,9 @@
 							<button
 								type="button"
 								disabled={activatingMandate}
-								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<ShieldCheck size={14} class="mr-1" />
+								<ShieldCheck size={14} />
 								{activatingMandate ? "Activation..." : "Activer"}
 							</button>
 						</ConfirmDialog>
@@ -913,8 +913,8 @@
 				<p class="text-xs text-muted-foreground">Le mandat sera créé en brouillon.</p>
 				<div class="flex items-center gap-2">
 					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
-					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
-						<Save size={14} class="mr-1.5" />
+					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} />
 						{formSaving ? "Enregistrement..." : "Créer le mandat"}
 					</button>
 				</div>
@@ -989,8 +989,8 @@
 				<p class="text-xs text-muted-foreground">Seuls les mandats en brouillon peuvent être modifiés.</p>
 				<div class="flex items-center gap-2">
 					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
-					<button type="button" onclick={handleEditSave} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
-						<Save size={14} class="mr-1.5" />
+					<button type="button" onclick={handleEditSave} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} />
 						{formSaving ? "Enregistrement..." : "Enregistrer"}
 					</button>
 				</div>

@@ -496,18 +496,18 @@
 							type="button"
 							onclick={() => selectedEstimate && handlePreview(selectedEstimate)}
 							disabled={previewingEstimateId === selectedEstimate.id}
-							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Printer size={14} class="mr-1" />
+							<Printer size={14} />
 							Aperçu
 						</button>
 						{#if isDraft(selectedEstimate)}
 							<button
 								type="button"
 								onclick={() => { if (selectedEstimate) showEdit(selectedEstimate); }}
-								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center gap-1.5 px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
 							>
-								<Pencil size={14} class="mr-1" />
+								<Pencil size={14} />
 								Modifier
 							</button>
 						{/if}
@@ -544,9 +544,9 @@
 							<button
 								type="button"
 								disabled={sendingEstimate}
-								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<Send size={14} class="mr-1" />
+								<Send size={14} />
 								{sendingEstimate ? "Envoi..." : "Envoyer"}
 							</button>
 						</ConfirmDialog>
@@ -561,9 +561,9 @@
 							<button
 								type="button"
 								disabled={acceptingEstimate}
-								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<CheckCircle size={14} class="mr-1" />
+								<CheckCircle size={14} />
 								{acceptingEstimate ? "Acceptation..." : "Accepter"}
 							</button>
 						</ConfirmDialog>
@@ -785,18 +785,18 @@
 					<button
 						type="button"
 						onclick={showList}
-						class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
+						class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center gap-1.5 px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
 					>
-						<X size={14} class="mr-1" />
+						<X size={14} />
 						Annuler
 					</button>
 					<button
 						type="button"
 						onclick={handleEdit}
 						disabled={formSaving}
-						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 					>
-						<Save size={14} class="mr-1" />
+						<Save size={14} />
 						{formSaving ? "Enregistrement..." : "Enregistrer"}
 					</button>
 				</div>
@@ -1079,9 +1079,9 @@
 						type="button"
 						onclick={handleCreate}
 						disabled={formSaving}
-						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1.5 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 					>
-						<Save size={14} class="mr-1.5" />
+						<Save size={14} />
 						{formSaving ? "Enregistrement..." : "Créer le devis"}
 					</button>
 				</div>
