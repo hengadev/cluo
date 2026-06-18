@@ -18,6 +18,7 @@ import (
 type Service struct {
 	llmClient         ports.LLMClient
 	transcriptionRepo ports.TranscriptionRepository
+	analysisRepo      ports.TranscriptAnalysisRepository
 	crypto            encx.CryptoService
 	logger            *slog.Logger
 }
@@ -26,12 +27,14 @@ type Service struct {
 func New(
 	llmClient ports.LLMClient,
 	transcriptionRepo ports.TranscriptionRepository,
+	analysisRepo ports.TranscriptAnalysisRepository,
 	crypto encx.CryptoService,
 	logger *slog.Logger,
 ) *Service {
 	return &Service{
 		llmClient:         llmClient,
 		transcriptionRepo: transcriptionRepo,
+		analysisRepo:      analysisRepo,
 		crypto:            crypto,
 		logger:            logger.With("component", "ai_transcript_analysis"),
 	}
@@ -113,31 +116,59 @@ Respond in JSON format with the following structure:
 		processingTimeMs,
 	)
 
+	// Persist the analysis (encrypted). A transcription has at most one
+	// analysis, so re-analyzing replaces the previous result.
+	resultEncx, err := ai.ProcessTranscriptAnalysisEncx(ctx, s.crypto, result)
+	if err != nil {
+		return nil, fmt.Errorf("failed to encrypt analysis: %w", err)
+	}
+	if err := s.analysisRepo.Create(ctx, resultEncx); err != nil {
+		return nil, fmt.Errorf("failed to persist analysis: %w", err)
+	}
+
 	return result, nil
 }
 
 // GetAnalysis retrieves an analysis by ID.
 func (s *Service) GetAnalysis(ctx context.Context, id uuid.UUID) (*ai.TranscriptAnalysis, error) {
-	// This would be implemented with a repository when we add persistence
-	return nil, fmt.Errorf("not implemented")
+	analysisEncx, err := s.analysisRepo.GetByID(ctx, id)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get analysis: %w", err)
+	}
+	return ai.DecryptTranscriptAnalysisEncx(ctx, s.crypto, analysisEncx)
 }
 
 // GetAnalysisByTranscriptionID retrieves analysis by transcription ID.
 func (s *Service) GetAnalysisByTranscriptionID(ctx context.Context, transcriptionID uuid.UUID) (*ai.TranscriptAnalysis, error) {
-	// This would be implemented with a repository when we add persistence
-	return nil, fmt.Errorf("not implemented")
+	analysisEncx, err := s.analysisRepo.GetByTranscriptionID(ctx, transcriptionID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get analysis: %w", err)
+	}
+	return ai.DecryptTranscriptAnalysisEncx(ctx, s.crypto, analysisEncx)
 }
 
 // ListAnalyses retrieves analyses with pagination.
 func (s *Service) ListAnalyses(ctx context.Context, req *ports.ListAnalysesRequest) ([]*ai.TranscriptAnalysis, int, error) {
-	// This would be implemented with a repository when we add persistence
-	return nil, 0, fmt.Errorf("not implemented")
+	analysesEncx, total, err := s.analysisRepo.List(ctx, req.TranscriptionID, req.Limit, req.Offset)
+	if err != nil {
+		return nil, 0, fmt.Errorf("failed to list analyses: %w", err)
+	}
+
+	analyses := make([]*ai.TranscriptAnalysis, len(analysesEncx))
+	for i, encx := range analysesEncx {
+		analysis, err := ai.DecryptTranscriptAnalysisEncx(ctx, s.crypto, encx)
+		if err != nil {
+			return nil, 0, fmt.Errorf("failed to decrypt analysis: %w", err)
+		}
+		analyses[i] = analysis
+	}
+
+	return analyses, total, nil
 }
 
 // DeleteAnalysis deletes an analysis.
 func (s *Service) DeleteAnalysis(ctx context.Context, id uuid.UUID) error {
-	// This would be implemented with a repository when we add persistence
-	return fmt.Errorf("not implemented")
+	return s.analysisRepo.Delete(ctx, id)
 }
 
 // buildAnalysisPrompt builds the prompt for transcript analysis.

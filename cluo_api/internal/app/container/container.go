@@ -60,6 +60,7 @@ type Container struct {
 	transcriptAnalysisService ports.TranscriptAnalysisService
 	transcriptionRepo         ports.TranscriptionRepository
 	transcriptionJobRepo      ports.TranscriptionJobRepository
+	analysisRepo              ports.TranscriptAnalysisRepository
 	transcriptionWorker       *worker.TranscriptionWorker
 	chatService              ports.ChatService
 

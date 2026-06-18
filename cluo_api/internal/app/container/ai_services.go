@@ -8,6 +8,7 @@ import (
 	"github.com/google/uuid"
 	ollamaClient "github.com/hengadev/cluo_api/internal/infrastructure/ollama"
 	aiChatRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_chat"
+	aiTranscriptAnalysisRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_transcript_analysis"
 	aiTranscriptionJobRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_transcription_job"
 	aiTranscriptionRepo "github.com/hengadev/cluo_api/internal/infrastructure/postgres/ai_transcription"
 	whisperClient "github.com/hengadev/cluo_api/internal/infrastructure/whisper"
@@ -21,6 +22,8 @@ import (
 
 // initAIServices initializes AI services (Ollama, Whisper, Workers).
 func (c *Container) initAIServices(ctx context.Context) error {
+	c.analysisRepo = aiTranscriptAnalysisRepo.New(ctx, c.dbPool)
+
 	// Initialize Whisper first: it sets transcriptionRepo, which the transcript
 	// analysis service (constructed during Ollama init below) depends on.
 	if err := c.initWhisper(ctx); err != nil {
@@ -64,6 +67,7 @@ func (c *Container) initOllama(ctx context.Context) error {
 	c.transcriptAnalysisService = aiTranscriptAnalysisApp.New(
 		ollama,
 		c.transcriptionRepo,
+		c.analysisRepo,
 		c.crypto,
 		c.logger,
 	)
