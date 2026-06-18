@@ -16,8 +16,8 @@ func (s *Service) DeleteDocument(ctx context.Context, id string, docType documen
 		return errs.NewNotFoundErr(err, "document")
 	}
 
-	if doc.GetStatus().IsFinal() {
-		return errs.NewInvalidValueErr(fmt.Sprintf("cannot delete document in final status: %s", doc.GetStatus()))
+	if doc.GetStatus() != document.DocumentStatusDraft {
+		return errs.NewInvalidValueErr(fmt.Sprintf("cannot delete document in status: %s", doc.GetStatus()))
 	}
 
 	// Check for linked documents
