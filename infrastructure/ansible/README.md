@@ -1,32 +1,26 @@
 # CLUO Infrastructure - Ansible
 
-This Ansible playbook configures and secures a single VPS that hosts both **staging** and **production** environments for the CLUO application.
+This Ansible playbook configures and secures a VPS that hosts both **staging** and **production** environments for the CLUO application, mirroring the deployment that currently runs on homelab's shared VPS (see `homelab/ansible/deploy.yml` and `homelab/docker/cluo/`).
 
 ## Architecture
 
-**Single VPS Multi-Environment Setup:**
-- **Staging Environment** (Ports 8000-8999)
-  - API: `staging-api.clientvault.fr` → port 8080
-  - Web: `staging.clientvault.fr` → port 8100
-  - Mobile: `staging-mobile.clientvault.fr` → port 8200
+**Production and staging are separate Docker Compose projects** (`/opt/cluo` and `/opt/cluo-staging`), not one shared compose file:
 
-- **Production Environment** (Ports 3000-3999, 5000-5999)
-  - API: `api.clientvault.fr` → port 5000
-  - Web: `clientvault.fr` → port 3100
-  - Mobile: `mobile.clientvault.fr` → port 3200
+- **Production** (`/opt/cluo`): `cluo-prod-postgres`, `cluo-prod-redis`, `cluo-prod-api`, `cluo-prod-web`, `cluo-prod-mobile`
+- **Staging** (`/opt/cluo-staging`): `cluo-staging-api`, `cluo-staging-web`, `cluo-staging-mobile`, `cluo-staging-backup`
 
-Each environment has:
-- Separate PostgreSQL database (`cluo_staging`, `cluo_production`)
-- Separate Redis instance
-- Separate S3 buckets for assets
-- Separate environment files (`.env.staging`, `.env.production`)
+Staging has **no Postgres or Redis containers of its own** — it joins production's `cluo-prod-internal` network and connects to `cluo-prod-postgres`/`cluo-prod-redis` directly, using a separate database (`cluo_staging`) and Redis DB index. This is why `app_deploy` creates the staging database role/database on the production Postgres container as part of deployment.
+
+Both projects also join an external `proxy` network, reverse-proxied by Caddy (see `files/Caddyfile.snippet` — currently spliced into homelab's shared Caddyfile, not a standalone Caddy instance on this VPS yet).
+
+Object storage (MinIO) and HashiCorp Vault (transit encryption + pepper secrets) are shared, external dependencies referenced by hostname in the env templates (`homelab-minio`, `homelab-vault` on the homelab box today).
 
 ## Prerequisites
 
 - Ansible >= 2.14 installed on your local machine
 - SSH access to the target VPS
 - VPS already provisioned via Terraform
-- Terraform outputs available for IAM credentials
+- A reachable Postgres-capable container for `cluo-prod-postgres` and Vault/MinIO endpoints reachable from the VPS
 
 ## Quick Start
 
@@ -44,20 +38,7 @@ sudo apt install ansible -y
 pip install ansible
 ```
 
-### 2. Get Terraform Outputs
-
-First, get the required values from your Terraform deployment:
-
-```bash
-cd infrastructure/terraform
-terraform output server_ipv4          # Server IP
-terraform output staging_assets_iam_access_key
-terraform output staging_assets_iam_secret_key
-terraform output production_assets_iam_access_key
-terraform output production_assets_iam_secret_key
-```
-
-### 3. Configure Inventory
+### 2. Configure Inventory
 
 ```bash
 cd infrastructure/ansible
@@ -65,21 +46,13 @@ cd infrastructure/ansible
 # Copy the example inventory
 cp inventory.yml.example inventory.yml
 
-# Edit with your server details
+# Edit with your server details and secrets
 nano inventory.yml
 ```
 
-**Required values in inventory.yml:**
-- `ansible_host`: Server IP from Terraform
-- `ansible_private_key_file`: Path to your SSH key (~/.ssh/cluo)
-- `staging_postgres_password`: From terraform.tfvars
-- `production_postgres_password`: From terraform.tfvars
-- `staging_s3_access_key_id`: From Terraform output
-- `staging_s3_secret_access_key`: From Terraform output
-- `production_s3_access_key_id`: From Terraform output
-- `production_s3_secret_access_key`: From Terraform output
+See `inventory.yml.example` for the full variable list (`cluo_prod_db_*`, `cluo_staging_db_*`, `minio_root_*`, `vault_root_token`, `cluo_backup_*`, etc.) — these map directly to `cluo-prod.env.j2` / `cluo-staging.env.j2`.
 
-### 4. Run the Playbook
+### 3. Run the Playbook
 
 ```bash
 # Full deployment
@@ -104,57 +77,31 @@ ansible-playbook -i inventory.yml site.yml --tags security,docker
 | `firewall` | UFW firewall configuration | `security`, `firewall` |
 | `fail2ban` | Intrusion prevention | `security`, `fail2ban` |
 | `docker` | Docker and Docker Compose installation | `docker` |
-| `app_user` | Application user and directories | `app`, `user` |
-| `app_deploy` | Multi-environment application deployment | `app`, `deploy` |
-| `monitoring` | cAdvisor and Node Exporter | `monitoring` |
+| `app_deploy` | Production + staging application deployment | `app`, `deploy` |
+| `monitoring` | cAdvisor and Node Exporter (optional, opt-in) | `monitoring` |
 | `automatic_updates` | Unattended security updates | `updates` |
-| `backup` | Automated backups | `backup` |
+| `uptime_monitoring` | UptimeRobot health checks (optional, opt-in) | `uptime` |
 
-## Docker Compose Services
-
-The deployment includes **12 containers** (6 per environment):
-
-### Staging Services
-- `postgres_staging`: PostgreSQL 16 for staging
-- `redis_staging`: Redis 7 for staging
-- `api_staging`: API backend (port 8080)
-- `web_staging`: Web frontend (port 8100)
-- `mobile_staging`: Mobile frontend (port 8200)
-
-### Production Services
-- `postgres_production`: PostgreSQL 16 for production
-- `redis_production`: Redis 7 for production
-- `api_production`: API backend (port 5000)
-- `web_production`: Web frontend (port 3100)
-- `mobile_production`: Mobile frontend (port 3200)
-
-## Reverse Proxy (Caddy)
-
-Caddy is configured to route traffic based on hostname:
-
-```
-staging-api.clientvault.fr    → localhost:8080 (staging API)
-staging.clientvault.fr        → localhost:8100 (staging Web)
-staging-mobile.clientvault.fr → localhost:8200 (staging Mobile)
-
-api.clientvault.fr    → localhost:5000 (production API)
-clientvault.fr        → localhost:3100 (production Web)
-mobile.clientvault.fr → localhost:3200 (production Mobile)
-```
+`monitoring` and `uptime_monitoring` are forward-looking scaffolding for this dedicated VPS — they have no equivalent in homelab's current deployment and stay disabled (`enable_monitoring: false`, `enable_uptime_monitoring: false`) until explicitly turned on.
 
 ## Environment Files
 
-Two environment files are created:
+Two environment files are templated, one per compose project:
 
-**.env.staging:**
-- Database: `cluo_staging`
-- API URL: `https://staging-api.clientvault.fr`
-- Assets bucket: `cluo-assets-staging`
+**`/opt/cluo/.env`** (from `cluo-prod.env.j2`):
+- Database: `cluo_production` on `cluo-prod-postgres`
+- Public URL: `https://{{ cluo_domain }}`
+- MinIO bucket: `cluo-prod`
 
-**.env.production:**
-- Database: `cluo_production`
-- API URL: `https://api.clientvault.fr`
-- Assets bucket: `cluo-assets-prod`
+**`/opt/cluo-staging/.env`** (from `cluo-staging.env.j2`):
+- Database: `cluo_staging`, same Postgres container, separate role
+- Public URL: `https://staging-api.{{ cluo_domain }}`
+- MinIO bucket: `cluo-staging`
+- Also carries the `cluo_backup_*` vars consumed by the `cluo-staging-backup` container
+
+## Backups
+
+Backups are **not** an Ansible role — they run inside the `cluo-staging-backup` container defined in `staging.docker-compose.yml`, which crons `files/backup.sh` to tar+GPG-encrypt MinIO data and upload it to S3. Nothing on the Ansible side needs to schedule or manage this.
 
 ## Security Features
 
@@ -173,7 +120,6 @@ Two environment files are created:
 - Default deny incoming, allow outgoing
 - SSH rate limiting
 - HTTP/HTTPS allowed
-- Application ports restricted to localhost
 
 ### Fail2ban
 - SSH brute-force protection
@@ -185,126 +131,52 @@ Two environment files are created:
 | Variable | Description | Default |
 |----------|-------------|---------|
 | `app_name` | Application name | `cluo` |
-| `app_user` | Application user | `cluo` |
-| `app_dir` | Application directory | `/opt/cluo` |
-| `domain` | Root domain | - |
-| `staging_api_domain` | Staging API subdomain | `staging-api.domain` |
-| `staging_web_domain` | Staging web subdomain | `staging.domain` |
-| `staging_mobile_domain` | Staging mobile subdomain | `staging-mobile.domain` |
-| `production_api_domain` | Production API subdomain | `api.domain` |
-| `production_web_domain` | Production web subdomain | `domain` |
-| `production_mobile_domain` | Production mobile subdomain | `mobile.domain` |
-| `staging_postgres_db` | Staging database name | `cluo_staging` |
-| `production_postgres_db` | Production database name | `cluo_production` |
-| `staging_assets_bucket` | Staging S3 bucket | `cluo-assets-staging` |
-| `production_assets_bucket` | Production S3 bucket | `cluo-assets-prod` |
+| `app_user` | Deploy user (no dedicated `cluo` system user is created) | `deploy` |
+| `app_dir` | Production compose directory | `/opt/cluo` |
+| `cluo_domain` | Root domain | `clientvault.fr` |
+| `cluo_registry` | Docker image registry | `hengadev` |
+| `cluo_prod_tag` / `cluo_staging_tag` | Image tags to deploy | `latest` |
+| `cluo_prod_db_name` / `cluo_prod_db_user` / `cluo_prod_db_password` | Production database | `cluo_production` / `cluo` |
+| `cluo_staging_db_name` / `cluo_staging_db_user` / `cluo_staging_db_password` | Staging database (same Postgres container) | `cluo_staging` / `cluo_staging` |
+| `minio_root_user` / `minio_root_password` | MinIO credentials | - |
+| `vault_root_token` | Vault root token for transit keys + pepper secrets | - |
+| `cluo_backup_*` | AWS creds, region, bucket, GPG passphrase for the backup container | - |
 
 ## Post-Deployment Checklist
 
 - [ ] Verify SSH access with key only
 - [ ] Check firewall status: `sudo ufw status`
 - [ ] Verify Fail2ban: `sudo fail2ban-client status`
-- [ ] Check all Docker containers: `docker compose ps`
+- [ ] Check production containers: `cd /opt/cluo && docker compose ps`
+- [ ] Check staging containers: `cd /opt/cluo-staging && docker compose ps`
 - [ ] Test staging endpoints
 - [ ] Test production endpoints
 - [ ] Verify Caddy is routing correctly
-- [ ] Check S3 connectivity
+- [ ] Check MinIO/S3 connectivity
 
 ## Maintenance
 
-### View All Containers
+### View Containers
 
 ```bash
-# SSH into server
-ssh root@your-server-ip
+ssh deploy@your-server-ip
 
-# Check containers
-cd /opt/cluo
-docker compose ps
+cd /opt/cluo && docker compose ps
+cd /opt/cluo-staging && docker compose ps
 ```
 
 ### View Logs
 
 ```bash
-# All logs
-docker compose logs -f
-
-# Staging API logs
-docker compose logs -f api_staging
-
-# Production API logs
-docker compose logs -f api_production
-
-# Caddy logs
-sudo journalctl -u caddy -f
+cd /opt/cluo && docker compose logs -f
+cd /opt/cluo-staging && docker compose logs -f
 ```
 
-### Restart Services
+### Rebuild + Restart
 
 ```bash
-# Restart all services
-docker compose restart
-
-# Restart staging only
-docker compose restart api_staging web_staging mobile_staging
-
-# Restart production only
-docker compose restart api_production web_production mobile_production
-```
-
-### Update Application
-
-```bash
-# SSH into server
-ssh root@your-server-ip
-
-# Pull latest changes
-cd /opt/cluo
-git pull
-
-# Rebuild and restart
-docker compose up -d --build
-```
-
-## Troubleshooting
-
-### Port Conflicts
-
-If you get port conflicts:
-```bash
-# Check what's using the port
-sudo lsof -i :8080
-
-# Kill the process if needed
-sudo kill -9 <PID>
-```
-
-### Database Connection Issues
-
-```bash
-# Check PostgreSQL is running
-docker compose ps postgres_staging
-docker compose ps postgres_production
-
-# View database logs
-docker compose logs postgres_staging
-docker compose logs postgres_production
-```
-
-### Caddy Routing Issues
-
-```bash
-# Check Caddy status
-sudo systemctl status caddy
-
-# View Caddy logs
-sudo journalctl -u caddy -n 50
-
-# Validate Caddyfile
-sudo caddy validate --config /etc/caddy/Caddyfile
-
-# Reload Caddy
-sudo systemctl reload caddy
+cd /opt/cluo && docker compose pull && docker compose up -d --remove-orphans
+cd /opt/cluo-staging && docker compose pull && docker compose up -d --remove-orphans
 ```
 
 ## Development
@@ -324,7 +196,7 @@ ansible-playbook -i inventory.yml site.yml --limit cluo-vps
 
 ## Security Notes
 
-1. **Never commit** `inventory.yml` with real IPs or credentials
+1. **Never commit** `inventory.yml` or `group_vars/*/vault.yml` with real IPs or credentials — both are gitignored
 2. **Use Ansible Vault** for secrets in production
 3. **Rotate credentials** regularly
 4. **Keep Ansible updated** for security patches

@@ -1,6 +1,5 @@
 # =============================================================================
 # Cluo Infrastructure Inventory Example
-# Single VPS: Staging + Production on one server
 # =============================================================================
 #
 # Usage:
@@ -21,75 +20,58 @@ all:
     # Application Settings
     # --------------------------------------------------------------------------
     app_name: cluo
-    app_user: cluo
-    app_group: cluo
+    app_user: deploy
+    app_group: deploy
     app_dir: /opt/cluo
-
-    # --------------------------------------------------------------------------
-    # Docker Settings
-    # --------------------------------------------------------------------------
-    docker_compose_version: "2.24.0"
-    docker_registry: "hengadev"  # Or your Docker registry
 
     # --------------------------------------------------------------------------
     # Domain Settings (from Terraform)
     # --------------------------------------------------------------------------
-    domain: clientvault.fr
-
-    # Staging subdomains
-    staging_api_domain: staging-api.clientvault.fr
-    staging_web_domain: staging.clientvault.fr
-    staging_mobile_domain: staging-mobile.clientvault.fr
-
-    # Production subdomains
+    cluo_domain: clientvault.fr
     production_api_domain: api.clientvault.fr
-    production_web_domain: clientvault.fr
-    production_mobile_domain: mobile.clientvault.fr
 
     # --------------------------------------------------------------------------
-    # Database Settings
+    # Docker image registry + tags
     # --------------------------------------------------------------------------
-    postgres_version: "16"
-    postgres_user: cluo
-
-    # Staging database
-    staging_postgres_db: cluo_staging
-    staging_postgres_password: "your_staging_db_password_here"  # From terraform.tfvars
-
-    # Production database
-    production_postgres_db: cluo_production
-    production_postgres_password: "your_production_db_password_here"  # From terraform.tfvars
+    cluo_registry: hengadev
+    cluo_prod_tag: latest
+    cluo_staging_tag: latest
 
     # --------------------------------------------------------------------------
-    # Redis Settings
+    # PostgreSQL (single cluo-prod-postgres container; staging gets its own
+    # role + database on the same container, created by app_deploy)
     # --------------------------------------------------------------------------
-    redis_password: ""  # Set a secure password if needed
+    cluo_prod_db_name: cluo_production
+    cluo_prod_db_user: cluo
+    cluo_prod_db_password: "your_secure_prod_postgres_password_here"
+    cluo_staging_db_name: cluo_staging
+    cluo_staging_db_user: cluo_staging
+    cluo_staging_db_password: "your_secure_staging_postgres_password_here"
 
     # --------------------------------------------------------------------------
-    # AWS S3 Settings (from Terraform outputs)
+    # MinIO (S3-compatible object storage, shared by prod + staging)
     # --------------------------------------------------------------------------
-    aws_region: eu-central-1
-
-    # Staging S3
-    staging_assets_bucket: cluo-assets-staging
-    staging_backups_bucket: cluo-postgres-backups-staging
-    staging_s3_access_key_id: ""  # From Terraform output: staging_assets_iam_access_key
-    staging_s3_secret_access_key: ""  # From Terraform output: staging_assets_iam_secret_key
-
-    # Production S3
-    production_assets_bucket: cluo-assets-prod
-    production_backups_bucket: cluo-postgres-backups-production
-    production_s3_access_key_id: ""  # From Terraform output: production_assets_iam_access_key
-    production_s3_secret_access_key: ""  # From Terraform output: production_assets_iam_secret_key
-
-    # Vault S3
-    vault_bucket: cluo-vault-storage
+    minio_root_user: "your_minio_root_user"
+    minio_root_password: "your_minio_root_password"
 
     # --------------------------------------------------------------------------
-    # SSH Keys for App User
+    # HashiCorp Vault (transit encryption key + pepper secret per environment)
     # --------------------------------------------------------------------------
-    # Add your public key(s) here to enable SSH access as the 'cluo' user
-    # Get your public key with: cat ~/.ssh/cluo.pub
+    vault_root_token: "your_vault_root_token"
+
+    # --------------------------------------------------------------------------
+    # Cluo backup (MinIO data -> S3, GPG-encrypted, runs from the
+    # cluo-staging-backup container)
+    # --------------------------------------------------------------------------
+    cluo_backup_aws_access_key_id: "AKIAIOSFODNN7EXAMPLE"
+    cluo_backup_aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+    cluo_backup_aws_region: eu-central-1
+    cluo_backup_s3_bucket: cluo-backups
+    cluo_backup_passphrase: "your_gpg_symmetric_passphrase"
+
+    # --------------------------------------------------------------------------
+    # SSH Keys for the deploy user
+    # --------------------------------------------------------------------------
     ssh_public_keys: |
       ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEXAMPLE your_email@example.com
 
@@ -99,25 +81,27 @@ all:
     enable_fail2ban: true
     enable_automatic_updates: true
     ssh_port: 22
-    allowed_ssh_users: []
+    allowed_ssh_ips:
+      - "0.0.0.0/0"
 
     # --------------------------------------------------------------------------
-    # Monitoring
+    # Monitoring (optional, disabled by default)
     # --------------------------------------------------------------------------
     enable_monitoring: false
     enable_loki: false
 
     # --------------------------------------------------------------------------
-    # Backup Settings
+    # Uptime monitoring (optional, disabled by default)
     # --------------------------------------------------------------------------
-    enable_backups: false  # Set to true after configuring IAM credentials
-    backup_retention_days: 7
+    enable_uptime_monitoring: false
+    uptimerobot_api_key: ""
+    uptimerobot_monitor_interval: 300
+    uptimerobot_monitor_friendly_name: "Cluo API /health"
 
     # --------------------------------------------------------------------------
     # Email for notifications
     # --------------------------------------------------------------------------
-    admin_email: admin@clientvault.fr
-    contact_email: admin@clientvault.fr
+    admin_email: henry.gary@hotmail.com
 
   children:
     webservers:
@@ -126,5 +110,5 @@ all:
           # Get this from Terraform output: server_ipv4
           ansible_host: "your_server_ip_here"  # From Terraform output
           ansible_user: root
-          # Path to your SSH key (the one configured in Hetzner Cloud: terraform-cluo)
+          # Path to your SSH key (the one configured in Hetzner Cloud)
           ansible_private_key_file: ~/.ssh/cluo  # Or your SSH key path

@@ -1,34 +1,47 @@
 ---
 # CLUO - Common Variables for All Hosts
 # Copy this to group_vars/all.yml and customize
+#
+# Variable names mirror homelab/ansible's real deployment vars (see
+# homelab/Makefile's ANSIBLE_VARS and homelab/ansible/deploy.yml) since this
+# is the same app and the same compose files, just deployed to its own VPS
+# instead of homelab's shared one.
 
 # Application settings
 app_name: cluo
-app_user: cluo
-app_group: cluo
+app_user: deploy
+app_group: deploy
 app_dir: /opt/cluo
-app_env: production
 
-# Domain settings
-domain: yourdomain.com
-api_domain: api.yourdomain.com
-web_domain: app.yourdomain.com
-mobile_domain: mobile.yourdomain.com
+# Domain
+cluo_domain: clientvault.fr
+production_api_domain: api.clientvault.fr
 
-# PostgreSQL settings
-postgres_version: "16"
-postgres_db: cluo
-postgres_user: cluo
-# postgres_password: Use vault (see vault.yml.example)
+# Docker image registry + tags
+cluo_registry: hengadev
+cluo_prod_tag: latest
+cluo_staging_tag: latest
 
-# Redis settings
-# redis_password: Use vault (see vault.yml.example)
+# PostgreSQL (single cluo-prod-postgres container; staging gets its own
+# role + database on the same container, created by app_deploy)
+cluo_prod_db_name: cluo_production
+cluo_prod_db_user: cluo
+# cluo_prod_db_password: Use vault (see vault.yml.example)
+cluo_staging_db_name: cluo_staging
+cluo_staging_db_user: cluo_staging
+# cluo_staging_db_password: Use vault (see vault.yml.example)
 
-# AWS S3 settings
-s3_bucket: cluo-media-prod
-s3_region: eu-central-1
-# aws_access_key_id: Use vault (see vault.yml.example)
-# aws_secret_access_key: Use vault (see vault.yml.example)
+# MinIO (S3-compatible object storage, shared by prod + staging)
+# minio_root_user / minio_root_password: Use vault (see vault.yml.example)
+
+# HashiCorp Vault (transit encryption key + pepper secret per environment)
+# vault_root_token: Use vault (see vault.yml.example)
+
+# Cluo backup (MinIO data -> S3, GPG-encrypted, runs from the
+# cluo-staging-backup container per homelab/docker/cluo/staging.docker-compose.yml)
+cluo_backup_aws_region: eu-central-1
+cluo_backup_s3_bucket: cluo-backups
+# cluo_backup_aws_access_key_id / cluo_backup_aws_secret_access_key / cluo_backup_passphrase: Use vault
 
 # Security settings
 ssh_port: 22
@@ -58,23 +71,22 @@ cloudflare_ips:
 # Security features
 enable_fail2ban: true
 enable_automatic_updates: true
-enable_monitoring: true
+
+# Monitoring (optional, disabled by default — not part of the real
+# homelab deployment, opt-in scaffolding for the new VPS)
+enable_monitoring: false
 enable_loki: false
-enable_backups: true
 
-# Monitoring
-monitoring_enabled: true
-
-# Backup settings
-backup_retention_days: 7
+# Uptime monitoring (optional, disabled by default — UptimeRobot, not
+# part of the real homelab deployment)
+enable_uptime_monitoring: false
+# uptimerobot_api_key: ""
+uptimerobot_monitor_interval: 300
+uptimerobot_monitor_friendly_name: "Cluo API /health"
 
 # Admin notifications
-admin_email: admin@yourdomain.com
+admin_email: henry.gary@hotmail.com
 
-# Application repository (optional)
-# app_repo: https://github.com/yourusername/cluo.git
-# app_version: main
-
-# Public SSH keys for app user
+# Public SSH keys for the deploy user
 # ssh_public_keys: |
 #   ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExample user@host

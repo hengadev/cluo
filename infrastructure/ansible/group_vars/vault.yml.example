@@ -8,26 +8,21 @@
 #   3. Encrypt: ansible-vault encrypt vault.yml
 #   4. Run playbook: ansible-playbook site.yml --ask-vault-pass
 
-# Database secrets
-postgres_password: "your_secure_postgres_password_here"
-redis_password: "your_secure_redis_password_here"
+# PostgreSQL passwords
+cluo_prod_db_password: "your_secure_prod_postgres_password_here"
+cluo_staging_db_password: "your_secure_staging_postgres_password_here"
 
-# Application secrets
-jwt_secret: "your_jwt_secret_at_least_32_chars_long"
-session_secret: "your_session_secret_at_least_32_chars_long"
+# MinIO (S3-compatible object storage)
+minio_root_user: "your_minio_root_user"
+minio_root_password: "your_minio_root_password"
 
-# AWS credentials (for S3)
-aws_access_key_id: "AKIAIOSFODNN7EXAMPLE"
-aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+# HashiCorp Vault root token (transit encryption + pepper secrets)
+vault_root_token: "your_vault_root_token"
 
-# Other secrets
-oauth_client_secret: ""  # If using OAuth
-api_encryption_key: ""   # For encrypting sensitive data in database
+# Cluo backup (MinIO data -> S3, GPG-encrypted)
+cluo_backup_aws_access_key_id: "AKIAIOSFODNN7EXAMPLE"
+cluo_backup_aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+cluo_backup_passphrase: "your_gpg_symmetric_passphrase"
 
-# Backup credentials (if using separate AWS account for backups)
-backup_aws_access_key_id: ""
-backup_aws_secret_access_key: ""
-
-# Monitoring credentials (if using external monitoring)
-monitoring_api_key: ""
-monitoring_webhook_url: ""
+# UptimeRobot (optional)
+uptimerobot_api_key: ""
