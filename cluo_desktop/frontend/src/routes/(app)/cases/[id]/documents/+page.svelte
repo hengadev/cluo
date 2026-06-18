@@ -47,12 +47,17 @@
 		}
 	});
 
+	function pendingCount(items: any[]): number {
+		return items.filter((i) => i.status === "draft" || i.status === "sent").length;
+	}
+
 	const documentTypes = $derived([
 		{
 			type: "facture",
 			title: "Factures",
 			icon: ReceiptEuro,
 			count: invoices.length,
+			pending: pendingCount(invoices),
 			description: "Factures du dossier"
 		},
 		{
@@ -60,6 +65,7 @@
 			title: "Mandats",
 			icon: Handshake,
 			count: mandates.length,
+			pending: pendingCount(mandates),
 			description: "Mandats du dossier"
 		},
 		{
@@ -67,6 +73,7 @@
 			title: "Devis",
 			icon: FileText,
 			count: estimates.length,
+			pending: pendingCount(estimates),
 			description: "Devis du dossier"
 		},
 		{
@@ -74,6 +81,7 @@
 			title: "Contrats",
 			icon: ShieldCheck,
 			count: contracts.length,
+			pending: pendingCount(contracts),
 			description: "Contrats du dossier"
 		}
 	]);
@@ -110,6 +118,9 @@
 					</div>
 					<h3 class="font-semibold text-foreground text-lg">{doc.title}</h3>
 					<p class="text-sm text-muted-foreground mt-2">{doc.description}</p>
+					{#if doc.pending > 0}
+						<p class="text-xs text-accent-subtle-foreground mt-1">{doc.pending} en attente</p>
+					{/if}
 				</button>
 			{/each}
 		</div>
