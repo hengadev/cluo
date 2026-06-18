@@ -15,12 +15,12 @@
 		}
 	});
 
-	let invoices: any[] = [];
-	let mandates: any[] = [];
-	let estimates: any[] = [];
-	let contracts: any[] = [];
-	let loading = true;
-	let error: string | null = null;
+	let invoices: any[] = $state([]);
+	let mandates: any[] = $state([]);
+	let estimates: any[] = $state([]);
+	let contracts: any[] = $state([]);
+	let loading = $state(true);
+	let error: string | null = $state(null);
 
 	onMount(async () => {
 		if (!caseId) {
