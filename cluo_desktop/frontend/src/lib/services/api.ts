@@ -1457,6 +1457,28 @@ export async function fetchDocument(id: string, type: string): Promise<DocumentA
 }
 
 /**
+ * Fetch the rendered PDF for a document.
+ */
+export async function fetchDocumentPDF(id: string, type: string): Promise<Blob> {
+	if (MOCK) return mock.fetchDocumentPDF(id, type);
+	const response = await apiFetch(`${BASE_URL}/documents/${id}/${type}/pdf`);
+	if (!response.ok) {
+		throw new Error(`Failed to fetch document PDF: ${response.status}`);
+	}
+
+	return response.blob();
+}
+
+/**
+ * Fetch a document's PDF and open it in a new tab for preview/printing.
+ */
+export async function openDocumentPDF(id: string, type: string): Promise<void> {
+	const blob = await fetchDocumentPDF(id, type);
+	const url = URL.createObjectURL(blob);
+	window.open(url, '_blank');
+}
+
+/**
  * Update an existing document
  */
 export async function updateDocument(id: string, type: string, request: UpdateDocumentRequest): Promise<DocumentAPIResponse> {

@@ -532,6 +532,10 @@ export async function fetchDocument(_id: string, _type: string): Promise<Documen
 	return ok();
 }
 
+export async function fetchDocumentPDF(_id: string, _type: string): Promise<Blob> {
+	throw new Error('Not available in mock mode');
+}
+
 export async function updateDocument(
 	_id: string,
 	_type: string,
