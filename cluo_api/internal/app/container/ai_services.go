@@ -21,17 +21,18 @@ import (
 
 // initAIServices initializes AI services (Ollama, Whisper, Workers).
 func (c *Container) initAIServices(ctx context.Context) error {
+	// Initialize Whisper first: it sets transcriptionRepo, which the transcript
+	// analysis service (constructed during Ollama init below) depends on.
+	if err := c.initWhisper(ctx); err != nil {
+		if c.config.AI.Whisper.Enabled {
+			c.logger.WarnContext(ctx, "Whisper initialization failed", "error", err)
+		}
+	}
+
 	// Initialize Ollama client
 	if err := c.initOllama(ctx); err != nil {
 		if c.config.AI.Ollama.Enabled {
 			c.logger.WarnContext(ctx, "Ollama initialization failed", "error", err)
-		}
-	}
-
-	// Initialize Whisper client and related services
-	if err := c.initWhisper(ctx); err != nil {
-		if c.config.AI.Whisper.Enabled {
-			c.logger.WarnContext(ctx, "Whisper initialization failed", "error", err)
 		}
 	}
 
