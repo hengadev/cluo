@@ -31,8 +31,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import DocumentLifecycleStepper from "$lib/custom/documents/DocumentLifecycleStepper.svelte";
+	import { documentStatusBadge } from "$lib/utils/badgeVariants";
 	import type { Case, Client, DocumentStatus, Mandate } from "$lib/types/entities";
 
 	const toastState = getToastContext();
@@ -87,6 +88,30 @@
 		rejected: "Rejeté",
 		expired: "Expiré",
 	};
+
+	const MANDATE_STEPS = [
+		{ key: "draft", label: "Brouillon" },
+		{ key: "sent", label: "Envoyé" },
+		{ key: "signed", label: "Signé" },
+		{ key: "active", label: "Actif" },
+	];
+
+	function statusNote(m: Mandate): string {
+		switch (m.status) {
+			case "active":
+				return "Enquête autorisée — mandat en vigueur.";
+			case "signed":
+				return "Signé — en attente d'activation.";
+			case "sent":
+				return "Envoyé au client — en attente de signature.";
+			case "draft":
+				return "Brouillon — à envoyer pour signature.";
+			case "archived":
+				return "Archivé — ce mandat n'est plus actif.";
+			default:
+				return "";
+		}
+	}
 
 	function todayISO(): string {
 		return new Date().toISOString().split("T")[0];
@@ -485,25 +510,32 @@
 
 			{#if viewMode === "detail" && selectedMandate}
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						onclick={() => selectedMandate && handlePreview(selectedMandate)}
-						disabled={previewingMandateId === selectedMandate.id}
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
-					>
-						<Printer size={14} class="mr-1" />
-						Aperçu
-					</button>
-					{#if canEdit(selectedMandate)}
+					<div class="flex items-center gap-1">
 						<button
 							type="button"
-							onclick={() => selectedMandate && showEdit(selectedMandate)}
-							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+							onclick={() => selectedMandate && handlePreview(selectedMandate)}
+							disabled={previewingMandateId === selectedMandate.id}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Pencil size={14} class="mr-1" />
-							Modifier
+							<Printer size={14} class="mr-1" />
+							Aperçu
 						</button>
+						{#if canEdit(selectedMandate)}
+							<button
+								type="button"
+								onclick={() => selectedMandate && showEdit(selectedMandate)}
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+							>
+								<Pencil size={14} class="mr-1" />
+								Modifier
+							</button>
+						{/if}
+					</div>
+
+					{#if canDelete(selectedMandate) || canSend(selectedMandate) || canSign(selectedMandate) || canActivate(selectedMandate)}
+						<div class="w-px h-5 bg-border"></div>
 					{/if}
+
 					{#if canDelete(selectedMandate)}
 						<ConfirmDialog
 							title="Supprimer le mandat"
@@ -514,10 +546,10 @@
 							<button
 								type="button"
 								disabled={deletingMandateId === selectedMandate.id}
-								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								title="Supprimer"
+								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 							>
-								<Trash2 size={14} class="mr-1" />
-								Supprimer
+								<Trash2 size={16} />
 							</button>
 						</ConfirmDialog>
 					{/if}
@@ -610,7 +642,7 @@
 						<tbody class="bg-background divide-y divide-border">
 							{#each mandates as m (m.id)}
 								<tr
-									class="hover:bg-muted/50 transition-colors cursor-pointer"
+									class="hover:shadow-mini hover:relative transition-interactive duration-150 cursor-pointer"
 									onclick={() => showDetail(m)}
 								>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -681,147 +713,135 @@
 		<!-- DETAIL VIEW -->
 		<!-- ================================================================ -->
 		{:else if viewMode === "detail" && selectedMandate}
-			<div class="max-w-3xl animate-fade-in">
-				<!-- Status banner -->
-				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedMandate.status as DocumentStatus)}">
-						{STATUS_LABELS[selectedMandate.status] || selectedMandate.status}
-					</span>
-					{#if selectedMandate.status === "active"}
-						<span class="text-sm text-success">
-							Enquête autorisée — mandat en vigueur.
-						</span>
-					{:else if selectedMandate.status === "signed"}
-						<span class="text-sm text-success">
-							Signé — en attente d'activation.
-						</span>
-					{:else if selectedMandate.status === "sent"}
-						<span class="text-sm text-accent-subtle-foreground">
-							Envoyé au client — en attente de signature.
-						</span>
-					{:else if selectedMandate.status === "draft"}
-						<span class="text-sm text-muted-foreground">
-							Brouillon — à envoyer pour signature.
-						</span>
-					{:else if selectedMandate.status === "archived"}
-						<span class="text-sm text-muted-foreground">
-							Archivé — ce mandat n'est plus actif.
-						</span>
-					{/if}
-				</div>
+			<div class="max-w-5xl animate-fade-in flex flex-col gap-6">
+				<DocumentLifecycleStepper
+					steps={MANDATE_STEPS}
+					status={selectedMandate.status}
+					statusLabel={STATUS_LABELS[selectedMandate.status] || selectedMandate.status}
+					note={statusNote(selectedMandate)}
+				/>
 
-				<!-- Mandate info card -->
-				<div class="border border-border-card rounded-lg p-6 mb-6">
-					<div class="grid grid-cols-2 gap-4 mb-6">
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Référence</p>
-							<p class="text-sm font-semibold text-foreground">{selectedMandate.mandate_number}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
-							<p class="text-sm text-foreground">{formatDate(selectedMandate.issue_date)}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Valide du</p>
-							<p class="text-sm text-foreground">{formatDate(selectedMandate.valid_from)}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Valide jusqu'au</p>
-							<p class="text-sm text-foreground">
-								{selectedMandate.valid_until ? formatDate(selectedMandate.valid_until) : "—"}
-							</p>
-						</div>
-						{#if selectedMandate.jurisdiction}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Juridiction</p>
-								<p class="text-sm text-foreground">{selectedMandate.jurisdiction}</p>
+				<div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+					<!-- Primary content -->
+					<div class="flex flex-col gap-6 min-w-0">
+						<div class="border border-border-card rounded-lg p-6">
+							<!-- Scope of work -->
+							<div class="mb-4">
+								<p class="text-xs text-muted-foreground mb-1">Objet de la mission</p>
+								<p class="text-sm text-foreground">{selectedMandate.scope_of_work}</p>
 							</div>
-						{/if}
-						{#if selectedMandate.linked_estimate_id}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Devis lié</p>
-								<p class="text-sm text-foreground">{selectedMandate.linked_estimate_id}</p>
+
+							<!-- Terms and conditions -->
+							<div class={selectedMandate.special_instructions ? "mb-4" : ""}>
+								<p class="text-xs text-muted-foreground mb-1">Conditions</p>
+								<p class="text-sm text-muted-foreground">{selectedMandate.terms_conditions}</p>
 							</div>
-						{/if}
-					</div>
 
-					<!-- Scope of work -->
-					<div class="mb-4">
-						<p class="text-xs text-muted-foreground mb-1">Objet de la mission</p>
-						<p class="text-sm text-foreground">{selectedMandate.scope_of_work}</p>
-					</div>
-
-					<!-- Terms and conditions -->
-					<div class="mb-4">
-						<p class="text-xs text-muted-foreground mb-1">Conditions</p>
-						<p class="text-sm text-muted-foreground">{selectedMandate.terms_conditions}</p>
-					</div>
-
-					{#if selectedMandate.special_instructions}
-						<div class="mb-4">
-							<p class="text-xs text-muted-foreground mb-1">Instructions spéciales</p>
-							<p class="text-sm text-muted-foreground italic">{selectedMandate.special_instructions}</p>
-						</div>
-					{/if}
-
-					<!-- Signatures section -->
-					<div class="mt-6 pt-4 border-t border-border">
-						<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Signatures</p>
-						<div class="grid grid-cols-2 gap-4">
-							<!-- Client signature -->
-							<div class="border border-border rounded-lg p-4">
-								<p class="text-xs text-muted-foreground mb-2">Client</p>
-								{#if selectedMandate.client_signature}
-									<div class="flex items-center gap-2">
-										<CheckCircle size={16} class="text-success flex-shrink-0" />
-										<div>
-											<p class="text-sm font-medium text-foreground">{selectedMandate.client_signature.name}</p>
-											<p class="text-xs text-muted-foreground">
-												Signé le {formatDate(selectedMandate.client_signature.signed_at)}
-											</p>
-										</div>
-									</div>
-								{:else}
-									<p class="text-sm text-muted-foreground">En attente de signature</p>
-								{/if}
-							</div>
-							<!-- Investigator signature -->
-							<div class="border border-border rounded-lg p-4">
-								<p class="text-xs text-muted-foreground mb-2">Enquêteur</p>
-								{#if selectedMandate.investigator_signature}
-									<div class="flex items-center gap-2">
-										<CheckCircle size={16} class="text-success flex-shrink-0" />
-										<div>
-											<p class="text-sm font-medium text-foreground">{selectedMandate.investigator_signature.name}</p>
-											<p class="text-xs text-muted-foreground">
-												Signé le {formatDate(selectedMandate.investigator_signature.signed_at)}
-											</p>
-										</div>
-									</div>
-								{:else}
-									<p class="text-sm text-muted-foreground">En attente de signature</p>
-								{/if}
-							</div>
-						</div>
-					</div>
-				</div>
-
-				<!-- Lifecycle info for non-actionable states -->
-				{#if hasNoActions(selectedMandate)}
-					<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
-						<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
-						<p>
-							Ce mandat est dans l'état <strong>{STATUS_LABELS[selectedMandate.status]}</strong>.
-							{#if selectedMandate.status === "active"}
-								L'enquête est autorisée et en cours.
-							{:else if selectedMandate.status === "archived"}
-								Ce mandat a été archivé et n'est plus modifiable.
-							{:else}
-								Aucune action n'est disponible pour le moment.
+							{#if selectedMandate.special_instructions}
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Instructions spéciales</p>
+									<p class="text-sm text-muted-foreground italic">{selectedMandate.special_instructions}</p>
+								</div>
 							{/if}
-						</p>
+						</div>
+
+						<!-- Lifecycle info for non-actionable states -->
+						{#if hasNoActions(selectedMandate)}
+							<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
+								<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
+								<p>
+									Ce mandat est dans l'état <strong>{STATUS_LABELS[selectedMandate.status]}</strong>.
+									{#if selectedMandate.status === "active"}
+										L'enquête est autorisée et en cours.
+									{:else if selectedMandate.status === "archived"}
+										Ce mandat a été archivé et n'est plus modifiable.
+									{:else}
+										Aucune action n'est disponible pour le moment.
+									{/if}
+								</p>
+							</div>
+						{/if}
 					</div>
-				{/if}
+
+					<!-- Metadata + signatures rail -->
+					<div class="flex flex-col gap-6">
+						<div class="border border-border-card rounded-lg p-6">
+							<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Détails</p>
+							<div class="flex flex-col gap-4">
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Référence</p>
+									<p class="text-sm font-semibold text-foreground">{selectedMandate.mandate_number}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
+									<p class="text-sm text-foreground">{formatDate(selectedMandate.issue_date)}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Valide du</p>
+									<p class="text-sm text-foreground">{formatDate(selectedMandate.valid_from)}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Valide jusqu'au</p>
+									<p class="text-sm text-foreground">
+										{selectedMandate.valid_until ? formatDate(selectedMandate.valid_until) : "—"}
+									</p>
+								</div>
+								{#if selectedMandate.jurisdiction}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Juridiction</p>
+										<p class="text-sm text-foreground">{selectedMandate.jurisdiction}</p>
+									</div>
+								{/if}
+								{#if selectedMandate.linked_estimate_id}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Devis lié</p>
+										<p class="text-sm text-foreground">{selectedMandate.linked_estimate_id}</p>
+									</div>
+								{/if}
+							</div>
+						</div>
+
+						<div class="border border-border-card rounded-lg p-6">
+							<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Signatures</p>
+							<div class="flex flex-col gap-3">
+								<!-- Client signature -->
+								<div class="border border-border rounded-lg p-4">
+									<p class="text-xs text-muted-foreground mb-2">Client</p>
+									{#if selectedMandate.client_signature}
+										<div class="flex items-center gap-2">
+											<CheckCircle size={16} class="text-success flex-shrink-0" />
+											<div>
+												<p class="text-sm font-medium text-foreground">{selectedMandate.client_signature.name}</p>
+												<p class="text-xs text-muted-foreground">
+													Signé le {formatDate(selectedMandate.client_signature.signed_at)}
+												</p>
+											</div>
+										</div>
+									{:else}
+										<p class="text-sm text-muted-foreground">En attente de signature</p>
+									{/if}
+								</div>
+								<!-- Investigator signature -->
+								<div class="border border-border rounded-lg p-4">
+									<p class="text-xs text-muted-foreground mb-2">Enquêteur</p>
+									{#if selectedMandate.investigator_signature}
+										<div class="flex items-center gap-2">
+											<CheckCircle size={16} class="text-success flex-shrink-0" />
+											<div>
+												<p class="text-sm font-medium text-foreground">{selectedMandate.investigator_signature.name}</p>
+												<p class="text-xs text-muted-foreground">
+													Signé le {formatDate(selectedMandate.investigator_signature.signed_at)}
+												</p>
+											</div>
+										</div>
+									{:else}
+										<p class="text-sm text-muted-foreground">En attente de signature</p>
+									{/if}
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
 			</div>
 		{/if}
 	{/if}
