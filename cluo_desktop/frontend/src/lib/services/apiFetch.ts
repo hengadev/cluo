@@ -16,8 +16,24 @@ interface ApiFetchOptions extends RequestInit {
 
 function fetchWithTimeout(url: RequestInfo | URL, options: RequestInit): Promise<Response> {
 	const controller = new AbortController();
-	const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
-	return fetch(url, { ...options, signal: controller.signal }).finally(() => clearTimeout(timeoutId));
+
+	// Racing against a timer (rather than relying solely on the abort causing
+	// fetch() to reject) is required: this WebKitGTK build doesn't reliably
+	// reject an in-flight fetch when its AbortSignal fires, so a stale
+	// keep-alive connection can leave the fetch promise pending forever even
+	// after abort() is called. The race forces the await to settle regardless.
+	let timeoutId: ReturnType<typeof setTimeout>;
+	const timeoutPromise = new Promise<never>((_, reject) => {
+		timeoutId = setTimeout(() => {
+			controller.abort();
+			reject(new Error('Request timed out'));
+		}, REQUEST_TIMEOUT_MS);
+	});
+
+	return Promise.race([
+		fetch(url, { ...options, signal: controller.signal }),
+		timeoutPromise,
+	]).finally(() => clearTimeout(timeoutId));
 }
 
 /**
