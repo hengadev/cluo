@@ -106,7 +106,7 @@ func (r *Repository) List(ctx context.Context, filter document.DocumentFilter, p
 	}
 	defer rows.Close()
 
-	var documents []document.DocumentSummary
+	documents := make([]document.DocumentSummary, 0)
 	for rows.Next() {
 		var doc document.DocumentSummary
 		err := rows.Scan(
