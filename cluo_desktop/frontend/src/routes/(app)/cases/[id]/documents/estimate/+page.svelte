@@ -13,6 +13,7 @@
 		FileText,
 		ChevronLeft,
 		AlertTriangle,
+		Printer,
 	} from "@lucide/svelte";
 	import { Dialog } from "bits-ui";
 	import {
@@ -21,8 +22,10 @@
 		fetchCaseEstimates,
 		createEstimate,
 		updateEstimate,
+		deleteDocument,
 		sendDocument,
 		acceptEstimate,
+		openDocumentPDF,
 	} from "$lib/services/api";
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
@@ -65,6 +68,8 @@
 	// Lifecycle action state
 	let sendingEstimate = $state(false);
 	let acceptingEstimate = $state(false);
+	let previewingEstimateId: string | null = $state(null);
+	let deletingEstimateId: string | null = $state(null);
 
 	// Status labels and colors
 	const STATUS_LABELS: Record<string, string> = {
@@ -121,6 +126,10 @@
 
 	function canAccept(est: Estimate): boolean {
 		return est.status === "sent";
+	}
+
+	function canDelete(est: Estimate): boolean {
+		return est.status === "draft";
 	}
 
 	// =========================================================================
@@ -184,6 +193,40 @@
 	function showDetail(est: Estimate) {
 		selectedEstimate = est;
 		viewMode = "detail";
+	}
+
+	async function handlePreview(est: Estimate) {
+		previewingEstimateId = est.id;
+		try {
+			await openDocumentPDF(est.id, "estimate");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible d'afficher l'aperçu du devis.",
+			);
+		} finally {
+			previewingEstimateId = null;
+		}
+	}
+
+	async function handleDelete(est: Estimate) {
+		if (!canDelete(est)) return;
+		deletingEstimateId = est.id;
+		try {
+			await deleteDocument(est.id, "estimate");
+			estimates = estimates.filter((x) => x.id !== est.id);
+			if (selectedEstimate?.id === est.id) showList();
+			toastState.add(TOAST_LEVELS.Info, "Devis supprimé", "Le devis a été supprimé.");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de supprimer le devis.",
+			);
+		} finally {
+			deletingEstimateId = null;
+		}
 	}
 
 	function showEdit(est: Estimate) {
@@ -436,6 +479,15 @@
 
 			{#if viewMode === "detail" && selectedEstimate}
 				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => selectedEstimate && handlePreview(selectedEstimate)}
+						disabled={previewingEstimateId === selectedEstimate.id}
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
+					>
+						<Printer size={14} class="mr-1" />
+						Aperçu
+					</button>
 					{#if isDraft(selectedEstimate)}
 						<button
 							type="button"
@@ -445,6 +497,23 @@
 							<Pencil size={14} class="mr-1" />
 							Modifier
 						</button>
+					{/if}
+					{#if canDelete(selectedEstimate)}
+						<ConfirmDialog
+							title="Supprimer le devis"
+							description="Le devis sera définitivement supprimé. Cette action est irréversible."
+							confirmLabel="Supprimer"
+							onConfirm={() => { if (selectedEstimate) return handleDelete(selectedEstimate); }}
+						>
+							<button
+								type="button"
+								disabled={deletingEstimateId === selectedEstimate.id}
+								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							>
+								<Trash2 size={14} class="mr-1" />
+								Supprimer
+							</button>
+						</ConfirmDialog>
 					{/if}
 					{#if canSend(selectedEstimate)}
 						<ConfirmDialog
@@ -509,6 +578,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date d'émission</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
+								<th class="px-6 py-3 w-12"></th>
 							</tr>
 						</thead>
 						<tbody class="bg-background divide-y divide-border">
@@ -530,6 +600,47 @@
 										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(est.status as DocumentStatus)}">
 											{STATUS_LABELS[est.status] || est.status}
 										</span>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap text-right">
+										<div class="flex items-center justify-end gap-1">
+											<button
+												type="button"
+												onclick={(e) => { e.stopPropagation(); handlePreview(est); }}
+												disabled={previewingEstimateId === est.id}
+												class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+												title="Aperçu / Imprimer"
+											>
+												<Printer size={16} />
+											</button>
+											{#if isDraft(est)}
+												<button
+													type="button"
+													onclick={(e) => { e.stopPropagation(); showEdit(est); }}
+													class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+													title="Modifier"
+												>
+													<Pencil size={16} />
+												</button>
+											{/if}
+											{#if canDelete(est)}
+												<ConfirmDialog
+													title="Supprimer le devis"
+													description="Le devis sera définitivement supprimé. Cette action est irréversible."
+													confirmLabel="Supprimer"
+													onConfirm={() => handleDelete(est)}
+												>
+													<button
+														type="button"
+														onclick={(e) => e.stopPropagation()}
+														disabled={deletingEstimateId === est.id}
+														class="p-1.5 rounded btn-ghost-destructive cursor-pointer disabled:opacity-50"
+														title="Supprimer"
+													>
+														<Trash2 size={16} />
+													</button>
+												</ConfirmDialog>
+											{/if}
+										</div>
 									</td>
 								</tr>
 							{/each}
