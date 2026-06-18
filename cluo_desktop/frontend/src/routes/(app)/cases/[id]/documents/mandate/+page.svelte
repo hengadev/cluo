@@ -8,6 +8,9 @@
 		ChevronLeft,
 		AlertTriangle,
 		FileText,
+		Printer,
+		Pencil,
+		Trash2,
 		X,
 		Save,
 	} from "@lucide/svelte";
@@ -17,9 +20,12 @@
 		fetchClient,
 		fetchCaseMandates,
 		createMandate,
+		updateDocument,
+		deleteDocument,
 		sendDocument,
 		signMandate,
 		activateMandate,
+		openDocumentPDF,
 		ConflictError,
 	} from "$lib/services/api";
 	import { currentCase } from "$lib/stores/case";
@@ -52,6 +58,7 @@
 	let selectedMandate: Mandate | null = $state(null);
 	let viewMode: "list" | "detail" = $state("list");
 	let showCreateModal = $state(false);
+	let showEditModal = $state(false);
 
 	// Create form state
 	let formScopeOfWork = $state("");
@@ -66,6 +73,8 @@
 	let sendingMandate = $state(false);
 	let signingMandate = $state(false);
 	let activatingMandate = $state(false);
+	let previewingMandateId: string | null = $state(null);
+	let deletingMandateId: string | null = $state(null);
 
 	// Status labels and colors
 	const STATUS_LABELS: Record<string, string> = {
@@ -106,6 +115,14 @@
 
 	function canActivate(m: Mandate): boolean {
 		return m.status === "signed";
+	}
+
+	function canEdit(m: Mandate): boolean {
+		return m.status === "draft";
+	}
+
+	function canDelete(m: Mandate): boolean {
+		return m.status === "draft";
 	}
 
 	function hasNoActions(m: Mandate): boolean {
@@ -182,6 +199,21 @@
 		viewMode = "detail";
 	}
 
+	async function handlePreview(m: Mandate) {
+		previewingMandateId = m.id;
+		try {
+			await openDocumentPDF(m.id, "mandate");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible d'afficher l'aperçu du mandat.",
+			);
+		} finally {
+			previewingMandateId = null;
+		}
+	}
+
 	async function handleCreate() {
 		if (!caseData) return;
 		if (!formScopeOfWork.trim() || !formTermsConditions.trim() || !formValidFrom) {
@@ -222,6 +254,82 @@
 			);
 		} finally {
 			formSaving = false;
+		}
+	}
+
+	// =========================================================================
+	// Edit Mandate (draft only)
+	// =========================================================================
+
+	function showEdit(m: Mandate) {
+		if (!canEdit(m)) return;
+		selectedMandate = m;
+		formScopeOfWork = m.scope_of_work || "";
+		formTermsConditions = m.terms_conditions || "";
+		formValidFrom = m.valid_from ? m.valid_from.split("T")[0] : todayISO();
+		formValidUntil = m.valid_until ? m.valid_until.split("T")[0] : "";
+		formJurisdiction = m.jurisdiction || "";
+		formSpecialInstructions = m.special_instructions || "";
+		showEditModal = true;
+	}
+
+	async function handleEditSave() {
+		if (!selectedMandate || !canEdit(selectedMandate)) return;
+		if (!formScopeOfWork.trim() || !formTermsConditions.trim() || !formValidFrom) {
+			toastState.add(TOAST_LEVELS.Error, "Erreur", "Veuillez remplir tous les champs obligatoires.");
+			return;
+		}
+
+		formSaving = true;
+		try {
+			const data = {
+				scope_of_work: formScopeOfWork.trim(),
+				terms_conditions: formTermsConditions.trim(),
+				valid_from: new Date(formValidFrom).toISOString(),
+				valid_until: formValidUntil ? new Date(formValidUntil).toISOString() : undefined,
+				jurisdiction: formJurisdiction.trim() || undefined,
+				special_instructions: formSpecialInstructions.trim() || undefined,
+			};
+
+			const result = await updateDocument(selectedMandate.id, "mandate", { type: "mandate", data });
+			if (result.data) {
+				const updated = { ...selectedMandate, ...data } as Mandate;
+				mandates = mandates.map((m) => (m.id === updated.id ? updated : m));
+				selectedMandate = updated;
+				showEditModal = false;
+				toastState.add(TOAST_LEVELS.Info, "Mandat modifié", "Les modifications ont été enregistrées.");
+			}
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de modifier le mandat.",
+			);
+		} finally {
+			formSaving = false;
+		}
+	}
+
+	// =========================================================================
+	// Delete Mandate (draft only)
+	// =========================================================================
+
+	async function handleDelete(m: Mandate) {
+		if (!canDelete(m)) return;
+		deletingMandateId = m.id;
+		try {
+			await deleteDocument(m.id, "mandate");
+			mandates = mandates.filter((x) => x.id !== m.id);
+			if (selectedMandate?.id === m.id) showList();
+			toastState.add(TOAST_LEVELS.Info, "Mandat supprimé", "Le mandat a été supprimé.");
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de supprimer le mandat.",
+			);
+		} finally {
+			deletingMandateId = null;
 		}
 	}
 
@@ -377,6 +485,42 @@
 
 			{#if viewMode === "detail" && selectedMandate}
 				<div class="flex items-center gap-2">
+					<button
+						type="button"
+						onclick={() => selectedMandate && handlePreview(selectedMandate)}
+						disabled={previewingMandateId === selectedMandate.id}
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
+					>
+						<Printer size={14} class="mr-1" />
+						Aperçu
+					</button>
+					{#if canEdit(selectedMandate)}
+						<button
+							type="button"
+							onclick={() => selectedMandate && showEdit(selectedMandate)}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+						>
+							<Pencil size={14} class="mr-1" />
+							Modifier
+						</button>
+					{/if}
+					{#if canDelete(selectedMandate)}
+						<ConfirmDialog
+							title="Supprimer le mandat"
+							description="Le mandat sera définitivement supprimé. Cette action est irréversible."
+							confirmLabel="Supprimer"
+							onConfirm={() => { if (selectedMandate) return handleDelete(selectedMandate); }}
+						>
+							<button
+								type="button"
+								disabled={deletingMandateId === selectedMandate.id}
+								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							>
+								<Trash2 size={14} class="mr-1" />
+								Supprimer
+							</button>
+						</ConfirmDialog>
+					{/if}
 					{#if canSend(selectedMandate)}
 						<ConfirmDialog
 							title="Envoyer le mandat"
@@ -460,6 +604,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date d'émission</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Validité</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
+								<th class="px-6 py-3 w-12"></th>
 							</tr>
 						</thead>
 						<tbody class="bg-background divide-y divide-border">
@@ -483,6 +628,47 @@
 										<span class="px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full {documentStatusBadge(m.status as DocumentStatus)}">
 											{STATUS_LABELS[m.status] || m.status}
 										</span>
+									</td>
+									<td class="px-6 py-4 whitespace-nowrap text-right">
+										<div class="flex items-center justify-end gap-1">
+											<button
+												type="button"
+												onclick={(e) => { e.stopPropagation(); handlePreview(m); }}
+												disabled={previewingMandateId === m.id}
+												class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer disabled:opacity-50"
+												title="Aperçu / Imprimer"
+											>
+												<Printer size={16} />
+											</button>
+											{#if canEdit(m)}
+												<button
+													type="button"
+													onclick={(e) => { e.stopPropagation(); showEdit(m); }}
+													class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+													title="Modifier"
+												>
+													<Pencil size={16} />
+												</button>
+											{/if}
+											{#if canDelete(m)}
+												<ConfirmDialog
+													title="Supprimer le mandat"
+													description="Le mandat sera définitivement supprimé. Cette action est irréversible."
+													confirmLabel="Supprimer"
+													onConfirm={() => handleDelete(m)}
+												>
+													<button
+														type="button"
+														onclick={(e) => e.stopPropagation()}
+														disabled={deletingMandateId === m.id}
+														class="p-1.5 rounded btn-ghost-destructive cursor-pointer disabled:opacity-50"
+														title="Supprimer"
+													>
+														<Trash2 size={16} />
+													</button>
+												</ConfirmDialog>
+											{/if}
+										</div>
 									</td>
 								</tr>
 							{/each}
@@ -710,6 +896,82 @@
 					<button type="button" onclick={handleCreate} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
 						<Save size={14} class="mr-1.5" />
 						{formSaving ? "Enregistrement..." : "Créer le mandat"}
+					</button>
+				</div>
+			</div>
+		</Dialog.Content>
+	</Dialog.Portal>
+</Dialog.Root>
+
+<!-- ================================================================ -->
+<!-- EDIT MODAL -->
+<!-- ================================================================ -->
+<Dialog.Root bind:open={showEditModal}>
+	<Dialog.Portal>
+		<Dialog.Overlay
+			class="data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 fixed inset-0 z-50 bg-black/60 backdrop-blur-[2px]"
+		/>
+		<Dialog.Content
+			class="rounded-card-lg bg-background shadow-popover data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 outline-hidden fixed left-[50%] top-[50%] z-50 w-full max-w-2xl translate-x-[-50%] translate-y-[-50%] border flex flex-col max-h-[90vh]"
+		>
+			<!-- Modal header -->
+			<div class="flex-shrink-0 px-8 pt-7 pb-5 border-b border-border-card relative">
+				<Dialog.Title class="text-base font-semibold tracking-tight text-foreground">
+					Modifier le mandat
+				</Dialog.Title>
+				{#if selectedMandate}
+					<p class="text-sm text-muted-foreground mt-0.5">{selectedMandate.mandate_number}</p>
+				{/if}
+				<Dialog.Close class="absolute right-5 top-6 rounded-md text-muted-foreground hover:text-foreground transition-interactive duration-150 cursor-pointer p-0.5">
+					<X class="size-4" />
+					<span class="sr-only">Fermer</span>
+				</Dialog.Close>
+			</div>
+
+			<!-- Modal body -->
+			<div class="flex-1 min-h-0 overflow-y-auto px-8 py-6 flex flex-col gap-5">
+
+				<div class="grid grid-cols-2 gap-4">
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Valide du</label>
+						<input type="date" bind:value={formValidFrom} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+					<div class="flex flex-col gap-1.5">
+						<label class="text-sm font-medium text-foreground">Valide jusqu'au <span class="font-normal text-muted-foreground">(optionnel)</span></label>
+						<input type="date" bind:value={formValidUntil} class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Objet de la mission</label>
+					<textarea bind:value={formScopeOfWork} placeholder="Décrivez l'objet de la mission..." rows="3" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Conditions</label>
+					<textarea bind:value={formTermsConditions} placeholder="Conditions générales du mandat..." rows="3" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Juridiction <span class="font-normal text-muted-foreground">(optionnel)</span></label>
+					<input type="text" bind:value={formJurisdiction} placeholder="Ex : France, Paris..." class="h-input rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 text-sm focus:ring-2 focus:ring-offset-2" />
+				</div>
+
+				<div class="flex flex-col gap-1.5">
+					<label class="text-sm font-medium text-foreground">Instructions spéciales <span class="font-normal text-muted-foreground">(optionnel)</span></label>
+					<textarea bind:value={formSpecialInstructions} placeholder="Instructions particulières..." rows="2" class="rounded-input border border-border-input bg-background placeholder:text-muted-foreground/40 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-4 py-3 text-sm focus:ring-2 focus:ring-offset-2 resize-none"></textarea>
+				</div>
+
+			</div>
+
+			<!-- Modal footer -->
+			<div class="flex items-center justify-between px-8 py-4 border-t border-border-card shrink-0">
+				<p class="text-xs text-muted-foreground">Seuls les mandats en brouillon peuvent être modifiés.</p>
+				<div class="flex items-center gap-2">
+					<Dialog.Close class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150 focus:outline-none">Annuler</Dialog.Close>
+					<button type="button" onclick={handleEditSave} disabled={formSaving} class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 transition-interactive duration-150">
+						<Save size={14} class="mr-1.5" />
+						{formSaving ? "Enregistrement..." : "Enregistrer"}
 					</button>
 				</div>
 			</div>
