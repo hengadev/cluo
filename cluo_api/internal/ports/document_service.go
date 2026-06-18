@@ -18,6 +18,7 @@ type DocumentService interface {
 	SignDocument(ctx context.Context, id string, docType document.DocumentType, req *document.SignDocumentRequest) error
 	ArchiveDocument(ctx context.Context, id string, docType document.DocumentType) error
 	GetDocumentHistory(ctx context.Context, id string, docType document.DocumentType, pagination document.Pagination) ([]*document.DocumentVersion, int, error)
+	RenderDocumentPDF(ctx context.Context, id string, docType document.DocumentType) ([]byte, error)
 
 	// Estimate operations
 	CreateEstimate(ctx context.Context, estimate *document.Estimate) (*document.Estimate, error)

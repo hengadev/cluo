@@ -192,6 +192,32 @@ func (h *handler) GetDocument(w http.ResponseWriter, r *http.Request) {
 	h.writeSuccess(w, doc)
 }
 
+func (h *handler) GetDocumentPDF(w http.ResponseWriter, r *http.Request) {
+	documentID := r.PathValue("id")
+	docType := r.PathValue("type")
+
+	if documentID == "" || docType == "" {
+		h.writeError(w, http.StatusBadRequest, "Document ID and type are required")
+		return
+	}
+
+	pdfBytes, err := h.service.RenderDocumentPDF(r.Context(), documentID, document.DocumentType(docType))
+	if err != nil {
+		if err.Error() == "document not found" {
+			h.writeError(w, http.StatusNotFound, "Document not found")
+			return
+		}
+		h.writeError(w, http.StatusInternalServerError, "Failed to render document PDF")
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`inline; filename="%s-%s.pdf"`, docType, documentID))
+	w.Header().Set("Content-Length", strconv.Itoa(len(pdfBytes)))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(pdfBytes)
+}
+
 func (h *handler) UpdateDocument(w http.ResponseWriter, r *http.Request) {
 	documentID := r.PathValue("id")
 	docType := r.PathValue("type")

@@ -75,6 +75,13 @@ func (m *mockDocumentService) GetDocumentHistory(ctx context.Context, id string,
 	args := m.Called(ctx, id, dt, p)
 	return args.Get(0).([]*document.DocumentVersion), args.Int(1), args.Error(2)
 }
+func (m *mockDocumentService) RenderDocumentPDF(ctx context.Context, id string, dt document.DocumentType) ([]byte, error) {
+	args := m.Called(ctx, id, dt)
+	if args.Get(0) == nil {
+		return nil, args.Error(1)
+	}
+	return args.Get(0).([]byte), args.Error(1)
+}
 func (m *mockDocumentService) CreateEstimate(ctx context.Context, e *document.Estimate) (*document.Estimate, error) {
 	args := m.Called(ctx, e)
 	if args.Get(0) == nil {

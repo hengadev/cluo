@@ -14,6 +14,7 @@ func (h *handler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("GET /documents", RequireAdministrator(mw.EnableCORS(h.ListDocuments)))
 	router.HandleFunc("POST /documents", RequireAdministrator(mw.EnableCORS(h.CreateDocument)))
 	router.HandleFunc("GET /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.GetDocument)))
+	router.HandleFunc("GET /documents/{id}/{type}/pdf", RequireAdministrator(mw.EnableCORS(h.GetDocumentPDF)))
 	router.HandleFunc("PATCH /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.UpdateDocument)))
 	router.HandleFunc("DELETE /documents/{id}/{type}", RequireAdministrator(mw.EnableCORS(h.DeleteDocument)))
 	router.HandleFunc("POST /documents/{id}/{type}/send", RequireAdministrator(mw.EnableCORS(h.SendDocument)))
