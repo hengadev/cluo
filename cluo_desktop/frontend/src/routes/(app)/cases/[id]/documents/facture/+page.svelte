@@ -32,8 +32,9 @@
 	import { currentCase } from "$lib/stores/case";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
-	import { documentStatusBadge, paymentStatusBadge } from "$lib/utils/badgeVariants";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import DocumentLifecycleStepper from "$lib/custom/documents/DocumentLifecycleStepper.svelte";
+	import { documentStatusBadge, paymentStatusBadge } from "$lib/utils/badgeVariants";
 	import type { Case, Client, Invoice, InvoiceItem, PaymentRequest, DocumentStatus, PaymentStatus } from "$lib/types/entities";
 
 	const toastState = getToastContext();
@@ -117,6 +118,24 @@
 		online: "Paiement en ligne",
 		other: "Autre",
 	};
+
+	const INVOICE_STEPS = [
+		{ key: "draft", label: "Brouillon" },
+		{ key: "sent", label: "Envoyé" },
+		{ key: "active", label: "Actif" },
+	];
+
+	function statusNote(inv: Invoice): string {
+		if (inv.payment_status === "paid") return "Facture réglée.";
+		if (inv.payment_status === "overdue") return "Paiement en retard — l'échéance est dépassée.";
+		if (inv.payment_status === "partially_paid") {
+			return `Paiement partiel — reste ${formatCurrency(remainingAmount(inv), inv.currency)}.`;
+		}
+		if (inv.status === "sent") return "Envoyée au client — en attente de paiement.";
+		if (inv.status === "draft") return "Brouillon — à envoyer au client.";
+		if (inv.payment_status === "void") return "Facture annulée.";
+		return "";
+	}
 
 	function todayISO(): string {
 		return new Date().toISOString().split("T")[0];
@@ -630,25 +649,32 @@
 
 			{#if viewMode === "detail" && selectedInvoice}
 				<div class="flex items-center gap-2">
-					<button
-						type="button"
-						onclick={() => selectedInvoice && handlePreview(selectedInvoice)}
-						disabled={previewingInvoiceId === selectedInvoice.id}
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50"
-					>
-						<Printer size={14} class="mr-1" />
-						Aperçu
-					</button>
-					{#if canEdit(selectedInvoice)}
+					<div class="flex items-center gap-1">
 						<button
 							type="button"
-							onclick={() => selectedInvoice && showEdit(selectedInvoice)}
-							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer"
+							onclick={() => selectedInvoice && handlePreview(selectedInvoice)}
+							disabled={previewingInvoiceId === selectedInvoice.id}
+							class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 						>
-							<Pencil size={14} class="mr-1" />
-							Modifier
+							<Printer size={14} class="mr-1" />
+							Aperçu
 						</button>
+						{#if canEdit(selectedInvoice)}
+							<button
+								type="button"
+								onclick={() => selectedInvoice && showEdit(selectedInvoice)}
+								class="h-input rounded-input bg-transparent text-foreground hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-medium active:scale-[0.98] border border-border-input cursor-pointer transition-interactive duration-150"
+							>
+								<Pencil size={14} class="mr-1" />
+								Modifier
+							</button>
+						{/if}
+					</div>
+
+					{#if canDelete(selectedInvoice) || canVoid(selectedInvoice) || canSend(selectedInvoice) || (canPay(selectedInvoice) && !showPaymentForm)}
+						<div class="w-px h-5 bg-border"></div>
 					{/if}
+
 					{#if canDelete(selectedInvoice)}
 						<ConfirmDialog
 							title="Supprimer la facture"
@@ -659,10 +685,27 @@
 							<button
 								type="button"
 								disabled={deletingInvoiceId === selectedInvoice.id}
-								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								title="Supprimer"
+								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
 							>
-								<Trash2 size={14} class="mr-1" />
-								Supprimer
+								<Trash2 size={16} />
+							</button>
+						</ConfirmDialog>
+					{/if}
+					{#if canVoid(selectedInvoice)}
+						<ConfirmDialog
+							title="Annuler la facture"
+							description="Attention : cette facture sera annulée définitivement. Cette action est irréversible."
+							confirmLabel="Annuler la facture"
+							onConfirm={handleVoid}
+						>
+							<button
+								type="button"
+								disabled={voidingInvoice}
+								title="Annuler la facture"
+								class="h-input aspect-square rounded-input inline-flex items-center justify-center btn-ghost-destructive cursor-pointer disabled:opacity-50 transition-interactive duration-150"
+							>
+								<Ban size={16} />
 							</button>
 						</ConfirmDialog>
 					{/if}
@@ -692,23 +735,6 @@
 							<Banknote size={14} class="mr-1" />
 							Enregistrer un paiement
 						</button>
-					{/if}
-					{#if canVoid(selectedInvoice)}
-						<ConfirmDialog
-							title="Annuler la facture"
-							description="Attention : cette facture sera annulée définitivement. Cette action est irréversible."
-							confirmLabel="Annuler la facture"
-							onConfirm={handleVoid}
-						>
-							<button
-								type="button"
-								disabled={voidingInvoice}
-								class="h-input rounded-input bg-destructive text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-							>
-								<Ban size={14} class="mr-1" />
-								{voidingInvoice ? "Annulation..." : "Annuler la facture"}
-							</button>
-						</ConfirmDialog>
 					{/if}
 				</div>
 			{/if}
@@ -741,7 +767,7 @@
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Référence</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Date d'émission</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Échéance</th>
-								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
+								<th class="px-6 py-3 text-right text-xs font-medium text-muted-foreground uppercase tracking-wider">Montant</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Paiement</th>
 								<th class="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">Statut</th>
 								<th class="px-6 py-3 w-12"></th>
@@ -750,7 +776,7 @@
 						<tbody class="bg-background divide-y divide-border">
 							{#each invoices as inv (inv.id)}
 								<tr
-									class="hover:bg-muted/50 transition-colors cursor-pointer"
+									class="hover:shadow-mini hover:relative transition-interactive duration-150 cursor-pointer"
 									onclick={() => showDetail(inv)}
 								>
 									<td class="px-6 py-4 whitespace-nowrap">
@@ -764,7 +790,7 @@
 											{inv.due_date ? formatDate(inv.due_date) : "—"}
 										</div>
 									</td>
-									<td class="px-6 py-4 whitespace-nowrap">
+									<td class="px-6 py-4 whitespace-nowrap text-right">
 										<div class="text-sm font-medium text-foreground">
 											{formatCurrency(inv.total_amount, inv.currency)}
 										</div>
@@ -831,78 +857,23 @@
 		<!-- DETAIL VIEW -->
 		<!-- ================================================================ -->
 		{:else if viewMode === "detail" && selectedInvoice}
-			<div class="max-w-3xl animate-fade-in">
-				<!-- Status banner -->
-				<div class="flex items-center gap-3 mb-6">
-					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {documentStatusBadge(selectedInvoice.status as DocumentStatus)}">
-						{STATUS_LABELS[selectedInvoice.status] || selectedInvoice.status}
-					</span>
+			<div class="max-w-5xl animate-fade-in flex flex-col gap-6">
+				<div class="flex items-center gap-3 flex-wrap">
+					<DocumentLifecycleStepper
+						steps={INVOICE_STEPS}
+						status={selectedInvoice.status}
+						statusLabel={STATUS_LABELS[selectedInvoice.status] || selectedInvoice.status}
+						note={statusNote(selectedInvoice)}
+					/>
 					<span class="px-3 py-1.5 inline-flex text-sm leading-5 font-semibold rounded-full {paymentStatusBadge(selectedInvoice.payment_status as PaymentStatus)}">
 						{PAYMENT_STATUS_LABELS[selectedInvoice.payment_status] || selectedInvoice.payment_status}
 					</span>
-					{#if selectedInvoice.payment_status === "paid"}
-						<span class="text-sm text-success">
-							Facture réglée.
-						</span>
-					{:else if selectedInvoice.payment_status === "overdue"}
-						<span class="text-sm text-destructive">
-							Paiement en retard — l'échéance est dépassée.
-						</span>
-					{:else if selectedInvoice.payment_status === "partially_paid"}
-						<span class="text-sm text-tertiary">
-							Paiement partiel — reste {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}.
-						</span>
-					{:else if selectedInvoice.status === "sent"}
-						<span class="text-sm text-accent-subtle-foreground">
-							Envoyée au client — en attente de paiement.
-						</span>
-					{:else if selectedInvoice.status === "draft"}
-						<span class="text-sm text-muted-foreground">
-							Brouillon — à envoyer au client.
-						</span>
-					{:else if selectedInvoice.payment_status === "void"}
-						<span class="text-sm text-destructive">
-							Facture annulée.
-						</span>
-					{/if}
 				</div>
 
-				<!-- Invoice info card -->
-				<div class="border border-border-card rounded-lg p-6 mb-6">
-					<!-- Reference, dates, currency -->
-					<div class="grid grid-cols-2 gap-4 mb-6">
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Référence</p>
-							<p class="text-sm font-semibold text-foreground">{selectedInvoice.invoice_number}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Devise</p>
-							<p class="text-sm text-foreground">{selectedInvoice.currency || "EUR"}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
-							<p class="text-sm text-foreground">{formatDate(selectedInvoice.issue_date)}</p>
-						</div>
-						<div>
-							<p class="text-xs text-muted-foreground mb-1">Date d'échéance</p>
-							<p class="text-sm text-foreground">
-								{selectedInvoice.due_date ? formatDate(selectedInvoice.due_date) : "—"}
-							</p>
-						</div>
-						{#if selectedInvoice.linked_contract_id}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Contrat lié</p>
-								<p class="text-sm text-foreground">{selectedInvoice.linked_contract_id}</p>
-							</div>
-						{/if}
-						{#if selectedInvoice.payment_terms}
-							<div>
-								<p class="text-xs text-muted-foreground mb-1">Conditions de paiement</p>
-								<p class="text-sm text-foreground">{selectedInvoice.payment_terms}</p>
-							</div>
-						{/if}
-					</div>
-
+				<div class="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+					<!-- Primary content -->
+					<div class="flex flex-col gap-6 min-w-0">
+					<div class="border border-border-card rounded-lg p-6">
 					{#if selectedInvoice.notes}
 						<div class="mb-4">
 							<p class="text-xs text-muted-foreground mb-1">Notes</p>
@@ -958,131 +929,172 @@
 						</div>
 					{/if}
 
-					<!-- Payment summary -->
-					<div class="border border-border rounded-lg p-4">
-						<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Paiement</p>
+					</div>
 
-						<!-- Payment progress bar -->
-						<div class="mb-3">
-							<div class="flex justify-between text-sm mb-1">
-								<span class="text-muted-foreground">Payé</span>
-								<span class="font-medium text-foreground">
-									{formatCurrency(selectedInvoice.paid_amount || 0, selectedInvoice.currency)} / {formatCurrency(selectedInvoice.total_amount, selectedInvoice.currency)}
-								</span>
+					<!-- PAYMENT FORM -->
+					{#if showPaymentForm}
+						<div class="border border-success/30 bg-success/10 rounded-lg p-6 animate-fade-in">
+							<h3 class="text-sm font-semibold text-foreground mb-4">Enregistrer un paiement</h3>
+
+							<div class="grid grid-cols-2 gap-4 mb-4">
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Montant ({selectedInvoice.currency || "EUR"}) *</label>
+									<input
+										type="number"
+										bind:value={paymentAmount}
+										min="0.01"
+										step="0.01"
+										placeholder="0.00"
+										class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									/>
+									<p class="text-xs text-muted-foreground mt-1">
+										Reste : {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}
+									</p>
+								</div>
+								<div>
+									<label class="text-xs text-muted-foreground mb-1 block">Mode de paiement *</label>
+									<select
+										bind:value={paymentMethod}
+										class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+									>
+										{#each Object.entries(PAYMENT_METHODS) as [value, label]}
+											<option value={value}>{label}</option>
+										{/each}
+									</select>
+								</div>
 							</div>
-							<div class="w-full bg-muted rounded-full h-2.5">
-								<div
-									class="h-2.5 rounded-full transition-interactive duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent'}"
-									style="width: {paymentProgress(selectedInvoice)}%"
-								></div>
+
+							<div class="flex justify-end gap-2">
+								<button
+									type="button"
+									onclick={cancelPayment}
+									class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
+								>
+									<X size={14} class="mr-1" />
+									Annuler
+								</button>
+								<button
+									type="button"
+									onclick={handlePayment}
+									disabled={paymentSubmitting}
+									class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								>
+									<Save size={14} class="mr-1" />
+									{paymentSubmitting ? "Enregistrement..." : "Enregistrer le paiement"}
+								</button>
+							</div>
+						</div>
+					{/if}
+
+					<!-- Lifecycle info for non-actionable states -->
+					{#if hasNoActions(selectedInvoice) && !showPaymentForm}
+						<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
+							<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
+							<p>
+								Cette facture est dans l'état <strong>{STATUS_LABELS[selectedInvoice.status]}</strong>
+								({PAYMENT_STATUS_LABELS[selectedInvoice.payment_status] || selectedInvoice.payment_status}).
+								{#if selectedInvoice.payment_status === "paid"}
+									La facture a été réglée intégralement.
+								{:else if selectedInvoice.status === "archived"}
+									Cette facture a été archivée et n'est plus modifiable.
+								{:else if selectedInvoice.payment_status === "void"}
+									Cette facture a été annulée.
+								{:else}
+									Aucune action n'est disponible pour le moment.
+								{/if}
+							</p>
+						</div>
+					{/if}
+					</div>
+
+					<!-- Metadata + payment rail -->
+					<div class="flex flex-col gap-6">
+						<div class="border border-border-card rounded-lg p-6">
+							<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Détails</p>
+							<div class="flex flex-col gap-4">
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Référence</p>
+									<p class="text-sm font-semibold text-foreground">{selectedInvoice.invoice_number}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Devise</p>
+									<p class="text-sm text-foreground">{selectedInvoice.currency || "EUR"}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Date d'émission</p>
+									<p class="text-sm text-foreground">{formatDate(selectedInvoice.issue_date)}</p>
+								</div>
+								<div>
+									<p class="text-xs text-muted-foreground mb-1">Date d'échéance</p>
+									<p class="text-sm text-foreground">
+										{selectedInvoice.due_date ? formatDate(selectedInvoice.due_date) : "—"}
+									</p>
+								</div>
+								{#if selectedInvoice.linked_contract_id}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Contrat lié</p>
+										<p class="text-sm text-foreground">{selectedInvoice.linked_contract_id}</p>
+									</div>
+								{/if}
+								{#if selectedInvoice.payment_terms}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Conditions de paiement</p>
+										<p class="text-sm text-foreground">{selectedInvoice.payment_terms}</p>
+									</div>
+								{/if}
 							</div>
 						</div>
 
-						<div class="grid grid-cols-2 gap-4">
-							{#if selectedInvoice.paid_at}
-								<div>
-									<p class="text-xs text-muted-foreground mb-1">Date de paiement</p>
-									<p class="text-sm text-foreground">{formatDate(selectedInvoice.paid_at)}</p>
+						<div class="border border-border-card rounded-lg p-6">
+							<p class="text-xs text-muted-foreground mb-3 font-medium uppercase tracking-wider">Paiement</p>
+
+							<!-- Payment progress bar -->
+							<div class="mb-3">
+								<div class="flex justify-between text-sm mb-1">
+									<span class="text-muted-foreground">Payé</span>
+									<span class="font-medium text-foreground">
+										{formatCurrency(selectedInvoice.paid_amount || 0, selectedInvoice.currency)} / {formatCurrency(selectedInvoice.total_amount, selectedInvoice.currency)}
+									</span>
 								</div>
-							{/if}
-							{#if selectedInvoice.payment_method}
-								<div>
-									<p class="text-xs text-muted-foreground mb-1">Mode de paiement</p>
-									<p class="text-sm text-foreground">{PAYMENT_METHODS[selectedInvoice.payment_method] || selectedInvoice.payment_method}</p>
+								<div class="w-full bg-muted rounded-full h-2.5">
+									<div
+										class="h-2.5 rounded-full transition-interactive duration-300 {selectedInvoice.payment_status === 'paid' ? 'bg-success' : selectedInvoice.payment_status === 'overdue' ? 'bg-destructive' : 'bg-accent'}"
+										style="width: {paymentProgress(selectedInvoice)}%"
+									></div>
 								</div>
-							{/if}
-							{#if selectedInvoice.payment_status !== "paid" && selectedInvoice.payment_status !== "void"}
-								<div>
-									<p class="text-xs text-muted-foreground mb-1">Reste à payer</p>
-									<p class="text-sm font-semibold text-foreground">
-										{formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}
-									</p>
-								</div>
-							{/if}
-							{#if selectedInvoice.late_fee}
-								<div>
-									<p class="text-xs text-muted-foreground mb-1">Pénalité de retard</p>
-									<p class="text-sm text-destructive">{formatCurrency(selectedInvoice.late_fee, selectedInvoice.currency)}</p>
-								</div>
-							{/if}
+							</div>
+
+							<div class="flex flex-col gap-3">
+								{#if selectedInvoice.paid_at}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Date de paiement</p>
+										<p class="text-sm text-foreground">{formatDate(selectedInvoice.paid_at)}</p>
+									</div>
+								{/if}
+								{#if selectedInvoice.payment_method}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Mode de paiement</p>
+										<p class="text-sm text-foreground">{PAYMENT_METHODS[selectedInvoice.payment_method] || selectedInvoice.payment_method}</p>
+									</div>
+								{/if}
+								{#if selectedInvoice.payment_status !== "paid" && selectedInvoice.payment_status !== "void"}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Reste à payer</p>
+										<p class="text-sm font-semibold text-foreground">
+											{formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}
+										</p>
+									</div>
+								{/if}
+								{#if selectedInvoice.late_fee}
+									<div>
+										<p class="text-xs text-muted-foreground mb-1">Pénalité de retard</p>
+										<p class="text-sm text-destructive">{formatCurrency(selectedInvoice.late_fee, selectedInvoice.currency)}</p>
+									</div>
+								{/if}
+							</div>
 						</div>
 					</div>
 				</div>
-
-				<!-- PAYMENT FORM -->
-				{#if showPaymentForm}
-					<div class="border border-success/30 bg-success/10 rounded-lg p-6 mb-6 animate-fade-in">
-						<h3 class="text-sm font-semibold text-foreground mb-4">Enregistrer un paiement</h3>
-
-						<div class="grid grid-cols-2 gap-4 mb-4">
-							<div>
-								<label class="text-xs text-muted-foreground mb-1 block">Montant ({selectedInvoice.currency || "EUR"}) *</label>
-								<input
-									type="number"
-									bind:value={paymentAmount}
-									min="0.01"
-									step="0.01"
-									placeholder="0.00"
-									class="h-input rounded-input border border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-								/>
-								<p class="text-xs text-muted-foreground mt-1">
-									Reste : {formatCurrency(remainingAmount(selectedInvoice), selectedInvoice.currency)}
-								</p>
-							</div>
-							<div>
-								<label class="text-xs text-muted-foreground mb-1 block">Mode de paiement *</label>
-								<select
-									bind:value={paymentMethod}
-									class="h-input rounded-input border border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-								>
-									{#each Object.entries(PAYMENT_METHODS) as [value, label]}
-										<option value={value}>{label}</option>
-									{/each}
-								</select>
-							</div>
-						</div>
-
-						<div class="flex justify-end gap-2">
-							<button
-								type="button"
-								onclick={cancelPayment}
-								class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border-2 border-border-input cursor-pointer"
-							>
-								<X size={14} class="mr-1" />
-								Annuler
-							</button>
-							<button
-								type="button"
-								onclick={handlePayment}
-								disabled={paymentSubmitting}
-								class="h-input rounded-input bg-success text-success-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-							>
-								<Save size={14} class="mr-1" />
-								{paymentSubmitting ? "Enregistrement..." : "Enregistrer le paiement"}
-							</button>
-						</div>
-					</div>
-				{/if}
-
-				<!-- Lifecycle info for non-actionable states -->
-				{#if hasNoActions(selectedInvoice) && !showPaymentForm}
-					<div class="flex items-start gap-2 text-sm text-muted-foreground bg-muted/30 border border-border rounded-lg p-4">
-						<AlertTriangle size={16} class="flex-shrink-0 mt-0.5" />
-						<p>
-							Cette facture est dans l'état <strong>{STATUS_LABELS[selectedInvoice.status]}</strong>
-							({PAYMENT_STATUS_LABELS[selectedInvoice.payment_status] || selectedInvoice.payment_status}).
-							{#if selectedInvoice.payment_status === "paid"}
-								La facture a été réglée intégralement.
-							{:else if selectedInvoice.status === "archived"}
-								Cette facture a été archivée et n'est plus modifiable.
-							{:else if selectedInvoice.payment_status === "void"}
-								Cette facture a été annulée.
-							{:else}
-								Aucune action n'est disponible pour le moment.
-							{/if}
-						</p>
-					</div>
-				{/if}
 			</div>
 		{/if}
 	{/if}
