@@ -26,3 +26,7 @@ cluo_backup_passphrase: "your_gpg_symmetric_passphrase"
 
 # UptimeRobot (optional)
 uptimerobot_api_key: ""
+
+# Cloudflare API token for Caddy's DNS-01 ACME challenge
+# Required permissions: Zone:DNS:Edit on clientvault.fr
+vault_caddy_cloudflare_api_token: "your_cloudflare_api_token_here"

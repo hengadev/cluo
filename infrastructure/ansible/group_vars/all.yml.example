@@ -22,6 +22,10 @@ swap_file_size: 4G
 cluo_domain: clientvault.fr
 production_api_domain: api.clientvault.fr
 
+# Caddy (reverse proxy, runs as a container in the prod compose project)
+caddy_data_dir: "{{ app_dir }}/caddy"
+caddy_cloudflare_api_token: "{{ vault_caddy_cloudflare_api_token | default('') }}"
+
 # Docker image registry + tags
 cluo_registry: hengadev
 cluo_prod_tag: latest

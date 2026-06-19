@@ -49,25 +49,31 @@
       tags:
         - docker
 
-    # 6. Application deployment
+    # 6. Caddy reverse proxy (directories + Caddyfile; the container itself
+    # is started by app_deploy's docker compose up)
+    - role: caddy
+      tags:
+        - caddy
+
+    # 7. Application deployment
     - role: app_deploy
       tags:
         - app
         - deploy
 
-    # 7. Monitoring setup
+    # 8. Monitoring setup
     - role: monitoring
       tags:
         - monitoring
       when: enable_monitoring | default(false)
 
-    # 8. Automatic security updates
+    # 9. Automatic security updates
     - role: automatic_updates
       tags:
         - updates
       when: enable_automatic_updates | default(true)
 
-    # 9. Uptime monitoring (UptimeRobot)
+    # 10. Uptime monitoring (UptimeRobot)
     - role: uptime_monitoring
       tags:
         - uptime
