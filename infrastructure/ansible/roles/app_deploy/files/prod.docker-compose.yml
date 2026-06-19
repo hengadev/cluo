@@ -1,4 +1,26 @@
 services:
+  caddy:
+    image: serfriz/caddy-cloudflare:latest
+    container_name: cluo-prod-caddy
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp" # HTTP/3
+    environment:
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN}
+    volumes:
+      - ${CADDY_DATA_DIR}/config:/etc/caddy:ro
+      - ${CADDY_DATA_DIR}/data:/data
+      - ${CADDY_DATA_DIR}/logs:/var/log/caddy
+    networks:
+      - proxy
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
   cluo-prod-postgres:
     image: postgres:16-alpine
     container_name: cluo-prod-postgres
@@ -109,8 +131,11 @@ networks:
   cluo-prod-internal:
     driver: bridge
     name: cluo-prod-internal
+  # Owned here (not external) — prod is what creates it on the dedicated
+  # VPS; staging joins it as external: true.
   proxy:
-    external: true
+    driver: bridge
+    name: proxy
 
 volumes:
   postgres_data:
