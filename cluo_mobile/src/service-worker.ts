@@ -1,13 +1,11 @@
 /// <reference types="@sveltejs/kit" />
 import { build, files, version } from '$service-worker';
 
-// Create a unique cache name for this deployment
+// Unique cache name for this deployment
 const CACHE = `cache-${version}`;
 
-const ASSETS = [
-	...build, // the app itself
-	...files  // everything in `static`
-];
+// Precached build assets (app shell) + static files
+const ASSETS = [...build, ...files];
 
 self.addEventListener('install', (event) => {
 	// Create a new cache and add all files to it
@@ -36,14 +34,20 @@ self.addEventListener('fetch', (event) => {
 
 	async function respond() {
 		const url = new URL(event.request.url);
+		const sameOrigin = url.origin === self.location.origin;
 		const cache = await caches.open(CACHE);
 
-		// `build`/`files` can always be served from the cache
+		// `build`/`files` are versioned app assets: cache-first
 		if (ASSETS.includes(url.pathname)) {
-			const response = await cache.match(url.pathname);
-			if (response) {
-				return response;
-			}
+			const cached = await cache.match(url.pathname);
+			if (cached) return cached;
+		}
+
+		// Cross-origin requests (e.g. the Go backend API): network-only.
+		// Never read from or write to the cache — avoids serving stale or
+		// leaking authenticated responses while offline.
+		if (!sameOrigin) {
+			return fetch(event.request);
 		}
 
 		// for everything else, try the network first, but
@@ -63,10 +67,10 @@ self.addEventListener('fetch', (event) => {
 
 			return response;
 		} catch (err) {
-			const response = await cache.match(event.request);
+			const cached = await cache.match(event.request);
 
-			if (response) {
-				return response;
+			if (cached) {
+				return cached;
 			}
 
 			// if there's no cache, then just error out
