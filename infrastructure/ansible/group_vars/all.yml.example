@@ -48,6 +48,14 @@ cluo_backup_aws_region: eu-central-1
 cluo_backup_s3_bucket: cluo-backups
 # cluo_backup_aws_access_key_id / cluo_backup_aws_secret_access_key / cluo_backup_passphrase: Use vault
 
+# AI stack (Ollama + whisper.cpp) — one shared cluo-prod-ollama container for
+# both prod and staging; whisper.cpp runs in-process inside the cluo-api image
+cluo_ai_ollama_enabled: true
+cluo_ai_ollama_model: llama3.2
+cluo_ai_whisper_enabled: true
+cluo_ai_whisper_model: base
+cluo_ai_whisper_language: fr
+
 # Security settings
 ssh_port: 22
 # List of IPs allowed to SSH (0.0.0.0/0 for any)

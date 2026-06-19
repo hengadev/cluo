@@ -59,6 +59,17 @@
   changed_when: false
   tags: deploy
 
+- name: Wait for ollama to be ready (model pull can take a while on first run)
+  ansible.builtin.command:
+    cmd: docker exec cluo-prod-ollama ollama list
+  register: ollama_ready
+  until: ollama_ready.rc == 0
+  retries: 20
+  delay: 5
+  changed_when: false
+  when: cluo_ai_ollama_enabled | default(true)
+  tags: deploy
+
 # -----------------------------------------------------------------------------
 # Staging (shares production's Postgres container, separate role + database)
 # -----------------------------------------------------------------------------

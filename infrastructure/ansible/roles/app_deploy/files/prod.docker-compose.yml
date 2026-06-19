@@ -73,6 +73,38 @@ services:
       - cluo-prod-internal
       - proxy
 
+  # Shared by both prod and staging cluo-api (staging joins this network and
+  # points CLUO_AI_OLLAMA_BASE_URL at this same container) — one instance to
+  # fit the AI stack's memory footprint on a single 8GB VPS.
+  cluo-prod-ollama:
+    image: ollama/ollama:latest
+    container_name: cluo-prod-ollama
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - cluo-prod-internal
+
+  # One-shot: pulls the configured model on startup, then exits.
+  cluo-prod-ollama-pull:
+    image: ollama/ollama:latest
+    container_name: cluo-prod-ollama-pull
+    depends_on:
+      cluo-prod-ollama:
+        condition: service_healthy
+    environment:
+      OLLAMA_HOST: cluo-prod-ollama:11434
+    entrypoint: ["ollama", "pull", "${CLUO_AI_OLLAMA_MODEL:-llama3.2}"]
+    restart: "no"
+    networks:
+      - cluo-prod-internal
+
 networks:
   cluo-prod-internal:
     driver: bridge
@@ -84,4 +116,6 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  ollama_data:
     driver: local

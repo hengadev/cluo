@@ -1,5 +1,5 @@
 services:
-  # Staging API - connects to production's postgres and redis on shared network
+  # Staging API - connects to production's postgres, redis, and ollama on shared network
   cluo-staging-api:
     image: ${CLUO_REGISTRY}/cluo-api:${CLUO_STAGING_TAG:-latest}
     container_name: cluo-staging-api
