@@ -70,7 +70,7 @@
 <svelte:head>
     {#if isStaging}
         <meta name="apple-mobile-web-app-title" content="Cluo [Staging]" />
-        <link rel="apple-touch-icon" href="/icon-staging-192.png" />
+        <link rel="apple-touch-icon" href="/icon-staging-180.png" sizes="180x180" />
     {/if}
 </svelte:head>
 
