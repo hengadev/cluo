@@ -30,41 +30,9 @@ resource "hcloud_server" "main" {
     managed_by  = "terraform"
   }
 
-  # Cloud-init with all environment variables
-  user_data = templatefile("${path.module}/cloud-init.yml.tftpl", {
-    # Domain config
-    domain_name = var.domain_name
-
-    # Staging config
-    staging_api_domain      = "staging-api.${var.domain_name}"
-    staging_web_domain      = "staging.${var.domain_name}"
-    staging_mobile_domain   = "staging-mobile.${var.domain_name}"
-    staging_assets_bucket   = "cluo-assets-staging"
-    staging_db_name         = "cluo_staging"
-    staging_db_password     = var.staging_db_password
-
-    # Production config
-    production_api_domain    = "api.${var.domain_name}"
-    production_web_domain    = var.domain_name
-    production_mobile_domain = "mobile.${var.domain_name}"
-    production_assets_bucket = "cluo-assets-prod"
-    production_db_name       = "cluo_production"
-    production_db_password   = var.production_db_password
-
-    # Vault config
-    vault_kms_key_id     = aws_kms_key.vault.id
-    vault_kms_region     = var.aws_region
-    vault_s3_bucket      = aws_s3_bucket.vault.id
-    vault_access_key_id  = aws_iam_access_key.vault_key.id
-    vault_secret_key     = aws_iam_access_key.vault_key.secret
-  })
-
-  # Ensure Vault resources are created first
-  depends_on = [
-    aws_kms_key.vault,
-    aws_s3_bucket.vault,
-    aws_iam_access_key.vault_key
-  ]
+  # Minimal bootstrap only — Ansible (site.yml) handles Docker, Caddy, the
+  # app, and all secrets. See cloud-init.yml.tftpl.
+  user_data = file("${path.module}/cloud-init.yml.tftpl")
 }
 
 # -----------------------------------------------------------------------------

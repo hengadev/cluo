@@ -130,18 +130,3 @@ variable "mx_servers" {
   ]
 }
 
-# -----------------------------------------------------------------------------
-# Database Variables
-# -----------------------------------------------------------------------------
-
-variable "staging_db_password" {
-  description = "PostgreSQL password for staging database"
-  type        = string
-  sensitive   = true
-}
-
-variable "production_db_password" {
-  description = "PostgreSQL password for production database"
-  type        = string
-  sensitive   = true
-}

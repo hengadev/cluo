@@ -73,12 +73,9 @@ contact_email = "admin@clientvault.fr"
 # - cluo_staging  (for staging environment)
 # - cluo_production (for production environment)
 #
-# PostgreSQL will be deployed via Docker Compose on the VPS.
-
-# PostgreSQL user password (shared for both databases)
-# Generate a strong password for the 'cluo' PostgreSQL user
-staging_db_password    = "your_strong_staging_db_password_here"
-production_db_password = "your_strong_production_db_password_here"
+# PostgreSQL is deployed via Docker Compose by the app_deploy Ansible role.
+# Passwords live in infrastructure/ansible/group_vars/all/vault.yml
+# (cluo_prod_db_password / cluo_staging_db_password), not here.
 
 # -----------------------------------------------------------------------------
 # Email (SES) Settings
@@ -107,19 +104,22 @@ email_dkim_records = {
 }
 
 # =============================================================================
-# Server Port Allocation
+# Domain Routing
 # =============================================================================
 #
-# Staging Environment (Ports 8000-8999):
-#   staging-api.clientvault.fr    → 8080
-#   staging.clientvault.fr        → 8100
-#   staging-mobile.clientvault.fr → 8200
+# Caddy (run by the caddy/app_deploy Ansible roles) proxies by Docker
+# container name/port, not host ports — see
+# infrastructure/ansible/roles/caddy/templates/Caddyfile.j2.
 #
-# Production Environment (Ports 3000-3999, 5000-5999):
-#   api.clientvault.fr    → 5000
-#   clientvault.fr        → 3100
-#   www.clientvault.fr    → 3100 (redirect)
-#   mobile.clientvault.fr → 3200
+# Staging:
+#   staging-api.clientvault.fr    → cluo-staging-api:8080
+#   staging.clientvault.fr        → cluo-staging-web:3000
+#   staging-mobile.clientvault.fr → cluo-staging-mobile:3000
+#
+# Production:
+#   api.clientvault.fr            → cluo-prod-api:8080
+#   clientvault.fr, www            → cluo-prod-web:3000
+#   mobile.clientvault.fr         → cluo-prod-mobile:3000
 #
 # =============================================================================
 # Architecture Notes
