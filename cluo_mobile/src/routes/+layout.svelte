@@ -74,7 +74,7 @@
     {/if}
 </svelte:head>
 
-<div class="relative px-4 pt-8">
+<div class="relative px-4" style="padding-top: calc(env(safe-area-inset-top) + 2rem)">
     {@render children()}
     {#if showFooter}
         <div class="fixed bottom-0 inset-x-0 z-50">
