@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+	"net"
 	"net/url"
 	"strings"
 	"time"
@@ -151,7 +152,10 @@ func loadWorkerConfig() (WorkerConfig, error) {
 	}, nil
 }
 
-// validateLocalhostURL validates that the URL points to localhost only.
+// validateLocalhostURL validates that the URL points to localhost or a
+// private network address (e.g. a sibling Docker Compose service such as
+// "ollama"), never a public host — AI services must not receive transcript
+// data over the public internet.
 func validateLocalhostURL(rawURL string) error {
 	u, err := url.Parse(rawURL)
 	if err != nil {
@@ -159,16 +163,28 @@ func validateLocalhostURL(rawURL string) error {
 	}
 
 	host := strings.ToLower(u.Hostname())
+	if host == "" {
+		return fmt.Errorf("URL must have a hostname")
+	}
 
-	// Check for localhost variants
-	isLocalhost := host == "localhost" ||
-		host == "127.0.0.1" ||
-		host == "::1" ||
-		strings.HasPrefix(host, "127.") ||
-		host == "[::1]"
+	if host == "localhost" || strings.HasSuffix(host, ".localhost") {
+		return nil
+	}
 
-	if !isLocalhost {
-		return fmt.Errorf("AI service must be localhost only, got: %s", host)
+	ip := net.ParseIP(host)
+	if ip == nil {
+		ips, err := net.LookupIP(host)
+		if err != nil {
+			return fmt.Errorf("resolve host %q: %w", host, err)
+		}
+		if len(ips) == 0 {
+			return fmt.Errorf("host %q did not resolve to an address", host)
+		}
+		ip = ips[0]
+	}
+
+	if !ip.IsLoopback() && !ip.IsPrivate() {
+		return fmt.Errorf("AI service must be localhost or a private network address, got: %s", host)
 	}
 
 	return nil

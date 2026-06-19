@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/url"
 	"strings"
@@ -168,45 +169,40 @@ func (c *Client) HealthCheck(ctx context.Context) error {
 	return nil
 }
 
-// validateLocalhostURL validates that the URL points to localhost only.
-// Uses proper URL parsing to prevent bypass attacks.
+// validateLocalhostURL validates that the URL points to localhost or a
+// private network address (e.g. a sibling Docker Compose service such as
+// "ollama"), never a public host — Ollama must not receive transcript data
+// over the public internet.
 func validateLocalhostURL(rawURL string) error {
 	parsed, err := url.Parse(rawURL)
 	if err != nil {
 		return fmt.Errorf("invalid URL: %w", err)
 	}
 
-	// Extract hostname (without port)
-	hostname := parsed.Hostname()
+	hostname := strings.ToLower(parsed.Hostname())
 	if hostname == "" {
 		return fmt.Errorf("URL must have a hostname")
 	}
 
-	// Normalize to lowercase for comparison
-	hostname = strings.ToLower(hostname)
-
-	// Check against allowed localhost patterns
-	allowedHosts := []string{
-		"localhost",
-		"127.0.0.1",
-		"::1",
+	if hostname == "localhost" || strings.HasSuffix(hostname, ".localhost") {
+		return nil
 	}
 
-	for _, allowed := range allowedHosts {
-		if hostname == allowed {
-			return nil
+	ip := net.ParseIP(hostname)
+	if ip == nil {
+		ips, err := net.LookupIP(hostname)
+		if err != nil {
+			return fmt.Errorf("resolve host %q: %w", hostname, err)
 		}
+		if len(ips) == 0 {
+			return fmt.Errorf("host %q did not resolve to an address", hostname)
+		}
+		ip = ips[0]
 	}
 
-	// Check for localhost subdomains (e.g., localhost.localdomain)
-	if strings.HasSuffix(hostname, ".localhost") {
-		return nil
+	if !ip.IsLoopback() && !ip.IsPrivate() {
+		return fmt.Errorf("ollama must be localhost or a private network address, got: %s", hostname)
 	}
 
-	// Check for 127.x.x.x range
-	if strings.HasPrefix(hostname, "127.") {
-		return nil
-	}
-
-	return fmt.Errorf("ollama must be localhost only, got: %s", hostname)
+	return nil
 }
