@@ -15,8 +15,22 @@ COPY . .
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o cluo ./cmd/cluo/*.go && \
     CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -ldflags="-s -w" -v -o seed-admin ./cmd/seed-admin/*.go
 
+# whisper.cpp is invoked via os/exec (internal/infrastructure/whisper/client.go),
+# not over the network, so it has to live in this image rather than a sibling
+# container. Built from source since no official static binary is published.
+FROM alpine:3.20 AS whisper-builder
+RUN apk add --no-cache build-base cmake git curl
+RUN git clone --depth 1 https://github.com/ggerganov/whisper.cpp.git /whisper.cpp
+WORKDIR /whisper.cpp
+RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF && \
+    cmake --build build --config Release -j"$(nproc)" && \
+    find build -maxdepth 3 -type f \( -name 'whisper-cli' -o -name 'main' \) -exec cp {} /usr/local/bin/whisper \; && \
+    mkdir -p /models/whisper && \
+    curl -fL -o /models/whisper/base.ggml \
+      https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+
 FROM alpine:latest
-RUN apk add --no-cache ca-certificates
+RUN apk add --no-cache ca-certificates libstdc++ libgomp
 
 WORKDIR /app
 
@@ -28,6 +42,8 @@ RUN addgroup -g 1000 runner && \
 COPY --from=builder /app/cluo .
 COPY --from=builder /app/seed-admin .
 COPY --from=builder /app/*.env ./
+COPY --from=whisper-builder /usr/local/bin/whisper /usr/local/bin/whisper
+COPY --from=whisper-builder /models/whisper /models/whisper
 
 USER runner
 
