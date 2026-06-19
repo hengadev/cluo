@@ -8,7 +8,12 @@ const config = {
 	preprocess: vitePreprocess(),
 
 	kit: {
-		adapter: adapter()
+		adapter: adapter(),
+		// Prerender the offline fallback so it's always available as a static
+		// asset for the service worker to cache, even under server load.
+		prerender: {
+			entries: ['/offline']
+		}
 	}
 };
 

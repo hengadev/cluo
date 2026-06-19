@@ -7,11 +7,17 @@ const CACHE = `cache-${version}`;
 // Precached build assets (app shell) + static files
 const ASSETS = [...build, ...files];
 
+// Navigation fallback shown when the network is unreachable
+const OFFLINE_FALLBACK = '/offline';
+
 self.addEventListener('install', (event) => {
-	// Create a new cache and add all files to it
 	async function addFilesToCache() {
 		const cache = await caches.open(CACHE);
 		await cache.addAll(ASSETS);
+		// Cache the offline page separately so a failure here can't abort install
+		await cache.add(OFFLINE_FALLBACK).catch(() => {
+			console.warn('[sw] could not precache offline fallback');
+		});
 	}
 
 	event.waitUntil(addFilesToCache());
@@ -50,8 +56,9 @@ self.addEventListener('fetch', (event) => {
 			return fetch(event.request);
 		}
 
-		// for everything else, try the network first, but
-		// fall back to the cache if we're offline
+		const isNavigation = event.request.mode === 'navigate';
+
+		// Same-origin requests: network-first, cache fallback for offline use
 		try {
 			const response = await fetch(event.request);
 
@@ -68,9 +75,12 @@ self.addEventListener('fetch', (event) => {
 			return response;
 		} catch (err) {
 			const cached = await cache.match(event.request);
+			if (cached) return cached;
 
-			if (cached) {
-				return cached;
+			// No cached copy: show the offline page for navigations
+			if (isNavigation) {
+				const offline = await cache.match(OFFLINE_FALLBACK);
+				if (offline) return offline;
 			}
 
 			// if there's no cache, then just error out

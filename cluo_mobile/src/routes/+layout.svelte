@@ -38,8 +38,11 @@
             return;
         }
 
-        // Skip if already heading to auth
-        if (page.url.pathname.startsWith("/auth")) return;
+        // Skip auth for routes that don't require it (login + offline fallback)
+        if (
+            page.url.pathname.startsWith("/auth") ||
+            page.url.pathname === "/offline"
+        ) return;
 
         try {
             const res = await apiFetchRaw("/auth/me");
@@ -62,7 +65,10 @@
                 goto("/auth");
             }
         } catch {
-            goto("/auth");
+            // Network failure — usually offline. Don't bounce to /auth and
+            // clobber whatever the service worker served (e.g. offline page);
+            // only redirect when we're actually online.
+            if (navigator.onLine) goto("/auth");
         }
     });
 </script>
