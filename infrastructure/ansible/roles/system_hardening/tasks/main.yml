@@ -164,3 +164,54 @@
     group: root
     mode: "0644"
   tags: logging
+
+# Ollama + whisper.cpp alongside Postgres/Redis/MinIO/app containers leaves
+# little headroom on an 8GB server; swap turns a memory spike into degraded
+# performance instead of an OOM kill.
+- name: Create swap file
+  ansible.builtin.command: fallocate -l {{ swap_file_size | default('4G') }} {{ swap_file_path | default('/swapfile') }}
+  args:
+    creates: "{{ swap_file_path | default('/swapfile') }}"
+  tags: swap
+
+- name: Set swap file permissions
+  ansible.builtin.file:
+    path: "{{ swap_file_path | default('/swapfile') }}"
+    mode: "0600"
+  tags: swap
+
+- name: Check swap file format
+  ansible.builtin.command: file -b {{ swap_file_path | default('/swapfile') }}
+  register: swap_file_format
+  changed_when: false
+  tags: swap
+
+- name: Format swap file
+  ansible.builtin.command: mkswap {{ swap_file_path | default('/swapfile') }}
+  when: "'swap file' not in swap_file_format.stdout"
+  tags: swap
+
+- name: Enable swap file
+  ansible.builtin.command: swapon {{ swap_file_path | default('/swapfile') }}
+  register: swapon_result
+  changed_when: swapon_result.rc == 0
+  failed_when: false
+  tags: swap
+
+- name: Persist swap file in fstab
+  ansible.builtin.mount:
+    path: none
+    src: "{{ swap_file_path | default('/swapfile') }}"
+    fstype: swap
+    opts: sw
+    state: present
+  tags: swap
+
+- name: Tune swappiness for a server-with-containers workload
+  ansible.posix.sysctl:
+    name: vm.swappiness
+    value: "10"
+    state: present
+    reload: true
+    sysctl_file: /etc/sysctl.d/99-security.conf
+  tags: swap

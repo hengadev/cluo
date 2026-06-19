@@ -13,6 +13,11 @@ app_user: deploy
 app_group: deploy
 app_dir: /opt/cluo
 
+# Swap file (system_hardening role) — needed headroom on an 8GB cpx31 once
+# Ollama + whisper.cpp run alongside Postgres/Redis/MinIO/app containers
+swap_file_path: /swapfile
+swap_file_size: 4G
+
 # Domain
 cluo_domain: clientvault.fr
 production_api_domain: api.clientvault.fr
