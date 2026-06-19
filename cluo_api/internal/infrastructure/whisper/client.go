@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"os"
 	"os/exec"
 	"strings"
 	"time"
@@ -12,17 +13,13 @@ import (
 	"github.com/hengadev/cluo_api/internal/ports"
 )
 
-const (
-	// defaultLanguage is the default language for transcription.
-	defaultLanguage = "en"
-)
-
 // Client implements the WhisperClient interface using whisper.cpp.
 type Client struct {
-	binary      string
-	modelPath   string
-	model       string
-	timeout     time.Duration
+	binary    string
+	modelPath string
+	model     string
+	language  string
+	timeout   time.Duration
 }
 
 // New creates a new Whisper client.
@@ -40,6 +37,7 @@ func New(cfg config.WhisperConfig) (*Client, error) {
 		binary:    cfg.Binary,
 		modelPath: cfg.ModelPath,
 		model:     cfg.Model,
+		language:  cfg.Language,
 		timeout:   cfg.Timeout,
 	}, nil
 }
@@ -50,25 +48,31 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 	timeoutCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	// Build whisper command
+	// whisper-cli writes its JSON result to "<audioPath>.json" — it does
+	// not print JSON to stdout — so we read that sidecar file afterward.
+	jsonPath := audioPath + ".json"
+	defer os.Remove(jsonPath)
+
 	args := []string{
 		"-m", c.modelPath + "/" + c.model + ".ggml",
 		"-f", audioPath,
-		"-l", defaultLanguage,
-		"--output-json", // Output in JSON format
+		"-l", c.language,
+		"--output-json",
 	}
 
-	// Run whisper command
 	cmd := exec.CommandContext(timeoutCtx, c.binary, args...)
 
-	// Capture combined output (stdout + stderr)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return nil, fmt.Errorf("whisper command failed: %w, output: %s", err, string(output))
 	}
 
-	// Parse JSON output
-	result, err := c.parseOutput(string(output))
+	raw, err := os.ReadFile(jsonPath)
+	if err != nil {
+		return nil, fmt.Errorf("read whisper JSON output: %w, command output: %s", err, string(output))
+	}
+
+	result, err := c.parseOutput(raw)
 	if err != nil {
 		return nil, fmt.Errorf("parse whisper output: %w", err)
 	}
@@ -76,86 +80,62 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 	return result, nil
 }
 
-// whisperJSONOutput represents the JSON output from whisper.cpp.
+// whisperJSONOutput represents the JSON file whisper-cli writes alongside
+// the input audio when run with --output-json.
 type whisperJSONOutput struct {
-	Text      string             `json:"text"`
-	Segments []whisperSegment    `json:"segments,omitempty"`
-	Language  string             `json:"language,omitempty"`
-	Duration  float64            `json:"duration,omitempty"`
+	Result struct {
+		Language string `json:"language"`
+	} `json:"result"`
+	Transcription []whisperSegment `json:"transcription"`
 }
 
 type whisperSegment struct {
-	ID        int     `json:"id"`
-	Start     float64 `json:"start"`
-	End       float64 `json:"end"`
-	Text      string  `json:"text"`
+	Offsets struct {
+		From int64 `json:"from"`
+		To   int64 `json:"to"`
+	} `json:"offsets"`
+	Text string `json:"text"`
 }
 
-// parseOutput parses the output from whisper.cpp.
-func (c *Client) parseOutput(output string) (*ports.WhisperResult, error) {
-	// The JSON output is typically in the last few lines
-	// Split by lines and find the JSON object
-	lines := strings.Split(output, "\n")
-
-	var jsonOutput string
-	// Look for JSON object (starts with {) and collect multi-line JSON
-	for i, line := range lines {
-		trimmed := strings.TrimSpace(line)
-		if strings.HasPrefix(trimmed, "{") {
-			// Collect lines starting from the opening brace
-			var builder strings.Builder
-			for j := i; j < len(lines); j++ {
-				builder.WriteString(lines[j])
-				builder.WriteString("\n")
-				candidate := builder.String()
-				if strings.Count(candidate, "{") <= strings.Count(candidate, "}") {
-					jsonOutput = candidate
-					break
-				}
-			}
-			break
-		}
-	}
-
-	if jsonOutput == "" {
-		// Fallback: try to parse the entire output as JSON
-		jsonOutput = output
-	}
-
+// parseOutput parses the JSON file produced by whisper.cpp.
+func (c *Client) parseOutput(raw []byte) (*ports.WhisperResult, error) {
 	var whisperOut whisperJSONOutput
-	if err := json.Unmarshal([]byte(jsonOutput), &whisperOut); err != nil {
+	if err := json.Unmarshal(raw, &whisperOut); err != nil {
 		return nil, fmt.Errorf("unmarshal JSON: %w", err)
 	}
 
-	// Build result
-	durationMs := int64(whisperOut.Duration * 1000)
-	confidence := c.calculateConfidence(whisperOut)
+	var textBuilder strings.Builder
+	var durationMs int64
+	for _, segment := range whisperOut.Transcription {
+		textBuilder.WriteString(segment.Text)
+		if segment.Offsets.To > durationMs {
+			durationMs = segment.Offsets.To
+		}
+	}
+
+	confidence := c.calculateConfidence(whisperOut.Transcription, textBuilder.Len())
 
 	return &ports.WhisperResult{
-		Transcript:      strings.TrimSpace(whisperOut.Text),
+		Transcript:      strings.TrimSpace(textBuilder.String()),
 		ConfidenceScore: confidence,
-		Language:        whisperOut.Language,
+		Language:        whisperOut.Result.Language,
 		Duration:        durationMs,
 	}, nil
 }
 
 // calculateConfidence calculates a confidence score based on segment data.
-func (c *Client) calculateConfidence(output whisperJSONOutput) float32 {
+func (c *Client) calculateConfidence(segments []whisperSegment, totalLength int) float32 {
 	// If no segments, return default confidence
-	if len(output.Segments) == 0 {
+	if len(segments) == 0 {
 		return 0.8 // Default confidence
 	}
 
-	// Simple heuristic: confidence based on text length and segment count
-	// In a real implementation, you might use actual token probabilities if available
-	totalLength := len(output.Text)
 	if totalLength == 0 {
 		return 0.0
 	}
 
 	// More segments with reasonable text = higher confidence
-	segmentCount := len(output.Segments)
-	avgSegmentLength := totalLength / segmentCount
+	avgSegmentLength := totalLength / len(segments)
 
 	// Heuristic: good transcriptions have segments of 5-50 characters
 	if avgSegmentLength >= 5 && avgSegmentLength <= 50 {

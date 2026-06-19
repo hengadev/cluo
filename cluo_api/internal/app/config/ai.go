@@ -26,12 +26,13 @@ type OllamaConfig struct {
 
 // WhisperConfig holds Whisper.cpp (local speech-to-text) configuration.
 type WhisperConfig struct {
-	Enabled       bool
-	Binary        string
-	ModelPath     string
-	Model         string
-	Timeout       time.Duration
-	DeleteAudio   bool
+	Enabled     bool
+	Binary      string
+	ModelPath   string
+	Model       string
+	Language    string
+	Timeout     time.Duration
+	DeleteAudio bool
 }
 
 // WorkerConfig holds background worker configuration for async transcription.
@@ -118,6 +119,7 @@ func loadWhisperConfig() (WhisperConfig, error) {
 		Binary:      binary,
 		ModelPath:   getEnv("CLUO_AI_WHISPER_MODEL_PATH", "/models/whisper"),
 		Model:       getEnv("CLUO_AI_WHISPER_MODEL", "base"),
+		Language:    getEnv("CLUO_AI_WHISPER_LANGUAGE", "fr"),
 		Timeout:     timeout,
 		DeleteAudio: deleteAudio,
 	}, nil
