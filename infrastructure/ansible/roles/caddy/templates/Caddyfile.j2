@@ -1,0 +1,173 @@
+# Caddyfile - Managed by Ansible - DO NOT EDIT MANUALLY
+# Generated: {{ ansible_date_time.iso8601 }}
+{
+	email {{ caddy_acme_email }}
+
+	servers {
+		# Trust Cloudflare proxy IPs for X-Forwarded-For headers
+		trusted_proxies static {{ cloudflare_ips | join(' ') }}
+	}
+}
+
+(security_headers) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "no-referrer"
+		Permissions-Policy "geolocation=(), microphone=(), camera=()"
+		-Server
+	}
+}
+
+# ─── Production ───────────────────────────────────────────────────────────
+
+{{ cluo_domain }}, www.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-prod-web:3000
+
+	import security_headers
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+api.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-prod-api:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+mobile.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-prod-mobile:3000
+
+	import security_headers
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+# ─── Staging ───────────────────────────────────────────────────────────────
+
+staging.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-staging-web:3000
+
+	import security_headers
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/staging-access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+staging-api.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-staging-api:8080
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		-Server
+	}
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/staging-access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}
+
+staging-mobile.{{ cluo_domain }} {
+	tls {
+		dns cloudflare {env.CLOUDFLARE_API_TOKEN}
+	}
+
+	reverse_proxy cluo-staging-mobile:3000
+
+	import security_headers
+
+	request_body {
+		max_size {{ caddy_client_max_body_size }}
+	}
+
+	log {
+		output file /var/log/caddy/staging-access.log {
+			roll_size 100mb
+			roll_keep 5
+			roll_keep_for 720h
+		}
+		format json
+	}
+}

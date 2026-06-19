@@ -1,0 +1,32 @@
+---
+# Caddy reverse proxy: directories + Caddyfile only. The caddy container
+# itself is started by app_deploy's `docker compose up` (it's defined in
+# prod.docker-compose.yml, on the network app_deploy owns).
+
+- name: Create Caddy directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user | default('deploy') }}"
+    group: "{{ app_group | default(app_user | default('deploy')) }}"
+    mode: "0750"
+  loop:
+    - "{{ caddy_data_dir }}/data"
+    - "{{ caddy_data_dir }}/config"
+    - "{{ caddy_data_dir }}/logs"
+  tags: caddy
+
+- name: Create Caddyfile from template
+  ansible.builtin.template:
+    src: Caddyfile.j2
+    dest: "{{ caddy_data_dir }}/config/Caddyfile"
+    owner: "{{ app_user | default('deploy') }}"
+    group: "{{ app_group | default(app_user | default('deploy')) }}"
+    mode: "0640"
+  notify: reload caddy
+  tags: caddy
+
+- name: Mark Caddy as configured
+  ansible.builtin.set_fact:
+    caddy_configured: true
+  tags: caddy
