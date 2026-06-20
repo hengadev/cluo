@@ -107,6 +107,18 @@ output "cluo_app_secret_access_key" {
   sensitive   = true
 }
 
+output "backup_production_access_key_id" {
+  description = "IAM access key ID for production PostgreSQL/MinIO backups to S3"
+  value       = aws_iam_access_key.backup_production_key.id
+  sensitive   = true
+}
+
+output "backup_production_secret_access_key" {
+  description = "IAM secret access key for production PostgreSQL/MinIO backups to S3"
+  value       = aws_iam_access_key.backup_production_key.secret
+  sensitive   = true
+}
+
 # -----------------------------------------------------------------------------
 # SES Email
 # -----------------------------------------------------------------------------

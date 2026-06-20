@@ -72,6 +72,16 @@ resource "cloudflare_dns_record" "production_api" {
   ttl     = 1
 }
 
+# Media (self-hosted MinIO, reverse-proxied by Caddy — shared by prod + staging)
+resource "cloudflare_dns_record" "media" {
+  zone_id = var.zone_id
+  name    = "media"
+  type    = "A"
+  content = local.vps_ipv4
+  proxied = true
+  ttl     = 1
+}
+
 resource "cloudflare_dns_record" "production_mobile" {
   zone_id = var.zone_id
   name    = "mobile"

@@ -95,6 +95,50 @@ services:
       - cluo-prod-internal
       - proxy
 
+  # S3-compatible object storage, shared by both prod and staging cluo-api.
+  cluo-prod-minio:
+    image: minio/minio:latest
+    container_name: cluo-prod-minio
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD}
+      MINIO_KMS_SECRET_KEY: ${MINIO_KMS_SECRET_KEY}
+      MINIO_SERVER_URL: https://media.${CLUO_DOMAIN}
+    volumes:
+      - /opt/cluo/data/minio:/data
+    restart: unless-stopped
+    networks:
+      - cluo-prod-internal
+      - proxy
+
+  # HashiCorp Vault — transit encryption + pepper secret for both prod and
+  # staging cluo-api. S3 storage backend + AWS KMS auto-unseal (see
+  # infrastructure/terraform/vault.tf); vault.hcl is templated by app_deploy.
+  cluo-prod-vault:
+    image: hashicorp/vault:1.15
+    container_name: cluo-prod-vault
+    restart: unless-stopped
+    cap_add:
+      - IPC_LOCK
+    environment:
+      VAULT_ADDR: http://0.0.0.0:8200
+      VAULT_API_ADDR: http://0.0.0.0:8200
+      AWS_ACCESS_KEY_ID: ${VAULT_AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${VAULT_AWS_SECRET_ACCESS_KEY}
+      AWS_REGION: ${VAULT_AWS_REGION}
+    entrypoint: ["/bin/sh", "-c", "exec vault server -config=/vault/config/vault.hcl"]
+    volumes:
+      - ${VAULT_CONFIG_DIR}:/vault/config:ro
+    networks:
+      - cluo-prod-internal
+    healthcheck:
+      test: ["CMD", "vault", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
   # Shared by both prod and staging cluo-api (staging joins this network and
   # points CLUO_AI_OLLAMA_BASE_URL at this same container) — one instance to
   # fit the AI stack's memory footprint on a single 8GB VPS.

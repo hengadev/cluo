@@ -1,0 +1,29 @@
+# Vault Configuration for Cluo — Managed by Ansible — DO NOT EDIT MANUALLY
+
+ui = true
+
+listener "tcp" {
+  address     = "0.0.0.0:8200"
+  tls_disable = "true"
+}
+
+# S3 storage backend + AWS KMS auto-unseal — see infrastructure/terraform/vault.tf.
+# AWS credentials are picked up from the container's AWS_ACCESS_KEY_ID/
+# AWS_SECRET_ACCESS_KEY/AWS_REGION env vars (set in cluo-prod.env.j2).
+# vault_s3_bucket/vault_kms_key_id only exist after `terraform apply` (see
+# DEPLOY_RUNBOOK.md) — defaulted so a deploy before that step doesn't block
+# the rest of the stack; the vault container itself will just fail to start
+# until they're filled in.
+storage "s3" {
+  bucket = "{{ vault_s3_bucket | default('') }}"
+  region = "{{ aws_region | default('eu-central-1') }}"
+}
+
+seal "awskms" {
+  region     = "{{ aws_region | default('eu-central-1') }}"
+  kms_key_id = "{{ vault_kms_key_id | default('') }}"
+}
+
+api_addr      = "http://cluo-prod-vault:8200"
+disable_mlock = true
+log_level     = "info"

@@ -17,6 +17,27 @@
     mode: "0750"
   tags: deploy
 
+- name: Create cluo data/vault directories
+  ansible.builtin.file:
+    path: "{{ item }}"
+    state: directory
+    owner: "{{ app_user | default('deploy') }}"
+    group: "{{ app_group | default(app_user | default('deploy')) }}"
+    mode: "0750"
+  loop:
+    - /opt/cluo/data/minio
+    - /opt/cluo/vault/config
+  tags: deploy
+
+- name: Template vault.hcl for cluo
+  ansible.builtin.template:
+    src: vault.hcl.j2
+    dest: /opt/cluo/vault/config/vault.hcl
+    owner: "{{ app_user | default('deploy') }}"
+    group: "{{ app_group | default(app_user | default('deploy')) }}"
+    mode: "0640"
+  tags: deploy
+
 - name: Copy production docker-compose for cluo
   ansible.builtin.copy:
     src: prod.docker-compose.yml

@@ -41,7 +41,7 @@ services:
     image: alpine:3.19
     container_name: cluo-staging-backup
     volumes:
-      - /opt/homelab/data/minio:/minio-data:ro
+      - /opt/cluo/data/minio:/minio-data:ro
       - ./backup.sh:/backup.sh:ro
     environment:
       - AWS_ACCESS_KEY_ID=${CLUO_BACKUP_AWS_ACCESS_KEY_ID}
