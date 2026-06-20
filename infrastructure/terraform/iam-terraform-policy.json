@@ -93,17 +93,27 @@
       "Resource": "*"
     },
     {
-      "Sid": "KMSManagement",
+      "Sid": "KMSKeyCreation",
       "Effect": "Allow",
       "Action": [
         "kms:CreateKey",
+        "kms:TagResource",
+        "kms:ListAliases"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "KMSManagement",
+      "Effect": "Allow",
+      "Action": [
         "kms:DeleteAlias",
         "kms:DescribeKey",
         "kms:EnableKeyRotation",
+        "kms:GetKeyRotationStatus",
+        "kms:ListResourceTags",
         "kms:GetKeyPolicy",
         "kms:PutKeyPolicy",
-        "kms:CreateAlias",
-        "kms:ListAliases"
+        "kms:CreateAlias"
       ],
       "Resource": [
         "arn:aws:kms:*:*:key/*",
@@ -118,9 +128,11 @@
         "ses:VerifyDomainDkim",
         "ses:DeleteIdentity",
         "ses:GetIdentityVerificationAttributes",
+        "ses:GetIdentityDkimAttributes",
         "ses:DescribeActiveReceiptRuleSet",
         "ses:SetIdentityMailFromDomain",
         "ses:GetIdentityMailFromDomain",
+        "ses:GetIdentityMailFromDomainAttributes",
         "ses:DeleteIdentityMailFromDomain"
       ],
       "Resource": "*"
