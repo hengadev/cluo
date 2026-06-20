@@ -1,5 +1,6 @@
 # Ansible
 inventory.yml
+group_vars/all/vars.yml
 terraform-outputs.json
 *.retry
 .vault_pass

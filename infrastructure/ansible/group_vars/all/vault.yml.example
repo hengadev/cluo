@@ -1,0 +1,44 @@
+---
+# CLUO - Encrypted Secrets
+# This file should be encrypted with ansible-vault
+#
+# Usage:
+#   1. Copy this file: cp vault.yml.example vault.yml
+#   2. Fill in your secrets
+#   3. Encrypt: ansible-vault encrypt vault.yml
+#   4. Run playbook: ansible-playbook site.yml --ask-vault-pass
+
+# PostgreSQL passwords
+cluo_prod_db_password: "your_secure_prod_postgres_password_here"
+cluo_staging_db_password: "your_secure_staging_postgres_password_here"
+
+# MinIO (S3-compatible object storage, self-hosted cluo-prod-minio container)
+minio_root_user: "your_minio_root_user"
+minio_root_password: "your_minio_root_password"
+minio_kms_secret_key: "your_minio_kms_secret_key"
+
+# HashiCorp Vault (self-hosted cluo-prod-vault container; S3 storage backend
+# + AWS KMS auto-unseal — see infrastructure/terraform/vault.tf)
+# These four come from `terraform output` after `terraform apply`:
+vault_kms_key_id: "fill in from: terraform output vault_kms_key_id"
+vault_s3_bucket: "fill in from: terraform output vault_storage_bucket"
+vault_access_key_id: "fill in from: terraform output vault_access_key_id"
+vault_secret_access_key: "fill in from: terraform output vault_secret_access_key"
+# vault_root_token only exists after `vault operator init` is run against
+# the live container for the first time — see infrastructure/DEPLOY_RUNBOOK.md
+vault_root_token: "your_vault_root_token"
+
+# Cluo backup (MinIO data -> S3, GPG-encrypted). access_key_id/secret_access_key
+# come from `terraform output backup_production_access_key_id/backup_production_secret_access_key`
+# after `terraform apply` (uses production's backup IAM user/bucket for the
+# single shared backup container — see infrastructure/DEPLOY_RUNBOOK.md)
+cluo_backup_aws_access_key_id: "AKIAIOSFODNN7EXAMPLE"
+cluo_backup_aws_secret_access_key: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY"
+cluo_backup_passphrase: "your_gpg_symmetric_passphrase"
+
+# UptimeRobot (optional)
+uptimerobot_api_key: ""
+
+# Cloudflare API token for Caddy's DNS-01 ACME challenge
+# Required permissions: Zone:DNS:Edit on clientvault.fr
+vault_caddy_cloudflare_api_token: "your_cloudflare_api_token_here"

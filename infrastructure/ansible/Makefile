@@ -56,17 +56,17 @@ help: ## Show this help message
 
 init: ## Initialize Ansible environment
 	@echo "$(BLUE)Initializing Ansible...$(NC)"
-	@mkdir -p group_vars host_vars
+	@mkdir -p group_vars/all host_vars
 	@if [ ! -f $(INVENTORY) ]; then \
 		echo "$(YELLOW)Creating inventory from example...$(NC)"; \
 		cp inventory.yml.example $(INVENTORY); \
 	fi
-	@if [ ! -f group_vars/all.yml ]; then \
-		echo "$(YELLOW)Creating group_vars/all.yml from example...$(NC)"; \
-		cp group_vars/all.yml.example group_vars/all.yml; \
+	@if [ ! -f group_vars/all/vars.yml ]; then \
+		echo "$(YELLOW)Creating group_vars/all/vars.yml from example...$(NC)"; \
+		cp group_vars/all/vars.yml.example group_vars/all/vars.yml; \
 	fi
 	@echo "$(GREEN)✓ Init complete$(NC)"
-	@echo "$(YELLOW)Edit $(INVENTORY) and group_vars/all.yml to configure$(NC)"
+	@echo "$(YELLOW)Edit $(INVENTORY) and group_vars/all/vars.yml to configure$(NC)"
 
 validate: ## Validate Ansible configuration
 	@echo "$(BLUE)Validating configuration...$(NC)"
@@ -163,7 +163,7 @@ vault-init: ## Initialize vault (create encrypted file)
 		echo "$(YELLOW)Vault file already exists$(NC)"; \
 		echo "Edit with: make vault-edit"; \
 	else \
-		cp group_vars/vault.yml.example $(VAULT_FILE); \
+		cp group_vars/all/vault.yml.example $(VAULT_FILE); \
 		ansible-vault encrypt $(VAULT_FILE); \
 		echo "$(GREEN)✓ Vault initialized$(NC)"; \
 	fi

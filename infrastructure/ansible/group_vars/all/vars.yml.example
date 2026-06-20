@@ -40,17 +40,31 @@ cluo_staging_db_name: cluo_staging
 cluo_staging_db_user: cluo_staging
 # cluo_staging_db_password: Use vault (see vault.yml.example)
 
-# MinIO (S3-compatible object storage, shared by prod + staging)
-# minio_root_user / minio_root_password: Use vault (see vault.yml.example)
+# AWS region (matches infrastructure/terraform's aws_region) — used by the
+# self-hosted Vault container's S3 storage backend / KMS auto-unseal
+aws_region: eu-central-1
 
-# HashiCorp Vault (transit encryption key + pepper secret per environment)
-# vault_root_token: Use vault (see vault.yml.example)
+# MinIO (S3-compatible object storage, self-hosted in the cluo-prod-minio
+# container, shared by prod + staging)
+# minio_root_user / minio_root_password / minio_kms_secret_key: Use vault (see vault.yml.example)
+
+# HashiCorp Vault (self-hosted in the cluo-prod-vault container; S3 storage
+# backend + AWS KMS auto-unseal, see infrastructure/terraform/vault.tf)
+# vault_kms_key_id / vault_s3_bucket / vault_access_key_id / vault_secret_access_key:
+#   fill in from `terraform output` after `terraform apply` (see vault.yml.example)
+# vault_root_token: only exists after `vault operator init` is run against the
+#   live container — see infrastructure/DEPLOY_RUNBOOK.md
 
 # Cluo backup (MinIO data -> S3, GPG-encrypted, runs from the
-# cluo-staging-backup container per homelab/docker/cluo/staging.docker-compose.yml)
+# cluo-staging-backup container; backs up the single shared MinIO instance
+# using production's backup IAM user/bucket, per the "one shared backup
+# container" decision — the staging backup IAM user/bucket terraform also
+# creates is intentionally unused)
 cluo_backup_aws_region: eu-central-1
-cluo_backup_s3_bucket: cluo-backups
-# cluo_backup_aws_access_key_id / cluo_backup_aws_secret_access_key / cluo_backup_passphrase: Use vault
+cluo_backup_s3_bucket: cluo-postgres-backups-production
+# cluo_backup_aws_access_key_id / cluo_backup_aws_secret_access_key: fill in from
+#   `terraform output backup_production_access_key_id/backup_production_secret_access_key`
+# cluo_backup_passphrase: Use vault
 
 # AI stack (Ollama + whisper.cpp) — one shared cluo-prod-ollama container for
 # both prod and staging; whisper.cpp runs in-process inside the cluo-api image
