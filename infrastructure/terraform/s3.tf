@@ -8,7 +8,7 @@
 # =============================================================================
 
 resource "aws_s3_bucket" "assets_staging" {
-  bucket = "cluo-assets-staging"
+  bucket = "cluo-assets-staging-k4xpqz"
 }
 
 resource "aws_s3_bucket_versioning" "assets_staging" {
@@ -140,7 +140,7 @@ resource "aws_s3_bucket_policy" "assets_production" {
 # =============================================================================
 
 resource "aws_s3_bucket" "backups_staging" {
-  bucket = "cluo-postgres-backups-staging"
+  bucket = "cluo-postgres-backups-staging-k4xpqz"
 }
 
 resource "aws_s3_bucket_versioning" "backups_staging" {
@@ -178,7 +178,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups_staging" {
 # =============================================================================
 
 resource "aws_s3_bucket" "backups_production" {
-  bucket = "cluo-postgres-backups-production"
+  bucket = "cluo-postgres-backups-production-k4xpqz"
 }
 
 resource "aws_s3_bucket_versioning" "backups_production" {
@@ -216,7 +216,7 @@ resource "aws_s3_bucket_lifecycle_configuration" "backups_production" {
 # =============================================================================
 
 resource "aws_s3_bucket" "vault" {
-  bucket = "cluo-vault-storage"
+  bucket = "cluo-vault-storage-k4xpqz"
 }
 
 resource "aws_s3_bucket_versioning" "vault" {

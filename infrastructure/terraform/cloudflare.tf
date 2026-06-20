@@ -42,7 +42,7 @@ resource "cloudflare_dns_record" "staging_assets" {
   zone_id = var.zone_id
   name    = "assets-staging"
   type    = "CNAME"
-  content = "cluo-assets-staging.s3.amazonaws.com"
+  content = "cluo-assets-staging-k4xpqz.s3.amazonaws.com"
   proxied = false
   ttl     = 3600
 }

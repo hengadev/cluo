@@ -61,7 +61,7 @@ aws_region: eu-central-1
 # container" decision — the staging backup IAM user/bucket terraform also
 # creates is intentionally unused)
 cluo_backup_aws_region: eu-central-1
-cluo_backup_s3_bucket: cluo-postgres-backups-production
+cluo_backup_s3_bucket: cluo-postgres-backups-production-k4xpqz
 # cluo_backup_aws_access_key_id / cluo_backup_aws_secret_access_key: fill in from
 #   `terraform output backup_production_access_key_id/backup_production_secret_access_key`
 # cluo_backup_passphrase: Use vault
