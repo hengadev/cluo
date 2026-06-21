@@ -70,23 +70,39 @@ ansible-playbook site.yml -i inventory.yml --tags env,deploy
 This re-templates `.env` with the real token and restarts
 `cluo-prod-api`/`cluo-staging-api` to pick it up.
 
-## 6. Enable the transit engine + pepper secrets Vault needs
+## 6. Enable the transit engine + KV-v2 secrets Vault needs
 
-`cluo-prod.env.j2`/`cluo-staging.env.j2` expect a transit key per environment
-and a pepper secret at a fixed path — nothing creates these yet:
+The `encx` library (`cluo_api/internal/app/container/infrastructure.go`)
+hardcodes a single **shared** `KEKAlias: "cluo-encryption-key"` and
+`PepperAlias: "cluo"` — used by both prod and staging, not one per
+environment. (The `CLUO_VAULT_KEY_NAME`/`CLUO_VAULT_PEPPER_PATH` vars in
+`cluo-prod.env.j2`/`cluo-staging.env.j2` are templated but never read by the
+app — ignore them.) Nothing creates the transit key or mounts the KV-v2
+engine by default, so `cluo-prod-api` will crash-loop on a pepper-storage
+404 until you do this:
 
 ```bash
 docker exec -it cluo-prod-vault sh
 export VAULT_TOKEN=<root token from step 4>
 
-vault secrets enable transit
-vault write -f transit/keys/cluo-prod
-vault write -f transit/keys/cluo-staging
-
 vault secrets enable -path=secret kv-v2
-vault kv put secret/cluo/prod/pepper value="$(openssl rand -base64 32)"
-vault kv put secret/cluo/staging/pepper value="$(openssl rand -base64 32)"
+vault secrets enable transit
+vault write -f transit/keys/cluo-encryption-key
 ```
+
+The pepper itself doesn't need to be created manually — `encx` generates
+and persists it under `secret/data/encx/cluo/pepper` on first successful
+boot once the engines above exist. Restart both API containers afterwards
+so they pick it up:
+
+```bash
+docker compose -f /opt/cluo/docker-compose.yml restart cluo-prod-api
+docker compose -f /opt/cluo-staging/docker-compose.yml restart cluo-staging-api
+```
+
+Because the KEK/pepper are shared, prod and staging can decrypt each
+other's encrypted fields — consistent with them already sharing one
+Postgres instance and one MinIO instance.
 
 ## 7. Verify
 
