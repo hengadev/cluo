@@ -134,7 +134,7 @@ Backups are **not** an Ansible role — they run inside the `cluo-staging-backup
 | `app_user` | Deploy user (no dedicated `cluo` system user is created) | `deploy` |
 | `app_dir` | Production compose directory | `/opt/cluo` |
 | `cluo_domain` | Root domain | `clientvault.fr` |
-| `cluo_registry` | Docker image registry | `hengadev` |
+| `cluo_registry` | Docker image registry | `henga` |
 | `cluo_prod_tag` / `cluo_staging_tag` | Image tags to deploy | `latest` |
 | `cluo_prod_db_name` / `cluo_prod_db_user` / `cluo_prod_db_password` | Production database | `cluo_production` / `cluo` |
 | `cluo_staging_db_name` / `cluo_staging_db_user` / `cluo_staging_db_password` | Staging database (same Postgres container) | `cluo_staging` / `cluo_staging` |
