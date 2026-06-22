@@ -35,52 +35,38 @@ These are the same vars already present in the API container's environment:
 
 ## Running the command
 
-### Current setup (homelab VPS, Docker Compose)
+### Current setup (cluo's own VPS, Makefile-driven deploy)
 
-Database migrations run automatically when the API container starts. Once the container is up, seed the admin:
+Seeding is automatic — no manual `docker exec` needed. Create a root `.env`
+(gitignored, never committed) with:
 
 ```bash
-# Staging
-docker exec \
-  -e SEED_ADMIN_EMAIL=admin@example.com \
-  -e SEED_ADMIN_PASSWORD=changeme123 \
-  cluo-staging-api ./seed-admin
+SEED_ADMIN_EMAIL=admin@example.com
+SEED_ADMIN_PASSWORD=changeme123
+```
 
-# Production
+`make seed-admin-staging` and `make seed-admin-prod` read that file and run
+`./seed-admin` inside `cluo-staging-api`/`cluo-prod-api` over SSH. These two
+targets are wired into the end of `restart-staging`, `restart-staging-api`,
+`restart-prod`, and `restart-prod-api` (and therefore the `deploy-staging*`
+and `deploy-prod*` targets that depend on them), so seeding happens
+automatically on every deploy. Because `seed-admin` itself checks whether
+the user already exists before creating one, re-running it on every deploy
+is a no-op after the first time.
+
+If `.env` doesn't exist, the targets print a warning and skip rather than
+failing the deploy.
+
+To seed manually (e.g. to debug), the underlying command is:
+
+```bash
 docker exec \
   -e SEED_ADMIN_EMAIL=admin@example.com \
   -e SEED_ADMIN_PASSWORD=changeme123 \
-  cluo-prod-api ./seed-admin
+  cluo-staging-api ./seed-admin   # or cluo-prod-api
 ```
 
 The command inherits all other required env vars from the running container.
-
-### Future infra (infrastructure/ Ansible)
-
-Add a one-shot task to the `app_deploy` Ansible role, **after** the container is confirmed running. Use a stat/check guard so it only runs on first deploy.
-
-Suggested task in `infrastructure/ansible/roles/app_deploy/tasks/main.yml`:
-
-```yaml
-- name: Check if admin user already exists
-  community.docker.docker_container_exec:
-    container: cluo-api
-    command: ./seed-admin --email "{{ cluo_admin_email }}"
-  register: seed_check
-  ignore_errors: true
-  changed_when: false
-
-- name: Seed admin user on first deploy
-  community.docker.docker_container_exec:
-    container: cluo-api
-    env:
-      SEED_ADMIN_EMAIL: "{{ cluo_admin_email }}"
-      SEED_ADMIN_PASSWORD: "{{ cluo_admin_password }}"
-    command: ./seed-admin
-  when: seed_check.rc != 0
-```
-
-Store `cluo_admin_email` and `cluo_admin_password` in Ansible Vault under `infrastructure/ansible/group_vars/all/vault.yml`. They should be rotated immediately after first login.
 
 ## Vault key names (hardcoded in seed-admin and the API)
 
@@ -92,7 +78,7 @@ Both `seed-admin` and the main `cluo` binary share these constants (defined in `
 | `PepperAlias` | `cluo` |
 | `DBPath` | `data/.encx` |
 
-The Vault transit key (`cluo-encryption-key`) and KV secret (`cluo` pepper) must exist in Vault before the seed command is run. These are provisioned by the Vault setup step in the infrastructure playbook (or manually before first deploy on the homelab VPS).
+The Vault transit key (`cluo-encryption-key`) and KV-v2 secrets engine must exist before the seed command is run — see step 6 of `infrastructure/DEPLOY_RUNBOOK.md` (one-time, manual, run once per VPS). The pepper itself is generated and persisted by `encx` automatically on first successful API boot once those engines exist.
 
 ## Role string
 

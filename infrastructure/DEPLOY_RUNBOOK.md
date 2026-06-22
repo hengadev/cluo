@@ -112,3 +112,18 @@ docker exec cluo-prod-vault vault status                  # Sealed: false
 curl -s https://api.clientvault.fr/health
 curl -s https://staging-api.clientvault.fr/health
 ```
+
+## 8. Seed the admin user
+
+Create a root `.env` (gitignored) with `SEED_ADMIN_EMAIL`/`SEED_ADMIN_PASSWORD`,
+then run:
+
+```bash
+make seed-admin-staging
+make seed-admin-prod
+```
+
+After this first run, seeding is automatic — these two targets are wired
+into `restart-staging`, `restart-staging-api`, `restart-prod`, and
+`restart-prod-api`, so every later deploy re-seeds idempotently without
+manual intervention. See `docs/admin-seeding.md` for details.
