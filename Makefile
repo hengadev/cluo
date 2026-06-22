@@ -45,12 +45,12 @@ API_IMAGE    := $(REGISTRY)/cluo-api
 WEB_IMAGE    := $(REGISTRY)/cluo-web
 MOBILE_IMAGE := $(REGISTRY)/cluo-mobile
 
-# VPS connection — IP resolved from homelab Terraform output
-HOMELAB_TF := $(HOME)/Documents/projects/homelab/terraform
-VPS_IP     := $(shell cd $(HOMELAB_TF) && terraform output -raw server_ip 2>/dev/null || echo "")
-SSH_KEY    := ~/.ssh/henga
-SSH_USER   := deploy
-VPS_SSH    := ssh -i $(SSH_KEY) $(SSH_USER)@$(VPS_IP)
+# VPS connection — IP resolved from cluo's own Terraform output
+CLUO_TF := infrastructure/terraform
+VPS_IP  := $(shell cd $(CLUO_TF) && terraform output -raw vps_ipv4_address 2>/dev/null || echo "")
+SSH_KEY := ~/.ssh/cluo
+SSH_USER := deploy
+VPS_SSH := ssh -i $(SSH_KEY) $(SSH_USER)@$(VPS_IP)
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
@@ -290,7 +290,7 @@ release: ## Build, sign, and publish everything — VERSION=x.y.z [ENV=productio
 # =============================================================================
 
 _check-vps:
-	@test -n "$(VPS_IP)" || (echo "ERROR: could not resolve VPS IP from Terraform. Run 'make init' in the homelab repo first."; exit 1)
+	@test -n "$(VPS_IP)" || (echo "ERROR: could not resolve VPS IP from Terraform. Run 'terraform apply' in infrastructure/terraform first."; exit 1)
 
 restart-staging: _check-vps ## Pull all :staging images and restart staging on VPS
 	$(VPS_SSH) "cd /opt/cluo-staging && docker compose pull && docker compose up -d --remove-orphans"
