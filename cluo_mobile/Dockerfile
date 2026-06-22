@@ -10,6 +10,7 @@ RUN --mount=type=cache,id=pnpm-mobile,target=/pnpm/store pnpm install --frozen-l
 
 COPY . .
 ARG PUBLIC_APP_ENV
+ARG VITE_API_URL
 RUN pnpm run build
 
 FROM node:20.11.1-alpine AS runtime

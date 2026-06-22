@@ -46,6 +46,11 @@ API_IMAGE    := $(REGISTRY)/cluo-api
 WEB_IMAGE    := $(REGISTRY)/cluo-web
 MOBILE_IMAGE := $(REGISTRY)/cluo-mobile
 
+# Baked into the mobile build at build time (Vite inlines VITE_* at compile time,
+# so the mobile container can't pick this up from .env at runtime).
+STAGING_API_URL := https://staging-api.clientvault.fr
+PROD_API_URL    := https://api.clientvault.fr
+
 # VPS connection — IP resolved from cluo's own Terraform output
 CLUO_TF := infrastructure/terraform
 VPS_IP  := $(shell cd $(CLUO_TF) && terraform output -raw vps_ipv4_address 2>/dev/null || echo "")
@@ -211,7 +216,7 @@ install-desktop-linux: ## Install cluo_desktop for current user (binary + icon +
 build-staging: ## Build all images tagged :staging
 	docker build -t $(API_IMAGE):staging    ./cluo_api
 	docker build -t $(WEB_IMAGE):staging    ./cluo_web
-	docker build --build-arg PUBLIC_APP_ENV=staging -t $(MOBILE_IMAGE):staging ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=staging --build-arg VITE_API_URL=$(STAGING_API_URL) -t $(MOBILE_IMAGE):staging ./cluo_mobile
 
 build-staging-api: ## Build cluo-api image tagged :staging
 	docker build -t $(API_IMAGE):staging ./cluo_api
@@ -220,12 +225,12 @@ build-staging-web: ## Build cluo-web image tagged :staging
 	docker build -t $(WEB_IMAGE):staging ./cluo_web
 
 build-staging-mobile: ## Build cluo-mobile image tagged :staging
-	docker build --build-arg PUBLIC_APP_ENV=staging -t $(MOBILE_IMAGE):staging ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=staging --build-arg VITE_API_URL=$(STAGING_API_URL) -t $(MOBILE_IMAGE):staging ./cluo_mobile
 
 build-prod: ## Build all images tagged :latest
 	docker build -t $(API_IMAGE):latest    ./cluo_api
 	docker build -t $(WEB_IMAGE):latest    ./cluo_web
-	docker build --build-arg PUBLIC_APP_ENV=production -t $(MOBILE_IMAGE):latest ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=production --build-arg VITE_API_URL=$(PROD_API_URL) -t $(MOBILE_IMAGE):latest ./cluo_mobile
 
 build-prod-api: ## Build cluo-api image tagged :latest
 	docker build -t $(API_IMAGE):latest ./cluo_api
@@ -234,7 +239,7 @@ build-prod-web: ## Build cluo-web image tagged :latest
 	docker build -t $(WEB_IMAGE):latest ./cluo_web
 
 build-prod-mobile: ## Build cluo-mobile image tagged :latest
-	docker build --build-arg PUBLIC_APP_ENV=production -t $(MOBILE_IMAGE):latest ./cluo_mobile
+	docker build --build-arg PUBLIC_APP_ENV=production --build-arg VITE_API_URL=$(PROD_API_URL) -t $(MOBILE_IMAGE):latest ./cluo_mobile
 
 # =============================================================================
 # Push to Docker Hub (henga/*)
