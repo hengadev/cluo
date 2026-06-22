@@ -34,8 +34,14 @@
             });
 
             if (!loginRes.ok) {
-                const text = await loginRes.text().catch(() => 'Authentication failed');
-                throw new Error(text);
+                let message = 'Connexion impossible. Veuillez réessayer.';
+                try {
+                    const data = await loginRes.json();
+                    if (data?.error) message = data.error;
+                } catch {
+                    // Non-JSON response (e.g. proxy or server error page) — keep the generic message.
+                }
+                throw new Error(message);
             }
 
             const meRes = await apiFetchRaw('/auth/me');
