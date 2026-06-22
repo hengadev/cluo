@@ -12,6 +12,7 @@
         restart-prod    restart-prod-api    restart-prod-web    restart-prod-mobile \
         deploy-staging deploy-staging-api deploy-staging-web deploy-staging-mobile \
         deploy-prod    deploy-prod-api    deploy-prod-web    deploy-prod-mobile \
+        seed-admin-staging seed-admin-prod \
         _check-vps
 
 # Environment: staging or production (default). Controls S3 prefix for manifest + binaries.
@@ -51,6 +52,11 @@ VPS_IP  := $(shell cd $(CLUO_TF) && terraform output -raw vps_ipv4_address 2>/de
 SSH_KEY := ~/.ssh/cluo
 SSH_USER := deploy
 VPS_SSH := ssh -i $(SSH_KEY) $(SSH_USER)@$(VPS_IP)
+
+# Admin account auto-seeding — root .env with SEED_ADMIN_EMAIL=... / SEED_ADMIN_PASSWORD=...
+# Already covered by .gitignore's blanket ".env" rule. seed-admin is idempotent
+# (skips if the user already exists), so it's safe to run on every restart/deploy.
+SEED_ADMIN_ENV_FILE := .env
 
 help: ## Show available commands
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-28s\033[0m %s\n", $$1, $$2}'
@@ -294,9 +300,11 @@ _check-vps:
 
 restart-staging: _check-vps ## Pull all :staging images and restart staging on VPS
 	$(VPS_SSH) "cd /opt/cluo-staging && docker compose pull && docker compose up -d --remove-orphans"
+	@$(MAKE) seed-admin-staging
 
 restart-staging-api: _check-vps ## Pull and restart cluo-staging-api on VPS
 	$(VPS_SSH) "cd /opt/cluo-staging && docker compose pull cluo-staging-api && docker compose up -d --no-deps cluo-staging-api"
+	@$(MAKE) seed-admin-staging
 
 restart-staging-web: _check-vps ## Pull and restart cluo-staging-web on VPS
 	$(VPS_SSH) "cd /opt/cluo-staging && docker compose pull cluo-staging-web && docker compose up -d --no-deps cluo-staging-web"
@@ -306,15 +314,35 @@ restart-staging-mobile: _check-vps ## Pull and restart cluo-staging-mobile on VP
 
 restart-prod: _check-vps ## Pull all :latest images and restart production on VPS
 	$(VPS_SSH) "cd /opt/cluo && docker compose pull && docker compose up -d --remove-orphans"
+	@$(MAKE) seed-admin-prod
 
 restart-prod-api: _check-vps ## Pull and restart cluo-prod-api on VPS
 	$(VPS_SSH) "cd /opt/cluo && docker compose pull cluo-prod-api && docker compose up -d --no-deps cluo-prod-api"
+	@$(MAKE) seed-admin-prod
 
 restart-prod-web: _check-vps ## Pull and restart cluo-prod-web on VPS
 	$(VPS_SSH) "cd /opt/cluo && docker compose pull cluo-prod-web && docker compose up -d --no-deps cluo-prod-web"
 
 restart-prod-mobile: _check-vps ## Pull and restart cluo-prod-mobile on VPS
 	$(VPS_SSH) "cd /opt/cluo && docker compose pull cluo-prod-mobile && docker compose up -d --no-deps cluo-prod-mobile"
+
+# =============================================================================
+# Admin account seeding (idempotent — safe to run on every deploy)
+# =============================================================================
+
+seed-admin-staging: _check-vps ## Idempotently seed the admin user into staging
+	@if [ ! -f $(SEED_ADMIN_ENV_FILE) ]; then \
+		echo "==> Skipping admin seed: $(SEED_ADMIN_ENV_FILE) not found (create it with SEED_ADMIN_EMAIL=... and SEED_ADMIN_PASSWORD=...)"; \
+		exit 0; \
+	fi
+	@. ./$(SEED_ADMIN_ENV_FILE) && $(VPS_SSH) "docker exec -e SEED_ADMIN_EMAIL=$$SEED_ADMIN_EMAIL -e SEED_ADMIN_PASSWORD=$$SEED_ADMIN_PASSWORD cluo-staging-api ./seed-admin"
+
+seed-admin-prod: _check-vps ## Idempotently seed the admin user into production
+	@if [ ! -f $(SEED_ADMIN_ENV_FILE) ]; then \
+		echo "==> Skipping admin seed: $(SEED_ADMIN_ENV_FILE) not found (create it with SEED_ADMIN_EMAIL=... and SEED_ADMIN_PASSWORD=...)"; \
+		exit 0; \
+	fi
+	@. ./$(SEED_ADMIN_ENV_FILE) && $(VPS_SSH) "docker exec -e SEED_ADMIN_EMAIL=$$SEED_ADMIN_EMAIL -e SEED_ADMIN_PASSWORD=$$SEED_ADMIN_PASSWORD cluo-prod-api ./seed-admin"
 
 # =============================================================================
 # Full deploy (build → push → restart)
