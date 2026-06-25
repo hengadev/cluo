@@ -116,8 +116,6 @@
                 </div>
             </div>
 
-            <!-- Audio Player (placeholder for now) -->
-            <!-- TODO: Add actual audio when blob is available from backend -->
             {#if recording.audioUrl}
                 <AudioPlayer src={recording.audioUrl} />
             {:else}
