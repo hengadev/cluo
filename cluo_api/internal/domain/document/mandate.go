@@ -82,9 +82,8 @@ func (m *Mandate) Validate() error {
 		return fmt.Errorf("valid until date cannot be before valid from date")
 	}
 
-	// Validate that at least client signature is present for active mandates
-	if m.Status == DocumentStatusActive && m.ClientSignature == nil {
-		return fmt.Errorf("active mandate must have client signature")
+	if m.ValidUntil != nil && m.ValidUntil.After(m.ValidFrom.AddDate(2, 0, 0)) {
+		return fmt.Errorf("valid until date cannot be more than 2 years after valid from date")
 	}
 
 	return nil

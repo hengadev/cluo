@@ -88,6 +88,10 @@ func (c *Contract) Validate() error {
 		return fmt.Errorf("end date cannot be before start date")
 	}
 
+	if c.EndDate != nil && c.EndDate.After(c.StartDate.AddDate(5, 0, 0)) {
+		return fmt.Errorf("end date cannot be more than 5 years after start date")
+	}
+
 	// Validate contract value
 	if c.ContractValue != nil && *c.ContractValue <= 0 {
 		return fmt.Errorf("contract value must be positive")

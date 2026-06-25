@@ -1,6 +1,7 @@
 package domain
 
 import (
+	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -30,7 +31,28 @@ type Signature struct {
 // - IPAddress: optional, must be valid IP format if provided
 // - UserAgent: optional, reasonable length limit if provided
 func (s Signature) Validate() error {
-	// TODO: Add validation implementation
+	if len(s.Name) < 2 || len(s.Name) > 100 {
+		return fmt.Errorf("name must be between 2 and 100 characters")
+	}
+
+	validRoles := map[string]bool{"client": true, "investigator": true, "witness": true, "notary": true}
+	if !validRoles[s.Role] {
+		return fmt.Errorf("role must be one of: client, investigator, witness, notary")
+	}
+
+	validMethods := map[string]bool{"e-sign": true, "wet": true, "pdf-stamp": true, "third-party": true}
+	if !validMethods[s.Method] {
+		return fmt.Errorf("method must be one of: e-sign, wet, pdf-stamp, third-party")
+	}
+
+	if s.Method != "wet" && s.SignatureFileURL == "" {
+		return fmt.Errorf("signature file URL is required for non-wet signatures")
+	}
+
+	if s.SignedAt.IsZero() {
+		return fmt.Errorf("signed at timestamp is required")
+	}
+
 	return nil
 }
 

@@ -100,6 +100,10 @@ func (e *Estimate) Validate() error {
 		return fmt.Errorf("valid until date cannot be before issue date")
 	}
 
+	if (e.AcceptedAt == nil) != (e.AcceptedBy == nil) {
+		return fmt.Errorf("accepted at and accepted by must both be set or both unset")
+	}
+
 	return nil
 }
 

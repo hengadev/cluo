@@ -128,15 +128,16 @@ func (i *Invoice) Validate() error {
 	}
 
 	// Validate totals
-	expectedTaxAmount := subtotalTotal * i.TaxRate
-	expectedTotalAmount := subtotalTotal + expectedTaxAmount
-
-	// Allow small rounding differences
-	if abs(i.TotalAmount-expectedTotalAmount) > 0.01 {
-		return fmt.Errorf("total amount mismatch: expected %.2f, got %.2f",
-			expectedTotalAmount, i.TotalAmount)
+	if i.TaxRate < 0 || i.TaxRate > 1 {
+		return fmt.Errorf("tax rate must be between 0 and 1")
 	}
 
+	if abs(i.TotalAmount-subtotalTotal) > 0.01 {
+		return fmt.Errorf("total amount mismatch: expected %.2f, got %.2f",
+			subtotalTotal, i.TotalAmount)
+	}
+
+	expectedTaxAmount := i.TotalAmount * i.TaxRate
 	if abs(i.TaxAmount-expectedTaxAmount) > 0.01 {
 		return fmt.Errorf("tax amount mismatch: expected %.2f, got %.2f",
 			expectedTaxAmount, i.TaxAmount)
