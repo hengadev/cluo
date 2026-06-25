@@ -98,7 +98,7 @@ Four AI-powered capabilities assist the Investigator throughout the case lifecyc
 | **Speech-to-text** | After fieldwork | Transcribes audio recordings captured in the field into text |
 | **Transcript analysis** | After transcription | One-shot structured extraction over a completed transcription — identifies people, key observations, timeline facts, and produces a structured summary for use in the Rapport |
 | **Text transformation** | During Rapport writing | Rewrites or improves selected passages in the Rapport (grammar, tone, clarity) |
-| **AI chat** | Anytime | Interactive assistant with full case context — the PI can ask open-ended questions about the case, get suggestions, or think through findings |
+| **AI chat** | During Rapport writing | Interactive assistant with full case context — the PI can ask open-ended questions about the case, get suggestions, or think through findings while writing |
 
 ---
 
