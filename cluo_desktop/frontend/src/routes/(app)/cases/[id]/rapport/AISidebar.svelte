@@ -1,11 +1,10 @@
 <script lang="ts">
 	import {
 		MessageSquareMore,
-		Lightbulb,
-		PencilLine,
 		AudioLines,
 	} from '@lucide/svelte';
 	import AIChatPanel from './_aiChatPanel.svelte';
+	import AiAudioPanel from './_aiAudioPanel.svelte';
 
 	interface Props {
 		width: number;
@@ -23,8 +22,6 @@
 
 	const aiButtons: AIButton[] = [
 		{ icon: MessageSquareMore, title: 'Chat' },
-		{ icon: Lightbulb, title: 'Idées' },
-		{ icon: PencilLine, title: 'Relecture' },
 		{ icon: AudioLines, title: 'Audio' },
 	];
 </script>
@@ -47,35 +44,7 @@
 		{#if selected === 0}
 			<AIChatPanel {width} />
 		{:else if selected === 1}
-			<div
-				class="flex items-center justify-center h-full px-4 py-8 text-center"
-				style="height: calc(100vh - 200px);"
-			>
-				<div>
-					<Lightbulb class="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-					<p class="text-muted-foreground text-sm">Idées - Coming Soon</p>
-				</div>
-			</div>
-		{:else if selected === 2}
-			<div
-				class="flex items-center justify-center h-full px-4 py-8 text-center"
-				style="height: calc(100vh - 200px);"
-			>
-				<div>
-					<PencilLine class="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-					<p class="text-muted-foreground text-sm">Relecture - Coming Soon</p>
-				</div>
-			</div>
-		{:else if selected === 3}
-			<div
-				class="flex items-center justify-center h-full px-4 py-8 text-center"
-				style="height: calc(100vh - 200px);"
-			>
-				<div>
-					<AudioLines class="w-12 h-12 mx-auto mb-4 text-muted-foreground/50" />
-					<p class="text-muted-foreground text-sm">Audio - Coming Soon</p>
-				</div>
-			</div>
+			<AiAudioPanel {width} />
 		{/if}
 	</div>
 </div>
