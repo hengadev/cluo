@@ -391,6 +391,19 @@ export interface ListTranscriptionsResponse {
 	total: number;
 }
 
+export interface TranscriptAnalysis {
+	id: string;
+	transcriptionId: string;
+	keyFindings: string;
+	summary: string;
+	sentiment: 'positive' | 'neutral' | 'negative' | 'mixed';
+	topics: string; // JSON array as string — parse with JSON.parse()
+	suggestedActions: string;
+	modelUsed: string;
+	processingTimeMs: number;
+	createdAt: string;
+}
+
 // =============================================================================
 // LEGACY/COMPATIBILITY TYPES
 // =============================================================================

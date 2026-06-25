@@ -27,6 +27,7 @@ import type {
 	SearchResult,
 	SendDocumentRequest,
 	SignDocumentRequest,
+	TranscriptAnalysis,
 	TranscriptionJob,
 	UpdateDocumentRequest,
 	CreateDocumentRequest,
@@ -472,6 +473,16 @@ export async function getTranscriptionJobStatus(_jobId: string): Promise<Transcr
 
 export async function getTranscriptionByMediaFile(_mediaFileId: string): Promise<ListTranscriptionsResponse> {
 	return { transcriptions: [], total: 0 };
+}
+
+export async function analyzeTranscript(_transcriptionId: string): Promise<TranscriptAnalysis> {
+	throw new Error('Not available in mock mode');
+}
+
+export async function getAnalysisByTranscriptionId(
+	_transcriptionId: string,
+): Promise<TranscriptAnalysis | null> {
+	return null;
 }
 
 // =============================================================================

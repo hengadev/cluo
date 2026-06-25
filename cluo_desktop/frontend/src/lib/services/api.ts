@@ -42,6 +42,7 @@ import type {
 	SearchResult,
 	SendDocumentRequest,
 	SignDocumentRequest,
+	TranscriptAnalysis,
 	Transcription,
 	TranscriptionJob,
 	UpdateDocumentRequest,
@@ -1200,6 +1201,41 @@ export async function getTranscriptionByMediaFile(mediaFileId: string): Promise<
 	const response = await apiFetch(url.toString());
 	if (!response.ok) {
 		throw new Error(`Failed to get transcription: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Trigger transcript analysis for a transcription.
+ */
+export async function analyzeTranscript(transcriptionId: string): Promise<TranscriptAnalysis> {
+	if (MOCK) return mock.analyzeTranscript(transcriptionId);
+	const response = await apiFetch(`${BASE_URL}/ai/analysis/analyze`, {
+		method: 'POST',
+		body: JSON.stringify({ transcriptionId }),
+	});
+	if (!response.ok) {
+		const errBody = await response.json().catch(() => null);
+		throw new Error(errBody?.error || `Failed to analyze transcript: ${response.status}`);
+	}
+	return response.json();
+}
+
+/**
+ * Get the analysis for a transcription, or null if none exists yet.
+ */
+export async function getAnalysisByTranscriptionId(
+	transcriptionId: string,
+): Promise<TranscriptAnalysis | null> {
+	if (MOCK) return mock.getAnalysisByTranscriptionId(transcriptionId);
+	const response = await apiFetch(
+		`${BASE_URL}/ai/analysis/by-transcription/${transcriptionId}`,
+	);
+	if (response.status === 404) {
+		return null;
+	}
+	if (!response.ok) {
+		throw new Error(`Failed to get analysis: ${response.status}`);
 	}
 	return response.json();
 }
