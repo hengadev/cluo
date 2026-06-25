@@ -10,6 +10,7 @@ import (
 type Handler interface {
 	AnalyzeTranscript(w http.ResponseWriter, r *http.Request)
 	GetAnalysis(w http.ResponseWriter, r *http.Request)
+	GetAnalysisByTranscriptionID(w http.ResponseWriter, r *http.Request)
 	HealthCheck(w http.ResponseWriter, r *http.Request)
 	RegisterRoutes(router *http.ServeMux)
 }

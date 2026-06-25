@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/ai"
 	"github.com/hengadev/cluo_api/internal/ports"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -176,7 +177,7 @@ func scanAnalysis(row rowScanner) (*ai.TranscriptAnalysisEncx, error) {
 		&a.ModelUsed, &a.ProcessingTimeMs, &a.CreatedAt, &a.DEKEncrypted, &a.KeyVersion,
 	)
 	if err != nil {
-		return nil, fmt.Errorf("scan transcript analysis: %w", err)
+		return nil, errs.ClassifyPgError("scan transcript analysis", err)
 	}
 	return &a, nil
 }

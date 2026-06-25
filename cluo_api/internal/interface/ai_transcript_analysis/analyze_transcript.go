@@ -149,3 +149,49 @@ func (h *handler) GetAnalysis(w http.ResponseWriter, r *http.Request) {
 
 	httpx.RespondWithJSON(w, response, http.StatusOK)
 }
+
+// GetAnalysisByTranscriptionID retrieves an analysis by its transcription ID.
+// Returns 404 when no analysis exists for the given transcription yet.
+func (h *handler) GetAnalysisByTranscriptionID(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	logger, err := ctxutil.GetLoggerFromContext(ctx)
+	if err != nil {
+		httpx.RespondWithError(w, err, http.StatusInternalServerError)
+		return
+	}
+
+	// Extract transcription ID from URL path
+	transcriptionIDStr := r.PathValue("transcriptionId")
+	transcriptionID, err := uuid.Parse(transcriptionIDStr)
+	if err != nil {
+		httpx.RespondWithError(w, err, http.StatusBadRequest)
+		return
+	}
+
+	logger.DebugContext(ctx, "Handler: Processing get analysis by transcription request",
+		"operation", "get_analysis_by_transcription",
+		"transcriptionID", transcriptionID)
+
+	// Call service
+	result, err := h.svc.GetAnalysisByTranscriptionID(ctx, transcriptionID)
+	if err != nil {
+		httpx.RespondWithServiceError(w, logger, ctx, err, "get analysis by transcription")
+		return
+	}
+
+	response := &AnalyzeTranscriptResponse{
+		ID:               result.ID,
+		TranscriptionID:  result.TranscriptionID,
+		KeyFindings:      result.KeyFindings,
+		Summary:          result.Summary,
+		Sentiment:        result.Sentiment,
+		Topics:           result.Topics,
+		SuggestedActions: result.SuggestedActions,
+		ModelUsed:        result.ModelUsed,
+		ProcessingTimeMs: result.ProcessingTimeMs,
+		CreatedAt:        result.CreatedAt.Format("2006-01-02T15:04:05Z07:00"),
+	}
+
+	httpx.RespondWithJSON(w, response, http.StatusOK)
+}
