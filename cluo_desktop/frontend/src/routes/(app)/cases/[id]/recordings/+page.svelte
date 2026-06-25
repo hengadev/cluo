@@ -7,12 +7,14 @@
         submitTranscriptionJob,
         getTranscriptionJobStatus,
         getTranscriptionByMediaFile,
+        analyzeTranscript,
+        getAnalysisByTranscriptionId,
     } from "$lib/services/api";
-    import type { MediaFile, TranscriptionJob, Transcription } from "$lib/types/entities";
+    import type { MediaFile, TranscriptionJob, Transcription, TranscriptAnalysis } from "$lib/types/entities";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
     import Spinner from "$lib/components/Spinner.svelte";
-    import { Mic, Play, Square, FileText, Loader2, AlertCircle, RefreshCw } from "@lucide/svelte";
+    import { Mic, Play, Square, FileText, Loader2, AlertCircle, RefreshCw, Sparkles, ChevronDown, ChevronRight, Tag } from "@lucide/svelte";
 
     const toastState = getToastContext();
 
@@ -20,8 +22,11 @@
         media: MediaFile;
         transcriptionJob?: TranscriptionJob;
         transcription?: Transcription;
+        analysis?: TranscriptAnalysis | null;
         loadingJob: boolean;
         loadingTranscription: boolean;
+        loadingAnalysis: boolean;
+        analysisExpanded: boolean;
         isPlaying: boolean;
     }
 
@@ -47,8 +52,11 @@
             const response = await fetchCaseMedia(caseId, "audio");
             recordings = response.media.map((m) => ({
                 media: m,
+                analysis: null,
                 loadingJob: false,
                 loadingTranscription: false,
+                loadingAnalysis: false,
+                analysisExpanded: false,
                 isPlaying: false,
             }));
             // Load transcription status for each recording in the background
@@ -68,11 +76,67 @@
             const result = await getTranscriptionByMediaFile(rec.media.id);
             if (result.transcriptions.length > 0) {
                 rec.transcription = result.transcriptions[0];
+                // Load any existing analysis for this transcription
+                loadAnalysis(rec);
             }
         } catch {
             // No transcription yet — that's fine
         } finally {
             rec.loadingJob = false;
+        }
+    }
+
+    async function loadAnalysis(rec: RecordingState) {
+        if (!rec.transcription) return;
+        rec.loadingAnalysis = true;
+        try {
+            rec.analysis = await getAnalysisByTranscriptionId(rec.transcription.id);
+        } catch {
+            rec.analysis = null;
+        } finally {
+            rec.loadingAnalysis = false;
+        }
+    }
+
+    async function handleAnalyze(rec: RecordingState) {
+        if (!rec.transcription) return;
+        rec.loadingAnalysis = true;
+        try {
+            rec.analysis = await analyzeTranscript(rec.transcription.id);
+            rec.analysisExpanded = true;
+            toastState.add(TOAST_LEVELS.Info, "Analyse terminée", `« ${rec.media.fileName} » a été analysé.`);
+        } catch (err) {
+            toastState.add(TOAST_LEVELS.Error, "Erreur", "Impossible d'analyser la transcription.");
+        } finally {
+            rec.loadingAnalysis = false;
+        }
+    }
+
+    function parseTopics(analysis: TranscriptAnalysis): string[] {
+        try {
+            const parsed = JSON.parse(analysis.topics);
+            return Array.isArray(parsed) ? parsed.filter((t) => typeof t === "string") : [];
+        } catch {
+            return [];
+        }
+    }
+
+    function sentimentLabel(sentiment: string): string {
+        switch (sentiment) {
+            case "positive": return "Positif";
+            case "neutral": return "Neutre";
+            case "negative": return "Négatif";
+            case "mixed": return "Mixte";
+            default: return sentiment;
+        }
+    }
+
+    function sentimentClass(sentiment: string): string {
+        switch (sentiment) {
+            case "positive": return "bg-success/15 text-success";
+            case "negative": return "bg-destructive/15 text-destructive";
+            case "mixed": return "bg-primary/15 text-primary";
+            default: return "bg-muted text-muted-foreground";
         }
     }
 
@@ -301,6 +365,91 @@
                                 {#if rec.transcription?.transcript}
                                     <div class="mt-3 p-3 rounded-input bg-muted/50 border border-border-card">
                                         <p class="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{rec.transcription.transcript}</p>
+                                    </div>
+                                {/if}
+
+                                <!-- Transcript analysis -->
+                                {#if rec.transcription}
+                                    <div class="mt-3">
+                                        {#if rec.loadingAnalysis}
+                                            <span class="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
+                                                <Loader2 size={12} class="animate-spin" />
+                                                Analyse en cours…
+                                            </span>
+                                        {:else if rec.analysis}
+                                            <div class="rounded-input border border-border-card bg-muted/20">
+                                                <button
+                                                    type="button"
+                                                    onclick={() => (rec.analysisExpanded = !rec.analysisExpanded)}
+                                                    class="w-full flex items-center justify-between gap-2 px-3 py-2 cursor-pointer hover:bg-muted/40 transition-interactive"
+                                                >
+                                                    <span class="inline-flex items-center gap-2">
+                                                        <Sparkles size={14} class="text-primary" />
+                                                        <span class="text-xs font-medium text-foreground">Analyse IA</span>
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium {sentimentClass(rec.analysis.sentiment)}">
+                                                            {sentimentLabel(rec.analysis.sentiment)}
+                                                        </span>
+                                                    </span>
+                                                    {#if rec.analysisExpanded}
+                                                        <ChevronDown size={14} class="text-muted-foreground" />
+                                                    {:else}
+                                                        <ChevronRight size={14} class="text-muted-foreground" />
+                                                    {/if}
+                                                </button>
+                                                {#if rec.analysisExpanded}
+                                                    <div class="px-3 pb-3 pt-3 flex flex-col gap-3 border-t border-border-card">
+                                                        {#if rec.analysis.summary}
+                                                            <div>
+                                                                <p class="text-xs font-medium text-muted-foreground mb-1">Résumé</p>
+                                                                <p class="text-sm text-foreground leading-relaxed">{rec.analysis.summary}</p>
+                                                            </div>
+                                                        {/if}
+                                                        {#if rec.analysis.keyFindings}
+                                                            <div>
+                                                                <p class="text-xs font-medium text-muted-foreground mb-1">Points clés</p>
+                                                                <p class="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{rec.analysis.keyFindings}</p>
+                                                            </div>
+                                                        {/if}
+                                                        {#if parseTopics(rec.analysis).length > 0}
+                                                            <div>
+                                                                <p class="text-xs font-medium text-muted-foreground mb-1">Sujets</p>
+                                                                <div class="flex flex-wrap gap-1.5">
+                                                                    {#each parseTopics(rec.analysis) as topic}
+                                                                        <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs bg-muted text-muted-foreground border border-border-card">
+                                                                            <Tag size={10} />
+                                                                            {topic}
+                                                                        </span>
+                                                                    {/each}
+                                                                </div>
+                                                            </div>
+                                                        {/if}
+                                                        {#if rec.analysis.suggestedActions}
+                                                            <div>
+                                                                <p class="text-xs font-medium text-muted-foreground mb-1">Actions suggérées</p>
+                                                                <p class="text-sm text-foreground whitespace-pre-wrap leading-relaxed">{rec.analysis.suggestedActions}</p>
+                                                            </div>
+                                                        {/if}
+                                                        <button
+                                                            type="button"
+                                                            onclick={() => handleAnalyze(rec)}
+                                                            class="inline-flex items-center gap-1 text-xs text-foreground hover:text-muted-foreground cursor-pointer self-start"
+                                                        >
+                                                            <RefreshCw size={10} />
+                                                            Ré-analyser
+                                                        </button>
+                                                    </div>
+                                                {/if}
+                                            </div>
+                                        {:else}
+                                            <button
+                                                type="button"
+                                                onclick={() => handleAnalyze(rec)}
+                                                class="inline-flex items-center gap-1.5 px-3 py-1 rounded-input border border-border-input text-xs font-medium text-foreground hover:bg-muted active:scale-[0.98] transition-interactive cursor-pointer"
+                                            >
+                                                <Sparkles size={12} />
+                                                Analyser
+                                            </button>
+                                        {/if}
                                     </div>
                                 {/if}
                             </div>
