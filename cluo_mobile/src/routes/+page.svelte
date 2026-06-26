@@ -125,9 +125,7 @@
         </div>
         <CurrentCase {currentCase} />
     </div>
-    <div class="flex gap-4">
-        <Input placeholder="Recherche parmi les enregistrements" bind:value={searchQuery} type="search" />
-    </div>
+    <Input placeholder="Recherche parmi les enregistrements" bind:value={searchQuery} type="search" />
     <div class="flex flex-col gap-4">
         <div class="flex items-center gap-2">
             <p class="text-dark-700 font-bold text-base">Enregistrements</p>

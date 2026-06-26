@@ -76,7 +76,7 @@
     }
 </script>
 
-<div class="relative">
+<div class="relative w-full">
     <input
         type={effectiveType}
         {id}
