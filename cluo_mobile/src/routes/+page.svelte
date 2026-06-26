@@ -9,7 +9,7 @@
     import CurrentCase from "./CurrentCase.svelte";
     import CasePicker from "./CasePicker.svelte";
     import { currentCase as currentCaseStore } from "$lib/stores/current-case";
-    import { listRecordings, uploadRecording } from "$lib/api";
+    import { listRecordings, uploadRecording, getCurrentCase } from "$lib/api";
     import { flush } from "$lib/upload-queue";
     import { queueCount } from "$lib/stores/upload-queue-count";
 
@@ -59,6 +59,26 @@
     onMount(() => {
         queueCount.refresh();
         window.addEventListener("online", handleOnline);
+
+        // SSR runs without localStorage, so currentCase may be null on first paint.
+        // Restore the last selected case client-side if the server couldn't.
+        if (!currentCase) {
+            (async () => {
+                try {
+                    const savedId = localStorage.getItem("cluo_current_case_id");
+                    if (savedId) {
+                        const restored = await getCurrentCase(savedId);
+                        if (restored) {
+                            currentCase = restored;
+                            fetchRecordings(savedId);
+                        }
+                    }
+                } catch {
+                    // localStorage unavailable or API failed — remain empty
+                }
+            })();
+        }
+
         return () => window.removeEventListener("online", handleOnline);
     });
 
