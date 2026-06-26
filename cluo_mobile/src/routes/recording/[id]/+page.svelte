@@ -97,8 +97,8 @@
         <!-- Recording Info Card -->
         <div class="flex flex-col gap-4 p-4 border border-dark-100 rounded-2xl">
             <div class="flex justify-between items-start">
-                <div>
-                    <h2 class="text-dark-800 font-bold text-lg">
+                <div class="min-w-0 flex-1">
+                    <h2 class="text-dark-800 font-bold text-lg truncate">
                         {recording.title}
                     </h2>
                     <div class="flex gap-2 items-center mt-1">

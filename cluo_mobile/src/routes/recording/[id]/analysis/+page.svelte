@@ -125,7 +125,7 @@
 		{#if analysis.keyFindings}
 			<div class="flex flex-col gap-2 p-4 border border-dark-100 rounded-2xl">
 				<p class="text-dark-800 font-semibold text-sm uppercase tracking-wide">Points clés</p>
-				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line">{analysis.keyFindings}</p>
+				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line break-words">{analysis.keyFindings}</p>
 			</div>
 		{/if}
 
@@ -133,7 +133,7 @@
 		{#if analysis.suggestedActions}
 			<div class="flex flex-col gap-2 p-4 border border-dark-100 rounded-2xl">
 				<p class="text-dark-800 font-semibold text-sm uppercase tracking-wide">Actions suggérées</p>
-				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line">{analysis.suggestedActions}</p>
+				<p class="text-dark-700 text-sm leading-relaxed whitespace-pre-line break-words">{analysis.suggestedActions}</p>
 			</div>
 		{/if}
 
