@@ -74,5 +74,9 @@ export async function apiFetch<T>(
 		const errorText = await response.text().catch(() => "Unknown error");
 		throw new Error(`API error (${response.status}): ${errorText}`);
 	}
+	// 204 No Content and similar empty responses have no body to parse
+	if (response.status === 204 || response.headers.get("Content-Length") === "0") {
+		return undefined as T;
+	}
 	return response.json() as Promise<T>;
 }
