@@ -9,7 +9,7 @@
     import CurrentCase from "./CurrentCase.svelte";
     import CasePicker from "./CasePicker.svelte";
     import { currentCase as currentCaseStore } from "$lib/stores/current-case";
-    import { listRecordings, uploadRecording, getCurrentCase } from "$lib/api";
+    import { listRecordings, uploadRecording } from "$lib/api";
     import { flush } from "$lib/upload-queue";
     import { queueCount } from "$lib/stores/upload-queue-count";
 
@@ -60,23 +60,24 @@
         queueCount.refresh();
         window.addEventListener("online", handleOnline);
 
+        // Flush any queued uploads immediately if already online (not just on reconnect).
+        if (navigator.onLine) {
+            handleOnline();
+        }
+
         // SSR runs without localStorage, so currentCase may be null on first paint.
-        // Restore the last selected case client-side if the server couldn't.
+        // Restore the last selected case from the cached object — no API call needed.
         if (!currentCase) {
-            (async () => {
-                try {
-                    const savedId = localStorage.getItem("cluo_current_case_id");
-                    if (savedId) {
-                        const restored = await getCurrentCase(savedId);
-                        if (restored) {
-                            currentCase = restored;
-                            fetchRecordings(savedId);
-                        }
-                    }
-                } catch {
-                    // localStorage unavailable or API failed — remain empty
+            try {
+                const raw = localStorage.getItem("cluo_current_case");
+                if (raw) {
+                    const restored = JSON.parse(raw) as Case;
+                    currentCase = restored;
+                    fetchRecordings(restored.id);
                 }
-            })();
+            } catch {
+                // localStorage unavailable or JSON malformed — remain empty
+            }
         }
 
         return () => window.removeEventListener("online", handleOnline);
@@ -123,6 +124,7 @@
         searchQuery = "";
         try {
             localStorage.setItem("cluo_current_case_id", c.id);
+            localStorage.setItem("cluo_current_case", JSON.stringify(c));
         } catch {
             // localStorage unavailable
         }
