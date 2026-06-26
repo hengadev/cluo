@@ -77,10 +77,9 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 		inputPath = wavPath
 	}
 
-	// whisper-cli writes its JSON result to "<inputPath_without_ext>.json"
-	// (it strips the input extension before appending .json), so we must
-	// do the same when computing the sidecar path.
-	jsonPath := strings.TrimSuffix(inputPath, filepath.Ext(inputPath)) + ".json"
+	// whisper-cli appends .json to the full input path (including extension),
+	// e.g. foo_converted.wav → foo_converted.wav.json.
+	jsonPath := inputPath + ".json"
 	defer os.Remove(jsonPath)
 
 	args := []string{
