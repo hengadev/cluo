@@ -60,9 +60,11 @@
         queueCount.refresh();
         window.addEventListener("online", handleOnline);
 
-        // Flush any queued uploads immediately if already online (not just on reconnect).
+        // Flush any queued uploads silently on mount (don't refresh the list —
+        // the load already populated recordings; new uploads will appear on next nav).
+        // handleOnline (with list refresh) is reserved for the reconnect event.
         if (navigator.onLine) {
-            handleOnline();
+            flush(uploadRecording).then(() => queueCount.refresh()).catch(() => {});
         }
 
         // SSR runs without localStorage, so currentCase may be null on first paint.
