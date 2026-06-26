@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log/slog"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -20,6 +21,7 @@ type Client struct {
 	modelPath string
 	model     string
 	language  string
+	threads   int
 	timeout   time.Duration
 }
 
@@ -39,6 +41,7 @@ func New(cfg config.WhisperConfig) (*Client, error) {
 		modelPath: cfg.ModelPath,
 		model:     cfg.Model,
 		language:  cfg.Language,
+		threads:   cfg.Threads,
 		timeout:   cfg.Timeout,
 	}, nil
 }
@@ -56,17 +59,21 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 		wavPath := strings.TrimSuffix(audioPath, filepath.Ext(audioPath)) + "_converted.wav"
 		defer os.Remove(wavPath)
 
+		ffmpegStart := time.Now()
 		conv := exec.CommandContext(timeoutCtx, "ffmpeg",
-			"-y",            // overwrite if exists
-			"-i", audioPath, // input
-			"-ar", "16000",  // 16 kHz sample rate
-			"-ac", "1",      // mono
+			"-y",                // overwrite if exists
+			"-i", audioPath,     // input
+			"-ar", "16000",      // 16 kHz sample rate
+			"-ac", "1",          // mono
 			"-c:a", "pcm_s16le", // 16-bit PCM
 			wavPath,
 		)
-		if out, err := conv.CombinedOutput(); err != nil {
-			return nil, fmt.Errorf("ffmpeg conversion failed: %w, output: %s", err, string(out))
+		out, err := conv.CombinedOutput()
+		ffmpegElapsed := time.Since(ffmpegStart)
+		if err != nil {
+			return nil, fmt.Errorf("ffmpeg conversion failed after %s: %w, output: %s", ffmpegElapsed, err, string(out))
 		}
+		slog.Info("ffmpeg conversion done", "elapsed", ffmpegElapsed, "audioPath", audioPath, "output", strings.TrimSpace(string(out)))
 		inputPath = wavPath
 	}
 
@@ -80,15 +87,19 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 		"-m", c.modelPath + "/" + c.model + ".ggml",
 		"-f", inputPath,
 		"-l", c.language,
+		"-t", fmt.Sprintf("%d", c.threads),
 		"--output-json",
 	}
 
+	slog.Info("starting whisper transcription", "audioPath", inputPath, "model", c.model, "threads", c.threads)
+	whisperStart := time.Now()
 	cmd := exec.CommandContext(timeoutCtx, c.binary, args...)
-
 	output, err := cmd.CombinedOutput()
+	whisperElapsed := time.Since(whisperStart)
 	if err != nil {
-		return nil, fmt.Errorf("whisper command failed: %w, output: %s", err, string(output))
+		return nil, fmt.Errorf("whisper command failed after %s: %w, output: %s", whisperElapsed, err, string(output))
 	}
+	slog.Info("whisper transcription done", "elapsed", whisperElapsed, "audioPath", inputPath)
 
 	raw, err := os.ReadFile(jsonPath)
 	if err != nil {

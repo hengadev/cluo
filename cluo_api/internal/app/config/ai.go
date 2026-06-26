@@ -31,6 +31,7 @@ type WhisperConfig struct {
 	ModelPath   string
 	Model       string
 	Language    string
+	Threads     int
 	Timeout     time.Duration
 	DeleteAudio bool
 }
@@ -109,6 +110,11 @@ func loadWhisperConfig() (WhisperConfig, error) {
 		return WhisperConfig{}, err
 	}
 
+	threads, err := parseIntEnv("CLUO_AI_WHISPER_THREADS", 4)
+	if err != nil {
+		return WhisperConfig{}, err
+	}
+
 	deleteAudio, err := parseBoolEnv("CLUO_AI_WHISPER_DELETE_AUDIO", true)
 	if err != nil {
 		return WhisperConfig{}, fmt.Errorf("invalid delete audio: %w", err)
@@ -120,6 +126,7 @@ func loadWhisperConfig() (WhisperConfig, error) {
 		ModelPath:   getEnv("CLUO_AI_WHISPER_MODEL_PATH", "/models/whisper"),
 		Model:       getEnv("CLUO_AI_WHISPER_MODEL", "base"),
 		Language:    getEnv("CLUO_AI_WHISPER_LANGUAGE", "fr"),
+		Threads:     threads,
 		Timeout:     timeout,
 		DeleteAudio: deleteAudio,
 	}, nil
