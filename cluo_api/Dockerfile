@@ -26,8 +26,8 @@ RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF && \
     cmake --build build --config Release -j"$(nproc)" && \
     find build -maxdepth 3 -type f \( -name 'whisper-cli' -o -name 'main' \) -exec cp {} /usr/local/bin/whisper \; && \
     mkdir -p /models/whisper && \
-    curl -fL -o /models/whisper/base.ggml \
-      https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
+    curl -fL -o /models/whisper/small.ggml \
+      https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-small.bin
 
 FROM alpine:latest
 RUN apk add --no-cache ca-certificates libstdc++ libgomp ffmpeg

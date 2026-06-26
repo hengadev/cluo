@@ -124,7 +124,7 @@ func loadWhisperConfig() (WhisperConfig, error) {
 		Enabled:     enabled,
 		Binary:      binary,
 		ModelPath:   getEnv("CLUO_AI_WHISPER_MODEL_PATH", "/models/whisper"),
-		Model:       getEnv("CLUO_AI_WHISPER_MODEL", "base"),
+		Model:       getEnv("CLUO_AI_WHISPER_MODEL", "small"),
 		Language:    getEnv("CLUO_AI_WHISPER_LANGUAGE", "fr"),
 		Threads:     threads,
 		Timeout:     timeout,
