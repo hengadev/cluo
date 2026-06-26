@@ -295,7 +295,28 @@ export async function getRecordingStatus(id: string): Promise<RecordingStatusRes
 		};
 	}
 
-	const job = await apiFetch<JobStatusApiResponse>(`/ai/speech/jobs/${jobId}`);
+	let job: JobStatusApiResponse;
+	try {
+		job = await apiFetch<JobStatusApiResponse>(`/ai/speech/jobs/${jobId}`);
+	} catch (err) {
+		// Job no longer exists (stale localStorage ID from a previous session or DB reset).
+		// Clear the dead ID so we don't keep polling for it, then surface a failed state.
+		if (err instanceof Error && err.message.includes("404")) {
+			updateChain(id, { jobId: undefined });
+			return {
+				id,
+				status: "failed",
+				processingSteps: [
+					{ title: "Téléchargement audio", status: "completed" },
+					{ title: "Traitement de la transcription", status: "failed" },
+					{ title: "Génération du résumé", status: "failed" },
+					{ title: "Terminé", status: "failed" },
+				],
+				error: "Tâche de transcription introuvable — veuillez réessayer",
+			};
+		}
+		throw err;
+	}
 
 	if (job.transcriptionId) {
 		updateChain(id, { transcriptionId: job.transcriptionId });
