@@ -199,14 +199,14 @@
             {#if !transcript}
                 <a
                     href="/processing/{recording.id}"
-                    class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold no-underline"
+                    class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-white rounded-xl transition-colors font-semibold no-underline"
                 >
                     Voir l'état du traitement
                 </a>
             {:else if !analysis}
                 <a
                     href="/recording/{recording.id}/transcript"
-                    class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold no-underline"
+                    class="flex items-center justify-center w-full py-4 bg-dark-700 hover:bg-dark-600 text-white rounded-xl transition-colors font-semibold no-underline"
                 >
                     Réviser la transcription
                 </a>
@@ -216,7 +216,7 @@
                 <button
                     onclick={handleDownload}
                     disabled={isDownloading}
-                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-dark-700 hover:bg-dark-600 disabled:bg-dark-400 text-foreground rounded-xl transition-colors"
+                    class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-dark-700 hover:bg-dark-600 disabled:bg-dark-400 text-white rounded-xl transition-colors"
                 >
                     {#if isDownloading}
                         <Loader2 size={18} class="animate-spin" />

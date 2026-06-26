@@ -163,7 +163,7 @@
             <div class="mt-4">
                 <a
                     href="/recording/{recordingId}/transcript"
-                    class="flex items-center justify-center w-full px-6 py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold no-underline"
+                    class="flex items-center justify-center w-full px-6 py-4 bg-dark-700 hover:bg-dark-600 text-white rounded-xl transition-colors font-semibold no-underline"
                 >
                     Voir la transcription
                 </a>
