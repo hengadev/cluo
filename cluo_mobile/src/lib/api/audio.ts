@@ -249,6 +249,12 @@ export async function uploadRecording(
 		body: jobForm,
 	});
 	if (!jobRes.ok) {
+		// Roll back the media upload so the queue entry can retry the full
+		// flow without leaving an orphaned media record in the DB.
+		await fetchWithRetry(`${API_URL}/media/${media.id}`, {
+			method: "DELETE",
+			credentials: "include",
+		}).catch(() => {});
 		const err = await jobRes.text().catch(() => "Unknown error");
 		throw new Error(`Échec de la soumission de la tâche de transcription : ${err}`);
 	}
