@@ -26,6 +26,7 @@ type TranscriptionWorker struct {
 	whisperClient     ports.WhisperClient
 	jobRepo           ports.TranscriptionJobRepository
 	transcriptionRepo ports.TranscriptionRepository
+	mediaRepo         ports.MediaRepository
 	webhookClient     *webhook.Client
 	crypto            encx.CryptoService
 	queue             *JobQueue
@@ -42,6 +43,7 @@ func NewTranscriptionWorker(
 	whisperClient ports.WhisperClient,
 	jobRepo ports.TranscriptionJobRepository,
 	transcriptionRepo ports.TranscriptionRepository,
+	mediaRepo ports.MediaRepository,
 	webhookClient *webhook.Client,
 	crypto encx.CryptoService,
 	concurrency int,
@@ -53,6 +55,7 @@ func NewTranscriptionWorker(
 		whisperClient:     whisperClient,
 		jobRepo:           jobRepo,
 		transcriptionRepo: transcriptionRepo,
+		mediaRepo:         mediaRepo,
 		webhookClient:     webhookClient,
 		crypto:            crypto,
 		queue:             NewJobQueue(queueSize, logger),
@@ -253,9 +256,30 @@ func (w *TranscriptionWorker) handleJobFailure(ctx context.Context, jobID uuid.U
 			"error", err)
 	}
 
-	// Get job to send webhook
+	// Get job details for cleanup and webhook
 	job, err := w.jobRepo.GetByID(ctx, jobID)
-	if err == nil && job.WebhookURL != nil {
+	if err != nil {
+		w.logger.Error("failed to get job for failure cleanup", "jobID", jobID, "error", err)
+		return
+	}
+
+	// Delete the orphaned media record so it doesn't show as a ghost entry.
+	if err := w.mediaRepo.DeleteMedia(ctx, job.MediaFileID); err != nil {
+		w.logger.Warn("failed to delete media record after job failure",
+			"jobID", jobID,
+			"mediaFileID", job.MediaFileID,
+			"error", err)
+	}
+
+	// Delete the audio file on disk.
+	if err := os.Remove(job.AudioPath); err != nil && !os.IsNotExist(err) {
+		w.logger.Warn("failed to delete audio file after job failure",
+			"jobID", jobID,
+			"audioPath", job.AudioPath,
+			"error", err)
+	}
+
+	if job.WebhookURL != nil {
 		if err := w.webhookClient.NotifyFailure(ctx, *job.WebhookURL, jobID, errorMsg); err != nil {
 			w.logger.Warn("failed to send failure webhook",
 				"jobID", jobID,

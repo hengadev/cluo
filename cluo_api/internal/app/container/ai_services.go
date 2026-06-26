@@ -115,6 +115,7 @@ func (c *Container) initWhisper(ctx context.Context) error {
 		whisper,
 		c.transcriptionJobRepo,
 		c.transcriptionRepo,
+		c.mediaRepo,
 		webhookClient,
 		c.crypto,
 		c.config.AI.Worker.Concurrency,
