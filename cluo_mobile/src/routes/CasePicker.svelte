@@ -126,8 +126,8 @@
                                     ? 'border-dark-900 bg-dark-50'
                                     : 'border-dark-100 hover:bg-dark-50'}"
                         >
-                            <div class="flex flex-col gap-1">
-                                <p class="font-bold text-dark-900 text-sm">{c.title}</p>
+                            <div class="flex flex-col gap-1 min-w-0 flex-1">
+                                <p class="font-bold text-dark-900 text-sm truncate">{c.title}</p>
                                 <div class="flex items-center gap-2 text-xs text-dark-500">
                                     <span>{statusLabels[c.status] ?? c.status}</span>
                                     {#if c.externalReference}

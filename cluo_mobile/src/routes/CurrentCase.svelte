@@ -30,8 +30,8 @@
         <span class="{badgeClass} px-4 py-2 rounded-2xl">{statusLabel}</span>
         <p class="text-dark-600 text-sm">ID: {displayId}</p>
     </div>
-    <p class="text-dark-900 font-extrabold text-lg">{currentCase.title}</p>
-    <div class="flex items-center gap-8">
+    <p class="text-dark-900 font-extrabold text-lg break-words">{currentCase.title}</p>
+    <div class="flex items-center gap-4">
         {#if currentCase.clientName}
         <div class="flex flex-col gap-1 text-xs">
             <p class="uppercase text-dark-500">client</p>
