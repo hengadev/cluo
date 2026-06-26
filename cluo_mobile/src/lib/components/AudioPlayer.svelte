@@ -90,7 +90,7 @@
 		<button
 			type="button"
 			onclick={togglePlay}
-			class="flex items-center justify-center w-10 h-10 bg-dark-700 hover:bg-dark-600 text-foreground rounded-full transition-colors"
+			class="flex items-center justify-center w-10 h-10 bg-accent hover:bg-accent/90 text-accent-foreground rounded-full transition-colors"
 			aria-label={isPlaying ? "Pause" : "Lecture"}
 		>
 			{#if isPlaying}

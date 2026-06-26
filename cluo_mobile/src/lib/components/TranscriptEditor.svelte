@@ -77,7 +77,7 @@
 		<div class="flex gap-3">
 			<button
 				onclick={handleSave}
-				class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-medium"
+				class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl transition-colors font-medium"
 			>
 				<Check size={18} />
 				<span>Enregistrer</span>

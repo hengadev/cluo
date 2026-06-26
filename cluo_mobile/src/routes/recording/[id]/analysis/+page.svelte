@@ -141,7 +141,7 @@
 		<div class="flex flex-col gap-3 mt-2">
 			<button
 				onclick={handleExport}
-				class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-700 hover:bg-dark-600 text-foreground rounded-xl transition-colors font-semibold"
+				class="flex items-center justify-center gap-2 px-6 py-4 bg-accent hover:bg-accent/90 text-accent-foreground rounded-xl transition-colors font-semibold"
 			>
 				<Download size={18} />
 				<span>Exporter l'analyse</span>

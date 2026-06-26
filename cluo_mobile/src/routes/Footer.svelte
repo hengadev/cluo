@@ -306,11 +306,11 @@
                 type="text"
                 bind:value={recordingTitle}
                 placeholder={defaultRecordingTitle}
-                class="w-full bg-dark-700 text-foreground placeholder-dark-400 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-dark-400"
+                class="w-full bg-background border border-dark-200 text-dark-800 placeholder-dark-400 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-dark-400"
             />
             <div class="flex gap-3">
                 <button
-                    class="flex-1 flex items-center justify-center gap-2 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
+                    class="flex-1 flex items-center justify-center gap-2 bg-dark-100 hover:bg-dark-200 text-dark-700 px-4 py-3 rounded-xl transition-colors"
                     onclick={discardRecording}
                 >
                     <X size={18} />
@@ -340,7 +340,7 @@
             <p class="text-foreground text-base mb-6">Cette affaire est clôturée. Continuer quand même ?</p>
             <div class="flex gap-3">
                 <button
-                    class="flex-1 bg-dark-700 hover:bg-dark-600 text-foreground px-4 py-3 rounded-xl transition-colors"
+                    class="flex-1 bg-dark-100 hover:bg-dark-200 text-dark-700 px-4 py-3 rounded-xl transition-colors"
                     onclick={() => (confirmDialog = { show: false })}
                 >
                     Annuler
