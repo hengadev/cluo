@@ -49,15 +49,36 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 	timeoutCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	// whisper-cli writes its JSON result to "<audioPath_without_ext>.json"
+	// whisper-cli only handles WAV (16 kHz, mono, 16-bit PCM) natively.
+	// Convert any other format (webm, ogg, mp3, …) via ffmpeg first.
+	inputPath := audioPath
+	if strings.ToLower(filepath.Ext(audioPath)) != ".wav" {
+		wavPath := strings.TrimSuffix(audioPath, filepath.Ext(audioPath)) + "_converted.wav"
+		defer os.Remove(wavPath)
+
+		conv := exec.CommandContext(timeoutCtx, "ffmpeg",
+			"-y",            // overwrite if exists
+			"-i", audioPath, // input
+			"-ar", "16000",  // 16 kHz sample rate
+			"-ac", "1",      // mono
+			"-c:a", "pcm_s16le", // 16-bit PCM
+			wavPath,
+		)
+		if out, err := conv.CombinedOutput(); err != nil {
+			return nil, fmt.Errorf("ffmpeg conversion failed: %w, output: %s", err, string(out))
+		}
+		inputPath = wavPath
+	}
+
+	// whisper-cli writes its JSON result to "<inputPath_without_ext>.json"
 	// (it strips the input extension before appending .json), so we must
 	// do the same when computing the sidecar path.
-	jsonPath := strings.TrimSuffix(audioPath, filepath.Ext(audioPath)) + ".json"
+	jsonPath := strings.TrimSuffix(inputPath, filepath.Ext(inputPath)) + ".json"
 	defer os.Remove(jsonPath)
 
 	args := []string{
 		"-m", c.modelPath + "/" + c.model + ".ggml",
-		"-f", audioPath,
+		"-f", inputPath,
 		"-l", c.language,
 		"--output-json",
 	}

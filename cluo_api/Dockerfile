@@ -30,7 +30,7 @@ RUN cmake -B build -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=OFF && \
       https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-base.bin
 
 FROM alpine:latest
-RUN apk add --no-cache ca-certificates libstdc++ libgomp
+RUN apk add --no-cache ca-certificates libstdc++ libgomp ffmpeg
 
 WORKDIR /app
 
