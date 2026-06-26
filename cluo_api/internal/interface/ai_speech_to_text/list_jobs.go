@@ -2,10 +2,12 @@ package aiSpeechToTextHandler
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"strconv"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/auth/session"
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 	"github.com/hengadev/cluo_api/internal/domain/ai"
@@ -36,15 +38,15 @@ func (h *handler) ListJobs(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user ID from context
-	userID, err := ctxutil.GetUserIDFromContext(ctx)
-	if err != nil {
-		logger.ErrorContext(ctx, "Handler: User ID not found in context",
-			"error", err,
+	// Get user ID from session context
+	sessionInfo, ok := session.SessionInfoFromContext(ctx)
+	if !ok {
+		logger.ErrorContext(ctx, "Handler: Session info not found in context",
 			"operation", "list_jobs")
-		httpx.RespondWithError(w, err, http.StatusUnauthorized)
+		httpx.RespondWithError(w, fmt.Errorf("unauthorized"), http.StatusUnauthorized)
 		return
 	}
+	userID := sessionInfo.UserID
 
 	// Parse query parameters
 	limitStr := r.URL.Query().Get("limit")

@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/auth/session"
 	"github.com/hengadev/cluo_api/internal/common/ctxutil"
 	"github.com/hengadev/cluo_api/internal/common/httpx"
 	"github.com/hengadev/cluo_api/internal/domain/ai"
@@ -84,12 +85,13 @@ func (h *handler) SendMessage(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Get user ID from context
-	userID, err := ctxutil.GetUserIDFromContext(ctx)
-	if err != nil {
-		httpx.RespondWithError(w, err, http.StatusUnauthorized)
+	// Get user ID from session context
+	sessionInfo, ok := session.SessionInfoFromContext(ctx)
+	if !ok {
+		httpx.RespondWithError(w, fmt.Errorf("unauthorized"), http.StatusUnauthorized)
 		return
 	}
+	userID := sessionInfo.UserID
 
 	// Get case ID from query param
 	caseIDStr := r.URL.Query().Get("case_id")
