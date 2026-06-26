@@ -1,18 +1,35 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import { ArrowLeft, FileText, Sparkles, Play, Trash2, Download, Loader2 } from "@lucide/svelte";
     import { goto } from "$app/navigation";
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
-    import { deleteRecording, getAudioUrl } from "$lib/api";
+    import Spinner from "$lib/components/ui/Spinner.svelte";
+    import { deleteRecording, getAudioUrl, getRecording } from "$lib/api";
     import { snackbar } from "$lib/stores/snackbar";
+    import type { Recording, Transcript, AnalysisResult } from "$lib/types/recording";
 
-    // Data is passed from +page.ts load function
     let { data } = $props();
-    const recording = data.recording;
-    const transcript = data.transcript;
-    const analysis = data.analysis;
 
+    let recording = $state<(Recording & { audioUrl?: string }) | null>(null);
+    let transcript = $state<Transcript | null>(null);
+    let analysis = $state<AnalysisResult | null>(null);
+    let isLoading = $state(true);
+    let pageError = $state<string | null>(null);
     let isDeleting = $state(false);
     let isDownloading = $state(false);
+
+    onMount(async () => {
+        try {
+            const result = await getRecording(data.id);
+            recording = result.recording;
+            transcript = result.transcript;
+            analysis = result.analysis;
+        } catch (e) {
+            pageError = e instanceof Error ? e.message : "Échec du chargement de l'enregistrement";
+        } finally {
+            isLoading = false;
+        }
+    });
 
     function goBack() {
         if (history.length > 0) history.back();
@@ -28,7 +45,7 @@
     };
 
     async function handleDownload() {
-        if (isDownloading) return;
+        if (isDownloading || !recording) return;
 
         try {
             isDownloading = true;
@@ -38,7 +55,6 @@
                 throw new Error("Audio not available");
             }
 
-            // Create download link
             const a = document.createElement("a");
             a.href = audioUrl;
             a.download = `${recording.title || "recording"}.webm`;
@@ -54,9 +70,8 @@
     }
 
     async function handleDelete() {
-        if (isDeleting) return;
+        if (isDeleting || !recording) return;
 
-        // Show confirmation
         const confirmed = confirm(
             `Êtes-vous sûr de vouloir supprimer « ${recording.title} » ? Cette action est irréversible.`
         );
@@ -66,7 +81,6 @@
         try {
             isDeleting = true;
             await deleteRecording(recording.id);
-            // Navigate back to home
             goto("/");
         } catch (error) {
             console.error("Delete failed:", error);
@@ -89,11 +103,15 @@
         <h1 class="text-dark-900 font-extrabold text-xl">Détails de l'enregistrement</h1>
     </div>
 
-    {#if data.error}
-        <div class="flex items-center justify-center p-8 bg-red-50 rounded-2xl">
-            <p class="text-red-600">{data.error}</p>
+    {#if isLoading}
+        <div class="flex items-center justify-center p-12">
+            <Spinner size="md" />
         </div>
-    {:else}
+    {:else if pageError}
+        <div class="flex items-center justify-center p-8 bg-red-50 rounded-2xl">
+            <p class="text-red-600">{pageError}</p>
+        </div>
+    {:else if recording}
         <!-- Recording Info Card -->
         <div class="flex flex-col gap-4 p-4 border border-dark-100 rounded-2xl">
             <div class="flex justify-between items-start">

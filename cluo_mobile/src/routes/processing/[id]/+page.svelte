@@ -7,11 +7,10 @@
     import type { ProcessingStep } from "$lib/types/recording";
     import { getRecordingStatus } from "$lib/api";
 
-    // Data is passed from +page.ts load function
     let { data } = $props();
-    let recordingId = $derived(data.recordingId);
-    let steps = $state<ProcessingStep[]>(data.steps);
-    let error = $state(data.error);
+    let recordingId = $derived(data.id);
+    let steps = $state<ProcessingStep[]>([]);
+    let error = $state<string | null>(null);
     let isRetrying = $state(false);
 
     let pollInterval: number | null = null;
@@ -63,12 +62,9 @@
         isRetrying = false;
     }
 
-    // Start polling on mount
     onMount(() => {
-        // Only start polling if there's no initial error
-        if (!error) {
-            startPolling();
-        }
+        fetchStatus();
+        startPolling();
     });
 
     // Clean up on destroy
