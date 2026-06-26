@@ -6,6 +6,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/ai"
 	"github.com/hengadev/cluo_api/internal/ports"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -85,7 +86,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*ai.Transcripti
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("get transcription job by id: %w", err)
+		return nil, errs.ClassifyPgError("get transcription job by id", err)
 	}
 
 	return &j, nil

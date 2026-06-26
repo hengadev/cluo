@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/common/errs"
 	"github.com/hengadev/cluo_api/internal/domain/ai"
 	"github.com/hengadev/cluo_api/internal/ports"
 	"github.com/jackc/pgx/v5/pgxpool"
@@ -81,7 +82,7 @@ func (r *Repository) GetByID(ctx context.Context, id uuid.UUID) (*ai.Transcripti
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("get transcription by id: %w", err)
+		return nil, errs.ClassifyPgError("get transcription by id", err)
 	}
 
 	return &t, nil
@@ -109,7 +110,7 @@ func (r *Repository) GetByMediaFileID(ctx context.Context, mediaFileID uuid.UUID
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("get transcription by media file id: %w", err)
+		return nil, errs.ClassifyPgError("get transcription by media file id", err)
 	}
 
 	return &t, nil
@@ -135,7 +136,7 @@ func (r *Repository) GetByJobID(ctx context.Context, jobID uuid.UUID) (*ai.Trans
 	)
 
 	if err != nil {
-		return nil, fmt.Errorf("get transcription by job id: %w", err)
+		return nil, errs.ClassifyPgError("get transcription by job id", err)
 	}
 
 	return &t, nil
