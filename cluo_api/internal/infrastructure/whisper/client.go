@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"time"
 
@@ -48,9 +49,10 @@ func (c *Client) Transcribe(ctx context.Context, audioPath string) (*ports.Whisp
 	timeoutCtx, cancel := context.WithTimeout(ctx, c.timeout)
 	defer cancel()
 
-	// whisper-cli writes its JSON result to "<audioPath>.json" — it does
-	// not print JSON to stdout — so we read that sidecar file afterward.
-	jsonPath := audioPath + ".json"
+	// whisper-cli writes its JSON result to "<audioPath_without_ext>.json"
+	// (it strips the input extension before appending .json), so we must
+	// do the same when computing the sidecar path.
+	jsonPath := strings.TrimSuffix(audioPath, filepath.Ext(audioPath)) + ".json"
 	defer os.Remove(jsonPath)
 
 	args := []string{
