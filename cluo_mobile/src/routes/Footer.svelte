@@ -60,7 +60,7 @@
         }
     });
 
-    const maxDrag = $derived(containerWidth - buttonWidth - 32); // 32px for padding
+    const maxDrag = $derived(containerWidth * 0.5 - buttonWidth);
 
     function handleDragStart(e: MouseEvent | TouchEvent) {
         if (footerState !== "idle") return;
@@ -270,7 +270,7 @@
 <div
     bind:this={containerElement}
     class="relative flex justify-center items-center bg-dark-900 px-4 pt-6 min-h-20 overflow-hidden"
-    style="padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem)"
+    style="padding-bottom: calc(env(safe-area-inset-bottom) + 2.5rem)"
 >
     {#if footerState === "idle"}
         {#if currentCase}
@@ -279,7 +279,7 @@
             </div>
 
             <button
-                class="absolute left-4 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
+                class="absolute left-10 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
                 style="transform: translateX({dragX}px); transition: {isDragging
                     ? 'none'
                     : 'transform 0.3s ease-out'}"
