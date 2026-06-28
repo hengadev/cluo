@@ -1,5 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
     import { ArrowRight, Square, Check, X } from "@lucide/svelte";
     import { goto } from "$app/navigation";
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
@@ -34,18 +33,6 @@
     let defaultRecordingTitle: string = $state("");
 
     let containerElement: HTMLDivElement;
-
-    onMount(async () => {
-        try {
-            const status = await navigator.permissions.query({ name: "microphone" as PermissionName });
-            if (status.state === "prompt") {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-                stream.getTracks().forEach((t) => t.stop());
-            }
-        } catch {
-            // Permission API or getUserMedia not supported — will fall back to requesting at record time
-        }
-    });
 
     const formattedDuration = $derived.by(() => {
         const minutes = Math.floor(recordingDuration / 60);
