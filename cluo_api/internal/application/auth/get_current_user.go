@@ -23,5 +23,6 @@ func (s *AuthService) GetCurrentUser(ctx context.Context, userID uuid.UUID) (*us
 		ID:    u.ID.String(),
 		Email: u.Email,
 		Role:  u.Role,
+		Name:  u.Name,
 	}, nil
 }

@@ -13,7 +13,7 @@ func (r *Repository) GetUserByID(ctx context.Context, userID uuid.UUID) (*user.U
 	query := fmt.Sprintf(`
 		SELECT
 			id, email_hash, email_encrypted, password_hash_secure, role_encrypted,
-			created_at_encrypted, dek_encrypted, key_version, metadata
+			name_encrypted, created_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.users WHERE id = $1
 	`, r.schema)
 
@@ -21,7 +21,7 @@ func (r *Repository) GetUserByID(ctx context.Context, userID uuid.UUID) (*user.U
 
 	err := r.pool.QueryRow(ctx, query, userID).Scan(
 		&userEncx.ID, &userEncx.EmailHash, &userEncx.EmailEncrypted, &userEncx.PasswordHashSecure,
-		&userEncx.RoleEncrypted, &userEncx.CreatedAtEncrypted,
+		&userEncx.RoleEncrypted, &userEncx.NameEncrypted, &userEncx.CreatedAtEncrypted,
 		&userEncx.DEKEncrypted, &userEncx.KeyVersion, &userEncx.Metadata,
 	)
 	if err != nil {

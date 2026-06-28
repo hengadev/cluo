@@ -12,7 +12,7 @@ func (r *Repository) GetUserByEmailHash(ctx context.Context, emailHash string) (
 	query := fmt.Sprintf(`
 		SELECT
 			id, email_hash, email_encrypted, password_hash_secure, role_encrypted,
-			created_at_encrypted, dek_encrypted, key_version, metadata
+			name_encrypted, created_at_encrypted, dek_encrypted, key_version, metadata
 		FROM %s.users WHERE email_hash = $1
 	`, r.schema)
 
@@ -20,7 +20,7 @@ func (r *Repository) GetUserByEmailHash(ctx context.Context, emailHash string) (
 
 	err := r.pool.QueryRow(ctx, query, emailHash).Scan(
 		&userEncx.ID, &userEncx.EmailHash, &userEncx.EmailEncrypted, &userEncx.PasswordHashSecure,
-		&userEncx.RoleEncrypted, &userEncx.CreatedAtEncrypted,
+		&userEncx.RoleEncrypted, &userEncx.NameEncrypted, &userEncx.CreatedAtEncrypted,
 		&userEncx.DEKEncrypted, &userEncx.KeyVersion, &userEncx.Metadata,
 	)
 	if err != nil {

@@ -70,4 +70,10 @@ type CurrentUserResponse struct {
 	ID    string `json:"id"`
 	Email string `json:"email"`
 	Role  string `json:"role"`
+	Name  string `json:"name"`
+}
+
+// UpdateNameRequest represents a request to update the user's display name
+type UpdateNameRequest struct {
+	Name string `json:"name"`
 }

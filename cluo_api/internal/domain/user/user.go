@@ -11,5 +11,6 @@ type User struct {
 	Email     string    `encx:"hash_basic,encrypt"`
 	Password  string    `encx:"hash_secure"`
 	Role      string    `encx:"encrypt"`
+	Name      string    `encx:"encrypt"`
 	CreatedAt time.Time `encx:"encrypt"`
 }

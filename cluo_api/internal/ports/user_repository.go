@@ -3,8 +3,8 @@ package ports
 import (
 	"context"
 
-	"github.com/hengadev/cluo_api/internal/domain/user"
 	"github.com/google/uuid"
+	"github.com/hengadev/cluo_api/internal/domain/user"
 )
 
 // UserRepository defines the interface for user data persistence operations
@@ -20,4 +20,7 @@ type UserRepository interface {
 
 	// CreateUser creates a new user in the database
 	CreateUser(ctx context.Context, user *user.UserEncx) error
+
+	// UpdateUserName updates the encrypted name for the given user
+	UpdateUserName(ctx context.Context, userID uuid.UUID, nameEncrypted []byte) error
 }

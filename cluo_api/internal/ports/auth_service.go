@@ -24,4 +24,7 @@ type AuthService interface {
 
 	// GetCurrentUser returns the current authenticated user
 	GetCurrentUser(ctx context.Context, userID uuid.UUID) (*user.CurrentUserResponse, error)
+
+	// UpdateCurrentUserName updates the display name of the authenticated user
+	UpdateCurrentUserName(ctx context.Context, userID uuid.UUID, name string) error
 }

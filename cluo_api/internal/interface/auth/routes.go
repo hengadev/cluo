@@ -21,4 +21,5 @@ func (h *AuthHandler) RegisterRoutes(router *http.ServeMux) {
 	router.HandleFunc("POST /auth/logout", RequireClient(mw.EnableCORS(h.SignOut)))
 	router.HandleFunc("POST /auth/refresh", RequireRefreshToken(mw.EnableCORS(h.RefreshSession)))
 	router.HandleFunc("GET /auth/me", RequireClient(mw.EnableCORS(h.GetCurrentUser)))
+	router.HandleFunc("PATCH /auth/me", RequireClient(mw.EnableCORS(h.UpdateCurrentUser)))
 }

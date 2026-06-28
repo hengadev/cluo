@@ -55,15 +55,13 @@
                     id: string;
                     email: string;
                     role: string;
+                    name: string;
                 };
-                const namePart = user.email.split("@")[0];
-                const displayName =
-                    namePart.charAt(0).toUpperCase() + namePart.slice(1);
                 auth.setUser({
                     id: user.id,
                     email: user.email,
                     role: user.role as "admin" | "investigator" | "viewer",
-                    name: displayName,
+                    name: user.name ?? "",
                 });
             } else {
                 goto("/auth");
