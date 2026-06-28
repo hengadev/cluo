@@ -10,7 +10,7 @@
 
 	let {
 		src,
-		duration = 0,
+		duration: durationProp = 0,
 		class: className = "",
 	}: Props = $props();
 
@@ -19,9 +19,14 @@
 	let currentTime = $state(0);
 	let progress = $state(0);
 	let loadError = $state(false);
+	let duration = $state(durationProp);
 
-	// Format time as MM:SS
+	$effect(() => {
+		duration = durationProp;
+	});
+
 	function formatTime(seconds: number): string {
+		if (!Number.isFinite(seconds) || seconds < 0) return "00:00";
 		const mins = Math.floor(seconds / 60);
 		const secs = Math.floor(seconds % 60);
 		return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
@@ -68,12 +73,11 @@
 	}
 
 	function handleLoadedMetadata() {
-		if (duration > 0) {
-			// Use provided duration if available
-			return;
+		if (duration > 0) return;
+		const d = audioElement.duration;
+		if (Number.isFinite(d) && d > 0) {
+			duration = d;
 		}
-		// Otherwise use audio element duration
-		duration = audioElement.duration;
 	}
 
 	// Create object URL for Blob
