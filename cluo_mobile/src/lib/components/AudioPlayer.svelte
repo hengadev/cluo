@@ -121,7 +121,7 @@
 
 			<div class="flex-1 flex flex-col gap-1">
 				<span class="text-dark-600 text-xs">
-					{formatTime(currentTime)} / {formatTime(duration)}
+					{formatTime(currentTime)} / {duration > 0 ? formatTime(duration) : '--:--'}
 				</span>
 				<input
 					type="range"

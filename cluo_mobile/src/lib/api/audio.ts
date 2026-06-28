@@ -499,6 +499,9 @@ export async function getRecording(id: string): Promise<{
 		if (res.transcriptions.length) {
 			const t = res.transcriptions[0];
 			updateChain(id, { transcriptionId: t.id });
+			if (t.duration > 0) {
+				recording.duration = Math.round(t.duration / 1000);
+			}
 			transcript = {
 				recordingId: id,
 				text: t.transcript,

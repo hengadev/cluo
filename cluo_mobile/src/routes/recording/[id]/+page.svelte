@@ -36,6 +36,14 @@
         else window.location.href = "/";
     }
 
+    function formatDuration(d: number | string): string {
+        const secs = typeof d === "number" ? d : 0;
+        if (secs <= 0) return "--:--";
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    }
+
     const statusLabels: Record<string, string> = {
         uploading: "Téléchargement",
         transcribing: "Transcription",
@@ -129,13 +137,13 @@
                     <p
                         class="flex justify-center items-center border border-dark-100 rounded-3xl bg-dark-50 text-dark-600 py-1 px-3 text-sm font-medium"
                     >
-                        {recording.duration}
+                        {formatDuration(recording.duration)}
                     </p>
                 </div>
             </div>
 
             {#if recording.audioUrl}
-                <AudioPlayer src={recording.audioUrl} />
+                <AudioPlayer src={recording.audioUrl} duration={typeof recording.duration === 'number' ? recording.duration : 0} />
             {:else}
                 <div
                     class="flex items-center gap-4 p-4 bg-dark-50 rounded-xl border border-dark-100"
