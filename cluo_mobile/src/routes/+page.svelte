@@ -176,7 +176,7 @@
                 <p class="text-dark-600">Aucun enregistrement ne correspond à «\u00a0{searchQuery}\u00a0».</p>
             </div>
         {:else}
-            <div class="flex flex-col gap-2">
+            <div class="flex flex-col">
                 {#each filteredRecordings as recording}
                     <PastRecording
                         id={recording.id}
