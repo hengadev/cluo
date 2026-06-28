@@ -16,10 +16,11 @@ import (
 )
 
 type S3Storage struct {
-	client     *s3.Client
-	bucketName string
-	region     string
-	baseURL    string // For public buckets, e.g., "https://bucket.s3.region.amazonaws.com"
+	client         *s3.Client
+	bucketName     string
+	region         string
+	baseURL        string // e.g., "https://media.domain.com/bucket-name"
+	publicEndpoint string // baseURL without bucket suffix, for presigned URL generation
 }
 
 // Config holds the configuration for S3 storage
@@ -38,11 +39,18 @@ func New(cfg Config) ports.StorageService {
 		baseURL = fmt.Sprintf("https://%s.s3.%s.amazonaws.com", cfg.BucketName, cfg.Region)
 	}
 
+	// Derive the public endpoint for presigned URL generation by stripping the
+	// bucket-name path segment. For path-style MinIO behind a reverse proxy
+	// (e.g., "https://media.example.com/my-bucket"), this gives the host-only
+	// endpoint ("https://media.example.com") that the browser can reach.
+	publicEndpoint := strings.TrimSuffix(baseURL, "/"+cfg.BucketName)
+
 	return &S3Storage{
-		client:     cfg.Client,
-		bucketName: cfg.BucketName,
-		region:     cfg.Region,
-		baseURL:    baseURL,
+		client:         cfg.Client,
+		bucketName:     cfg.BucketName,
+		region:         cfg.Region,
+		baseURL:        baseURL,
+		publicEndpoint: publicEndpoint,
 	}
 }
 
@@ -88,25 +96,32 @@ func (s *S3Storage) DeleteFile(ctx context.Context, fileURL string) error {
 	return nil
 }
 
-// GetFileURL generates a signed URL for accessing a file (for private buckets)
-// If the bucket is public, it returns the URL as-is
+// GetFileURL returns a presigned URL for accessing a file from the browser.
+// The presigned URL is signed with the public endpoint so it can be accessed
+// directly without credentials (the signature is embedded in query params).
 func (s *S3Storage) GetFileURL(ctx context.Context, fileURL string) (string, error) {
-	// For public buckets, return the URL as-is
-	// For private buckets, generate a presigned URL
-
-	// Extract key from URL
 	key, err := s.extractKeyFromURL(fileURL)
 	if err != nil {
 		return "", fmt.Errorf("failed to extract key from URL: %w", err)
 	}
 
-	// Create a presigned URL that expires in 1 hour
-	presignClient := s3.NewPresignClient(s.client)
+	// Override BaseEndpoint so the presigned URL uses the public hostname
+	// (e.g., "https://media.example.com") rather than the internal MinIO
+	// address. Caddy forwards Host: media.example.com to MinIO, which can
+	// then verify the signature against the same host value.
+	presignClient := s3.NewPresignClient(s.client, func(opts *s3.PresignOptions) {
+		if s.publicEndpoint != "" {
+			opts.ClientOptions = append(opts.ClientOptions, func(o *s3.Options) {
+				o.BaseEndpoint = aws.String(s.publicEndpoint)
+			})
+		}
+	})
+
 	presignResult, err := presignClient.PresignGetObject(ctx, &s3.GetObjectInput{
 		Bucket: aws.String(s.bucketName),
 		Key:    aws.String(key),
 	}, func(opts *s3.PresignOptions) {
-		opts.Expires = time.Hour * 1 // URL valid for 1 hour
+		opts.Expires = time.Hour
 	})
 	if err != nil {
 		return "", fmt.Errorf("failed to generate presigned URL: %w", err)

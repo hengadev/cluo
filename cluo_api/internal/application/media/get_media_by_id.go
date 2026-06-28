@@ -9,17 +9,26 @@ import (
 )
 
 func (s *Service) GetMediaByID(ctx context.Context, r *domain.GetMediaByIDRequest) (*domain.MediaResponse, error) {
-	// Get encrypted media
 	mediaEncx, err := s.repo.GetMediaByID(ctx, r.ID)
 	if err != nil {
 		return nil, fmt.Errorf("failed to get media: %w", err)
 	}
 
-	// Decrypt
 	media, err := domain.DecryptMediaFileEncx(ctx, s.crypto, mediaEncx)
 	if err != nil {
 		return nil, errs.NewNotDecryptedErr("media", err)
 	}
 
-	return media.ToResponse(), nil
+	response := media.ToResponse()
+
+	// Replace the stored internal URL with a 1-hour presigned URL so the
+	// browser can stream or download the audio directly from MinIO without
+	// needing API credentials.
+	if media.URL != "" {
+		if signedURL, err := s.storage.GetFileURL(ctx, media.URL); err == nil {
+			response.URL = signedURL
+		}
+	}
+
+	return response, nil
 }
