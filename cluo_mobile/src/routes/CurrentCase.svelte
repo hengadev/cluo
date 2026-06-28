@@ -13,41 +13,26 @@
         released: "Clôturé",
     };
 
-    const statusBadgeClasses: Record<CaseStatus, string> = {
-        in_progress: "bg-accent-subtle text-accent-subtle-foreground",
-        ready: "bg-success text-success-foreground",
-        released: "bg-muted text-muted-foreground",
-    };
-
     const statusLabel = $derived(currentCase ? (statusLabels[currentCase.status] ?? currentCase.status) : "");
-    const badgeClass = $derived(currentCase ? (statusBadgeClasses[currentCase.status] ?? "bg-dark-900 text-white") : "bg-dark-900 text-white");
     const displayId = $derived(currentCase?.externalReference ?? currentCase?.id ?? "");
+    const clientMeta = $derived(
+        [currentCase?.clientName, currentCase?.clientNumber].filter(Boolean).join(" · ")
+    );
 </script>
 
 {#if currentCase}
-<div class="border border-dark-100 px-4 py-2 rounded-xl grid gap-4">
-    <div class="flex gap-4 items-center">
-        <span class="{badgeClass} px-4 py-2 rounded-2xl">{statusLabel}</span>
-        <p class="text-dark-600 text-sm">ID: {displayId}</p>
+<div class="bg-background-alt rounded-2xl shadow-card p-4 flex flex-col gap-1.5">
+    <div class="flex items-start justify-between gap-3">
+        <p class="text-dark-900 font-semibold text-[17px] leading-snug break-words flex-1">{currentCase.title}</p>
+        <span class="text-dark-400 text-sm flex-shrink-0 mt-0.5">{statusLabel}</span>
     </div>
-    <p class="text-dark-900 font-extrabold text-lg break-words">{currentCase.title}</p>
-    <div class="flex items-center gap-4">
-        {#if currentCase.clientName}
-        <div class="flex flex-col gap-1 text-xs">
-            <p class="uppercase text-dark-500">client</p>
-            <p class="text-dark-800 font-bold uppercase">{currentCase.clientName}</p>
-        </div>
-        {/if}
-        {#if currentCase.clientNumber}
-        <div class="flex flex-col gap-1 text-xs">
-            <p class="uppercase text-dark-500">n° client</p>
-            <p class="uppercase">{currentCase.clientNumber}</p>
-        </div>
-        {/if}
-    </div>
+    {#if clientMeta}
+    <p class="text-dark-400 text-sm">{clientMeta}</p>
+    {/if}
+    {#if displayId}
+    <p class="text-dark-300 text-xs font-mono">{displayId}</p>
+    {/if}
 </div>
 {:else}
-<div class="border border-dark-100 px-4 py-2 rounded-xl flex items-center justify-center h-24">
-    <p class="text-dark-500 text-sm">Aucune affaire active</p>
-</div>
+<p class="text-dark-400 text-sm py-1">Aucune affaire active</p>
 {/if}
