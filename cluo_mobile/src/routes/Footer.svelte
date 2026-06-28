@@ -269,7 +269,8 @@
 
 <div
     bind:this={containerElement}
-    class="relative flex justify-center items-center bg-dark-900 px-4 py-6 min-h-20 overflow-hidden"
+    class="relative flex justify-center items-center bg-dark-900 px-4 pt-6 min-h-20 overflow-hidden"
+    style="padding-bottom: calc(env(safe-area-inset-bottom) + 1.5rem)"
 >
     {#if footerState === "idle"}
         {#if currentCase}

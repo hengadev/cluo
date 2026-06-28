@@ -77,7 +77,7 @@
     const hasFailed = $derived(error !== null);
 </script>
 
-<div class="min-h-screen flex flex-col gap-8 pb-24">
+<div class="min-h-screen flex flex-col gap-8 pb-6">
     <div class="flex flex-col gap-2">
         <div class="flex items-center justify-between mb-8">
             <button onclick={goBack}>

@@ -19,7 +19,11 @@
 
     let { children } = $props();
 
-    const showFooter = $derived(!page.url.pathname.startsWith("/auth"));
+    const showFooter = $derived(
+        !page.url.pathname.startsWith("/auth") &&
+        !page.url.pathname.startsWith("/recording/") &&
+        !page.url.pathname.startsWith("/processing/")
+    );
 
     onMount(async () => {
         if (!dev && "serviceWorker" in navigator) {

@@ -76,7 +76,7 @@
 	}
 </script>
 
-<div class="min-h-screen flex flex-col gap-6 pb-24">
+<div class="min-h-screen flex flex-col gap-6 pb-6">
 	<!-- Header -->
 	<div class="flex items-center justify-between">
 		<button onclick={goBack} class="text-dark-700 hover:text-dark-900">

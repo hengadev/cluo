@@ -91,7 +91,7 @@
     }
 </script>
 
-<div class="min-h-screen flex flex-col gap-6 pb-24">
+<div class="min-h-screen flex flex-col gap-6 pb-6">
     <!-- Header with back button -->
     <div class="flex items-center gap-3">
         <button
