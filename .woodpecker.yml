@@ -17,8 +17,9 @@ steps:
       - VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
       - cd cluo_desktop
       - LDFLAGS="-X cluo_desktop/updater.Version=$VERSION -X cluo_desktop/updater.ManifestURL=https://releases.henga.dev/cluo/manifest.json -X cluo_desktop/updater.PublicKey=$UPDATE_PUBLIC_KEY"
+      - cd frontend && pnpm install && pnpm run build && cd ..
       - wails generate module
-      - wails build -platform windows/amd64 -skipbindings -ldflags "$LDFLAGS"
+      - wails build -platform windows/amd64 -skipbindings -s -ldflags "$LDFLAGS"
 
   - name: sign-and-publish
     image: golang:1.23-bookworm
