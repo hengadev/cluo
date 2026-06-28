@@ -49,6 +49,21 @@
         return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
     }
 
+    function editDistance(a: string, b: string): number {
+        const m = a.length, n = b.length;
+        const dp: number[] = Array.from({ length: n + 1 }, (_, i) => i);
+        for (let i = 1; i <= m; i++) {
+            let prev = dp[0];
+            dp[0] = i;
+            for (let j = 1; j <= n; j++) {
+                const temp = dp[j];
+                dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+                prev = temp;
+            }
+        }
+        return dp[n];
+    }
+
     function fuzzyMatch(text: string, pattern: string): { match: boolean; score: number; indices: number[] } {
         const t = text.toLowerCase();
         const p = pattern.toLowerCase();
@@ -71,9 +86,26 @@
                     consecutive = 0;
                 }
             }
-            if (!found) return { match: false, score: 0, indices: [] };
+            if (!found) {
+                // Subsequence failed — fall back to sliding-window edit distance for typo tolerance
+                if (p.length < 3) return { match: false, score: 0, indices: [] };
+                const threshold = Math.ceil(p.length / 4);
+                let bestDist = Infinity;
+                let bestStart = 0;
+                const maxStart = Math.max(t.length - p.length + 1, 1);
+                for (let i = 0; i < maxStart; i++) {
+                    const d = editDistance(p, t.slice(i, i + p.length));
+                    if (d < bestDist) { bestDist = d; bestStart = i; }
+                }
+                if (bestDist <= threshold) {
+                    const editScore = Math.max(1, 5 - bestDist) + Math.max(0, 5 - bestStart);
+                    const editIndices = Array.from({ length: p.length }, (_, i) => bestStart + i);
+                    return { match: true, score: editScore, indices: editIndices };
+                }
+                return { match: false, score: 0, indices: [] };
+            }
         }
-        // Bonus for earlier match position
+
         if (indices.length > 0) score += Math.max(0, 10 - indices[0]);
         return { match: true, score, indices };
     }
