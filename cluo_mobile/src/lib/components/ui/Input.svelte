@@ -42,8 +42,8 @@
         "flex w-full bg-dark-50 placeholder-dark-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 rounded-input";
 
     const sizeClasses = {
-        sm: "h-9 px-3 text-sm",
-        md: "h-10 px-3 py-2 text-sm",
+        sm: "h-9 px-3 text-base",
+        md: "h-10 px-3 py-2 text-base",
         lg: "h-12 px-3 py-2 text-base",
     };
 

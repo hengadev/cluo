@@ -320,7 +320,7 @@
                 type="text"
                 bind:value={recordingTitle}
                 placeholder={defaultRecordingTitle}
-                class="w-full bg-background border border-dark-200 text-dark-800 placeholder-dark-400 px-3 py-2 rounded-xl text-sm focus:outline-none focus:ring-1 focus:ring-dark-400"
+                class="w-full bg-background border border-dark-200 text-dark-800 placeholder-dark-400 px-3 py-2 rounded-xl text-base focus:outline-none focus:ring-1 focus:ring-dark-400"
             />
             <div class="flex gap-3">
                 <button
