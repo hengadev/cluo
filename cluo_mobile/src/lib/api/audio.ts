@@ -312,7 +312,7 @@ export async function getRecordingStatus(id: string): Promise<RecordingStatusRes
 					{ title: "Génération du résumé", status: "failed" },
 					{ title: "Terminé", status: "failed" },
 				],
-				error: "Tâche de transcription introuvable — veuillez réessayer",
+				error: "L'enregistrement a été supprimé suite à une erreur de traitement",
 			};
 		}
 		throw err;

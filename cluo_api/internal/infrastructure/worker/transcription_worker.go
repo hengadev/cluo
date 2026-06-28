@@ -256,26 +256,34 @@ func (w *TranscriptionWorker) handleJobFailure(ctx context.Context, jobID uuid.U
 			"error", err)
 	}
 
-	// Get job details for cleanup and webhook
+	// Get job details for audio cleanup and webhook notification.
 	job, err := w.jobRepo.GetByID(ctx, jobID)
 	if err != nil {
 		w.logger.Error("failed to get job for failure cleanup", "jobID", jobID, "error", err)
 		return
 	}
 
-	// Delete the orphaned media record so it doesn't show as a ghost entry.
-	if err := w.mediaRepo.DeleteMedia(ctx, job.MediaFileID); err != nil {
-		w.logger.Warn("failed to delete media record after job failure",
-			"jobID", jobID,
-			"mediaFileID", job.MediaFileID,
-			"error", err)
-	}
-
-	// Delete the audio file on disk.
 	if err := os.Remove(job.AudioPath); err != nil && !os.IsNotExist(err) {
 		w.logger.Warn("failed to delete audio file after job failure",
 			"jobID", jobID,
 			"audioPath", job.AudioPath,
+			"error", err)
+	}
+
+	// Delete job before media: fk_jobs_media_file ON DELETE CASCADE would wipe the
+	// job row if media were deleted first, defeating our explicit ordering.
+	if err := w.jobRepo.Delete(ctx, jobID); err != nil {
+		w.logger.Error("failed to delete failed job",
+			"jobID", jobID,
+			"error", err)
+	}
+
+	// Delete the media record so the recording does not appear stuck in
+	// "transcribing" state on the home list.
+	if err := w.mediaRepo.DeleteMedia(ctx, job.MediaFileID); err != nil {
+		w.logger.Warn("failed to delete media after job failure",
+			"jobID", jobID,
+			"mediaFileID", job.MediaFileID,
 			"error", err)
 	}
 
