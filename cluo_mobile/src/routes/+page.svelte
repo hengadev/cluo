@@ -134,7 +134,7 @@
     }
 </script>
 
-<div class="min-h-screen flex flex-col gap-8 pb-28">
+<div class="flex flex-col gap-8 pb-28">
     <p class="text-dark-900 font-extrabold text-xl">Bonjour {greeting},</p>
     <div class="grid gap-4">
         <div class="flex justify-between items-center">
