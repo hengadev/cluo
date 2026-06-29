@@ -147,10 +147,10 @@
 				<span>Exporter l'analyse</span>
 			</button>
 			<button
-				onclick={() => goto(`/recording/${recordingId}`)}
+				onclick={() => goto("/")}
 				class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-100 hover:bg-dark-200 text-dark-700 rounded-xl transition-colors font-semibold"
 			>
-				Retour à l'enregistrement
+				Terminé
 			</button>
 		</div>
 

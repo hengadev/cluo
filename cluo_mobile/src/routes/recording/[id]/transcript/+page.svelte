@@ -130,6 +130,14 @@
 				<Sparkles size={18} />
 				<span>{isAnalyzing ? "Analyse en cours..." : "Analyser les notes"}</span>
 			</button>
+			{#if transcript.isConfirmed && !isAnalyzing}
+				<button
+					onclick={() => goto("/")}
+					class="flex items-center justify-center gap-2 px-6 py-4 bg-dark-100 hover:bg-dark-200 text-dark-700 rounded-xl transition-colors font-semibold"
+				>
+					Terminer
+				</button>
+			{/if}
 		</div>
 
 		<!-- Privacy Notice -->
