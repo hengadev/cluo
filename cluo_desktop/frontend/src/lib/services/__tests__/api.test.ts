@@ -164,7 +164,7 @@ describe('fetchCaseImages', () => {
 	it('throws on non-OK response', async () => {
 		mockApiFetch.mockResolvedValueOnce(jsonResponse({}, 500));
 
-		await expect(api.fetchCaseImages('c-1')).rejects.toThrow('Failed to fetch case images');
+		await expect(api.fetchCaseImages('c-1')).rejects.toThrow('Failed to fetch case media');
 	});
 });
 
