@@ -4,9 +4,9 @@
     import { goto } from "$app/navigation";
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
     import Spinner from "$lib/components/ui/Spinner.svelte";
-    import { deleteRecording, getAudioUrl, getRecording } from "$lib/api";
+    import { deleteRecording, getAudioUrl, getRecording, updateRecording } from "$lib/api";
     import { snackbar } from "$lib/stores/snackbar";
-    import type { Recording, Transcript, AnalysisResult } from "$lib/types/recording";
+    import type { Recording, RecordingPurpose, Transcript, AnalysisResult } from "$lib/types/recording";
 
     let { data } = $props();
 
@@ -17,6 +17,34 @@
     let pageError = $state<string | null>(null);
     let isDeleting = $state(false);
     let isDownloading = $state(false);
+    let purposeDialogOpen = $state(false);
+    let pendingPurpose = $state<RecordingPurpose>("general");
+    let isUpdatingPurpose = $state(false);
+
+    const purposeLabels: Record<RecordingPurpose, string> = {
+        general: "Général",
+        witness_interview: "Audition témoin",
+    };
+
+    function openPurposeDialog() {
+        if (!recording) return;
+        pendingPurpose = recording.purpose;
+        purposeDialogOpen = true;
+    }
+
+    async function confirmPurposeChange() {
+        if (!recording || isUpdatingPurpose) return;
+        try {
+            isUpdatingPurpose = true;
+            await updateRecording(recording.id, { purpose: pendingPurpose });
+            recording.purpose = pendingPurpose;
+            purposeDialogOpen = false;
+        } catch (error) {
+            snackbar.error("Échec de la mise à jour de la finalité");
+        } finally {
+            isUpdatingPurpose = false;
+        }
+    }
 
     onMount(async () => {
         try {
@@ -134,6 +162,12 @@
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
+                    <button
+                        onclick={openPurposeDialog}
+                        class="flex justify-center items-center border border-dark-100 rounded-3xl bg-dark-50 hover:bg-dark-100 text-dark-600 py-1 px-3 text-sm font-medium transition-colors"
+                    >
+                        {purposeLabels[recording.purpose]}
+                    </button>
                     <p
                         class="flex justify-center items-center border border-dark-100 rounded-3xl bg-dark-50 text-dark-600 py-1 px-3 text-sm font-medium"
                     >
@@ -249,3 +283,42 @@
         </div>
     {/if}
 </div>
+
+{#if purposeDialogOpen}
+    <div
+        class="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Finalité de l'enregistrement"
+    >
+        <div class="bg-background rounded-t-2xl p-6 w-full max-w-lg shadow-popover">
+            <p class="text-dark-900 font-semibold text-base mb-4">Finalité de l'enregistrement</p>
+            <div class="flex flex-col gap-2 mb-6">
+                {#each ([{ value: "general" as RecordingPurpose, label: "Général" }, { value: "witness_interview" as RecordingPurpose, label: "Audition témoin" }]) as option}
+                    <button
+                        onclick={() => (pendingPurpose = option.value)}
+                        class="flex items-center gap-3 p-4 rounded-xl border transition-colors {pendingPurpose === option.value ? 'border-dark-700 bg-dark-50' : 'border-dark-100 hover:bg-dark-50'}"
+                    >
+                        <span class="w-4 h-4 rounded-full border-2 flex-shrink-0 {pendingPurpose === option.value ? 'border-dark-700 bg-dark-700' : 'border-dark-300'}"></span>
+                        <span class="text-dark-900 font-medium">{option.label}</span>
+                    </button>
+                {/each}
+            </div>
+            <div class="flex gap-3">
+                <button
+                    class="flex-1 px-4 py-3 rounded-xl border border-dark-200 text-dark-700 hover:bg-dark-50 transition-colors"
+                    onclick={() => (purposeDialogOpen = false)}
+                >
+                    Annuler
+                </button>
+                <button
+                    class="flex-1 px-4 py-3 rounded-xl bg-dark-700 hover:bg-dark-600 text-white font-medium transition-colors disabled:opacity-50"
+                    onclick={confirmPurposeChange}
+                    disabled={isUpdatingPurpose || pendingPurpose === recording?.purpose}
+                >
+                    {isUpdatingPurpose ? "Enregistrement…" : "Confirmer"}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
