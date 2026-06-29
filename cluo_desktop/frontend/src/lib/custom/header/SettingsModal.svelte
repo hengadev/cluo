@@ -16,6 +16,7 @@
     } from "@lucide/svelte";
     import { updateDialogOpen } from "$lib/stores/update";
     import { uiScale, MIN_SCALE, MAX_SCALE } from "$lib/stores/scale";
+    import { theme } from "$lib/stores/theme";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 
@@ -34,6 +35,10 @@
     };
 
     function save() {
+        if (activeTab === 'apparence') {
+            theme.set(darkMode ? 'dark' : 'light');
+        }
+        open = false;
         const label = SAVE_LABELS[activeTab];
         if (label) {
             toastState.add(TOAST_LEVELS.Info, "Paramètres enregistrés", `Les paramètres de « ${label} » ont été sauvegardés.`);
@@ -57,6 +62,12 @@
     // Apparence
     let darkMode = $state(false);
     let compactView = $state(false);
+
+    $effect(() => {
+        if (open) {
+            darkMode = $theme === 'dark';
+        }
+    });
     const languages = [
         { value: "fr", label: "Français" },
         { value: "en", label: "English" },
