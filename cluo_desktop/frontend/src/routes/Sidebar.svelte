@@ -32,7 +32,7 @@
 </script>
 
 <div
-    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-4 bg-sidebar border border-border-input relative animate-fade-in overflow-visible"
+    class="grid-area-sidebar h-full p-1 pt-2 flex flex-col gap-4 bg-sidebar border border-border-input relative animate-fade-in overflow-hidden"
     style="animation-delay: 200ms;"
     style:width={isExpanded ? '200px' : 'auto'}
     style:align-items={isExpanded ? 'stretch' : 'center'}
@@ -64,7 +64,7 @@
         </button>
     </div>
 
-    <div class="flex flex-col justify-between h-full">
+    <div class="flex flex-col justify-between flex-1 min-h-0">
         <div class="flex flex-col gap-4" style:align-items={isExpanded ? 'stretch' : 'center'}>
             {#each groups as group, i}
                 {#if i > 0}
