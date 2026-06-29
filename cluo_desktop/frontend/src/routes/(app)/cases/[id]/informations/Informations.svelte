@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
-	import { Briefcase, MapPin, Pencil, Check, X, Tag, User, UserPlus, Trash2 } from "@lucide/svelte";
+	import { Briefcase, MapPin, Pencil, Check, X, Tag, User, UserPlus, Trash2, Send } from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
@@ -15,6 +15,7 @@
 		updateCaseSubject,
 		deleteCaseSubject,
 	} from "$lib/services/api";
+	import { releaseCaseAndNotify } from "$lib/services/caseActions";
 	import { recentCases } from "$lib/stores/case";
 	import { caseStatusBadge } from "$lib/utils/badgeVariants";
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
@@ -47,6 +48,7 @@
 	let allCaseTypes: CaseType[] = $state([]);
 	let loading = $state(true);
 	let error: string | null = $state(null);
+	let releasing = $state(false);
 
 	// CaseSubject management
 	let showSubjectForm = $state(false);
@@ -141,6 +143,40 @@
 					: "Erreur lors du chargement des données";
 		} finally {
 			loading = false;
+		}
+	}
+
+	// =========================================================================
+	// Case release (status: ready -> released)
+	// =========================================================================
+
+	async function releaseDossier() {
+		if (!caseData || caseData.status !== 'ready') return;
+		releasing = true;
+		try {
+			await releaseCaseAndNotify(caseData.id, caseData.title);
+			// The release endpoint returns an access token, not the updated case —
+			// reflect the transition locally so the badge and recent-cases chip
+			// update without an extra round-trip.
+			caseData.status = 'released';
+			recentCases.push({
+				id: caseData.id,
+				title: caseData.title,
+				status: 'released',
+			});
+			toastState.add(
+				TOAST_LEVELS.Info,
+				"Dossier publié",
+				"Le lien du portail client a été généré.",
+			);
+		} catch (e) {
+			toastState.add(
+				TOAST_LEVELS.Error,
+				"Erreur",
+				e instanceof Error ? e.message : "Impossible de publier le dossier.",
+			);
+		} finally {
+			releasing = false;
 		}
 	}
 
@@ -440,6 +476,23 @@
 					<p class="text-muted-foreground text-sm">
 						Créé le {formatDate(caseData.createdAt)}
 					</p>
+					{#if caseData.status === 'ready'}
+						<ConfirmDialog
+							title="Publier le dossier"
+							description="Le dossier sera publié sur le portail client. Un lien d'accès sécurisé sera généré et envoyé au client. Cette action est irréversible."
+							confirmLabel="Publier"
+							onConfirm={releaseDossier}
+						>
+							<button
+								type="button"
+								disabled={releasing}
+								class="ml-auto h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							>
+								<Send size={14} class="mr-2" />
+								{releasing ? "Publication..." : "Publier le dossier"}
+							</button>
+						</ConfirmDialog>
+					{/if}
 				</div>
 				<h2 class="text-3xl font-bold text-foreground">
 					{caseData.title}
