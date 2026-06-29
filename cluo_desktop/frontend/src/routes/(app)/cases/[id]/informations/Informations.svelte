@@ -486,9 +486,9 @@
 							<button
 								type="button"
 								disabled={releasing}
-								class="ml-auto h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+								class="ml-auto h-input rounded-input bg-accent text-accent-foreground shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 							>
-								<Send size={14} class="mr-2" />
+								<Send size={14} />
 								{releasing ? "Publication..." : "Publier le dossier"}
 							</button>
 						</ConfirmDialog>
@@ -869,18 +869,18 @@
 						<button
 							type="button"
 							onclick={cancelSubjectForm}
-							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
+							class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center gap-1 px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
 						>
-							<X size={14} class="mr-1" />
+							<X size={14} />
 							Annuler
 						</button>
 						<button
 							type="button"
 							onclick={editingSubject ? saveSubjectEdit : saveSubjectCreate}
 							disabled={savingSubject}
-							class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+							class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 						>
-							<Check size={14} class="mr-1" />
+							<Check size={14} />
 							{savingSubject ? "Enregistrement..." : (editingSubject ? "Enregistrer" : "Ajouter")}
 						</button>
 					</div>
@@ -947,9 +947,9 @@
 					<button
 						type="button"
 						onclick={startCreateSubject}
-						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+						class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
 					>
-						<UserPlus size={16} class="mr-2" />
+						<UserPlus size={16} />
 						Ajouter une personne
 					</button>
 				</div>

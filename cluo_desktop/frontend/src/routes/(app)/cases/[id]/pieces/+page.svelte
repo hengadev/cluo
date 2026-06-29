@@ -234,9 +234,9 @@
         <button
             type="button"
             onclick={() => { showUploadModal = true; }}
-            class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+            class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
         >
-            <Upload size={16} class="mr-2" />
+            <Upload size={16} />
             Ajouter des pièces
         </button>
     </div>
@@ -253,9 +253,9 @@
             <button
                 type="button"
                 onclick={() => { showUploadModal = true; }}
-                class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
+                class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-2 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer"
             >
-                <Upload size={16} class="mr-2" />
+                <Upload size={16} />
                 Ajouter des pièces
             </button>
         </div>

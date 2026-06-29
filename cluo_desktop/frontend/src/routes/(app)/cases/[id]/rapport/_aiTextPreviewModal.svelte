@@ -126,13 +126,13 @@
 			<div class="flex justify-end gap-2 !mt-6">
 				{#if isLoading}
 					<Dialog.Close
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
 					>
 						Annuler
 					</Dialog.Close>
 				{:else if error}
 					<Dialog.Close
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
 					>
 						Fermer
 					</Dialog.Close>
@@ -146,9 +146,9 @@
 					</button>
 				{:else}
 					<Dialog.Close
-						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
+						class="h-input rounded-input bg-transparent text-foreground hover:bg-muted focus-visible:ring-foreground focus-visible:ring-offset-background focus-visible:outline-hidden inline-flex items-center justify-center gap-2 px-4 py-2 text-sm font-medium focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.98] border cursor-pointer"
 					>
-						<XIcon class="w-4 h-4 mr-2" />
+						<XIcon class="w-4 h-4" />
 						Rejeter
 					</Dialog.Close>
 					<button
