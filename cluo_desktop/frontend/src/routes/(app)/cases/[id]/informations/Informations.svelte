@@ -1,19 +1,16 @@
 <script lang="ts">
 	import { onMount } from "svelte";
 	import { page } from "$app/stores";
-	import { Briefcase, MapPin, Pencil, Check, X, Tag, User, UserPlus, Trash2, Send } from "@lucide/svelte";
+	import { MapPin, Pencil, Check, X, User, UserPlus, Trash2, Send, Building2, Layers } from "@lucide/svelte";
 	import {
 		fetchCase,
 		fetchClient,
 		fetchContact,
 		fetchCaseSubject,
-		fetchAllClients,
 		fetchAllCaseTypes,
-		fetchClientContacts,
-		updateCase,
 		createCaseSubject,
+		updateCase,
 		updateCaseSubject,
-		deleteCaseSubject,
 	} from "$lib/services/api";
 	import { releaseCaseAndNotify } from "$lib/services/caseActions";
 	import { recentCases } from "$lib/stores/case";
@@ -21,6 +18,9 @@
 	import { getToastContext } from "$lib/custom/global/toast/state.svelte";
 	import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 	import ConfirmDialog from "$lib/custom/global/ConfirmDialog.svelte";
+	import CaseClientDialog from "$lib/custom/global/CaseClientDialog.svelte";
+	import CaseTypeDialog from "$lib/custom/global/CaseTypeDialog.svelte";
+	import CaseLocationDialog from "$lib/custom/global/CaseLocationDialog.svelte";
 	import Spinner from "$lib/components/Spinner.svelte";
 	import DocumentWorkflowSummary from "./DocumentWorkflowSummary.svelte";
 	import type {
@@ -50,6 +50,11 @@
 	let error: string | null = $state(null);
 	let releasing = $state(false);
 
+	// Modal open states
+	let clientDialogOpen = $state(false);
+	let caseTypeDialogOpen = $state(false);
+	let locationDialogOpen = $state(false);
+
 	// CaseSubject management
 	let showSubjectForm = $state(false);
 	let editingSubject = $state(false);
@@ -68,30 +73,7 @@
 		notes: "",
 	});
 
-	// CaseType edit mode
-	let editingCaseType = $state(false);
-	let selectedCaseTypeId = $state("");
-	let savingCaseType = $state(false);
-
-	// Client/Contact edit mode
-	let editingClient = $state(false);
-	let allClients: Client[] = $state([]);
-	let selectedClientId = $state("");
-	let contactsForClient: Contact[] = $state([]);
-	let selectedContactId = $state("");
-	let clientSearchQuery = $state("");
-	let savingClient = $state(false);
-	let loadingContacts = $state(false);
-
 	const caseId = $derived($page.params.id);
-
-	let filteredClients = $derived(
-		clientSearchQuery.trim() === ""
-			? allClients
-			: allClients.filter((c) =>
-					c.name.toLowerCase().includes(clientSearchQuery.toLowerCase()),
-				),
-	);
 
 	onMount(async () => {
 		await loadData();
@@ -155,9 +137,6 @@
 		releasing = true;
 		try {
 			await releaseCaseAndNotify(caseData.id, caseData.title);
-			// The release endpoint returns an access token, not the updated case —
-			// reflect the transition locally so the badge and recent-cases chip
-			// update without an extra round-trip.
 			caseData.status = 'released';
 			recentCases.push({
 				id: caseData.id,
@@ -180,118 +159,31 @@
 		}
 	}
 
-	async function startClientEdit() {
-		editingClient = true;
-		selectedClientId = caseData?.clientId || "";
-		selectedContactId = caseData?.assignedContactID || "";
-		clientSearchQuery = "";
+	// =========================================================================
+	// Modal save callbacks
+	// =========================================================================
 
-		if (allClients.length === 0) {
-			try {
-				allClients = await fetchAllClients();
-			} catch (e) {
-				toastState.add(
-					TOAST_LEVELS.Error,
-					"Erreur",
-					"Impossible de charger la liste des clients.",
-				);
-			}
-		}
-
-		if (selectedClientId) {
-			await loadContactsForClient(selectedClientId);
+	function onClientSaved(savedClient: Client, savedContact: Contact | null) {
+		client = savedClient;
+		contact = savedContact;
+		if (caseData) {
+			caseData.clientId = savedClient.id;
+			caseData.assignedContactID = savedContact?.id ?? null;
 		}
 	}
 
-	async function loadContactsForClient(clientId: string) {
-		if (!clientId) {
-			contactsForClient = [];
-			return;
-		}
-		contactsForClient = [];
-		loadingContacts = true;
-		try {
-			contactsForClient = await fetchClientContacts(clientId);
-		} catch {
-			contactsForClient = [];
-		} finally {
-			loadingContacts = false;
+	function onCaseTypeSaved(updated: Case) {
+		caseData = updated;
+		if (updated.caseTypeId) {
+			const ct = allCaseTypes.find((t) => t.id === updated.caseTypeId);
+			caseTypeName = ct ? ct.name : null;
+		} else {
+			caseTypeName = null;
 		}
 	}
 
-	function cancelClientEdit() {
-		editingClient = false;
-		clientSearchQuery = "";
-	}
-
-	async function saveClientEdit() {
-		if (!caseData || !selectedClientId) return;
-		savingClient = true;
-		try {
-			caseData = await updateCase(caseData.id, {
-				clientId: selectedClientId,
-				assignedContactID: selectedContactId || undefined,
-			});
-			// Refresh display data
-			client = await fetchClient(selectedClientId);
-			contact = selectedContactId
-				? await fetchContact(selectedContactId)
-				: null;
-			editingClient = false;
-			toastState.add(
-				TOAST_LEVELS.Info,
-				"Dossier mis à jour",
-				"Le client et le contact ont été mis à jour.",
-			);
-		} catch (e) {
-			toastState.add(
-				TOAST_LEVELS.Error,
-				"Erreur",
-				e instanceof Error ? e.message : "Impossible de mettre à jour",
-			);
-		} finally {
-			savingClient = false;
-		}
-	}
-
-	// CaseType edit
-	function startCaseTypeEdit() {
-		editingCaseType = true;
-		selectedCaseTypeId = caseData?.caseTypeId || "";
-	}
-
-	function cancelCaseTypeEdit() {
-		editingCaseType = false;
-	}
-
-	async function saveCaseTypeEdit() {
-		if (!caseData) return;
-		savingCaseType = true;
-		try {
-			caseData = await updateCase(caseData.id, {
-				caseTypeId: selectedCaseTypeId || null,
-			});
-			if (selectedCaseTypeId) {
-				const ct = allCaseTypes.find((t) => t.id === selectedCaseTypeId);
-				caseTypeName = ct ? ct.name : null;
-			} else {
-				caseTypeName = null;
-			}
-			editingCaseType = false;
-			toastState.add(
-				TOAST_LEVELS.Info,
-				"Dossier mis à jour",
-				"Le type d'affaire a été mis à jour.",
-			);
-		} catch (e) {
-			toastState.add(
-				TOAST_LEVELS.Error,
-				"Erreur",
-				e instanceof Error ? e.message : "Impossible de mettre à jour",
-			);
-		} finally {
-			savingCaseType = false;
-		}
+	function onLocationSaved(updated: Case) {
+		caseData = updated;
 	}
 
 	// =========================================================================
@@ -346,7 +238,6 @@
 		}
 		savingSubject = true;
 		try {
-			// 1. Create the CaseSubject
 			const newSubject = await createCaseSubject({
 				firstname: subjectForm.firstname.trim(),
 				lastname: subjectForm.lastname.trim(),
@@ -359,7 +250,6 @@
 				occupation: subjectForm.occupation.trim() || undefined,
 				notes: subjectForm.notes.trim() || undefined,
 			});
-			// 2. Attach to the Case
 			caseData = await updateCase(caseData.id, {
 				caseSubjectId: newSubject.id,
 			});
@@ -420,7 +310,6 @@
 		if (!caseData || !subject) return;
 		detachingSubject = true;
 		try {
-			// 1. Detach from the Case
 			caseData = await updateCase(caseData.id, {
 				caseSubjectId: null,
 			});
@@ -448,7 +337,34 @@
 			year: "numeric",
 		});
 	}
+
+	let hasLocation = $derived(
+		!!caseData && !!(caseData.placename || caseData.address1 || caseData.city),
+	);
 </script>
+
+{#if caseData}
+	<CaseClientDialog
+		bind:open={clientDialogOpen}
+		caseId={caseData.id}
+		currentClientId={caseData.clientId}
+		currentContactId={caseData.assignedContactID}
+		onSaved={onClientSaved}
+	/>
+	<CaseTypeDialog
+		bind:open={caseTypeDialogOpen}
+		caseId={caseData.id}
+		currentCaseTypeId={caseData.caseTypeId}
+		{allCaseTypes}
+		onSaved={onCaseTypeSaved}
+	/>
+	<CaseLocationDialog
+		bind:open={locationDialogOpen}
+		caseId={caseData.id}
+		{caseData}
+		onSaved={onLocationSaved}
+	/>
+{/if}
 
 <div class="page-content">
 	{#if loading}
@@ -456,24 +372,22 @@
 			<Spinner size="lg" />
 		</div>
 	{:else if error}
-		<div
-			class="alert-error"
-		>
+		<div class="alert-error">
 			{error}
 		</div>
 	{:else if caseData}
 		<div class="flex gap-8">
 			<!-- Case Header -->
 			<div
-				class="grid gap-4 p-6 border border-border-card rounded-card flex-1 hover:shadow-card transition-shadow duration-300"
+				class="flex flex-col gap-3 p-6 border border-border-card rounded-card flex-1 hover:shadow-card transition-shadow duration-300"
 			>
-				<div class="flex gap-4 items-center">
+				<div class="flex items-center gap-3">
 					<span
-						class="{caseStatusBadge(caseData.status)} px-2 py-1 rounded-card text-sm font-medium"
+						class="{caseStatusBadge(caseData.status)} px-2 py-0.5 rounded-card text-xs font-medium"
 					>
 						{STATUS_LABELS[caseData.status] || caseData.status}
 					</span>
-					<p class="text-muted-foreground text-sm">
+					<p class="text-muted-foreground text-xs">
 						Créé le {formatDate(caseData.createdAt)}
 					</p>
 					{#if caseData.status === 'ready'}
@@ -494,28 +408,24 @@
 						</ConfirmDialog>
 					{/if}
 				</div>
-				<h2 class="text-3xl font-bold text-foreground">
+
+				<h2 class="text-2xl font-bold text-foreground leading-tight">
 					{caseData.title}
 				</h2>
-				<div class="flex gap-4 text-lg items-center">
-					<span class="text-muted-foreground">ID de dossier:</span>
-					<span class="font-mono text-foreground">#{caseData.id}</span>
+
+				<div class="flex flex-wrap gap-2">
+					<span class="inline-flex items-center gap-1 bg-muted px-2 py-0.5 rounded text-xs text-muted-foreground font-mono">
+						#{caseData.id}
+					</span>
+					{#if caseData.externalReference}
+						<span class="inline-flex items-center gap-1 bg-muted px-2 py-0.5 rounded text-xs text-muted-foreground">
+							Réf. {caseData.externalReference}
+						</span>
+					{/if}
 				</div>
-				{#if caseData.externalReference}
-					<div class="flex gap-4 text-lg items-center">
-						<span class="text-muted-foreground"
-							>Référence externe:</span
-						>
-						<span class="text-foreground"
-							>{caseData.externalReference}</span
-						>
-					</div>
-				{/if}
+
 				{#if caseData.description}
-					<div>
-						<p class="text-sm text-muted-foreground mb-1">Description</p>
-						<p class="text-foreground">{caseData.description}</p>
-					</div>
+					<p class="text-sm text-foreground">{caseData.description}</p>
 				{/if}
 			</div>
 
@@ -527,117 +437,51 @@
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">CLIENT</p>
 						<div class="flex items-center gap-2">
-							{#if !editingClient}
-								<button
-									onclick={startClientEdit}
-									class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-									title="Modifier le client"
-								>
-									<Pencil size={14} />
-								</button>
-							{/if}
-							<Briefcase class="w-5 h-5 text-muted-foreground" />
+							<button
+								onclick={() => (clientDialogOpen = true)}
+								class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+								title="Modifier le client"
+							>
+								<Pencil size={14} />
+							</button>
+							<Building2 class="w-5 h-5 text-muted-foreground" />
 						</div>
 					</div>
 
-					{#if editingClient}
-						<!-- Edit mode: Client selector -->
-						<div class="flex flex-col gap-3">
-							<div class="relative">
-								<input
-									type="text"
-									placeholder="Rechercher un client..."
-									bind:value={clientSearchQuery}
-									class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
-								/>
-							</div>
-							<select
-								bind:value={selectedClientId}
-								onchange={() => {
-									selectedContactId = "";
-									loadContactsForClient(selectedClientId);
-								}}
-								class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2 cursor-pointer"
-							>
-								<option value="">-- Sélectionner un client --</option>
-								{#each filteredClients as c}
-									<option value={c.id}>{c.name}</option>
-								{/each}
-							</select>
-
-							<!-- Contact selector (shown when client is selected) -->
-							{#if selectedClientId}
-								{#if loadingContacts}
-									<p class="text-xs text-muted-foreground">Chargement des contacts...</p>
-								{:else if contactsForClient.length > 0}
-									<select
-										bind:value={selectedContactId}
-										class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2 cursor-pointer"
-									>
-										<option value="">-- Aucun contact --</option>
-										{#each contactsForClient as c}
-											<option value={c.id}
-												>{c.firstname} {c.lastname}</option
-											>
-										{/each}
-									</select>
-								{/if}
-							{/if}
-
-							<div class="flex justify-end gap-2">
-								<button
-									type="button"
-									onclick={cancelClientEdit}
-									class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
-								>
-									<X size={14} />
-								</button>
-								<button
-									type="button"
-									onclick={saveClientEdit}
-									disabled={savingClient || !selectedClientId}
-									class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-								>
-									<Check size={14} />
-								</button>
-							</div>
+					{#if client}
+						<div>
+							<p class="font-semibold text-foreground">{client.name}</p>
 						</div>
-					{:else}
-						<!-- Display mode -->
-						{#if client}
-							<div>
-								<p class="font-semibold text-foreground">{client.name}</p>
+						{#if contact}
+							<div class="border-t border-border pt-4">
+								<p class="text-sm text-muted-foreground mb-2">Interlocuteur principal</p>
+								<p class="font-medium text-foreground">
+									{contact.firstname} {contact.lastname}
+								</p>
+								{#if contact.position}
+									<p class="text-sm text-muted-foreground">{contact.position}</p>
+								{/if}
+								{#if contact.email}
+									<p class="text-sm text-muted-foreground">{contact.email}</p>
+								{/if}
+								{#if contact.phone}
+									<p class="text-sm text-muted-foreground">{contact.phone}</p>
+								{/if}
 							</div>
-							{#if contact}
-								<div class="border-t border-border pt-4">
-									<p class="text-sm text-muted-foreground mb-2"
-										>Contact principal</p
-									>
-									<p class="font-medium text-foreground">
-										{contact.firstname} {contact.lastname}
-									</p>
-									{#if contact.position}
-										<p class="text-sm text-muted-foreground">
-											{contact.position}
-										</p>
-									{/if}
-									{#if contact.email}
-										<p class="text-sm text-muted-foreground">
-											{contact.email}
-										</p>
-									{/if}
-									{#if contact.phone}
-										<p class="text-sm text-muted-foreground">
-											{contact.phone}
-										</p>
-									{/if}
-								</div>
-							{/if}
 						{:else}
-							<p class="text-sm text-muted-foreground"
-								>Aucun client associé</p
-							>
+							<div class="border-t border-border pt-4">
+								<p class="text-sm text-muted-foreground">Aucun interlocuteur</p>
+								<button
+									type="button"
+									onclick={() => (clientDialogOpen = true)}
+									class="mt-2 text-xs text-foreground underline hover:no-underline cursor-pointer"
+								>
+									Ajouter un interlocuteur
+								</button>
+							</div>
 						{/if}
+					{:else}
+						<p class="text-sm text-muted-foreground">Aucun client associé</p>
 					{/if}
 				</div>
 
@@ -647,27 +491,38 @@
 				>
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">LIEU</p>
-						<MapPin class="w-5 h-5 text-muted-foreground" />
+						<div class="flex items-center gap-2">
+							<button
+								onclick={() => (locationDialogOpen = true)}
+								class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+								title="Modifier le lieu"
+							>
+								<Pencil size={14} />
+							</button>
+							<MapPin class="w-5 h-5 text-muted-foreground" />
+						</div>
 					</div>
-					{#if caseData.placename}
-						<p class="font-semibold text-foreground">{caseData.placename}</p>
-					{/if}
-					{#if caseData.address1}
-						<p class="text-sm text-foreground">
-							{caseData.address1}
-							{#if caseData.address2}<br />{caseData.address2}{/if}
-						</p>
-						<p class="text-sm text-foreground">
-							{caseData.postalCode} {caseData.city}
-						</p>
-						{#if caseData.country}
-							<p class="text-sm text-muted-foreground">{caseData.country}</p>
+					{#if hasLocation}
+						{#if caseData.placename}
+							<p class="font-semibold text-foreground">{caseData.placename}</p>
 						{/if}
-					{/if}
-					{#if caseData.locationNotes}
-						<p class="text-sm text-muted-foreground italic">
-							{caseData.locationNotes}
-						</p>
+						{#if caseData.address1}
+							<p class="text-sm text-foreground">
+								{caseData.address1}
+								{#if caseData.address2}<br />{caseData.address2}{/if}
+							</p>
+							<p class="text-sm text-foreground">
+								{caseData.postalCode} {caseData.city}
+							</p>
+							{#if caseData.country}
+								<p class="text-sm text-muted-foreground">{caseData.country}</p>
+							{/if}
+						{/if}
+						{#if caseData.locationNotes}
+							<p class="text-sm text-muted-foreground italic">{caseData.locationNotes}</p>
+						{/if}
+					{:else}
+						<p class="text-sm text-muted-foreground">Aucun lieu renseigné</p>
 					{/if}
 				</div>
 
@@ -678,67 +533,32 @@
 					<div class="flex justify-between items-center">
 						<p class="text-muted-foreground text-sm font-medium">TYPE D'AFFAIRE</p>
 						<div class="flex items-center gap-2">
-							{#if !editingCaseType}
-								<button
-									onclick={startCaseTypeEdit}
-									class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
-									title="Modifier le type"
-								>
-									<Pencil size={14} />
-								</button>
-							{/if}
-							<Tag class="w-5 h-5 text-muted-foreground" />
+							<button
+								onclick={() => (caseTypeDialogOpen = true)}
+								class="p-1.5 rounded hover:bg-muted text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+								title="Modifier le type"
+							>
+								<Pencil size={14} />
+							</button>
+							<Layers class="w-5 h-5 text-muted-foreground" />
 						</div>
 					</div>
 
-					{#if editingCaseType}
-						<div class="flex flex-col gap-3">
-							<select
-								bind:value={selectedCaseTypeId}
-								class="h-input rounded-input border-border-input bg-background hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2 cursor-pointer"
-							>
-								<option value="">-- Aucun type --</option>
-								{#each allCaseTypes as ct}
-									<option value={ct.id}>{ct.name}</option>
-								{/each}
-							</select>
-							<div class="flex justify-end gap-2">
-								<button
-									type="button"
-									onclick={cancelCaseTypeEdit}
-									class="h-input rounded-input bg-transparent text-dark hover:bg-muted inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
-								>
-									<X size={14} />
-								</button>
-								<button
-									type="button"
-									onclick={saveCaseTypeEdit}
-									disabled={savingCaseType}
-									class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
-								>
-									<Check size={14} />
-								</button>
-							</div>
-						</div>
+					{#if caseTypeName}
+						<span class="bg-success/15 text-success px-2 py-1 rounded-card text-sm font-medium w-fit">
+							{caseTypeName}
+						</span>
 					{:else}
-						{#if caseTypeName}
-							<span class="bg-success/15 text-success px-2 py-1 rounded-card text-sm font-medium w-fit">{caseTypeName}</span>
-						{:else}
-							<p class="text-sm text-muted-foreground">Non défini</p>
-						{/if}
+						<p class="text-sm text-muted-foreground">Non défini</p>
 					{/if}
 				</div>
 			</div>
 		</div>
 
 		<!-- Case Subject -->
-		<div
-			class="border border-border-card rounded-card p-6 grid gap-4"
-		>
+		<div class="border border-border-card rounded-card p-6 grid gap-4">
 			<div class="flex justify-between items-center">
-				<h3 class="text-lg font-semibold text-foreground">
-					Personne impliquée
-				</h3>
+				<h3 class="text-lg font-semibold text-foreground">Personne impliquée</h3>
 				{#if subject && !showSubjectForm}
 					<div class="flex items-center gap-2">
 						<button
@@ -814,9 +634,9 @@
 						<label class="text-xs text-muted-foreground mb-1 block">Adresse</label>
 						<input
 							type="text"
-								bind:value={subjectForm.address1}
-								placeholder="Adresse ligne 1"
-								class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
+							bind:value={subjectForm.address1}
+							placeholder="Adresse ligne 1"
+							class="h-input rounded-input border-border-input bg-background placeholder:text-foreground-alt/50 hover:border-border-input-hover focus:ring-foreground focus:ring-offset-background focus:outline-hidden w-full px-3 text-sm focus:ring-2 focus:ring-offset-2"
 						/>
 					</div>
 					<div>
@@ -881,7 +701,7 @@
 							class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 						>
 							<Check size={14} />
-							{savingSubject ? "Enregistrement..." : (editingSubject ? "Enregistrer" : "Ajouter")}
+							{savingSubject ? "Enregistrement..." : editingSubject ? "Enregistrer" : "Ajouter"}
 						</button>
 					</div>
 				</div>
