@@ -27,7 +27,7 @@
             "sidebar content";
         grid-template-rows: auto 1fr;
         grid-template-columns: auto 1fr;
-        height: 100dvh;
+        height: calc(100dvh / var(--ui-scale, 1));
     }
 
     .content {

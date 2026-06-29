@@ -19,18 +19,23 @@ function createScaleStore() {
 
     const { subscribe, set } = writable<number>(getInitialScale());
 
+    function applyScale(scale: number) {
+        document.documentElement.style.zoom = String(scale);
+        document.documentElement.style.setProperty('--ui-scale', String(scale));
+    }
+
     return {
         subscribe,
         set: (scale: number) => {
             if (!browser) return;
-            document.documentElement.style.zoom = String(scale);
+            applyScale(scale);
             localStorage.setItem(STORAGE_KEY, String(scale));
             set(scale);
         },
         init: () => {
             if (!browser) return;
             const scale = getInitialScale();
-            document.documentElement.style.zoom = String(scale);
+            applyScale(scale);
             set(scale);
         }
     };
