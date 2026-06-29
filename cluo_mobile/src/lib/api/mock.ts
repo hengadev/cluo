@@ -170,14 +170,17 @@ function formatDuration(seconds: number): string {
 /**
  * Mock: Update recording metadata
  */
-export async function updateRecording(id: string, updates: { purpose?: RecordingPurpose }): Promise<void> {
+export async function updateRecording(id: string, updates: { purpose?: RecordingPurpose; title?: string }): Promise<void> {
     await delay(300);
     const recording = mockRecordings.get(id);
     if (!recording) throw new Error("Enregistrement introuvable");
     if (updates.purpose !== undefined) {
         recording.purpose = updates.purpose;
-        mockRecordings.set(id, recording);
     }
+    if (updates.title !== undefined) {
+        recording.title = updates.title;
+    }
+    mockRecordings.set(id, recording);
 }
 
 /**

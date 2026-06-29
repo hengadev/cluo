@@ -1,6 +1,6 @@
 <script lang="ts">
     import { onMount } from "svelte";
-    import { ArrowLeft, FileText, Sparkles, Play, Trash2, Download, Loader2 } from "@lucide/svelte";
+    import { ArrowLeft, FileText, Sparkles, Play, Trash2, Download, Loader2, Pencil } from "@lucide/svelte";
     import { goto } from "$app/navigation";
     import AudioPlayer from "$lib/components/AudioPlayer.svelte";
     import Spinner from "$lib/components/ui/Spinner.svelte";
@@ -20,6 +20,9 @@
     let purposeDialogOpen = $state(false);
     let pendingPurpose = $state<RecordingPurpose>("general");
     let isUpdatingPurpose = $state(false);
+    let titleDialogOpen = $state(false);
+    let pendingTitle = $state("");
+    let isUpdatingTitle = $state(false);
 
     const purposeLabels: Record<RecordingPurpose, string> = {
         general: "Général",
@@ -30,6 +33,31 @@
         if (!recording) return;
         pendingPurpose = recording.purpose;
         purposeDialogOpen = true;
+    }
+
+    function openTitleDialog() {
+        if (!recording) return;
+        pendingTitle = recording.title;
+        titleDialogOpen = true;
+    }
+
+    async function confirmTitleChange() {
+        if (!recording || isUpdatingTitle) return;
+        const trimmed = pendingTitle.trim();
+        if (!trimmed || trimmed === recording.title) {
+            titleDialogOpen = false;
+            return;
+        }
+        try {
+            isUpdatingTitle = true;
+            await updateRecording(recording.id, { title: trimmed });
+            recording.title = trimmed;
+            titleDialogOpen = false;
+        } catch {
+            snackbar.error("Échec de la mise à jour du titre");
+        } finally {
+            isUpdatingTitle = false;
+        }
     }
 
     async function confirmPurposeChange() {
@@ -152,9 +180,18 @@
         <div class="flex flex-col gap-4 p-4 border border-dark-100 rounded-2xl">
             <div class="flex justify-between items-start">
                 <div class="min-w-0 flex-1">
-                    <h2 class="text-dark-800 font-bold text-lg truncate">
-                        {recording.title}
-                    </h2>
+                    <div class="flex items-center gap-2">
+                        <h2 class="text-dark-800 font-bold text-lg truncate">
+                            {recording.title}
+                        </h2>
+                        <button
+                            onclick={openTitleDialog}
+                            class="flex-shrink-0 text-dark-400 hover:text-dark-700 transition-colors"
+                            aria-label="Renommer l'enregistrement"
+                        >
+                            <Pencil size={14} />
+                        </button>
+                    </div>
                     <div class="flex gap-2 items-center mt-1">
                         <p class="text-dark-600 text-sm">{recording.date}</p>
                         <span class="text-dark-300">•</span>
@@ -283,6 +320,41 @@
         </div>
     {/if}
 </div>
+
+{#if titleDialogOpen}
+    <div
+        class="fixed inset-0 z-50 flex items-end justify-center bg-black/60"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Renommer l'enregistrement"
+    >
+        <div class="bg-background rounded-t-2xl p-6 w-full max-w-lg shadow-popover">
+            <p class="text-dark-900 font-semibold text-base mb-4">Renommer l'enregistrement</p>
+            <input
+                type="text"
+                bind:value={pendingTitle}
+                placeholder={recording?.title ?? ""}
+                class="w-full bg-dark-50 border border-dark-200 text-dark-800 placeholder-dark-400 px-3 py-3 rounded-xl text-base focus:outline-none focus:ring-1 focus:ring-dark-400 mb-6"
+                onkeydown={(e) => e.key === "Enter" && confirmTitleChange()}
+            />
+            <div class="flex gap-3">
+                <button
+                    class="flex-1 px-4 py-3 rounded-xl border border-dark-200 text-dark-700 hover:bg-dark-50 transition-colors"
+                    onclick={() => (titleDialogOpen = false)}
+                >
+                    Annuler
+                </button>
+                <button
+                    class="flex-1 px-4 py-3 rounded-xl bg-dark-700 hover:bg-dark-600 text-white font-medium transition-colors disabled:opacity-50"
+                    onclick={confirmTitleChange}
+                    disabled={isUpdatingTitle || !pendingTitle.trim() || pendingTitle.trim() === recording?.title}
+                >
+                    {isUpdatingTitle ? "Enregistrement…" : "Confirmer"}
+                </button>
+            </div>
+        </div>
+    </div>
+{/if}
 
 {#if purposeDialogOpen}
     <div

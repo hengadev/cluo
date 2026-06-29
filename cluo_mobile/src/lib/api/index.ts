@@ -30,7 +30,7 @@ export async function uploadRecording(
     return getApi().uploadRecording(blob, metadata);
 }
 
-export async function updateRecording(id: string, updates: { purpose?: import("../types/recording").RecordingPurpose }) {
+export async function updateRecording(id: string, updates: { purpose?: import("../types/recording").RecordingPurpose; title?: string }) {
     return getApi().updateRecording(id, updates);
 }
 

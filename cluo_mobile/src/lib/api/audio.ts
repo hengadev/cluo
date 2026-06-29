@@ -208,10 +208,13 @@ function mediaToRecording(m: MediaResponse): Recording & { audioUrl?: string } {
  * 2. POST /ai/speech/jobs — submits it for transcription
  * Stores the jobId in localStorage keyed by mediaId for later polling.
  */
-export async function updateRecording(id: string, updates: { purpose?: RecordingPurpose }): Promise<void> {
+export async function updateRecording(id: string, updates: { purpose?: RecordingPurpose; title?: string }): Promise<void> {
+	const body: Record<string, string> = {};
+	if (updates.purpose !== undefined) body.purpose = updates.purpose;
+	if (updates.title !== undefined) body.caption = updates.title;
 	await apiFetch<void>(`/media/${id}`, {
 		method: "PATCH",
-		body: JSON.stringify(updates),
+		body: JSON.stringify(body),
 	});
 }
 
