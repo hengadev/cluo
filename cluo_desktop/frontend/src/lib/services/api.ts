@@ -49,6 +49,9 @@ import type {
 } from '../types/entities';
 
 const BASE_URL = API_BASE_URL;
+// When BASE_URL is empty (production proxy mode), new URL(path) needs a base
+// because the URL constructor rejects bare paths like "/cases".
+const URL_BASE = BASE_URL || (typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8080');
 
 /**
  * Error thrown when the API returns 409 Conflict.
@@ -277,7 +280,7 @@ interface FetchCasesParams {
  */
 export async function fetchAllCases(params?: FetchCasesParams): Promise<ListCasesResponse> {
 	if (MOCK) return mock.fetchAllCases(params);
-	const url = new URL(`${BASE_URL}/cases`);
+	const url = new URL(`${BASE_URL}/cases`, URL_BASE);
 
 	if (params?.page) url.searchParams.set('page', params.page.toString());
 	if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
@@ -317,7 +320,7 @@ export async function fetchCasesByStatus(status: string): Promise<ListCasesRespo
  */
 export async function fetchCasesByClient(clientId: string, params?: Omit<FetchCasesParams, 'status'>): Promise<ListCasesResponse> {
 	if (MOCK) return mock.fetchCasesByClient(clientId, params);
-	const url = new URL(`${BASE_URL}/clients/${clientId}/cases`);
+	const url = new URL(`${BASE_URL}/clients/${clientId}/cases`, URL_BASE);
 
 	if (params?.page) url.searchParams.set('page', params.page.toString());
 	if (params?.pageSize) url.searchParams.set('page_size', params.pageSize.toString());
@@ -971,7 +974,7 @@ export async function createInvoice(invoice: Invoice): Promise<DocumentAPIRespon
  */
 export async function fetchOverdueInvoices(page: number = 1, perPage: number = 20): Promise<OverdueInvoicesResponse> {
 	if (MOCK) return mock.fetchOverdueInvoices(page, perPage);
-	const url = new URL(`${BASE_URL}/invoices/overdue`);
+	const url = new URL(`${BASE_URL}/invoices/overdue`, URL_BASE);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
 
@@ -1033,7 +1036,7 @@ export async function voidInvoice(id: string): Promise<DocumentAPIResponse<Invoi
  */
 export async function fetchCaseMedia(caseId: string, type?: string): Promise<ListMediaResponse> {
 	if (MOCK) return mock.fetchCaseMedia(caseId, type);
-	const url = new URL(`${BASE_URL}/case/${caseId}/media`);
+	const url = new URL(`${BASE_URL}/case/${caseId}/media`, URL_BASE);
 	if (type) url.searchParams.set('type', type);
 
 	const response = await apiFetch(url.toString());
@@ -1106,7 +1109,7 @@ export async function deleteMedia(mediaId: string): Promise<void> {
  */
 export async function fetchCasePieces(caseId: string, page = 1, pageSize = 50): Promise<ListPiecesResponse> {
 	if (MOCK) return mock.fetchCasePieces(caseId, page, pageSize);
-	const url = new URL(`${BASE_URL}/cases/${caseId}/pieces`);
+	const url = new URL(`${BASE_URL}/cases/${caseId}/pieces`, URL_BASE);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('pageSize', pageSize.toString());
 
@@ -1195,7 +1198,7 @@ export async function getTranscriptionJobStatus(jobId: string): Promise<Transcri
  */
 export async function getTranscriptionByMediaFile(mediaFileId: string): Promise<ListTranscriptionsResponse> {
 	if (MOCK) return mock.getTranscriptionByMediaFile(mediaFileId);
-	const url = new URL(`${BASE_URL}/ai/speech/transcriptions`);
+	const url = new URL(`${BASE_URL}/ai/speech/transcriptions`, URL_BASE);
 	url.searchParams.set('mediaFileId', mediaFileId);
 
 	const response = await apiFetch(url.toString());
@@ -1364,7 +1367,7 @@ export async function sendChatMessage(
 	request: SendMessageRequest,
 ): Promise<SendMessageResponse> {
 	if (MOCK) return mock.sendChatMessage(caseId, request);
-	const url = new URL(`${BASE_URL}/api/ai/chat/message`);
+	const url = new URL(`${BASE_URL}/api/ai/chat/message`, URL_BASE);
 	url.searchParams.set('case_id', caseId);
 
 	const response = await apiFetch(url.toString(), {
@@ -1403,7 +1406,7 @@ export async function listChatConversations(
 	caseId: string,
 ): Promise<ListConversationsResponse> {
 	if (MOCK) return mock.listChatConversations(caseId);
-	const url = new URL(`${BASE_URL}/api/ai/chat/conversations`);
+	const url = new URL(`${BASE_URL}/api/ai/chat/conversations`, URL_BASE);
 	url.searchParams.set('case_id', caseId);
 
 	const response = await apiFetch(url.toString());
@@ -1446,7 +1449,7 @@ interface FetchDocumentsParams {
  */
 export async function fetchDocuments(params?: FetchDocumentsParams): Promise<DocumentListResponse> {
 	if (MOCK) return mock.fetchDocuments(params);
-	const url = new URL(`${BASE_URL}/documents`);
+	const url = new URL(`${BASE_URL}/documents`, URL_BASE);
 
 	if (params?.case_id) url.searchParams.set('case_id', params.case_id);
 	if (params?.type) url.searchParams.set('type', params.type);
@@ -1606,7 +1609,7 @@ export async function archiveDocument(id: string, type: string): Promise<Documen
  */
 export async function fetchDocumentHistory(id: string, type: string, page: number = 1, perPage: number = 20): Promise<DocumentHistoryResponse> {
 	if (MOCK) return mock.fetchDocumentHistory(id, type, page, perPage);
-	const url = new URL(`${BASE_URL}/documents/${id}/${type}/history`);
+	const url = new URL(`${BASE_URL}/documents/${id}/${type}/history`, URL_BASE);
 	url.searchParams.set('page', page.toString());
 	url.searchParams.set('per_page', perPage.toString());
 
