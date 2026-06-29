@@ -49,6 +49,7 @@ func (h *handler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 	caseID := r.FormValue("caseId")
 	caption := r.FormValue("caption")
 	isPublishedStr := r.FormValue("isPublished")
+	purposeStr := r.FormValue("purpose")
 
 	// Get MIME type
 	mimeType := fileHeader.Header.Get("Content-Type")
@@ -65,6 +66,11 @@ func (h *handler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 		isPublishedPtr = &isPublished
 	}
 
+	var purposePtr *string
+	if purposeStr != "" {
+		purposePtr = &purposeStr
+	}
+
 	request := &domain.UploadMediaRequest{
 		CaseID:      caseID,
 		File:        file,
@@ -73,6 +79,7 @@ func (h *handler) UploadMedia(w http.ResponseWriter, r *http.Request) {
 		FileSize:    fileHeader.Size,
 		Caption:     captionPtr,
 		IsPublished: isPublishedPtr,
+		Purpose:     purposePtr,
 	}
 
 	logger.InfoContext(ctx, "Handler: Processing upload media request",

@@ -42,6 +42,11 @@ func (s *Service) UploadMedia(ctx context.Context, r *domain.UploadMediaRequest)
 	}
 
 	// Create media record in database
+	purpose := ""
+	if r.Purpose != nil {
+		purpose = *r.Purpose
+	}
+
 	createRequest := &domain.CreateMediaRequest{
 		CaseID:      r.CaseID,
 		URL:         fileURL,
@@ -51,6 +56,7 @@ func (s *Service) UploadMedia(ctx context.Context, r *domain.UploadMediaRequest)
 		FileSize:    r.FileSize,
 		Caption:     r.Caption,
 		IsPublished: r.IsPublished,
+		Purpose:     purpose,
 	}
 
 	// Use the private createMedia method to save to database

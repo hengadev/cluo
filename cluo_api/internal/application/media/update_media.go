@@ -26,12 +26,15 @@ func (s *Service) UpdateMedia(ctx context.Context, r *domain.UpdateMediaRequest)
 		return nil, errs.NewNotDecryptedErr("media", err)
 	}
 
-	// Apply updates (only Caption and IsPublished)
+	// Apply updates
 	if r.Caption != nil {
 		media.Caption = *r.Caption
 	}
 	if r.IsPublished != nil {
 		media.IsPublished = *r.IsPublished
+	}
+	if r.Purpose != nil {
+		media.Purpose = domain.RecordingPurpose(*r.Purpose)
 	}
 
 	// Re-encrypt
