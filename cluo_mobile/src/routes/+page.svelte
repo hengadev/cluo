@@ -138,7 +138,7 @@
     <p class="text-dark-900 font-extrabold text-xl">Bonjour {greeting},</p>
     <div class="grid gap-4">
         <div class="flex justify-between items-center">
-            <p class="font-extrabold text-lg text-dark-800">Affaire active</p>
+            <p class="text-sm font-semibold uppercase tracking-wider text-dark-700">Affaire active</p>
             <button
                 onclick={() => (pickerOpen = true)}
                 class="flex items-center gap-1 text-dark-600 text-sm cursor-pointer hover:text-dark-900 transition-colors"
@@ -152,7 +152,7 @@
     <Input placeholder="Recherche parmi les enregistrements" bind:value={searchQuery} type="search" />
     <div class="flex flex-col gap-4">
         <div class="flex items-center gap-2">
-            <p class="text-dark-700 font-bold text-base">Enregistrements</p>
+            <p class="text-sm font-semibold uppercase tracking-wider text-dark-700">Enregistrements</p>
             {#if $queueCount > 0}
                 <span class="bg-tertiary text-background text-xs font-semibold px-2 py-0.5 rounded-full">
                     {$queueCount} en attente
