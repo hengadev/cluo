@@ -15,9 +15,17 @@
         title = "Titre de l'enregistrement",
         date = "01 janv. 2025",
         startTime = "00:00",
-        duration = "00:00",
+        duration = 0,
         status = "completed",
     }: Props = $props();
+
+    function formatDuration(d: number | string): string {
+        const secs = typeof d === "number" ? d : 0;
+        if (secs <= 0) return "--:--";
+        const m = Math.floor(secs / 60);
+        const s = Math.floor(secs % 60);
+        return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+    }
 
     const statusLabels: Record<string, string> = {
         uploading: "Téléchargement",
@@ -55,5 +63,5 @@
             {/if}
         </div>
     </div>
-    <p class="text-dark-400 text-sm font-mono flex-shrink-0">{duration}</p>
+    <p class="text-dark-400 text-sm font-mono flex-shrink-0">{formatDuration(duration)}</p>
 </a>

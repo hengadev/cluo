@@ -466,6 +466,22 @@ export async function listRecordings(options?: {
 
 	const recordings = res.media.map(mediaToRecording) as Recording[];
 
+	// Fetch transcription durations in parallel (best-effort — stays 0 on error)
+	await Promise.all(
+		recordings.map(async (recording) => {
+			try {
+				const tRes = await apiFetch<{ transcriptions: TranscriptionApiResponse[]; total: number }>(
+					`/ai/speech/transcriptions?mediaFileId=${recording.id}`,
+				);
+				if (tRes.transcriptions.length && tRes.transcriptions[0].duration > 0) {
+					recording.duration = Math.round(tRes.transcriptions[0].duration / 1000);
+				}
+			} catch {
+				// duration stays 0
+			}
+		}),
+	);
+
 	return {
 		recordings,
 		totalCount: res.pagination.totalItems,
