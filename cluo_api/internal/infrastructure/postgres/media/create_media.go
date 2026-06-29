@@ -11,11 +11,11 @@ import (
 func (r *Repository) CreateMedia(ctx context.Context, mediaEncx *domain.MediaFileEncx) error {
 	query := fmt.Sprintf(`
 		INSERT INTO %s.media_files (
-			id, caseid, filesize, ispublished, createdat,
+			id, caseid, filesize, ispublished, purpose, createdat,
 			url_encrypted, type_encrypted, mimetype_encrypted,
 			filename_encrypted, caption_encrypted,
 			dek_encrypted, key_version, metadata
-		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
+		) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
 	`, r.schema)
 
 	_, err := r.pool.Exec(ctx, query,
@@ -23,6 +23,7 @@ func (r *Repository) CreateMedia(ctx context.Context, mediaEncx *domain.MediaFil
 		mediaEncx.CaseID,
 		mediaEncx.FileSize,
 		mediaEncx.IsPublished,
+		mediaEncx.Purpose,
 		mediaEncx.CreatedAt,
 		mediaEncx.URLEncrypted,
 		mediaEncx.TypeEncrypted,

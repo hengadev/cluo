@@ -14,9 +14,10 @@ func (r *Repository) UpdateMedia(ctx context.Context, mediaEncx *domain.MediaFil
 		SET
 			caption_encrypted = $2,
 			ispublished = $3,
-			dek_encrypted = $4,
-			key_version = $5,
-			metadata = $6
+			purpose = $4,
+			dek_encrypted = $5,
+			key_version = $6,
+			metadata = $7
 		WHERE id = $1
 	`, r.schema)
 
@@ -24,6 +25,7 @@ func (r *Repository) UpdateMedia(ctx context.Context, mediaEncx *domain.MediaFil
 		mediaEncx.ID,
 		mediaEncx.CaptionEncrypted,
 		mediaEncx.IsPublished,
+		mediaEncx.Purpose,
 		mediaEncx.DEKEncrypted,
 		mediaEncx.KeyVersion,
 		mediaEncx.Metadata,

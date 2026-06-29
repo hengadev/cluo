@@ -12,7 +12,7 @@ import (
 func (r *Repository) GetMediaByID(ctx context.Context, id uuid.UUID) (*domain.MediaFileEncx, error) {
 	query := fmt.Sprintf(`
 		SELECT
-			id, caseid, filesize, ispublished, createdat,
+			id, caseid, filesize, ispublished, purpose, createdat,
 			url_encrypted, type_encrypted, mimetype_encrypted,
 			filename_encrypted, caption_encrypted,
 			dek_encrypted, key_version, metadata
@@ -27,6 +27,7 @@ func (r *Repository) GetMediaByID(ctx context.Context, id uuid.UUID) (*domain.Me
 		&mediaEncx.CaseID,
 		&mediaEncx.FileSize,
 		&mediaEncx.IsPublished,
+		&mediaEncx.Purpose,
 		&mediaEncx.CreatedAt,
 		&mediaEncx.URLEncrypted,
 		&mediaEncx.TypeEncrypted,
