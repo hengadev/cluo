@@ -435,7 +435,38 @@ export async function analyzeTranscript(id: string): Promise<void> {
  * Requires that analyzeTranscript has been called first (analysisId stored in chain).
  */
 export async function getAnalysis(id: string): Promise<AnalysisResponse> {
-	const { analysisId } = getChain(id);
+	let { analysisId, transcriptionId } = getChain(id);
+
+	if (!analysisId) {
+		// Chain is stale (e.g. localStorage cleared, different device). Rebuild it.
+		if (!transcriptionId) {
+			try {
+				const res = await apiFetch<{ transcriptions: TranscriptionApiResponse[]; total: number }>(
+					`/ai/speech/transcriptions?mediaFileId=${id}`,
+				);
+				if (res.transcriptions.length) {
+					transcriptionId = res.transcriptions[0].id;
+					updateChain(id, { transcriptionId });
+				}
+			} catch {
+				// transcription not available
+			}
+		}
+
+		if (transcriptionId) {
+			try {
+				const res = await apiFetch<{ analyses: AnalysisApiResponse[]; total: number }>(
+					`/ai/analysis?transcriptionId=${transcriptionId}`,
+				);
+				if (res.analyses?.length) {
+					analysisId = res.analyses[0].id;
+					updateChain(id, { analysisId });
+				}
+			} catch {
+				// endpoint not available or no analysis yet
+			}
+		}
+	}
 
 	if (!analysisId) {
 		throw new Error("Aucune analyse trouvée. Veuillez d'abord analyser la transcription.");
@@ -546,20 +577,7 @@ export async function getRecording(id: string): Promise<{
 
 	let analysis: AnalysisResult | null = null;
 	try {
-		const { analysisId } = getChain(id);
-		if (analysisId) {
-			const a = await apiFetch<AnalysisApiResponse>(`/ai/analysis/${analysisId}`);
-			analysis = {
-				id: a.id,
-				transcriptionId: a.transcriptionId,
-				keyFindings: a.keyFindings,
-				summary: a.summary,
-				sentiment: a.sentiment,
-				topics: a.topics,
-				suggestedActions: a.suggestedActions,
-				createdAt: a.createdAt,
-			};
-		}
+		analysis = await getAnalysis(id);
 	} catch {
 		// analysis not yet available
 	}
