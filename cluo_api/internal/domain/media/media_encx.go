@@ -25,7 +25,9 @@ type MediaFileEncx struct {
 	FileSize int64 `db:"filesize" json:"filesize"`
 	
 	IsPublished bool `db:"ispublished" json:"ispublished"`
-	
+
+	Purpose RecordingPurpose `db:"purpose" json:"purpose"`
+
 	CreatedAt time.Time `db:"createdat" json:"createdat"`
 	
 	
@@ -70,9 +72,11 @@ func ProcessMediaFileEncx(ctx context.Context, crypto encx.CryptoService, source
 	result.FileSize = source.FileSize
 	
 	result.IsPublished = source.IsPublished
-	
+
+	result.Purpose = source.Purpose
+
 	result.CreatedAt = source.CreatedAt
-	
+
 
 	// Generate DEK
 	dek, err := crypto.GenerateDEK()
@@ -179,9 +183,11 @@ func DecryptMediaFileEncx(ctx context.Context, crypto encx.CryptoService, source
 	result.FileSize = source.FileSize
 	
 	result.IsPublished = source.IsPublished
-	
+
+	result.Purpose = source.Purpose
+
 	result.CreatedAt = source.CreatedAt
-	
+
 
 	// Decrypt DEK
 	dek, err := crypto.DecryptDEKWithVersion(ctx, source.DEKEncrypted, source.KeyVersion)

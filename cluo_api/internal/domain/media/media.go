@@ -16,5 +16,6 @@ type MediaFile struct {
 	FileSize    int64
 	Caption     string `encx:"encrypt"`
 	IsPublished bool
+	Purpose     RecordingPurpose
 	CreatedAt   time.Time
 }
