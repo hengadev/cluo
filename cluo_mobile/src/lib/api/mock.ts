@@ -5,6 +5,7 @@
 
 import type {
     Recording,
+    RecordingPurpose,
     Transcript,
     AnalysisResult,
     ProcessingStep,
@@ -167,11 +168,24 @@ function formatDuration(seconds: number): string {
 }
 
 /**
+ * Mock: Update recording metadata
+ */
+export async function updateRecording(id: string, updates: { purpose?: RecordingPurpose }): Promise<void> {
+    await delay(300);
+    const recording = mockRecordings.get(id);
+    if (!recording) throw new Error("Enregistrement introuvable");
+    if (updates.purpose !== undefined) {
+        recording.purpose = updates.purpose;
+        mockRecordings.set(id, recording);
+    }
+}
+
+/**
  * Mock: Upload a recording
  */
 export async function uploadRecording(
     blob: Blob,
-    metadata?: { caseId?: string; title?: string }
+    metadata?: { caseId?: string; title?: string; purpose?: string }
 ): Promise<UploadRecordingResponse> {
     await delay(800);
 
@@ -194,7 +208,7 @@ export async function uploadRecording(
         }),
         duration: 0, // Will be updated
         status: "uploading",
-        purpose: "general",
+        purpose: (metadata?.purpose as RecordingPurpose) || "general",
         audioUrl: URL.createObjectURL(blob),
     };
 

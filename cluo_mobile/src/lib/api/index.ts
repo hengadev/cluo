@@ -25,9 +25,13 @@ function getApi() {
 
 export async function uploadRecording(
     blob: Blob,
-    metadata?: { caseId?: string; title?: string }
+    metadata?: { caseId?: string; title?: string; purpose?: string }
 ) {
     return getApi().uploadRecording(blob, metadata);
+}
+
+export async function updateRecording(id: string, updates: { purpose?: import("../types/recording").RecordingPurpose }) {
+    return getApi().updateRecording(id, updates);
 }
 
 export async function getRecordingStatus(id: string) {
