@@ -1,6 +1,14 @@
 <script lang="ts">
+    import { onMount } from "svelte";
     import Header from "../Header.svelte";
     import Sidebar from "../Sidebar.svelte";
+    import { initBackgroundCheckers } from "$lib/services/backgroundInit";
+
+    // One-shot background checkers (overdue-invoice notifications in v1). Run
+    // once per session on layout mount; each checker is idempotent.
+    onMount(() => {
+        initBackgroundCheckers();
+    });
 </script>
 
 <div class="page">
