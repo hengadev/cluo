@@ -19,6 +19,7 @@ type UploadMediaRequest struct {
 	FileSize    int64     `json:"fileSize"`
 	Caption     *string   `json:"caption"`
 	IsPublished *bool     `json:"isPublished"`
+	Purpose     *string   `json:"purpose"`
 }
 
 func (r *UploadMediaRequest) Valid(ctx context.Context) error {
@@ -62,6 +63,13 @@ func (r *UploadMediaRequest) Valid(ctx context.Context) error {
 		errs.Set("caption", "caption must be less than 500 characters")
 	}
 
+	// Validate Purpose (optional, defaults to general)
+	if r.Purpose != nil && strings.TrimSpace(*r.Purpose) != "" {
+		if !RecordingPurpose(*r.Purpose).IsValid() {
+			errs.Set("purpose", "purpose must be one of: general, witness_interview")
+		}
+	}
+
 	return errs.AsError()
 }
 
@@ -75,6 +83,7 @@ type CreateMediaRequest struct {
 	FileSize    int64   `json:"fileSize"`
 	Caption     *string `json:"caption"`
 	IsPublished *bool   `json:"isPublished"`
+	Purpose     string  `json:"purpose"`
 }
 
 func (r *CreateMediaRequest) Valid(ctx context.Context) error {
@@ -130,6 +139,15 @@ func (r *CreateMediaRequest) Valid(ctx context.Context) error {
 		errs.Set("caption", "caption must be less than 500 characters")
 	}
 
+	// Validate Purpose
+	purpose := RecordingPurpose(strings.TrimSpace(r.Purpose))
+	if purpose == "" {
+		purpose = RecordingPurposeGeneral
+	}
+	if !purpose.IsValid() {
+		errs.Set("purpose", "purpose must be one of: general, witness_interview")
+	}
+
 	return errs.AsError()
 }
 
@@ -148,6 +166,11 @@ func NewMedia(r *CreateMediaRequest) *MediaFile {
 		isPublished = *r.IsPublished
 	}
 
+	purpose := RecordingPurpose(strings.TrimSpace(r.Purpose))
+	if purpose == "" || !purpose.IsValid() {
+		purpose = RecordingPurposeGeneral
+	}
+
 	return &MediaFile{
 		ID:          uuid.New(),
 		CaseID:      caseID,
@@ -158,6 +181,7 @@ func NewMedia(r *CreateMediaRequest) *MediaFile {
 		FileSize:    r.FileSize,
 		Caption:     caption,
 		IsPublished: isPublished,
+		Purpose:     purpose,
 		CreatedAt:   time.Now(),
 	}
 }
@@ -167,6 +191,7 @@ type UpdateMediaRequest struct {
 	ID          uuid.UUID `json:"id"`
 	Caption     *string   `json:"caption"`
 	IsPublished *bool     `json:"isPublished"`
+	Purpose     *string   `json:"purpose"`
 }
 
 func (r *UpdateMediaRequest) Valid(ctx context.Context) error {
@@ -179,6 +204,13 @@ func (r *UpdateMediaRequest) Valid(ctx context.Context) error {
 	// Validate Caption if provided
 	if r.Caption != nil && len(*r.Caption) > 500 {
 		errs.Set("caption", "caption must be less than 500 characters")
+	}
+
+	// Validate Purpose if provided
+	if r.Purpose != nil && strings.TrimSpace(*r.Purpose) != "" {
+		if !RecordingPurpose(*r.Purpose).IsValid() {
+			errs.Set("purpose", "purpose must be one of: general, witness_interview")
+		}
 	}
 
 	return errs.AsError()
@@ -239,16 +271,17 @@ func (r *ListMediaByCaseIDRequest) Valid(ctx context.Context) error {
 
 // MediaResponse represents the response for a media file
 type MediaResponse struct {
-	ID          string    `json:"id"`
-	CaseID      string    `json:"caseId"`
-	URL         string    `json:"url"`
-	Type        string    `json:"type"`
-	MimeType    string    `json:"mimeType"`
-	FileName    string    `json:"fileName"`
-	FileSize    int64     `json:"fileSize"`
-	Caption     string    `json:"caption"`
-	IsPublished bool      `json:"isPublished"`
-	CreatedAt   time.Time `json:"createdAt"`
+	ID          string           `json:"id"`
+	CaseID      string           `json:"caseId"`
+	URL         string           `json:"url"`
+	Type        string           `json:"type"`
+	MimeType    string           `json:"mimeType"`
+	FileName    string           `json:"fileName"`
+	FileSize    int64            `json:"fileSize"`
+	Caption     string           `json:"caption"`
+	IsPublished bool             `json:"isPublished"`
+	Purpose     RecordingPurpose `json:"purpose"`
+	CreatedAt   time.Time        `json:"createdAt"`
 }
 
 // ToResponse converts a MediaFile to a MediaResponse
@@ -263,6 +296,7 @@ func (m *MediaFile) ToResponse() *MediaResponse {
 		FileSize:    m.FileSize,
 		Caption:     m.Caption,
 		IsPublished: m.IsPublished,
+		Purpose:     m.Purpose,
 		CreatedAt:   m.CreatedAt,
 	}
 }
