@@ -82,8 +82,10 @@
     {/if}
 </svelte:head>
 
-<div class="relative px-4" style="padding-top: calc(env(safe-area-inset-top) + 2rem)">
-    {@render children()}
+<div class="min-h-screen bg-dark-900">
+    <div class="bg-background rounded-b-[2rem] px-4 min-h-screen" style="padding-top: calc(env(safe-area-inset-top) + 2rem)">
+        {@render children()}
+    </div>
     {#if showFooter}
         <div class="fixed bottom-0 inset-x-0 z-50">
             <Footer currentCase={$currentCase} />
