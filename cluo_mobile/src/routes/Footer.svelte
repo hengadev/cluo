@@ -7,6 +7,7 @@
     import { snackbar } from "$lib/stores/snackbar";
     import { queueCount } from "$lib/stores/upload-queue-count";
     import type { Case } from "$lib/types/case";
+    import type { RecordingPurpose } from "$lib/types/recording";
 
     interface Props {
         currentCase?: Case | null;
@@ -31,6 +32,7 @@
     let recordedBlob: Blob | null = $state(null);
     let recordingTitle: string = $state("");
     let defaultRecordingTitle: string = $state("");
+    let recordingPurpose: RecordingPurpose = $state("general");
 
     let containerElement: HTMLDivElement;
 
@@ -177,6 +179,7 @@
         recordedBlob = null;
         recordingTitle = "";
         defaultRecordingTitle = "";
+        recordingPurpose = "general";
         footerState = "idle";
         dragX = 0;
     }
@@ -215,13 +218,14 @@
             isUploading = true;
             lastUploadBlob = blob;
 
-            const response = await uploadRecording(blob, { caseId: currentCase!.id, title });
+            const response = await uploadRecording(blob, { caseId: currentCase!.id, title, purpose: recordingPurpose });
             const recordingId = response.id;
 
             // Reset state and navigate to processing page
             recordedBlob = null;
             recordingTitle = "";
             defaultRecordingTitle = "";
+            recordingPurpose = "general";
             footerState = "idle";
             goto(`/processing/${recordingId}`);
         } catch (error) {
@@ -239,6 +243,7 @@
             recordedBlob = null;
             recordingTitle = "";
             defaultRecordingTitle = "";
+            recordingPurpose = "general";
             footerState = "idle";
             dragX = 0;
         } finally {
@@ -304,6 +309,20 @@
     {:else if footerState === "preview" && recordedBlob}
         <div class="flex flex-col gap-3 w-full">
             <AudioPlayer src={recordedBlob} duration={recordingDuration} />
+            <div class="flex gap-1 p-1 bg-dark-800 rounded-xl">
+                <button
+                    class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors {recordingPurpose === 'general' ? 'bg-background text-dark-900 shadow-sm' : 'text-dark-400 hover:text-dark-300'}"
+                    onclick={() => (recordingPurpose = "general")}
+                >
+                    Général
+                </button>
+                <button
+                    class="flex-1 py-2 rounded-lg text-sm font-medium transition-colors {recordingPurpose === 'witness_interview' ? 'bg-background text-dark-900 shadow-sm' : 'text-dark-400 hover:text-dark-300'}"
+                    onclick={() => (recordingPurpose = "witness_interview")}
+                >
+                    Audition témoin
+                </button>
+            </div>
             <input
                 type="text"
                 bind:value={recordingTitle}
