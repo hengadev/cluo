@@ -489,12 +489,12 @@
 											<button
 												type="button"
 												disabled={isActing}
-												class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
+												class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
 											>
 												{#if isActing}
-													<Loader2 size={12} class="mr-1 animate-spin" />
+													<Loader2 size={12} class="animate-spin" />
 												{:else}
-													<action.icon size={12} class="mr-1" />
+													<action.icon size={12} />
 												{/if}
 												{isActing ? "..." : action.label}
 											</button>
@@ -504,12 +504,12 @@
 											type="button"
 											onclick={() => executeAction(doc)}
 											disabled={isActing}
-											class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
+											class="h-8 rounded-md {action.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 flex-1"
 										>
 											{#if isActing}
-												<Loader2 size={12} class="mr-1 animate-spin" />
+												<Loader2 size={12} class="animate-spin" />
 											{:else}
-												<action.icon size={12} class="mr-1" />
+												<action.icon size={12} />
 											{/if}
 											{isActing ? "..." : action.label}
 										</button>
@@ -530,9 +530,9 @@
 								<button
 									type="button"
 									onclick={() => goto(resolveRoute(docDef.route))}
-									class="h-8 rounded-md bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer w-full mt-2"
+									class="h-8 rounded-md bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer w-full mt-2"
 								>
-									<Plus size={12} class="mr-1" />
+									<Plus size={12} />
 									{docDef.createHint}
 								</button>
 							{:else if createInvoiceAction}
@@ -545,12 +545,12 @@
 									<button
 										type="button"
 										disabled={creatingInvoice}
-										class="h-8 rounded-md {createInvoiceAction.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 w-full mt-2"
+										class="h-8 rounded-md {createInvoiceAction.color} shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-3 text-xs font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50 w-full mt-2"
 									>
 										{#if creatingInvoice}
-											<Loader2 size={12} class="mr-1 animate-spin" />
+											<Loader2 size={12} class="animate-spin" />
 										{:else}
-											<createInvoiceAction.icon size={12} class="mr-1" />
+											<createInvoiceAction.icon size={12} />
 										{/if}
 										{creatingInvoice ? "..." : createInvoiceAction.label}
 									</button>

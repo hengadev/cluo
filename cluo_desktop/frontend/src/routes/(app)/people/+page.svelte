@@ -582,17 +582,17 @@
 									<button
 										type="button"
 										onclick={cancelSubjectForm}
-										class="h-input rounded-input bg-transparent hover:bg-muted inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
+										class="h-input rounded-input bg-transparent hover:bg-muted inline-flex items-center justify-center gap-1 px-4 text-sm font-semibold active:scale-[0.98] border border-border-input cursor-pointer"
 									>
-										<X size={14} class="mr-1" /> Annuler
+										<X size={14} /> Annuler
 									</button>
 									<button
 										type="button"
 										onclick={saveSubjectEdit}
 										disabled={savingSubject}
-										class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
+										class="h-input rounded-input bg-foreground text-background shadow-mini hover:opacity-90 inline-flex items-center justify-center gap-1 px-4 text-sm font-semibold active:scale-[0.98] cursor-pointer disabled:opacity-50"
 									>
-										<Check size={14} class="mr-1" />
+										<Check size={14} />
 										{savingSubject ? "Enregistrement..." : "Enregistrer"}
 									</button>
 								</div>
