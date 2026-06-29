@@ -7,8 +7,14 @@
   "frontend:build": "pnpm run build",
   "frontend:dev:watcher": "pnpm run dev",
   "frontend:dev:serverUrl": "auto",
+  "info": {
+    "companyName": "Cluo",
+    "productName": "Cluo",
+    "productVersion": "1.0.0",
+    "copyright": "Copyright © 2024 Cluo"
+  },
   "author": {
-    "name": "GaryHY",
+    "name": "hengadev",
     "email": "henry.gary@hotmail.com"
   },
   "wailsjsdir": "./frontend/src/lib"
