@@ -22,6 +22,11 @@ export interface ProcessingStep {
 }
 
 /**
+ * Purpose of a recording.
+ */
+export type RecordingPurpose = "general" | "witness_interview";
+
+/**
  * Main recording metadata and state.
  */
 export interface Recording {
@@ -33,6 +38,7 @@ export interface Recording {
 	duration: number | string; // Duration in seconds (number) or formatted "MM:SS" (string)
 	fileSize?: number; // File size in bytes
 	status: RecordingStatus;
+	purpose: RecordingPurpose;
 	processingSteps?: ProcessingStep[];
 }
 

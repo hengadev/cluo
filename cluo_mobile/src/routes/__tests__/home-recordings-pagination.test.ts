@@ -65,6 +65,7 @@ function makeRecording(id: string): Recording {
 		startTime: "10:00",
 		duration: 120,
 		status: "completed",
+		purpose: "general",
 	};
 }
 

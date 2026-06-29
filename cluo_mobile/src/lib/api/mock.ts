@@ -31,6 +31,7 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
             startTime: "14:30",
             duration: 323,
             status: "completed",
+            purpose: "general",
             audioUrl: "",
         },
     ],
@@ -43,6 +44,7 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
             startTime: "10:15",
             duration: 225,
             status: "completed",
+            purpose: "general",
             audioUrl: "",
         },
     ],
@@ -55,6 +57,7 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
             startTime: "16:00",
             duration: 730,
             status: "transcribing",
+            purpose: "general",
             audioUrl: "",
         },
     ],
@@ -67,6 +70,7 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
             startTime: "09:00",
             duration: 1845,
             status: "completed",
+            purpose: "general",
             audioUrl: "",
         },
     ],
@@ -79,6 +83,7 @@ const mockRecordings: Map<string, Recording & { audioUrl?: string }> = new Map([
             startTime: "11:30",
             duration: 456,
             status: "analyzing",
+            purpose: "general",
             audioUrl: "",
         },
     ],
@@ -189,6 +194,7 @@ export async function uploadRecording(
         }),
         duration: 0, // Will be updated
         status: "uploading",
+        purpose: "general",
         audioUrl: URL.createObjectURL(blob),
     };
 

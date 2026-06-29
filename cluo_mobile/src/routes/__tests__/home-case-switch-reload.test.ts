@@ -44,11 +44,11 @@ const caseA: Case = { id: "case-a", title: "Case A", status: "in_progress" };
 const caseB: Case = { id: "case-b", title: "Case B", status: "ready" };
 
 const recordingsA: Recording[] = [
-    { id: "r1", title: "Recording A1", date: "1 Jan 2026", startTime: "10:00", duration: 120, status: "completed" },
+    { id: "r1", title: "Recording A1", date: "1 Jan 2026", startTime: "10:00", duration: 120, status: "completed", purpose: "general" },
 ];
 const recordingsB: Recording[] = [
-    { id: "r2", title: "Recording B1", date: "2 Jan 2026", startTime: "14:00", duration: 90, status: "completed" },
-    { id: "r3", title: "Recording B2", date: "3 Jan 2026", startTime: "09:00", duration: 200, status: "transcribing" },
+    { id: "r2", title: "Recording B1", date: "2 Jan 2026", startTime: "14:00", duration: 90, status: "completed", purpose: "general" },
+    { id: "r3", title: "Recording B2", date: "3 Jan 2026", startTime: "09:00", duration: 200, status: "transcribing", purpose: "general" },
 ];
 
 // ---------------------------------------------------------------------------

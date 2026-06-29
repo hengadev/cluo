@@ -87,6 +87,7 @@ interface MediaResponse {
 	fileSize: number;
 	caption: string;
 	isPublished: boolean;
+	purpose: string;
 	createdAt: string;
 }
 
@@ -191,6 +192,7 @@ function mediaToRecording(m: MediaResponse): Recording & { audioUrl?: string } {
 		duration: 0,
 		fileSize: m.fileSize,
 		status: deriveStatus(m.isPublished, m.url),
+		purpose: (m.purpose as Recording["purpose"]) || "general",
 		audioUrl: m.url || undefined,
 	};
 }
@@ -207,7 +209,7 @@ function mediaToRecording(m: MediaResponse): Recording & { audioUrl?: string } {
  */
 export async function uploadRecording(
 	blob: Blob,
-	metadata?: { caseId?: string; title?: string },
+	metadata?: { caseId?: string; title?: string; purpose?: string },
 ): Promise<UploadRecordingResponse> {
 	const caseId = metadata?.caseId ?? localStorage.getItem(CASE_KEY) ?? "";
 	if (!caseId) {
@@ -220,6 +222,9 @@ export async function uploadRecording(
 	uploadForm.append("caseId", caseId);
 	if (metadata?.title) {
 		uploadForm.append("caption", metadata.title);
+	}
+	if (metadata?.purpose) {
+		uploadForm.append("purpose", metadata.purpose);
 	}
 
 	const uploadRes = await fetchWithRetry(`${API_URL}/media`, {

@@ -26,10 +26,10 @@ function filterRecordings(recordings: Recording[], query: string): Recording[] {
 // ---------------------------------------------------------------------------
 
 const recordings: Recording[] = [
-	{ id: "r1", title: "Entretien client Dupont", date: "1 Jan 2026", startTime: "10:00", duration: 120, status: "completed" },
-	{ id: "r2", title: "Note sur le dossier Martin", date: "2 Jan 2026", startTime: "14:00", duration: 90, status: "completed" },
-	{ id: "r3", title: "Audition témoin — affaire Dupont", date: "3 Jan 2026", startTime: "09:00", duration: 200, status: "transcribing" },
-	{ id: "r4", title: "Résumé expertise médicale", date: "4 Jan 2026", startTime: "11:30", duration: 60, status: "completed" },
+	{ id: "r1", title: "Entretien client Dupont", date: "1 Jan 2026", startTime: "10:00", duration: 120, status: "completed", purpose: "general" },
+	{ id: "r2", title: "Note sur le dossier Martin", date: "2 Jan 2026", startTime: "14:00", duration: 90, status: "completed", purpose: "general" },
+	{ id: "r3", title: "Audition témoin — affaire Dupont", date: "3 Jan 2026", startTime: "09:00", duration: 200, status: "transcribing", purpose: "witness_interview" },
+	{ id: "r4", title: "Résumé expertise médicale", date: "4 Jan 2026", startTime: "11:30", duration: 60, status: "completed", purpose: "general" },
 ];
 
 // ---------------------------------------------------------------------------
