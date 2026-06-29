@@ -185,6 +185,7 @@
                         startTime={recording.startTime}
                         duration={recording.duration}
                         status={recording.status}
+                        purpose={recording.purpose}
                     />
                 {/each}
 

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import type { RecordingStatus } from "$lib/types/recording";
+    import type { RecordingPurpose, RecordingStatus } from "$lib/types/recording";
 
     interface Props {
         id?: number | string;
@@ -8,6 +8,7 @@
         startTime?: string;
         duration?: number | string;
         status?: RecordingStatus;
+        purpose?: RecordingPurpose;
     }
 
     let {
@@ -17,6 +18,7 @@
         startTime = "00:00",
         duration = 0,
         status = "completed",
+        purpose = "general",
     }: Props = $props();
 
     function formatDuration(d: number | string): string {
@@ -49,7 +51,12 @@
     class="flex items-center gap-4 py-4 border-b border-dark-100 last:border-b-0 hover:opacity-60 transition-opacity cursor-pointer no-underline"
 >
     <div class="flex-1 min-w-0">
-        <p class="text-dark-900 font-semibold text-[15px] truncate">{title}</p>
+        <div class="flex items-center gap-2">
+            <p class="text-dark-900 font-semibold text-[15px] truncate">{title}</p>
+            {#if purpose === "witness_interview"}
+                <span class="flex-shrink-0 text-xs font-medium px-2 py-0.5 rounded-full border border-dark-200 text-dark-600 bg-dark-50">Audition témoin</span>
+            {/if}
+        </div>
         <div class="flex items-center gap-1.5 mt-0.5">
             <p class="text-dark-400 text-sm">{date}{startTime ? " · " + startTime : ""}</p>
             {#if isProcessing || status === "failed"}
