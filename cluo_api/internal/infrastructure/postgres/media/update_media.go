@@ -12,17 +12,25 @@ func (r *Repository) UpdateMedia(ctx context.Context, mediaEncx *domain.MediaFil
 	query := fmt.Sprintf(`
 		UPDATE %s.media_files
 		SET
-			caption_encrypted = $2,
-			ispublished = $3,
-			purpose = $4,
-			dek_encrypted = $5,
-			key_version = $6,
-			metadata = $7
+			url_encrypted = $2,
+			type_encrypted = $3,
+			mimetype_encrypted = $4,
+			filename_encrypted = $5,
+			caption_encrypted = $6,
+			ispublished = $7,
+			purpose = $8,
+			dek_encrypted = $9,
+			key_version = $10,
+			metadata = $11
 		WHERE id = $1
 	`, r.schema)
 
 	result, err := r.pool.Exec(ctx, query,
 		mediaEncx.ID,
+		mediaEncx.URLEncrypted,
+		mediaEncx.TypeEncrypted,
+		mediaEncx.MimeTypeEncrypted,
+		mediaEncx.FileNameEncrypted,
 		mediaEncx.CaptionEncrypted,
 		mediaEncx.IsPublished,
 		mediaEncx.Purpose,
