@@ -1,6 +1,7 @@
 <script lang="ts">
     import { onMount } from 'svelte';
     import { theme } from '$lib/stores/theme';
+    import { uiScale } from '$lib/stores/scale';
     import { updateDialogOpen } from '$lib/stores/update';
     import '../app.css';
     import '../reset.css';
@@ -14,6 +15,7 @@
 
     onMount(() => {
         theme.set($theme);
+        uiScale.init();
     });
 </script>
 

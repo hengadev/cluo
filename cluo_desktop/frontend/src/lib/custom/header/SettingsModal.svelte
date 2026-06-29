@@ -15,6 +15,7 @@
         Check,
     } from "@lucide/svelte";
     import { updateDialogOpen } from "$lib/stores/update";
+    import { uiScale, MIN_SCALE, MAX_SCALE } from "$lib/stores/scale";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
 
@@ -231,6 +232,27 @@
                             <div class="flex flex-col gap-4">
                                 {@render switchRow("Mode sombre", "Utiliser le thème sombre", darkMode, (v) => (darkMode = v))}
                                 {@render switchRow("Vue compacte", "Réduire l'espacement des listes pour afficher plus de contenu", compactView, (v) => (compactView = v))}
+                            </div>
+                            {@render sectionDivider("Taille de l'interface")}
+                            <div class="flex flex-col gap-3">
+                                <div class="flex items-center justify-between">
+                                    <Label.Root class="text-sm font-medium text-muted-foreground">Zoom de l'interface</Label.Root>
+                                    <span class="text-sm font-medium text-foreground tabular-nums">{Math.round($uiScale * 100)}%</span>
+                                </div>
+                                <input
+                                    type="range"
+                                    min={MIN_SCALE}
+                                    max={MAX_SCALE}
+                                    step="0.05"
+                                    value={$uiScale}
+                                    oninput={(e) => uiScale.set(parseFloat(e.currentTarget.value))}
+                                    class="scale-slider"
+                                />
+                                <div class="flex justify-between text-xs text-muted-foreground">
+                                    <span>75%</span>
+                                    <span>100%</span>
+                                    <span>125%</span>
+                                </div>
                             </div>
                             {@render sectionDivider("Langue")}
                             <div class="flex flex-col gap-1.5 max-w-xs">
@@ -527,3 +549,29 @@
         </Select.Portal>
     </Select.Root>
 {/snippet}
+
+<style>
+    .scale-slider {
+        width: 100%;
+        height: 4px;
+        appearance: none;
+        background: var(--border-input);
+        border-radius: 9999px;
+        outline: none;
+        cursor: pointer;
+        accent-color: var(--accent);
+    }
+    .scale-slider::-webkit-slider-thumb {
+        appearance: none;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        background: var(--foreground);
+        cursor: pointer;
+        box-shadow: var(--shadow-mini);
+    }
+    .scale-slider::-webkit-slider-runnable-track {
+        height: 4px;
+        border-radius: 9999px;
+    }
+</style>
