@@ -83,7 +83,7 @@
 </svelte:head>
 
 <div class="min-h-screen bg-dark-900">
-    <div class="bg-background rounded-b-[2rem] px-4 min-h-[calc(100dvh-11rem)]" style="padding-top: calc(env(safe-area-inset-top) + 2rem)">
+    <div class="bg-background rounded-b-[2rem] px-4 min-h-[calc(100dvh-8rem)]" style="padding-top: calc(env(safe-area-inset-top) + 2rem)">
         {@render children()}
     </div>
     {#if showFooter}

@@ -256,25 +256,26 @@
 
 <div
     bind:this={containerElement}
-    class="relative flex justify-center items-center bg-dark-900 px-4 pt-6 min-h-20 overflow-hidden"
+    class="relative flex justify-center items-center bg-dark-900 px-4 pt-6 min-h-28 overflow-hidden"
     style="padding-bottom: calc(env(safe-area-inset-bottom) + 2.5rem)"
 >
     {#if footerState === "idle"}
         {#if currentCase}
-            <div class="absolute inset-0 flex items-center justify-center">
-                <p class="text-dark-200 text-base select-none">Glisser pour commencer</p>
+            <div class="absolute inset-x-0 top-0 flex items-center" style="bottom: calc(env(safe-area-inset-bottom) + 2.5rem)">
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <p class="text-dark-200 text-base select-none">Glisser pour commencer</p>
+                </div>
+                <button
+                    class="ml-10 flex items-center justify-center bg-dark-400 rounded-2xl cursor-grab active:cursor-grabbing touch-none z-10"
+                    style="width: 60px; height: 60px; transform: translateX({dragX}px); transition: {isDragging
+                        ? 'none'
+                        : 'transform 0.3s ease-out'}"
+                    onmousedown={handleDragStart}
+                    ontouchstart={handleDragStart}
+                >
+                    <ArrowRight color="black" size={26} />
+                </button>
             </div>
-
-            <button
-                class="absolute left-10 flex bg-dark-700 p-3 rounded-2xl cursor-grab active:cursor-grabbing transition-colors touch-none z-10"
-                style="transform: translateX({dragX}px); transition: {isDragging
-                    ? 'none'
-                    : 'transform 0.3s ease-out'}"
-                onmousedown={handleDragStart}
-                ontouchstart={handleDragStart}
-            >
-                <ArrowRight class="text-foreground" />
-            </button>
         {:else}
             <p class="text-dark-400 text-base select-none text-center">
                 Sélectionnez une affaire pour enregistrer
