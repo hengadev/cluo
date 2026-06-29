@@ -5,11 +5,12 @@
     import {
         fetchCaseMedia,
         submitTranscriptionJob,
-        getTranscriptionJobStatus,
         getTranscriptionByMediaFile,
         analyzeTranscript,
         getAnalysisByTranscriptionId,
     } from "$lib/services/api";
+    import { jobTracker } from "$lib/services/jobTracker";
+    import { notificationStore } from "$lib/stores/notifications.svelte";
     import type { MediaFile, TranscriptionJob, Transcription, TranscriptAnalysis } from "$lib/types/entities";
     import { getToastContext } from "$lib/custom/global/toast/state.svelte";
     import { TOAST_LEVELS } from "$lib/custom/global/toast/type";
@@ -100,11 +101,20 @@
 
     async function handleAnalyze(rec: RecordingState) {
         if (!rec.transcription) return;
+        const caseId = $page.params.id;
         rec.loadingAnalysis = true;
         try {
             rec.analysis = await analyzeTranscript(rec.transcription.id);
             rec.analysisExpanded = true;
             toastState.add(TOAST_LEVELS.Info, "Analyse terminée", `« ${rec.media.fileName} » a été analysé.`);
+            if (caseId) {
+                notificationStore.push({
+                    kind: "analysis_completed",
+                    title: "Analyse prête",
+                    content: `« ${rec.media.fileName} » a été analysé.`,
+                    caseId,
+                });
+            }
         } catch (err) {
             toastState.add(TOAST_LEVELS.Error, "Erreur", "Impossible d'analyser la transcription.");
         } finally {
@@ -141,50 +151,22 @@
     }
 
     async function handleTranscribe(rec: RecordingState) {
+        const caseId = $page.params.id;
         rec.loadingJob = true;
         try {
             const job = await submitTranscriptionJob(rec.media.id);
             rec.transcriptionJob = job;
             toastState.add(TOAST_LEVELS.Info, "Transcription lancée", "La transcription est en cours de traitement.");
 
-            // Poll for completion
-            pollJob(rec, job.jobId);
+            // Track the job globally so its result is surfaced through the
+            // notification bell even if the investigator navigates away from
+            // this page. The page no longer polls on its own.
+            jobTracker.trackJob(job.jobId, rec.media.fileName, caseId ?? "");
         } catch (err) {
             toastState.add(TOAST_LEVELS.Error, "Erreur", "Impossible de lancer la transcription.");
+        } finally {
             rec.loadingJob = false;
         }
-    }
-
-    async function pollJob(rec: RecordingState, jobId: string) {
-        const maxAttempts = 60; // 5 minutes at 5s interval
-        let attempts = 0;
-
-        const interval = setInterval(async () => {
-            attempts++;
-            try {
-                const job = await getTranscriptionJobStatus(jobId);
-                rec.transcriptionJob = job;
-
-                if (job.status === "completed") {
-                    clearInterval(interval);
-                    rec.loadingJob = false;
-                    // Load the transcription
-                    await loadTranscriptionStatus(rec);
-                    toastState.add(TOAST_LEVELS.Info, "Transcription terminée", `« ${rec.media.fileName} » a été transcrit.`);
-                } else if (job.status === "failed" || job.status === "cancelled") {
-                    clearInterval(interval);
-                    rec.loadingJob = false;
-                    toastState.add(TOAST_LEVELS.Error, "Erreur", `La transcription a échoué : ${job.errorMessage || "raison inconnue"}.`);
-                }
-            } catch {
-                // Ignore poll errors
-            }
-
-            if (attempts >= maxAttempts) {
-                clearInterval(interval);
-                rec.loadingJob = false;
-            }
-        }, 5000);
     }
 
     function togglePlayback(rec: RecordingState) {
