@@ -94,24 +94,24 @@ release-desktop: ## Build and release cluo_desktop for Windows — VERSION=x.y.z
 	@echo "==> [$(ENV)] Step 2/5: Building cluo_desktop v$(VERSION) for Windows (mingw cross-compile)..."
 	cd cluo_desktop && CC=x86_64-w64-mingw32-gcc wails build -platform windows/amd64 \
 		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
-	@test -f cluo_desktop/build/bin/cluo_desktop.exe || (echo "ERROR: wails build did not produce binary"; exit 1)
+	@test -f cluo_desktop/build/bin/cluo.exe || (echo "ERROR: wails build did not produce binary"; exit 1)
 	@set -e; \
-	BINARY=cluo_desktop/build/bin/cluo_desktop.exe; \
+	BINARY=cluo_desktop/build/bin/cluo.exe; \
 	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
-	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_windows_amd64.exe; \
+	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_windows_amd64.exe; \
 	echo "==> [$(ENV)] Step 3/5: Checksum: $$CHECKSUM"; \
 	printf '{\n  "version": "%s",\n  "release_notes": "%s",\n  "downloads": {\n    "windows_amd64": "%s"\n  },\n  "checksums": {\n    "windows_amd64": "%s"\n  }\n}\n' \
 		"$(VERSION)" "$(RELEASE_NOTES)" "$$DOWNLOAD_URL" "$$CHECKSUM" \
 		> /tmp/cluo_desktop_manifest.json; \
 	($(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE)); \
 	if [ "$(DRY_RUN)" = "1" ]; then \
-		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_windows_amd64.exe"; \
+		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_windows_amd64.exe"; \
 		echo "[DRY RUN] Step 5/5: Skipping manifest upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json"; \
 		echo "[DRY RUN] Release v$(VERSION) validated (no uploads). Manifest URL: $(DESKTOP_MANIFEST_URL)"; \
 	else \
 		echo "==> [$(ENV)] Step 4/5: Uploading binary to S3..."; \
 		aws s3 cp $$BINARY \
-			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_windows_amd64.exe \
+			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_windows_amd64.exe \
 			--content-type application/octet-stream \
 			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Step 5/5: Uploading signed manifest to S3..."; \
@@ -140,11 +140,11 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 	@echo "==> [$(ENV)] Step 2/5: Building cluo_desktop v$(VERSION) for Linux (native)..."
 	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
 		-ldflags "-X cluo_desktop/updater.Version=$(VERSION) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
-	@test -f cluo_desktop/build/bin/cluo_desktop || (echo "ERROR: wails build did not produce binary"; exit 1)
+	@test -f cluo_desktop/build/bin/cluo || (echo "ERROR: wails build did not produce binary"; exit 1)
 	@set -e; \
-	BINARY=cluo_desktop/build/bin/cluo_desktop; \
+	BINARY=cluo_desktop/build/bin/cluo; \
 	CHECKSUM=$$(sha256sum $$BINARY | awk '{print "sha256:"$$1}'); \
-	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_linux_amd64; \
+	DOWNLOAD_URL=https://$(DESKTOP_S3_BUCKET).s3.eu-central-1.amazonaws.com/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_linux_amd64; \
 	echo "==> [$(ENV)] Step 3/5: Checksum: $$CHECKSUM"; \
 	if [ "$(DRY_RUN)" = "1" ]; then \
 		printf '{"downloads":{},"checksums":{}}' > /tmp/cluo_current_manifest.json; \
@@ -158,13 +158,13 @@ release-desktop-linux: ## Build and release cluo_desktop for Linux — VERSION=x
 		/tmp/cluo_current_manifest.json > /tmp/cluo_desktop_manifest.json; \
 	($(SIGN_MANIFEST) sign /tmp/cluo_desktop_manifest.json $(SIGNING_KEY_FILE)); \
 	if [ "$(DRY_RUN)" = "1" ]; then \
-		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_linux_amd64"; \
+		echo "[DRY RUN] Step 4/5: Skipping binary upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_linux_amd64"; \
 		echo "[DRY RUN] Step 5/5: Skipping manifest upload to s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/manifest.json"; \
 		echo "[DRY RUN] Release v$(VERSION) validated (no uploads). Manifest URL: $(DESKTOP_MANIFEST_URL)"; \
 	else \
 		echo "==> [$(ENV)] Step 4/5: Uploading binary to S3..."; \
 		aws s3 cp $$BINARY \
-			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_desktop_linux_amd64 \
+			s3://$(DESKTOP_S3_BUCKET)/$(DESKTOP_S3_PREFIX)/v$(VERSION)/cluo_linux_amd64 \
 			--content-type application/octet-stream \
 			--profile $(AWS_S3_PROFILE); \
 		echo "==> [$(ENV)] Step 5/5: Uploading signed manifest to S3..."; \
@@ -204,7 +204,7 @@ build-desktop-linux-local: ## Build cluo_desktop for Linux locally (no S3 upload
 	@echo "==> Building cluo_desktop for Linux (local, no release)..."
 	cd cluo_desktop && wails build -platform linux/amd64 -tags webkit2_41 \
 		-ldflags "-X cluo_desktop/updater.Version=$(or $(VERSION),0.0.0-local) -X cluo_desktop/updater.ManifestURL=$(DESKTOP_MANIFEST_URL) -X cluo_desktop/updater.PublicKey=$(PUBLIC_KEY)"
-	@echo "==> Binary: cluo_desktop/build/bin/cluo_desktop"
+	@echo "==> Binary: cluo_desktop/build/bin/cluo"
 
 install-desktop-linux: ## Install cluo_desktop for current user (binary + icon + .desktop entry for Wofi/launchers)
 	@bash cluo_desktop/build/linux/install.sh

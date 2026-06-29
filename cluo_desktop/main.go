@@ -73,7 +73,7 @@ func main() {
 	upd := updater.NewUpdater()
 
 	err := wails.Run(&options.App{
-		Title:  "cluo_desktop",
+		Title:  "Cluo",
 		Width:  1024,
 		Height: 768,
 		AssetServer: &assetserver.Options{

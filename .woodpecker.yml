@@ -32,9 +32,9 @@ steps:
       - cd cluo_desktop
       - go build -o /tmp/sign-manifest ./cmd/sign-manifest
       - VERSION=$(echo "$CI_COMMIT_TAG" | sed 's/^v//')
-      - EXE=build/bin/cluo_desktop.exe
+      - EXE=build/bin/cluo.exe
       - CHECKSUM=$(sha256sum "$EXE" | awk '{print $1}')
-      - FILENAME=cluo_desktop_${CI_COMMIT_TAG}_windows_amd64.exe
+      - FILENAME=cluo_${CI_COMMIT_TAG}_windows_amd64.exe
       - DL_URL=https://releases.henga.dev/cluo/$FILENAME
       - printf '{"version":"%s","release_notes":"","downloads":{"windows_amd64":"%s"},"checksums":{"windows_amd64":"%s"}}' "$VERSION" "$DL_URL" "$CHECKSUM" > /tmp/manifest.json
       - printf '%s' "$UPDATE_PRIVATE_KEY" > /tmp/privkey
