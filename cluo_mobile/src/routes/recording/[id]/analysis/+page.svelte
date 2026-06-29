@@ -7,14 +7,14 @@
 	import { getAnalysis } from "$lib/api";
 	import type { AnalysisResult } from "$lib/types/recording";
 
+	let { data } = $props();
+	const recordingId = data.id;
+
 	let analysis = $state<AnalysisResult | null>(null);
 	let isLoading = $state(true);
 	let error = $state<string | null>(null);
-	let recordingId = $state("");
 
 	onMount(() => {
-		const pathParts = window.location.pathname.split("/");
-		recordingId = pathParts[pathParts.length - 2];
 		loadAnalysis();
 	});
 

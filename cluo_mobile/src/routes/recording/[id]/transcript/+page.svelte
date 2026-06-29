@@ -8,20 +8,16 @@
 	import { getTranscript, confirmTranscript, analyzeTranscript } from "$lib/api";
 	import type { Transcript } from "$lib/types/recording";
 
+	let { data } = $props();
+	const recordingId = data.id;
+
 	let transcript = $state<Transcript | null>(null);
 	let isLoading = $state(true);
 	let isSaving = $state(false);
 	let isAnalyzing = $state(false);
 	let error = $state<string | null>(null);
 
-	// Get recording ID from URL
-	let recordingId = $state("");
-
 	onMount(() => {
-		// Extract recording ID from URL path
-		const pathParts = window.location.pathname.split("/");
-		recordingId = pathParts[pathParts.length - 2]; // Get the ID before "transcript"
-
 		loadTranscript();
 	});
 
