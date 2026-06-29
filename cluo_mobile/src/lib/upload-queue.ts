@@ -14,7 +14,7 @@
 export interface QueuedUpload {
 	id: string;
 	blob: Blob;
-	metadata: { caseId: string; title: string };
+	metadata: { caseId: string; title: string; purpose?: string };
 	enqueuedAt: string; // ISO 8601
 	attemptCount: number;
 }
@@ -87,7 +87,7 @@ function txStore(mode: IDBTransactionMode): Promise<IDBObjectStore> {
  */
 export async function enqueue(
 	blob: Blob,
-	metadata: { caseId: string; title: string },
+	metadata: { caseId: string; title: string; purpose?: string },
 ): Promise<string> {
 	const id = crypto.randomUUID();
 	const entry: QueuedUpload = {
@@ -141,7 +141,7 @@ export async function remove(queueId: string): Promise<void> {
  * - Idempotent: safe to call concurrently (uses an internal lock).
  */
 export async function flush(
-	uploadFn: (blob: Blob, metadata: { caseId?: string; title?: string }) => Promise<unknown>,
+	uploadFn: (blob: Blob, metadata: { caseId?: string; title?: string; purpose?: string }) => Promise<unknown>,
 ): Promise<FlushResult> {
 	// Simple lock to prevent concurrent flushes
 	if (flushInProgress) {

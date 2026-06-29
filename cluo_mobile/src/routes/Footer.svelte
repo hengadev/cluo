@@ -232,7 +232,7 @@
             console.error("Failed to send audio:", error);
 
             try {
-                await enqueue(blob, { caseId: currentCase!.id, title });
+                await enqueue(blob, { caseId: currentCase!.id, title, purpose: recordingPurpose });
                 snackbar.show("Enregistrement mis en attente — sera envoyé dès que possible");
                 queueCount.refresh();
             } catch {
