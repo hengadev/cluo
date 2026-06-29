@@ -8,7 +8,8 @@ import (
 
 // allowedOrigins returns the set of permitted CORS origins from CLUO_CORS_ORIGIN
 // (comma-separated). Defaults to http://localhost:5173 for local development.
-// For Wails desktop builds add "wails://wails"; for Wails dev mode add
+// For Wails desktop builds add "wails://wails" (Linux/macOS) and
+// "https://wails.localhost" (Windows WebView2); for Wails dev mode add
 // "http://localhost:34115".
 func allowedOrigins() map[string]struct{} {
 	raw := os.Getenv("CLUO_CORS_ORIGIN")
